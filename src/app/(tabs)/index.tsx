@@ -1,6 +1,7 @@
 import { Image } from "expo-image"
 import { Link } from "expo-router"
-import { Platform, StyleSheet } from "react-native"
+import { Platform } from "react-native"
+import { StyleSheet } from "react-native-unistyles"
 
 import { HelloWave } from "~/components/hello-wave"
 import ParallaxScrollView from "~/components/parallax-scroll-view"
@@ -19,16 +20,14 @@ export default function HomeScreen() {
       }
     >
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome Fuck!</ThemedText>
+        <ThemedText type="title">Welcome!</ThemedText>
         <HelloWave />
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
         <ThemedText type="subtitle">Step 1: Try it</ThemedText>
         <ThemedText>
           Edit{" "}
-          <ThemedText type="defaultSemiBold">
-            src/app/(tabs)/index.tsx
-          </ThemedText>{" "}
+          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText>{" "}
           to see changes. Press{" "}
           <ThemedText type="defaultSemiBold">
             {Platform.select({
@@ -87,14 +86,14 @@ export default function HomeScreen() {
   )
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create((theme) => ({
   titleContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: theme.gap(1),
   },
   stepContainer: {
-    gap: 8,
+    gap: theme.gap(1),
     marginBottom: 8,
   },
   reactLogo: {
@@ -104,4 +103,4 @@ const styles = StyleSheet.create({
     left: 0,
     position: "absolute",
   },
-})
+}))

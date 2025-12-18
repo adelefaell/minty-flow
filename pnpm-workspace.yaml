@@ -1,8 +1,5 @@
-packages:
-  - .
-
 nodeLinker: hoisted
 
 onlyBuiltDependencies:
-  - '@shopify/react-native-skia'
   - react-native-nitro-modules
+  - unrs-resolver
