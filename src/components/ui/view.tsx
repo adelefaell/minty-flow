@@ -12,9 +12,16 @@ type ViewVariant =
 
 export interface ViewProps extends RNViewProps {
   variant?: ViewVariant
+  native?: boolean
 }
 
-export const View = ({ variant = "default", style, ...props }: ViewProps) => {
+export const View = ({
+  variant = "default",
+  style,
+  native,
+  ...props
+}: ViewProps) => {
+  if (native) return <RNView style={style} {...props} />
   return <RNView style={[viewStyles[variant], style]} {...props} />
 }
 

@@ -135,7 +135,7 @@ function CalculatorSheetExample() {
   )
 }
 
-const styles = StyleSheet.create(() => ({
+const styles = StyleSheet.create((t) => ({
   titleContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -162,19 +162,19 @@ const styles = StyleSheet.create(() => ({
   description: {
     marginBottom: 16,
     textAlign: "center",
-    color: "#666",
+    color: t.mutedForeground,
   },
   triggerButton: {
-    backgroundColor: "#51CF66",
+    backgroundColor: t.primary,
     paddingHorizontal: 24,
     paddingVertical: 12,
-    borderRadius: 8,
+    borderRadius: t.radius,
     alignSelf: "center",
     marginVertical: 8,
   },
   triggerButtonText: {
-    color: "white",
+    color: t.primaryForeground,
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: "bold",
   },
 }))

@@ -1,6 +1,6 @@
 import * as React from "react"
 import { Pressable, type PressableProps } from "react-native"
-import { StyleSheet } from "react-native-unistyles"
+import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 // Text class context for passing variant styles to child Text components
 const ButtonTextContext = React.createContext<{
@@ -32,12 +32,17 @@ export function Button({
   children,
   ...props
 }: ButtonProps) {
+  const { theme } = useUnistyles()
   const contextValue = React.useMemo(() => ({ variant, size }), [variant, size])
 
   return (
     <ButtonTextContext.Provider value={contextValue}>
       <Pressable
         role="button"
+        android_ripple={{
+          color: theme.rippleColor,
+          foreground: true, // <-- KEY TO MAKE IT SHOW
+        }}
         style={(state) => [
           styles.base,
           variantStyles[variant],
@@ -61,6 +66,7 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    overflow: "hidden",
     borderRadius: theme.radius,
     gap: 8,
     flexShrink: 1,

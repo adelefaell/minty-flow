@@ -34,6 +34,7 @@ export const lightTheme = {
   shadow: "rgba(0, 0, 0, 1)",
   radius: 10,
   boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+  rippleColor: "rgba(0,0,0,0.25)",
 }
 
 export const darkTheme = {
@@ -71,7 +72,8 @@ export const darkTheme = {
   sidebarRing: "rgba(112, 112, 112, 1)",
   shadow: "rgba(0, 0, 0, 1)",
   radius: 10,
-  boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+  boxShadow: "0 1px 3px rgba(0, 0, 0, 0.3)",
+  rippleColor: "rgba(255,255,255,0.25)",
 }
 
 export const themes = {

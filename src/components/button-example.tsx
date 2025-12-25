@@ -16,14 +16,18 @@ export function ButtonExample() {
       </Button>
 
       {/* Destructive Button */}
-      <Button variant="destructive" onPress={() => {}}>
-        <Text>Delete</Text>
-      </Button>
+      <View style={styles.buttonContainer}>
+        <Button variant="destructive" onPress={() => {}}>
+          <Text>Delete</Text>
+        </Button>
+      </View>
 
       {/* Outline Button */}
-      <Button variant="outline" onPress={() => {}}>
-        <Text>Outline</Text>
-      </Button>
+      <View style={styles.buttonContainer}>
+        <Button variant="outline" onPress={() => {}}>
+          <Text>Outline</Text>
+        </Button>
+      </View>
 
       {/* Secondary Button */}
       <Button variant="secondary" onPress={() => {}}>
@@ -68,11 +72,17 @@ export function ButtonExample() {
   )
 }
 
-const styles = StyleSheet.create(() => ({
+const styles = StyleSheet.create((t) => ({
   container: {
     flex: 1,
     padding: 16,
     gap: 12,
     paddingBottom: 200,
+    borderRadius: t.radius,
+    overflow: "hidden",
+  },
+  buttonContainer: {
+    borderRadius: t.radius,
+    overflow: "hidden",
   },
 }))

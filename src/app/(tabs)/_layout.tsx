@@ -64,7 +64,7 @@ const TabLayout = () => {
       justifyContent: "space-evenly",
       height: 54,
       width: "90%",
-      borderRadius: 10,
+      borderRadius: t.radius,
       backgroundColor: t.secondary,
       marginBottom: insets.bottom + 8,
 
@@ -77,7 +77,7 @@ const TabLayout = () => {
     },
 
     centerButton: {
-      borderRadius: 10,
+      borderRadius: t.radius,
       backgroundColor: t.primary,
       alignItems: "center",
       justifyContent: "center",

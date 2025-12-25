@@ -70,10 +70,10 @@ const calculatorStyles = StyleSheet.create((theme) => ({
     fontSize: 20,
   },
   equalsButton: {
-    backgroundColor: theme.chart4, // Yellow color
+    backgroundColor: theme.chart2,
   },
   equalsButtonPressed: {
-    backgroundColor: theme.chart4,
+    backgroundColor: theme.chart2,
     opacity: 0.8,
   },
   equalsButtonText: {
