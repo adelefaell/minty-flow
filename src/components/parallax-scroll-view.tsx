@@ -79,6 +79,6 @@ const styles = StyleSheet.create((theme) => ({
     padding: 32,
     gap: 16,
     overflow: "hidden",
-    backgroundColor: theme.background,
+    backgroundColor: theme.colors.surface,
   },
 }))

@@ -26,7 +26,7 @@ export default function CategoriesScreen() {
 const styles = StyleSheet.create((theme) => ({
   container: {
     flex: 1,
-    backgroundColor: theme.background,
+    backgroundColor: theme.colors.surface,
   },
   content: {
     padding: 20,
@@ -34,12 +34,12 @@ const styles = StyleSheet.create((theme) => ({
   title: {
     fontSize: 28,
     fontWeight: "700",
-    color: theme.foreground,
+    color: theme.colors.onSurface,
     marginBottom: 12,
   },
   description: {
     fontSize: 15,
-    color: theme.mutedForeground,
+    color: theme.colors.onSecondary,
     lineHeight: 22,
     marginBottom: 24,
   },
@@ -47,11 +47,11 @@ const styles = StyleSheet.create((theme) => ({
     padding: 40,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: theme.muted,
+    backgroundColor: theme.colors.secondary,
     borderRadius: theme.radius,
   },
   placeholderText: {
     fontSize: 14,
-    color: theme.mutedForeground,
+    color: theme.colors.onSecondary,
   },
 }))

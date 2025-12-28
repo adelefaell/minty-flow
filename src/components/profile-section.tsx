@@ -26,7 +26,7 @@ export function ProfileSection() {
         style={styles.profileInfo}
         onPress={handlePress}
         android_ripple={{
-          color: theme.rippleColor,
+          color: theme.colors.rippleColor,
           foreground: true, // <-- KEY TO MAKE IT SHOW
         }}
       >
@@ -66,7 +66,7 @@ const styles = StyleSheet.create((theme) => ({
     width: 128,
     height: 128,
     borderRadius: theme.radius,
-    backgroundColor: theme.primary,
+    backgroundColor: theme.colors.primary,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 12,
@@ -79,7 +79,7 @@ const styles = StyleSheet.create((theme) => ({
   avatarText: {
     fontSize: 28,
     fontWeight: "bold",
-    color: theme.background,
+    color: theme.colors.surface,
     lineHeight: 32,
     textAlign: "center",
     includeFontPadding: false,
@@ -87,6 +87,6 @@ const styles = StyleSheet.create((theme) => ({
   profileName: {
     fontSize: 20,
     fontWeight: "bold",
-    color: theme.foreground,
+    color: theme.colors.onSurface,
   },
 }))

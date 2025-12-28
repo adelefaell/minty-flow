@@ -1,10 +1,10 @@
 import { useCallback } from "react"
 import { Pressable } from "react-native"
-import { StyleSheet, useUnistyles } from "react-native-unistyles"
+import { StyleSheet } from "react-native-unistyles"
 
 import { useAmountFormattingStore } from "~/stores/amount-formatting.store"
 import { useCalculatorStore } from "~/stores/calculator.store"
-import { useSettingsStore } from "~/stores/settings.store"
+import { useCurrencyStore } from "~/stores/currency.store"
 import { Operation } from "~/types/calculator"
 
 import {
@@ -51,12 +51,12 @@ const calculatorStyles = StyleSheet.create((theme) => ({
     flex: 1,
     aspectRatio: 1,
     borderRadius: theme.radius,
-    backgroundColor: theme.accent,
+    backgroundColor: theme.colors.secondary,
     justifyContent: "center",
     alignItems: "center",
   },
   keypadButtonPressed: {
-    backgroundColor: theme.muted,
+    backgroundColor: theme.colors.secondary,
     opacity: 0.8,
   },
   keypadButtonText: {
@@ -64,22 +64,22 @@ const calculatorStyles = StyleSheet.create((theme) => ({
     fontWeight: "bold",
   },
   functionButton: {
-    backgroundColor: theme.secondary,
+    backgroundColor: theme.colors.secondary,
   },
   functionButtonText: {
     fontSize: 20,
   },
   equalsButton: {
-    backgroundColor: theme.chart2,
+    backgroundColor: theme.colors.primary,
+    color: theme.colors.onPrimary,
   },
   equalsButtonPressed: {
-    backgroundColor: theme.chart2,
     opacity: 0.8,
   },
   equalsButtonText: {
     fontSize: 24,
     fontWeight: "bold",
-    color: theme.foreground,
+    color: theme.colors.onSurface,
   },
   actionsContainer: {
     marginTop: 16,
@@ -133,9 +133,8 @@ export function CalculatorSheet({
     hasActiveOperation,
   } = useCalculatorStore()
 
-  const { preferredCurrency } = useSettingsStore()
+  const { preferredCurrency } = useCurrencyStore()
   const { currencyLook } = useAmountFormattingStore()
-  const { theme } = useUnistyles()
 
   // Format the display value with currency
   // Ensure we always have a valid display value
@@ -467,11 +466,7 @@ export function CalculatorSheet({
               onPress={handleBackspace}
               onLongPress={clear}
             >
-              <IconSymbol
-                name="delete.backward"
-                size={24}
-                color={theme.foreground}
-              />
+              <IconSymbol name="delete.backward" size={24} />
             </Pressable>
             <Pressable
               style={({ pressed }) => [
@@ -488,7 +483,6 @@ export function CalculatorSheet({
                 // <IconSymbol
                 //   name="checkmark"
                 //   size={24}
-                //   color={theme.foreground}
                 // />
               )}
             </Pressable>

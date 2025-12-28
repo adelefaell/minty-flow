@@ -45,8 +45,8 @@ export function Input({
         !editable && styles.disabled,
         typeof style === "function" ? undefined : style,
       ]}
-      placeholderTextColor={theme.mutedForeground}
-      selectionColor={theme.primary}
+      placeholderTextColor={theme.colors.onSecondary}
+      selectionColor={theme.colors.primary}
       editable={editable}
       onFocus={handleFocus}
       onBlur={handleBlur}
@@ -62,13 +62,13 @@ const styles = StyleSheet.create((theme) => ({
     minWidth: 0,
     borderRadius: theme.radius,
     borderWidth: 1,
-    borderColor: theme.border,
-    backgroundColor: theme.input,
+    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.secondary,
     paddingHorizontal: 12,
     paddingVertical: 4,
     fontSize: 16,
-    color: theme.foreground,
-    shadowColor: theme.shadow,
+    color: theme.colors.onSurface,
+    shadowColor: theme.colors.shadow,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 1,
@@ -85,26 +85,26 @@ const styles = StyleSheet.create((theme) => ({
     },
   },
   focused: {
-    borderColor: theme.ring,
-    shadowColor: theme.ring,
+    borderColor: theme.colors.primary,
+    shadowColor: theme.colors.primary,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.2,
     shadowRadius: 3,
     elevation: 2,
     _web: {
-      borderColor: theme.ring,
-      shadowColor: theme.ring,
+      borderColor: theme.colors.primary,
+      shadowColor: theme.colors.primary,
       shadowOpacity: 0.5,
       shadowRadius: 3,
     },
   },
   error: {
-    borderColor: theme.destructive,
-    shadowColor: theme.destructive,
+    borderColor: theme.colors.error,
+    shadowColor: theme.colors.error,
     shadowOpacity: 0.2,
     _web: {
-      borderColor: theme.destructive,
-      shadowColor: theme.destructive,
+      borderColor: theme.colors.error,
+      shadowColor: theme.colors.error,
       shadowOpacity: 0.4,
     },
   },

@@ -138,11 +138,11 @@ export function TooltipProvider({ children }: { children: React.ReactNode }) {
   const styles = StyleSheet.create((t) => ({
     tooltip: {
       position: "absolute",
-      backgroundColor: t.popover,
+      backgroundColor: t.colors.surface,
       paddingHorizontal: 12,
       paddingVertical: 6,
       borderRadius: t.radius,
-      shadowColor: t.shadow,
+      shadowColor: t.colors.shadow,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.2,
       shadowRadius: 4,
@@ -151,7 +151,7 @@ export function TooltipProvider({ children }: { children: React.ReactNode }) {
       zIndex: 10000,
     },
     tooltipText: {
-      color: t.popoverForeground,
+      color: t.colors.onSurface,
       fontSize: 12,
       textAlign: "center",
     },

@@ -1,13 +1,13 @@
-import { Ionicons } from "@expo/vector-icons"
 import { Image } from "expo-image"
 import * as ImagePicker from "expo-image-picker"
 import { useRouter } from "expo-router"
 import { useEffect, useState } from "react"
 import { Alert, Pressable, ScrollView } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-import { StyleSheet } from "react-native-unistyles"
+import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import { Button } from "~/components/ui/button"
+import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Input } from "~/components/ui/input"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
@@ -17,6 +17,7 @@ import { getInitials } from "~/utils/string-utils"
 export default function EditProfileScreen() {
   const router = useRouter()
   const insets = useSafeAreaInsets()
+  const { theme } = useUnistyles()
   const { name, imageUri, setName, setImageUri } = useProfileStore()
 
   const [localName, setLocalName] = useState(name)
@@ -86,7 +87,11 @@ export default function EditProfileScreen() {
               )}
             </View>
             <View style={styles.cameraIconContainer}>
-              <Ionicons name="camera" size={20} style={styles.cameraIcon} />
+              <IconSymbol
+                name="camera.fill"
+                size={20}
+                color={theme.colors.surface}
+              />
             </View>
           </Pressable>
           {localImageUri && (
@@ -122,7 +127,11 @@ export default function EditProfileScreen() {
           variant="default"
           style={styles.saveButton}
         >
-          <Ionicons name="checkmark" size={20} style={styles.saveIcon} />
+          <IconSymbol
+            name="checkmark"
+            size={20}
+            color={theme.colors.onPrimary}
+          />
           <Text>Save</Text>
         </Button>
       </View>
@@ -133,7 +142,7 @@ export default function EditProfileScreen() {
 const styles = StyleSheet.create((theme) => ({
   container: {
     flex: 1,
-    backgroundColor: theme.background,
+    backgroundColor: theme.colors.surface,
   },
   content: {
     paddingTop: 40,
@@ -155,7 +164,7 @@ const styles = StyleSheet.create((theme) => ({
     width: 128,
     height: 128,
     borderRadius: theme.radius,
-    backgroundColor: theme.primary,
+    backgroundColor: theme.colors.primary,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
@@ -167,7 +176,7 @@ const styles = StyleSheet.create((theme) => ({
   avatarText: {
     fontSize: 48,
     fontWeight: "bold",
-    color: theme.background,
+    color: theme.colors.surface,
     lineHeight: 56,
     textAlign: "center",
     includeFontPadding: false,
@@ -179,14 +188,11 @@ const styles = StyleSheet.create((theme) => ({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: theme.primary,
+    backgroundColor: theme.colors.primary,
     borderWidth: 3,
-    borderColor: theme.background,
+    borderColor: theme.colors.surface,
     alignItems: "center",
     justifyContent: "center",
-  },
-  cameraIcon: {
-    color: theme.background,
   },
   removeButton: {
     paddingVertical: 8,
@@ -194,8 +200,8 @@ const styles = StyleSheet.create((theme) => ({
   },
   removeButtonText: {
     fontSize: 14,
-    color: theme.destructive,
-    fontWeight: "semibold",
+    color: theme.colors.error,
+    fontWeight: "bold",
   },
   inputSection: {
     paddingHorizontal: 20,
@@ -204,24 +210,24 @@ const styles = StyleSheet.create((theme) => ({
   label: {
     fontSize: 12,
     fontWeight: "bold",
-    color: theme.mutedForeground,
+    color: theme.colors.onSecondary,
     marginBottom: 8,
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   input: {
-    backgroundColor: theme.card,
+    backgroundColor: theme.colors.surface,
     borderWidth: 1,
-    borderColor: theme.border,
+    borderColor: theme.colors.border,
     borderRadius: theme.radius,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    color: theme.foreground,
+    color: theme.colors.onSurface,
     minHeight: 48,
   },
   placeholderColor: {
-    color: theme.mutedForeground,
+    color: theme.colors.onSecondary,
   },
   buttonContainer: {
     paddingHorizontal: 20,
@@ -229,8 +235,5 @@ const styles = StyleSheet.create((theme) => ({
   },
   saveButton: {
     width: "100%",
-  },
-  saveIcon: {
-    color: theme.primaryForeground,
   },
 }))

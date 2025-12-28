@@ -40,7 +40,7 @@ export function Button({
       <Pressable
         role="button"
         android_ripple={{
-          color: theme.rippleColor,
+          color: theme.colors.rippleColor,
           foreground: true, // <-- KEY TO MAKE IT SHOW
         }}
         style={(state) => [
@@ -88,34 +88,34 @@ const styles = StyleSheet.create((theme) => ({
 
 const variantStyles = StyleSheet.create((theme) => ({
   default: {
-    backgroundColor: theme.primary,
-    shadowColor: theme.shadow,
+    backgroundColor: theme.colors.primary,
+    shadowColor: theme.colors.shadow,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 2,
   },
   destructive: {
-    backgroundColor: theme.destructive,
-    shadowColor: theme.shadow,
+    backgroundColor: theme.colors.error,
+    shadowColor: theme.colors.shadow,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 2,
   },
   outline: {
-    backgroundColor: theme.background,
+    backgroundColor: theme.colors.surface,
     borderWidth: 1,
-    borderColor: theme.border,
-    shadowColor: theme.shadow,
+    borderColor: theme.colors.border,
+    shadowColor: theme.colors.shadow,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 2,
   },
   secondary: {
-    backgroundColor: theme.secondary,
-    shadowColor: theme.shadow,
+    backgroundColor: theme.colors.secondary,
+    shadowColor: theme.colors.shadow,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
@@ -125,17 +125,17 @@ const variantStyles = StyleSheet.create((theme) => ({
     backgroundColor: "transparent",
     _web: {
       _hover: {
-        backgroundColor: theme.muted,
+        backgroundColor: theme.colors.secondary,
       },
       _focusVisible: {
-        backgroundColor: theme.muted,
+        backgroundColor: theme.colors.secondary,
         outlineWidth: 2,
         outlineStyle: "solid",
-        outlineColor: theme.ring,
+        outlineColor: theme.colors.primary,
         outlineOffset: 2,
       },
       _active: {
-        backgroundColor: theme.muted,
+        backgroundColor: theme.colors.secondary,
       },
     },
   },
@@ -149,11 +149,11 @@ const pressedStyles = StyleSheet.create((theme) => ({
   default: {},
   destructive: {},
   outline: {
-    backgroundColor: theme.muted,
+    backgroundColor: theme.colors.secondary,
   },
   secondary: {},
   ghost: {
-    backgroundColor: theme.muted,
+    backgroundColor: theme.colors.secondary,
   },
   link: {},
 }))
@@ -197,27 +197,27 @@ export const buttonTextStyles = StyleSheet.create((theme) => ({
     },
   },
   default: {
-    color: theme.primaryForeground,
+    color: theme.colors.onPrimary,
   },
   destructive: {
-    color: theme.destructiveForeground,
+    color: theme.colors.onError,
   },
   outline: {
-    color: theme.foreground,
+    color: theme.colors.onSurface,
   },
   secondary: {
-    color: theme.secondaryForeground,
+    color: theme.colors.onSecondary,
   },
   ghost: {
-    color: theme.foreground,
+    color: theme.colors.onSurface,
     _web: {
       _hover: {
-        color: theme.primary,
+        color: theme.colors.primary,
       },
     },
   },
   link: {
-    color: theme.primary,
+    color: theme.colors.primary,
     textDecorationLine: "underline",
     _web: {
       textDecorationLine: "underline",

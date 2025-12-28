@@ -29,7 +29,7 @@ export default function DataManagementScreen() {
 const styles = StyleSheet.create((theme) => ({
   container: {
     flex: 1,
-    backgroundColor: theme.background,
+    backgroundColor: theme.colors.surface,
   },
   content: {
     padding: 20,
@@ -37,12 +37,12 @@ const styles = StyleSheet.create((theme) => ({
   title: {
     fontSize: 28,
     fontWeight: "700",
-    color: theme.foreground,
+    color: theme.colors.onSurface,
     marginBottom: 12,
   },
   badge: {
     alignSelf: "flex-start",
-    backgroundColor: theme.muted,
+    backgroundColor: theme.colors.secondary,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: theme.radius,
@@ -51,11 +51,11 @@ const styles = StyleSheet.create((theme) => ({
   badgeText: {
     fontSize: 11,
     fontWeight: "600",
-    color: theme.mutedForeground,
+    color: theme.colors.onSecondary,
   },
   description: {
     fontSize: 15,
-    color: theme.mutedForeground,
+    color: theme.colors.onSecondary,
     lineHeight: 22,
     marginBottom: 24,
   },
@@ -63,11 +63,11 @@ const styles = StyleSheet.create((theme) => ({
     padding: 40,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: theme.muted,
+    backgroundColor: theme.colors.secondary,
     borderRadius: theme.radius,
   },
   placeholderText: {
     fontSize: 14,
-    color: theme.mutedForeground,
+    color: theme.colors.onSecondary,
   },
 }))

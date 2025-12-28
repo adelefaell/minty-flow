@@ -1,4 +1,3 @@
-import MaterialIcons from "@expo/vector-icons/MaterialIcons"
 import * as Haptics from "expo-haptics"
 import { useRef, useState } from "react"
 import PagerView, {
@@ -65,7 +64,7 @@ const TabLayout = () => {
       height: 54,
       width: "90%",
       borderRadius: t.radius,
-      backgroundColor: t.secondary,
+      backgroundColor: t.colors.secondary,
       marginBottom: insets.bottom + 8,
 
       pointerEvents: "auto",
@@ -78,7 +77,7 @@ const TabLayout = () => {
 
     centerButton: {
       borderRadius: t.radius,
-      backgroundColor: t.primary,
+      backgroundColor: t.colors.primary,
       alignItems: "center",
       justifyContent: "center",
       width: 44,
@@ -131,7 +130,9 @@ const TabLayout = () => {
                 <IconSymbol
                   name="circle.line"
                   color={
-                    activePage === 0 ? theme.primary : theme.mutedForeground
+                    activePage === 0
+                      ? theme.colors.primary
+                      : theme.colors.onSecondary
                   }
                 />
               </Button>
@@ -147,7 +148,9 @@ const TabLayout = () => {
                 <IconSymbol
                   name="chart.bar.fill"
                   color={
-                    activePage === 1 ? theme.primary : theme.mutedForeground
+                    activePage === 1
+                      ? theme.colors.primary
+                      : theme.colors.onSecondary
                   }
                 />
               </Button>
@@ -162,10 +165,10 @@ const TabLayout = () => {
                 }
                 style={styles.centerButton}
               >
-                <MaterialIcons
-                  name="add"
+                <IconSymbol
+                  name="plus"
                   size={28}
-                  color={theme.primaryForeground}
+                  color={theme.colors.onPrimary}
                 />
               </Button>
             </Tooltip>
@@ -180,7 +183,9 @@ const TabLayout = () => {
                 <IconSymbol
                   name="wallet.bifold.fill"
                   color={
-                    activePage === 2 ? theme.primary : theme.mutedForeground
+                    activePage === 2
+                      ? theme.colors.primary
+                      : theme.colors.onSecondary
                   }
                 />
               </Button>
@@ -196,7 +201,9 @@ const TabLayout = () => {
                 <IconSymbol
                   name="gearshape.fill"
                   color={
-                    activePage === 3 ? theme.primary : theme.mutedForeground
+                    activePage === 3
+                      ? theme.colors.primary
+                      : theme.colors.onSecondary
                   }
                 />
               </Button>

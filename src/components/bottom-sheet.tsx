@@ -12,14 +12,14 @@ import { create } from "zustand"
 // Unistyles for theme-aware styles
 const sheetStyles = UnistylesSheet.create((theme) => ({
   background: {
-    backgroundColor: theme.background,
+    backgroundColor: theme.colors.surface,
   },
   contentContainer: {
     flex: 1,
     padding: 16,
   },
   handleIndicator: {
-    backgroundColor: theme.mutedForeground,
+    backgroundColor: theme.colors.border,
   },
 }))
 

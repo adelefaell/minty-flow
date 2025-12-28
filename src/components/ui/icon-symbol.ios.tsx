@@ -5,6 +5,7 @@ import {
   type SymbolWeight,
 } from "expo-symbols"
 import type { StyleProp, ViewStyle } from "react-native"
+import { useUnistyles } from "react-native-unistyles"
 
 import type { IconSize } from "./icon-symbol"
 
@@ -25,7 +26,7 @@ type IconSymbolProps = {
   /**
    * The color of the icon.
    */
-  color: string
+  color?: string
   /**
    * Additional styles to apply to the icon container.
    */
@@ -62,10 +63,11 @@ export function IconSymbol({
   style,
   weight = "regular",
 }: IconSymbolProps) {
+  const { theme } = useUnistyles()
   return (
     <SymbolView
       weight={weight}
-      tintColor={color}
+      tintColor={color ?? theme.colors.onSurface}
       resizeMode="scaleAspectFit"
       name={name}
       style={[

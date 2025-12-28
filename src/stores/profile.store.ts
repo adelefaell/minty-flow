@@ -60,11 +60,11 @@ export const useProfileStore = create<ProfileStore>()(
   persist(
     (set) => ({
       // State definitions
-      name: "User Name",
+      name: "Name",
       imageUri: null,
 
       // Actions
-      setName: (name) => set({ name: name.trim() || "User Name" }),
+      setName: (name) => set({ name: name.trim() || "Name" }),
       setImageUri: (imageUri) => set({ imageUri }),
     }),
     {

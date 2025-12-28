@@ -5,6 +5,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons"
 import type { SymbolViewProps, SymbolWeight } from "expo-symbols"
 import type { ComponentProps } from "react"
 import type { OpaqueColorValue, StyleProp, TextStyle } from "react-native"
+import { useUnistyles } from "react-native-unistyles"
 
 /**
  * Mapping type that associates SF Symbol names with Material Icon names.
@@ -28,6 +29,28 @@ const MAPPING = defineIconMapping({
   "account.fill": "account",
   "chart.bar.fill": "chart-box",
   "wallet.bifold.fill": "wallet-bifold",
+  "paintbrush.fill": "format-paint",
+  "bell.fill": "bell",
+  "info.square.fill": "information-slab-box-outline",
+  "dollarsign.circle": "cash",
+  "square.grid.2x2": "view-grid",
+  tag: "tag-outline",
+  trash: "trash-can-outline",
+  "server.rack": "server",
+  "checkmark.circle": "check-circle",
+  "exclamationmark.triangle": "alert",
+  "info.circle": "information",
+  xmark: "close",
+  "camera.fill": "camera",
+  checkmark: "check",
+  plus: "plus",
+  "sun.max.fill": "weather-sunny",
+  "moon.fill": "weather-night",
+  "desktopcomputer.and.iphone": "devices",
+  leaf: "leaf",
+  "cloud.fill": "cloud",
+  "heart.fill": "heart",
+  "crown.fill": "crown",
 } as const)
 
 /**
@@ -73,7 +96,7 @@ type IconSymbolProps = {
   /**
    * The color of the icon. Can be a string or an OpaqueColorValue.
    */
-  color: string | OpaqueColorValue
+  color?: string | OpaqueColorValue
   /**
    * Additional styles to apply to the icon.
    */
@@ -107,9 +130,10 @@ type IconSymbolProps = {
  * @see {@link https://docs.expo.dev/versions/latest/sdk/vector-icons/ | Expo Vector Icons Documentation}
  */
 export function IconSymbol({ name, size = 24, color, style }: IconSymbolProps) {
+  const { theme } = useUnistyles()
   return (
     <MaterialCommunityIcons
-      color={color}
+      color={color ?? theme.colors.primary}
       size={size}
       name={MAPPING[name]}
       style={style}
