@@ -2,7 +2,6 @@
 // Minty Theming System - Theme Factory
 // ============================================================================
 
-import { getTheme } from "./registry"
 import type { MintyColorScheme, UnistylesTheme } from "./types"
 
 /**
@@ -19,13 +18,13 @@ export class ThemeFactory {
   /**
    * Create ThemeFactory from theme name
    */
-  static fromThemeName(
-    themeName: string | null,
-    preferDark: boolean = false,
-  ): ThemeFactory {
-    const scheme = getTheme(themeName, preferDark)
-    return new ThemeFactory(scheme)
-  }
+  // static fromThemeName(
+  //   themeName: string | null,
+  //   preferDark: boolean = false,
+  // ): ThemeFactory {
+  //   const scheme = getTheme(themeName, preferDark)
+  //   return new ThemeFactory(scheme)
+  // }
 
   /**
    * Get colors for Unistyles

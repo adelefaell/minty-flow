@@ -12,7 +12,7 @@ import {
   mintyDarkSchemes,
   mintyLightSchemes,
   mintyOledSchemes,
-} from "./schemes/flow"
+} from "./schemes/minty"
 import { monochrome, nord, palenight } from "./schemes/standalone"
 import type { MintyColorScheme, ThemeGroup } from "./types"
 
@@ -106,14 +106,6 @@ export const getTheme = (
   }
   return preferDark ? DEFAULT_DARK_BASE : DEFAULT_LIGHT_BASE
 }
-
-/**
- * Get a theme by name without fallback
- */
-export const getThemeStrict = (themeName: string): MintyColorScheme | null => {
-  return ALL_THEMES[themeName] || null
-}
-
 /**
  * Check if a theme name exists
  */
@@ -122,29 +114,36 @@ export const validateThemeName = (themeName: string): boolean => {
 }
 
 /**
+ * Get a theme by name without fallback
+ */
+// export const getThemeStrict = (themeName: string): MintyColorScheme | null => {
+//   return ALL_THEMES[themeName] || null
+// }
+
+/**
  * Get the group containing a specific theme
  */
-export const getGroupByTheme = (themeName: string): ThemeGroup | null => {
-  for (const groupList of Object.values(THEME_GROUPS)) {
-    for (const group of groupList) {
-      if (group.schemes.some((s) => s.name === themeName)) {
-        return group
-      }
-    }
-  }
-  return null
-}
+// export const getGroupByTheme = (themeName: string): ThemeGroup | null => {
+//   for (const groupList of Object.values(THEME_GROUPS)) {
+//     for (const group of groupList) {
+//       if (group.schemes.some((s) => s.name === themeName)) {
+//         return group
+//       }
+//     }
+//   }
+//   return null
+// }
 
 /**
  * Get all theme names
  */
-export const getAllThemeNames = (): string[] => {
-  return Object.keys(ALL_THEMES)
-}
+// export const getAllThemeNames = (): string[] => {
+//   return Object.keys(ALL_THEMES)
+// }
 
-/**
- * Get themes by brightness
- */
-export const getThemesByBrightness = (isDark: boolean): MintyColorScheme[] => {
-  return Object.values(ALL_THEMES).filter((theme) => theme.isDark === isDark)
-}
+// /**
+//  * Get themes by brightness
+//  */
+// export const getThemesByBrightness = (isDark: boolean): MintyColorScheme[] => {
+//   return Object.values(ALL_THEMES).filter((theme) => theme.isDark === isDark)
+// }
