@@ -68,7 +68,7 @@ const viewStyles = StyleSheet.create((theme) => ({
   bordered: {
     backgroundColor: theme.colors.surface,
     borderWidth: 1,
-    borderColor: theme.colors.border,
+    borderColor: theme.colors.onSurface,
     borderRadius: theme.radius,
   },
   muted: {
@@ -94,6 +94,6 @@ const viewStyles = StyleSheet.create((theme) => ({
     paddingVertical: 16,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border,
+    borderBottomColor: theme.colors.onSurface,
   },
 }))

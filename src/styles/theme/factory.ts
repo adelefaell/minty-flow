@@ -32,11 +32,6 @@ export class ThemeFactory {
   get colors(): UnistylesTheme["colors"] {
     const isDark = this.mintyColorScheme.isDark
 
-    // Use values from scheme if provided, otherwise generate defaults
-    const border =
-      this.mintyColorScheme.border ||
-      (isDark ? "rgba(51, 51, 51, 1)" : "rgba(235, 235, 235, 1)")
-
     const shadow =
       this.mintyColorScheme.shadow ||
       (isDark ? "rgba(0, 0, 0, 0.6)" : "rgba(0, 0, 0, 0.08)")
@@ -60,7 +55,6 @@ export class ThemeFactory {
       onSurface: this.mintyColorScheme.onSurface,
       error: this.mintyColorScheme.error || "#FF4040",
       onError: this.mintyColorScheme.onError || "#ffffff",
-      border,
       rippleColor,
       shadow,
       boxShadow,

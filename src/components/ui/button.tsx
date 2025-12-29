@@ -103,7 +103,7 @@ const variantStyles = StyleSheet.create((theme) => ({
   outline: {
     backgroundColor: theme.colors.surface,
     borderWidth: 1,
-    borderColor: theme.colors.border,
+    borderColor: theme.colors.onSurface,
     shadowColor: theme.colors.shadow,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,

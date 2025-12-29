@@ -117,6 +117,6 @@ const styles = StyleSheet.create((theme) => ({
   },
   sectionContent: {
     borderTopWidth: 1,
-    borderColor: theme.colors.border,
+    borderColor: theme.colors.onSurface,
   },
 }))

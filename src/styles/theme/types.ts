@@ -32,7 +32,6 @@ export interface MintyColorScheme {
   onError?: string // Text color on error
   customColors: MintyCustomColors
   // Utility colors
-  border?: string // Border color
   rippleColor?: string // Ripple effect color
   shadow?: string // Shadow color
   boxShadow?: string // Box shadow for web
@@ -63,7 +62,6 @@ export interface UnistylesTheme {
     | "onSurface"
     | "error"
     | "onError"
-    | "border"
     | "rippleColor"
     | "shadow"
     | "boxShadow"

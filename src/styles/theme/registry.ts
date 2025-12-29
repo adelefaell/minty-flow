@@ -4,9 +4,9 @@
 
 import { DEFAULT_DARK_BASE, DEFAULT_LIGHT_BASE } from "./base"
 import {
-  catppuccinFrappe,
-  catppuccinMacchiato,
-  catppuccinMocha,
+  catppuccinFrappeSchemes,
+  catppuccinMacchiatoSchemes,
+  catppuccinMochaSchemes,
 } from "./schemes/catppuccin"
 import {
   mintyDarkSchemes,
@@ -39,20 +39,20 @@ const mintyOleds: ThemeGroup = {
 
 const catppuccinFrappeGroup: ThemeGroup = {
   name: "Catppuccin Frappé",
-  icon: "☕",
-  schemes: [catppuccinFrappe],
+  icon: "🪴",
+  schemes: catppuccinFrappeSchemes,
 }
 
 const catppuccinMacchiatoGroup: ThemeGroup = {
   name: "Catppuccin Macchiato",
-  icon: "🍫",
-  schemes: [catppuccinMacchiato],
+  icon: "🌺",
+  schemes: catppuccinMacchiatoSchemes,
 }
 
 const catppuccinMochaGroup: ThemeGroup = {
   name: "Catppuccin Mocha",
-  icon: "🌑",
-  schemes: [catppuccinMocha],
+  icon: "🌿",
+  schemes: catppuccinMochaSchemes,
 }
 
 /**

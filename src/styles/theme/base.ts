@@ -27,7 +27,6 @@ export const DEFAULT_LIGHT_BASE: MintyColorScheme = {
     warning: "#FFA500",
     info: "#4A90E2",
   },
-  border: "rgba(235, 235, 235, 1)",
   rippleColor: "rgba(0, 0, 0, 0.25)",
   shadow: "rgba(0, 0, 0, 0.08)",
   boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
@@ -57,7 +56,6 @@ export const DEFAULT_DARK_BASE: MintyColorScheme = {
     warning: "#FBBF24",
     info: "#60A5FA",
   },
-  border: "rgba(51, 51, 51, 1)",
   rippleColor: "rgba(255, 255, 255, 0.25)",
   shadow: "rgba(0, 0, 0, 0.6)",
   boxShadow: "0 1px 3px rgba(0, 0, 0, 0.3)",
@@ -76,6 +74,5 @@ export const DEFAULT_OLED_BASE: MintyColorScheme = {
   secondary: "#101010",
   error: DEFAULT_DARK_BASE.error,
   onError: DEFAULT_DARK_BASE.onError,
-  border: "rgba(35, 35, 35, 1)",
   shadow: "rgba(0, 0, 0, 0.7)",
 }

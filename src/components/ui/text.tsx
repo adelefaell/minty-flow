@@ -134,7 +134,7 @@ const textStyles = StyleSheet.create((theme) => ({
   blockquote: {
     color: theme.colors.onSurface,
     borderLeftWidth: 2,
-    borderLeftColor: theme.colors.border,
+    borderLeftColor: theme.colors.onSurface,
     paddingLeft: 12,
     marginVertical: 16,
     fontStyle: "italic",

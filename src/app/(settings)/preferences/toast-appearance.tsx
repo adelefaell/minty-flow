@@ -232,7 +232,7 @@ const styles = StyleSheet.create((theme) => ({
     paddingBlock: 16,
     paddingRight: 20,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border,
+    borderBottomColor: theme.colors.onSurface,
     gap: 16,
   },
   settingInfo: {
@@ -261,7 +261,7 @@ const styles = StyleSheet.create((theme) => ({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: theme.colors.border,
+    borderColor: theme.colors.onSurface,
     alignItems: "center",
     justifyContent: "center",
   },

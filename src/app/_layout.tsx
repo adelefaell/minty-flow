@@ -36,7 +36,7 @@ export default function RootLayout() {
           />
           <Stack.Screen
             name="(settings)/loans"
-            options={{ presentation: "modal", title: "Loans Fuck u samiz" }}
+            options={{ presentation: "modal", title: "Loan" }}
           />
           <Stack.Screen
             name="(settings)/categories"
