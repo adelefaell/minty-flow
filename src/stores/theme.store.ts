@@ -87,5 +87,3 @@ export const useThemeStore = create<ThemeStore>()(
     },
   ),
 )
-
-export default useThemeStore

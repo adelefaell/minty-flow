@@ -39,9 +39,9 @@ const appearanceItems: PreferenceItem[] = [
   },
   {
     id: "toast",
-    title: "Toast Appearance",
-    description: "Configure your preferred toast appearance",
-    route: "/(settings)/(preferences)/toast-appearance",
+    title: "Toast Style",
+    description: "Configure your preferred toast style",
+    route: "/(settings)/(preferences)/toast-style",
     icon: "toaster",
   },
 ]

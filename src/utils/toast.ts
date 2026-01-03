@@ -1,5 +1,5 @@
 import { type ToastOptions, useToastStore } from "~/stores/toast.store"
-import { useToastAppearanceStore } from "~/stores/toast-appearance.store"
+import { useToastStyleStore } from "~/stores/toast-style.store"
 
 type ToastOptionsWithoutType = Omit<ToastOptions, "type">
 
@@ -11,7 +11,7 @@ type ToastOptionsWithoutType = Omit<ToastOptions, "type">
  * implemented directly in the codebase.
  *
  * Global defaults for position, progress bar, and close icon are applied
- * from the toast appearance store unless explicitly overridden.
+ * from the toast style store unless explicitly overridden.
  *
  * @example
  * ```tsx
@@ -40,9 +40,9 @@ class ToastAPI {
     return useToastStore.getState()
   }
 
-  private getAppearanceDefaults() {
+  private getStyleDefaults() {
     // Get global default appearance settings
-    return useToastAppearanceStore.getState()
+    return useToastStyleStore.getState()
   }
 
   /**
@@ -50,7 +50,7 @@ class ToastAPI {
    * Explicit options override the defaults.
    */
   private applyDefaults(options: ToastOptions): ToastOptions {
-    const defaults = this.getAppearanceDefaults()
+    const defaults = this.getStyleDefaults()
     return {
       position: defaults.position,
       showProgressBar: defaults.showProgressBar,

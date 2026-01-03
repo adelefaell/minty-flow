@@ -7,10 +7,10 @@ import { Switch } from "~/components/ui/switch"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import type { ToastPosition } from "~/stores/toast.store"
-import { useToastAppearanceStore } from "~/stores/toast-appearance.store"
+import { useToastStyleStore } from "~/stores/toast-style.store"
 import { Toast } from "~/utils/toast"
 
-export default function ToastAppearanceScreen() {
+export default function ToastStyleScreen() {
   const {
     position,
     showProgressBar,
@@ -19,7 +19,7 @@ export default function ToastAppearanceScreen() {
     setShowProgressBar,
     setShowCloseIcon,
     resetToDefaults,
-  } = useToastAppearanceStore()
+  } = useToastStyleStore()
 
   const handlePositionChange = (newPosition: ToastPosition) => {
     setPosition(newPosition)
@@ -57,7 +57,7 @@ export default function ToastAppearanceScreen() {
   const handleResetToDefaults = () => {
     Alert.alert(
       "Reset to Defaults",
-      "Are you sure you want to reset all toast appearance settings to their default values?",
+      "Are you sure you want to reset all toast style settings to their default values?",
       [
         {
           text: "Cancel",

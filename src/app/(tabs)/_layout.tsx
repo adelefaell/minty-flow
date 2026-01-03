@@ -8,7 +8,7 @@ import { StyleSheet } from "react-native-unistyles"
 
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
-import { Tooltip, TooltipProvider } from "~/components/ui/tooltip"
+import { Tooltip } from "~/components/ui/tooltip"
 import { View } from "~/components/ui/view"
 
 import HomeScreen from "."
@@ -108,89 +108,87 @@ const TabLayout = () => {
     activePage === index ? { opacity: 1 } : { opacity: 0.5 }
 
   return (
-    <TooltipProvider>
-      <View style={styles.container}>
-        <PagerView
-          ref={pagerRef}
-          style={styles.pager}
-          initialPage={0}
-          onPageSelected={onPageSelected}
-        >
-          {tabs.map((tab) => (
-            <View key={tab.key} style={styles.page}>
-              <tab.component />
-            </View>
-          ))}
-        </PagerView>
-
-        {/* Floating tab bar */}
-        <View style={styles.tabBarContainer}>
-          <View style={styles.tabBar}>
-            <Tooltip text="Home">
-              <Button
-                variant="link"
-                size="icon"
-                onPress={() => goTo(0)}
-                style={styles.tabButton}
-              >
-                <IconSymbol name="circle.line" style={isActiveTab(0)} />
-              </Button>
-            </Tooltip>
-
-            <Tooltip text="Statistics">
-              <Button
-                variant="link"
-                size="icon"
-                onPress={() => goTo(1)}
-                style={styles.tabButton}
-              >
-                <IconSymbol name="chart.bar.fill" style={isActiveTab(1)} />
-              </Button>
-            </Tooltip>
-
-            <Tooltip text="Add Transaction">
-              <Button
-                variant="default"
-                size="icon"
-                onPress={() =>
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-                }
-                style={styles.centerButton}
-              >
-                <IconSymbol
-                  name="plus"
-                  size={28}
-                  // color={theme.colors.onPrimary}
-                  style={styles.centerButtonIcon}
-                />
-              </Button>
-            </Tooltip>
-
-            <Tooltip text="Accounts">
-              <Button
-                variant="link"
-                size="icon"
-                onPress={() => goTo(2)}
-                style={styles.tabButton}
-              >
-                <IconSymbol name="wallet.bifold.fill" style={isActiveTab(2)} />
-              </Button>
-            </Tooltip>
-
-            <Tooltip text="Settings">
-              <Button
-                variant="link"
-                size="icon"
-                onPress={() => goTo(3)}
-                style={styles.tabButton}
-              >
-                <IconSymbol name="gearshape.fill" style={isActiveTab(3)} />
-              </Button>
-            </Tooltip>
+    <View style={styles.container}>
+      <PagerView
+        ref={pagerRef}
+        style={styles.pager}
+        initialPage={0}
+        onPageSelected={onPageSelected}
+      >
+        {tabs.map((tab) => (
+          <View key={tab.key} style={styles.page}>
+            <tab.component />
           </View>
+        ))}
+      </PagerView>
+
+      {/* Floating tab bar */}
+      <View style={styles.tabBarContainer}>
+        <View style={styles.tabBar}>
+          <Tooltip text="Home">
+            <Button
+              variant="link"
+              size="icon"
+              onPress={() => goTo(0)}
+              style={styles.tabButton}
+            >
+              <IconSymbol name="circle.line" style={isActiveTab(0)} />
+            </Button>
+          </Tooltip>
+
+          <Tooltip text="Statistics">
+            <Button
+              variant="link"
+              size="icon"
+              onPress={() => goTo(1)}
+              style={styles.tabButton}
+            >
+              <IconSymbol name="chart.bar.fill" style={isActiveTab(1)} />
+            </Button>
+          </Tooltip>
+
+          <Tooltip text="Add Transaction">
+            <Button
+              variant="default"
+              size="icon"
+              onPress={() =>
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+              }
+              style={styles.centerButton}
+            >
+              <IconSymbol
+                name="plus"
+                size={28}
+                // color={theme.colors.onPrimary}
+                style={styles.centerButtonIcon}
+              />
+            </Button>
+          </Tooltip>
+
+          <Tooltip text="Accounts">
+            <Button
+              variant="link"
+              size="icon"
+              onPress={() => goTo(2)}
+              style={styles.tabButton}
+            >
+              <IconSymbol name="wallet.bifold.fill" style={isActiveTab(2)} />
+            </Button>
+          </Tooltip>
+
+          <Tooltip text="Settings">
+            <Button
+              variant="link"
+              size="icon"
+              onPress={() => goTo(3)}
+              style={styles.tabButton}
+            >
+              <IconSymbol name="gearshape.fill" style={isActiveTab(3)} />
+            </Button>
+          </Tooltip>
         </View>
       </View>
-    </TooltipProvider>
+    </View>
   )
 }
 

@@ -67,5 +67,3 @@ export const useCurrencyStore = create<CurrencyStore>()(
     },
   ),
 )
-
-export default useCurrencyStore

@@ -16,7 +16,7 @@ interface TransactionItemAppearanceStore {
   setLeadingIcon: (value: LeadingIcon) => void
 }
 
-const useTransactionItemAppearanceStore =
+export const useTransactionItemAppearanceStore =
   create<TransactionItemAppearanceStore>()(
     devtools(
       persist(
@@ -45,5 +45,3 @@ const useTransactionItemAppearanceStore =
       { name: "transaction-item-appearance-store-dev" },
     ),
   )
-
-export default useTransactionItemAppearanceStore

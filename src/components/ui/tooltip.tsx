@@ -3,7 +3,6 @@ import React, {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -16,14 +15,18 @@ import {
 } from "react-native"
 import Animated, {
   useAnimatedStyle,
+  useDerivedValue,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated"
 import { StyleSheet } from "react-native-unistyles"
+import { scheduleOnUI } from "react-native-worklets"
 
 import { logger } from "~/utils/logger"
 
 import { Text } from "./text"
+
+type ExitPositionType = "top" | "bottom"
 
 type TooltipData = {
   text: string
@@ -31,6 +34,7 @@ type TooltipData = {
   y: number
   width: number
   height: number
+  position?: ExitPositionType
 }
 
 type TooltipContextType = {
@@ -40,37 +44,48 @@ type TooltipContextType = {
 
 const TooltipContext = createContext<TooltipContextType | null>(null)
 
-const TOOLTIP_SPACING = 10
+const TOOLTIP_BOTTOM_SPACING = 30
+const TOOLTIP_TOP_SPACING = 10
 const SCREEN_EDGE_PADDING = 12
 
 export function TooltipProvider({ children }: { children: React.ReactNode }) {
   const [tooltip, setTooltip] = useState<TooltipData | null>(null)
   const [tooltipWidth, setTooltipWidth] = useState(0)
 
-  const opacity = useSharedValue(0)
-  const translateY = useSharedValue(8) // Start from below
-  const translateX = useSharedValue(0)
+  // Track the position for exit animation - only updates when tooltip is visible
+  const exitPositionRef = useRef<ExitPositionType>("top")
+  const exitPosition = useSharedValue<ExitPositionType>("top")
 
-  // Memoize position calculation to avoid recalculating on every render
+  // Compute exit position using useMemo and update shared value via scheduleOnUI
+  useMemo(() => {
+    const currentPosition = tooltip?.position || "top"
+    if (tooltip && currentPosition !== exitPositionRef.current) {
+      exitPositionRef.current = currentPosition
+      // Update shared value on UI thread to avoid render-time write warning
+      scheduleOnUI(() => {
+        "worklet"
+        exitPosition.value = currentPosition
+      })
+    }
+    return exitPositionRef.current
+  }, [tooltip, exitPosition])
+
+  // Memoize position calculation
   const position = useMemo(() => {
     if (!tooltip || tooltipWidth === 0)
       return { top: 0, left: 0, translateX: 0 }
 
     const screenWidth = Dimensions.get("window").width
     const targetCenterX = tooltip.x + tooltip.width / 2
+    const tooltipPosition = tooltip.position || "top"
 
-    // Calculate desired left position (centered on target)
     const left = targetCenterX
-
-    // Calculate translateX to center the tooltip
     let tooltipTranslateX = -tooltipWidth / 2
 
-    // Check if tooltip would go off the left edge
     if (left + tooltipTranslateX < SCREEN_EDGE_PADDING) {
       tooltipTranslateX = SCREEN_EDGE_PADDING - left
     }
 
-    // Check if tooltip would go off the right edge
     if (
       left + tooltipTranslateX + tooltipWidth >
       screenWidth - SCREEN_EDGE_PADDING
@@ -79,51 +94,53 @@ export function TooltipProvider({ children }: { children: React.ReactNode }) {
         screenWidth - SCREEN_EDGE_PADDING - tooltipWidth - left
     }
 
+    const top =
+      tooltipPosition === "bottom"
+        ? tooltip.y + tooltip.height + TOOLTIP_BOTTOM_SPACING
+        : tooltip.y - TOOLTIP_TOP_SPACING
+
     return {
-      top: tooltip.y - TOOLTIP_SPACING,
-      left: left,
+      top,
+      left,
       translateX: tooltipTranslateX,
     }
   }, [tooltip, tooltipWidth])
 
-  // Update translateX immediately when position changes (no animation)
-  useEffect(() => {
-    if (tooltip && tooltipWidth > 0) {
-      translateX.value = position.translateX
-    } else {
-      translateX.value = 0
-    }
-  }, [tooltip, tooltipWidth, position.translateX, translateX])
+  // Extract tooltip position for use in worklets
+  const tooltipPosition = tooltip?.position || "top"
 
-  // Animate tooltip appearance/disappearance (from bottom to up)
-  useEffect(() => {
-    if (tooltip) {
-      // Set initial position (below, invisible) then animate up
-      translateY.value = 8
-      opacity.value = 0
-      // Animate to final position (up, visible)
-      translateY.value = withTiming(0, { duration: 150 })
-      opacity.value = withTiming(1, { duration: 150 })
-    } else {
-      // Animate down and fade out
-      translateY.value = withTiming(8, { duration: 150 })
-      opacity.value = withTiming(0, { duration: 150 })
-      setTooltipWidth(0)
-    }
-  }, [tooltip, opacity, translateY])
+  // Derive animated values based on tooltip state
+  const isVisible = useDerivedValue(() => {
+    return tooltip !== null && tooltipWidth > 0
+  }, [tooltip, tooltipWidth])
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      setTooltip(null)
+  const animatedOpacity = useDerivedValue(() => {
+    return withTiming(isVisible.value ? 1 : 0, { duration: 150 })
+  }, [isVisible])
+
+  const animatedTranslateY = useDerivedValue(() => {
+    // Use current position when visible, stored exit position when hidden
+    const position = isVisible.value ? tooltipPosition : exitPosition.value
+
+    if (!isVisible.value) {
+      // Exit animation
+      const exitOffset =
+        position === "bottom" ? -TOOLTIP_BOTTOM_SPACING : TOOLTIP_TOP_SPACING
+      return withTiming(exitOffset, { duration: 150 })
     }
-  }, [])
+    // Enter animation: from offset to 0
+    return withTiming(0, { duration: 150 })
+  }, [isVisible, tooltipPosition, exitPosition])
+
+  const animatedTranslateX = useDerivedValue(() => {
+    return position.translateX
+  }, [position.translateX])
 
   const animatedStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
+    opacity: animatedOpacity.value,
     transform: [
-      { translateX: translateX.value },
-      { translateY: translateY.value },
+      { translateX: animatedTranslateX.value },
+      { translateY: animatedTranslateY.value },
     ],
   }))
 
@@ -138,7 +155,7 @@ export function TooltipProvider({ children }: { children: React.ReactNode }) {
   const styles = StyleSheet.create((t) => ({
     tooltip: {
       position: "absolute",
-      backgroundColor: t.colors.surface,
+      backgroundColor: t.colors.secondary,
       paddingHorizontal: 12,
       paddingVertical: 6,
       borderRadius: t.radius,
@@ -151,7 +168,7 @@ export function TooltipProvider({ children }: { children: React.ReactNode }) {
       zIndex: 10000,
     },
     tooltipText: {
-      color: t.colors.onSurface,
+      color: t.colors.onSecondary,
       fontSize: 12,
       textAlign: "center",
     },
@@ -204,6 +221,7 @@ export interface TooltipProps {
   children: React.ReactElement<PressableProps>
   delayLongPress?: number
   hapticFeedback?: boolean
+  position?: ExitPositionType
 }
 
 type PressEvent = Parameters<NonNullable<PressableProps["onLongPress"]>>[0]
@@ -213,22 +231,22 @@ export function Tooltip({
   children,
   delayLongPress = 350,
   hapticFeedback = true,
+  position = "top",
 }: TooltipProps) {
   const context = useContext(TooltipContext)
   const pressableRef = useRef<RNView>(null)
 
-  // All hooks must be called before any early returns
   const handleLongPress = useCallback(() => {
     if (!pressableRef.current || !context) return
 
     pressableRef.current.measureInWindow((x, y, width, height) => {
-      context.showTooltip({ text, x, y, width, height })
+      context.showTooltip({ text, x, y, width, height, position })
 
       if (hapticFeedback && Platform.OS === "ios") {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
       }
     })
-  }, [text, context, hapticFeedback])
+  }, [text, context, hapticFeedback, position])
 
   const handlePressOut = useCallback(() => {
     if (!context) return
@@ -240,7 +258,6 @@ export function Tooltip({
     return children
   }
 
-  // Get the child's ref if it exists
   const childRef = (children as { ref?: React.Ref<RNView> })?.ref
 
   const childWithHandlers = React.cloneElement(children, {
@@ -254,7 +271,6 @@ export function Tooltip({
       children.props.onPressOut?.(e)
     },
     delayLongPress,
-    // Handle ref using a callback ref pattern
     ref: (node: RNView | null) => {
       pressableRef.current = node
       if (childRef) {

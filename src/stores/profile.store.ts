@@ -78,5 +78,3 @@ export const useProfileStore = create<ProfileStore>()(
     },
   ),
 )
-
-export default useProfileStore

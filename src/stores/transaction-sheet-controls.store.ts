@@ -25,7 +25,7 @@ interface TransactionSheetControlsStore {
   resetOnboarding: () => void
 }
 
-const useTransactionSheetControlsStore =
+export const useTransactionSheetControlsStore =
   create<TransactionSheetControlsStore>()(
     devtools(
       (set) => ({
@@ -80,5 +80,3 @@ const useTransactionSheetControlsStore =
       },
     ),
   )
-
-export default useTransactionSheetControlsStore

@@ -1,4 +1,3 @@
-import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
 import { Text } from "~/components/ui/text"
@@ -6,7 +5,7 @@ import { View } from "~/components/ui/view"
 
 export default function CategoriesScreen() {
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <View style={styles.container}>
       <Text variant="h2" style={styles.title}>
         Categories
       </Text>
@@ -19,7 +18,7 @@ export default function CategoriesScreen() {
           Category management coming soon
         </Text>
       </View>
-    </ScrollView>
+    </View>
   )
 }
 
@@ -27,8 +26,6 @@ const styles = StyleSheet.create((theme) => ({
   container: {
     flex: 1,
     backgroundColor: theme.colors.surface,
-  },
-  content: {
     padding: 20,
   },
   title: {

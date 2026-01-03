@@ -5,21 +5,21 @@ import { createJSONStorage, persist } from "zustand/middleware"
 import type { ToastPosition } from "./toast.store"
 
 /**
- * MMKV storage instance for toast appearance preferences.
+ * MMKV storage instance for toast style preferences.
  *
- * This instance is optimized for storing toast appearance settings with high performance.
+ * This instance is optimized for storing toast style settings with high performance.
  * MMKV is ~30x faster than AsyncStorage and provides synchronous operations.
  *
  * @see https://github.com/mrousavy/react-native-mmkv
  */
-export const toastAppearanceStorage = createMMKV({
-  id: "toast-appearance-storage",
+export const toastStyleStorage = createMMKV({
+  id: "toast-style-storage",
 })
 
 /**
- * Toast appearance store interface defining default toast settings.
+ * Toast style store interface defining default toast settings.
  */
-interface ToastAppearanceStore {
+interface ToastStyleStore {
   /** Default position for toasts */
   position: ToastPosition
   /** Whether to show progress bar by default */
@@ -42,23 +42,23 @@ interface ToastAppearanceStore {
    */
   setShowCloseIcon: (show: boolean) => void
   /**
-   * Resets all toast appearance settings to their default values.
+   * Resets all toast style settings to their default values.
    */
   resetToDefaults: () => void
 }
 
 /**
- * Zustand store hook for managing toast appearance preferences.
+ * Zustand store hook for managing toast style preferences.
  *
  * This store is persisted to MMKV storage, providing fast and reliable
- * persistence of toast appearance preferences across app sessions.
+ * persistence of toast style preferences across app sessions.
  *
  * These settings serve as global defaults for all toasts unless explicitly
  * overridden when showing a specific toast.
  *
  * @example
  * ```tsx
- * const { position, showProgressBar, setPosition } = useToastAppearanceStore()
+ * const { position, showProgressBar, setPosition } = useToastStyleStore()
  *
  * // Set default position to bottom
  * setPosition("bottom")
@@ -69,7 +69,7 @@ interface ToastAppearanceStore {
  *
  * @see https://github.com/pmndrs/zustand
  */
-export const useToastAppearanceStore = create<ToastAppearanceStore>()(
+export const useToastStyleStore = create<ToastStyleStore>()(
   persist(
     (set) => ({
       // Default state
@@ -89,14 +89,12 @@ export const useToastAppearanceStore = create<ToastAppearanceStore>()(
         }),
     }),
     {
-      name: "toast-appearance",
+      name: "toast-style",
       storage: createJSONStorage(() => ({
-        getItem: (name) => toastAppearanceStorage.getString(name) ?? null,
-        setItem: (name, value) => toastAppearanceStorage.set(name, value),
-        removeItem: (name) => toastAppearanceStorage.remove(name),
+        getItem: (name) => toastStyleStorage.getString(name) ?? null,
+        setItem: (name, value) => toastStyleStorage.set(name, value),
+        removeItem: (name) => toastStyleStorage.remove(name),
       })),
     },
   ),
 )
-
-export default useToastAppearanceStore

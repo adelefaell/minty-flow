@@ -69,10 +69,10 @@ const styles = StyleSheet.create((theme) => ({
     height: "100%",
   },
   avatarText: {
-    fontSize: 28,
+    fontSize: 48,
     fontWeight: "bold",
     color: theme.colors.surface,
-    lineHeight: 32,
+    lineHeight: 56,
     textAlign: "center",
     includeFontPadding: false,
   },

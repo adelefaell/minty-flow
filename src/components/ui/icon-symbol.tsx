@@ -75,6 +75,8 @@ const MAPPING = defineIconMapping({
   "location.fill": "map-marker",
   // Hashtag icon
   number: "pound",
+  // Arrow left icon
+  "arrow-left": "arrow-left",
 } as const)
 
 /**

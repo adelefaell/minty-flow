@@ -206,13 +206,13 @@ export function CalculatorSheet({
           {/* Row 1 - C, +/-, %, ÷ */}
           <View style={calculatorStyles.keypadRow}>
             <Pressable style={calculatorStyles.keypadButton} onPress={clear}>
-              <IconSymbol name="c.circle" size={28} />
+              <IconSymbol name="c.circle" size={24} />
             </Pressable>
             <Pressable
               style={calculatorStyles.keypadButton}
               onPress={handleToggleSign}
             >
-              <IconSymbol name="plusminus" size={28} />
+              <IconSymbol name="plusminus" size={24} />
             </Pressable>
             <Pressable
               style={[
@@ -224,7 +224,7 @@ export function CalculatorSheet({
             >
               <IconSymbol
                 name="percent"
-                size={28}
+                size={24}
                 color={
                   isOperationActive(Operation.PERCENT)
                     ? theme.colors.onPrimary
@@ -242,7 +242,7 @@ export function CalculatorSheet({
             >
               <IconSymbol
                 name="divide"
-                size={28}
+                size={24}
                 color={
                   isOperationActive(Operation.DIVIDE)
                     ? theme.colors.onPrimary
@@ -282,7 +282,7 @@ export function CalculatorSheet({
             >
               <IconSymbol
                 name="xmark"
-                size={28}
+                size={24}
                 color={
                   isOperationActive(Operation.MULTIPLY)
                     ? theme.colors.onPrimary
@@ -322,7 +322,7 @@ export function CalculatorSheet({
             >
               <IconSymbol
                 name="minus"
-                size={28}
+                size={24}
                 color={
                   isOperationActive(Operation.MINUS)
                     ? theme.colors.onPrimary
@@ -362,7 +362,7 @@ export function CalculatorSheet({
             >
               <IconSymbol
                 name="plus"
-                size={28}
+                size={24}
                 color={
                   isOperationActive(Operation.PLUS)
                     ? theme.colors.onPrimary
@@ -391,7 +391,7 @@ export function CalculatorSheet({
               onPress={handleBackspace}
               onLongPress={clear}
             >
-              <IconSymbol name="delete.backward" size={28} />
+              <IconSymbol name="delete.backward" size={24} />
             </Pressable>
             <Pressable
               style={[
@@ -401,11 +401,11 @@ export function CalculatorSheet({
               onPress={handleEquals}
             >
               {hasActiveOperation() ? (
-                <IconSymbol name="equal" size={28} />
+                <IconSymbol name="equal" size={24} />
               ) : (
                 <IconSymbol
                   name="checkmark"
-                  size={28}
+                  size={24}
                   color={theme.colors.onPrimary}
                 />
               )}
@@ -425,7 +425,6 @@ const calculatorStyles = StyleSheet.create((theme) => ({
   },
   header: {
     alignItems: "center",
-    marginBottom: 8,
   },
   title: {
     fontSize: 20,
