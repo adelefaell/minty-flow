@@ -18,15 +18,15 @@ export default function RootLayout() {
         <BottomSheetModalProvider>
           <Stack
             screenOptions={{
-              // headerStyle: {
-              //   backgroundColor: theme.colors.surface,
-              // },
-              // headerTintColor: theme.colors.primary,
-              // headerTitleStyle: {
-              //   color: theme.colors.onSurface,
-              //   fontWeight: "bold",
-              // },
-              header: (props) => <ScreenSharedHeader props={props} />,
+              headerStyle: {
+                backgroundColor: theme.colors.surface,
+              },
+              headerTintColor: theme.colors.primary,
+              headerTitleStyle: {
+                color: theme.colors.onSurface,
+                fontWeight: "bold",
+              },
+              // header: (props) => <ScreenSharedHeader props={props} />,
               // animation: "fade",
             }}
           >
