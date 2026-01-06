@@ -52,6 +52,7 @@ const MAPPING = defineIconMapping({
   "cloud.fill": "cloud",
   "heart.fill": "heart",
   "crown.fill": "crown",
+  "arrow-left": "arrow-left",
   // Calculator icons
   "c.circle": "alpha-c",
   plusminus: "plus-minus-variant",
@@ -65,18 +66,24 @@ const MAPPING = defineIconMapping({
   "format-page-split": "format-page-split",
   toaster: "toaster",
   wallet: "wallet",
+
   // Privacy icons
   "eye.slash": "eye-off",
   "lock.open": "lock-open",
   "lock.fill": "lock",
-  // Numpad icon
   dialpad: "dialpad",
-  // Location icon
   "location.fill": "map-marker",
-  // Hashtag icon
   number: "pound",
-  // Arrow left icon
-  "arrow-left": "arrow-left",
+
+  // Accounts icons
+  "creditcard.fill": "credit-card",
+  "banknote.fill": "piggy-bank",
+  "reorder.horizontal": "reorder-horizontal",
+  "arrow.down": "arrow-down",
+  "arrow.up": "arrow-up",
+  "arrow.down.circle.fill": "arrow-down-circle",
+  "arrow.up.circle.fill": "arrow-up-circle",
+  "chart.line.uptrend.xyaxis": "chart-timeline-variant",
 } as const)
 
 /**

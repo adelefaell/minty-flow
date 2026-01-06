@@ -2,8 +2,8 @@ import type { NativeStackHeaderProps } from "@react-navigation/native-stack"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { StyleSheet } from "react-native-unistyles"
 
+import { Button } from "./ui/button"
 import { IconSymbol } from "./ui/icon-symbol"
-import { Pressable } from "./ui/pressable"
 import { Text } from "./ui/text"
 import { Tooltip } from "./ui/tooltip"
 import { View } from "./ui/view"
@@ -14,23 +14,33 @@ export const ScreenSharedHeader = ({
   props: NativeStackHeaderProps
 }) => {
   const insets = useSafeAreaInsets()
+  const canGoBack = props.navigation?.canGoBack() ?? false
+  const title = props.options?.title ?? ""
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + 10 }]}>
-      <Tooltip text="back" position="bottom">
-        <Pressable
-          onPress={() => {
-            props.navigation.goBack()
-          }}
-          style={styles.backButton}
-        >
-          <IconSymbol name="arrow-left" size={24} />
-        </Pressable>
-      </Tooltip>
+      {canGoBack && (
+        <Tooltip text="back" position="bottom">
+          <Button
+            variant="ghost"
+            size="icon"
+            onPress={() => {
+              if (props.navigation?.canGoBack()) {
+                props.navigation.goBack()
+              }
+            }}
+            // style={styles.backButton}
+          >
+            <IconSymbol name="arrow-left" size={24} />
+          </Button>
+        </Tooltip>
+      )}
 
-      <Text variant="large" style={styles.title}>
-        {props.options.title}
-      </Text>
+      {title && (
+        <Text variant="large" style={styles.title}>
+          {title}
+        </Text>
+      )}
     </View>
   )
 }
@@ -50,11 +60,11 @@ const styles = StyleSheet.create((theme) => ({
     fontWeight: "bold",
     color: theme.colors.onSurface,
   },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  // backButton: {
+  //   width: 40,
+  //   height: 40,
+  //   borderRadius: 20,
+  //   alignItems: "center",
+  //   justifyContent: "center",
+  // },
 }))
