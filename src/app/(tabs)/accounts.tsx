@@ -1,7 +1,8 @@
-import { ScrollView } from "react-native"
+import { useState } from "react"
 import { StyleSheet } from "react-native-unistyles"
 
 import { AccountCard } from "~/components/account-card"
+import { ReorderableListV2 } from "~/components/reorderable-list-v2"
 import { Button } from "~/components/ui/button"
 import type { IconSymbolName } from "~/components/ui/icon-symbol"
 import { IconSymbol } from "~/components/ui/icon-symbol"
@@ -66,8 +67,11 @@ const STATIC_ACCOUNTS: Account[] = [
 ]
 
 export default function AccountsScreen() {
+  const [accounts, setAccounts] = useState<Account[]>(STATIC_ACCOUNTS)
+  const [isReorderMode, setIsReorderMode] = useState(false)
+
   // Group balances by currency
-  const balancesByCurrency = STATIC_ACCOUNTS.reduce(
+  const balancesByCurrency = accounts.reduce(
     (acc, account) => {
       const existing = acc.find((item) => item.currency === account.currency)
       if (existing) {
@@ -84,13 +88,33 @@ export default function AccountsScreen() {
     [] as { currency: string; currencySymbol: string; balance: number }[],
   )
 
+  const handleToggleReorder = () => {
+    setIsReorderMode(!isReorderMode)
+  }
+
+  const handleSaveReorder = () => {
+    // Save the reordered accounts (you can add persistence logic here)
+    setIsReorderMode(false)
+  }
+
+  const handleReorder = (newData: Account[]) => {
+    setAccounts(newData)
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.titleContainer}>
         <Text variant="h4">Accounts</Text>
 
-        <Button variant="ghost" size="icon">
-          <IconSymbol name="reorder.horizontal" size={24} />
+        <Button
+          variant="ghost"
+          size="icon"
+          onPress={isReorderMode ? handleSaveReorder : handleToggleReorder}
+        >
+          <IconSymbol
+            name={isReorderMode ? "checkmark" : "reorder.horizontal"}
+            size={24}
+          />
         </Button>
       </View>
 
@@ -117,27 +141,30 @@ export default function AccountsScreen() {
             ACCOUNTS
           </Text>
           <Text variant="small" style={styles.accountsCount}>
-            {STATIC_ACCOUNTS.length}
+            {accounts.length}
           </Text>
         </View>
       </View>
 
-      <ScrollView
+      <ReorderableListV2
+        data={accounts}
+        onReorder={handleReorder}
+        showButtons={isReorderMode}
+        renderItem={({ item }: { item: Account }) => (
+          <AccountCard account={item} />
+        )}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-      >
-        {STATIC_ACCOUNTS.map((account) => (
-          <AccountCard key={account.id} account={account} />
-        ))}
-
-        <Pressable style={styles.newAccountButton}>
-          <IconSymbol name="plus" size={24} />
-          <Text variant="default" style={styles.newAccountText}>
-            New Account
-          </Text>
-        </Pressable>
-      </ScrollView>
+        ListFooterComponent={
+          <Pressable style={styles.newAccountButton}>
+            <IconSymbol name="plus" size={24} />
+            <Text variant="default" style={styles.newAccountText}>
+              New Account
+            </Text>
+          </Pressable>
+        }
+      />
     </View>
   )
 }
@@ -154,7 +181,11 @@ const styles = StyleSheet.create((theme) => ({
   scrollContent: {
     paddingTop: 5,
     paddingBottom: 100,
-    gap: 10,
+    gap: 15,
+  },
+  footerContainer: {
+    marginTop: 10,
+    paddingBottom: 20,
   },
   titleContainer: {
     flexDirection: "row",
@@ -206,7 +237,8 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: "center",
     gap: 8,
     paddingVertical: 16,
-    marginTop: 8,
+    marginTop: 10,
+    marginBottom: 20,
     backgroundColor: theme.colors.secondary,
     borderRadius: theme.colors.radius,
   },

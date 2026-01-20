@@ -3,6 +3,7 @@ import { StyleSheet } from "react-native-unistyles"
 
 type ViewVariant =
   | "default"
+  | "transparent"
   | "card"
   | "container"
   | "bordered"
@@ -29,6 +30,9 @@ export const View = ({
 const viewStyles = StyleSheet.create((theme) => ({
   default: {
     backgroundColor: theme.colors.surface,
+  },
+  transparent: {
+    backgroundColor: "transparent",
   },
   card: {
     backgroundColor: theme.colors.surface,
