@@ -46,8 +46,23 @@ export default function RootLayout() {
               options={{ presentation: "modal", title: "Loan" }}
             />
             <Stack.Screen
-              name="(settings)/categories"
+              name="(settings)/(categories)/categories"
               options={{ presentation: "modal", title: "Categories" }}
+            />
+            <Stack.Screen
+              name="(settings)/(categories)/[categoryId]"
+              options={({ route }) => {
+                const params = route.params as
+                  | { categoryId?: string }
+                  | undefined
+                return {
+                  presentation: "modal",
+                  title:
+                    params?.categoryId === "add-category"
+                      ? "Create Category"
+                      : "Edit Category",
+                }
+              }}
             />
             <Stack.Screen
               name="(settings)/tags"

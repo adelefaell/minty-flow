@@ -124,7 +124,7 @@ export interface BottomSheetModalProps {
 export function BottomSheetModalComponent({
   id,
   children,
-  snapPoints,
+  snapPoints = ["60%"],
   onChange,
   onDismiss,
   enablePanDownToClose = true,

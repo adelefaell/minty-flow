@@ -28,7 +28,7 @@ const moneyManagementItems: SettingsItem[] = [
     id: "categories",
     title: "Categories",
     description: "Manage your transaction categories",
-    route: "/(settings)/categories",
+    route: "/(settings)/(categories)/categories",
     icon: "square.grid.2x2",
   },
   {

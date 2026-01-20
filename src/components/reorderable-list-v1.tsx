@@ -14,6 +14,7 @@ import Animated, {
 import { scheduleOnRN } from "react-native-worklets"
 
 import { View } from "~/components/ui/view"
+import { logger } from "~/utils/logger"
 
 const AnimatedView = Animated.createAnimatedComponent(View)
 
@@ -147,7 +148,9 @@ function ReorderableItemV1<T>({
   const separators = {
     highlight: () => {},
     unhighlight: () => {},
-    updateProps: (select: "leading" | "trailing", newProps: unknown) => {},
+    updateProps: (select: "leading" | "trailing", newProps: unknown) => {
+      logger.debug("updateProps", { select, newProps })
+    },
   }
 
   return (
