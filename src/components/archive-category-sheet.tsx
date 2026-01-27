@@ -16,10 +16,10 @@ interface ArchiveCategorySheetProps {
   onConfirm: () => void
 }
 
-export function ArchiveCategorySheet({
+export const ArchiveCategorySheet = ({
   category,
   onConfirm,
-}: ArchiveCategorySheetProps) {
+}: ArchiveCategorySheetProps) => {
   const sheet = useBottomSheet(`archive-category-${category.id}`)
 
   const handleConfirm = () => {

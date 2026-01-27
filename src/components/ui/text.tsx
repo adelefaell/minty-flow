@@ -86,7 +86,7 @@ const textStyles = StyleSheet.create((theme) => ({
     color: theme.colors.onSurface,
     fontSize: 36,
     lineHeight: 44,
-    fontWeight: "bold",
+    fontWeight: "600",
     letterSpacing: -0.5,
     fontFamily: Fonts.sans,
   },
@@ -95,7 +95,7 @@ const textStyles = StyleSheet.create((theme) => ({
     paddingBottom: 8,
     fontSize: 30,
     lineHeight: 38,
-    fontWeight: "bold",
+    fontWeight: "600",
     letterSpacing: -0.5,
     fontFamily: Fonts.sans,
     _web: {
@@ -106,7 +106,7 @@ const textStyles = StyleSheet.create((theme) => ({
     color: theme.colors.onSurface,
     fontSize: 24,
     lineHeight: 32,
-    fontWeight: "bold",
+    fontWeight: "600",
     letterSpacing: -0.5,
     fontFamily: Fonts.sans,
     _web: {
@@ -117,7 +117,7 @@ const textStyles = StyleSheet.create((theme) => ({
     color: theme.colors.onSurface,
     fontSize: 20,
     lineHeight: 28,
-    fontWeight: "bold",
+    fontWeight: "600",
     letterSpacing: -0.5,
     fontFamily: Fonts.sans,
     _web: {
@@ -149,7 +149,7 @@ const textStyles = StyleSheet.create((theme) => ({
     fontFamily: Fonts.mono,
     fontSize: 14,
     lineHeight: 20,
-    fontWeight: "bold",
+    fontWeight: "600",
   },
   lead: {
     color: theme.colors.onSecondary,
@@ -162,7 +162,7 @@ const textStyles = StyleSheet.create((theme) => ({
     fontFamily: Fonts.sans,
     fontSize: 18,
     lineHeight: 28,
-    fontWeight: "bold",
+    fontWeight: "600",
   },
   small: {
     color: theme.colors.onSurface,

@@ -7,7 +7,7 @@ import { appSchema, tableSchema } from "@nozbe/watermelondb"
  * Each table represents a collection of models that can be queried and manipulated.
  */
 export const schema = appSchema({
-  version: 3, // Incremented version to add tags, goals, loans, and budgets tables
+  version: 5, // Incremented version to make category_id optional for uncategorized transactions
   tables: [
     // Categories table - stores transaction categories
     tableSchema({
@@ -16,10 +16,7 @@ export const schema = appSchema({
         { name: "name", type: "string" },
         { name: "type", type: "string" }, // "expense" | "income" | "transfer"
         { name: "icon", type: "string", isOptional: true },
-        { name: "color_name", type: "string", isOptional: true },
-        { name: "color_bg_class", type: "string", isOptional: true },
-        { name: "color_text_class", type: "string", isOptional: true },
-        { name: "color_border_class", type: "string", isOptional: true },
+        { name: "color_scheme_name", type: "string", isOptional: true },
         { name: "transaction_count", type: "number" },
         { name: "is_archived", type: "boolean" },
         { name: "created_at", type: "number" },
@@ -52,7 +49,12 @@ export const schema = appSchema({
         { name: "type", type: "string" }, // "expense" | "income" | "transfer"
         { name: "description", type: "string", isOptional: true },
         { name: "date", type: "number" },
-        { name: "category_id", type: "string", isIndexed: true },
+        {
+          name: "category_id",
+          type: "string",
+          isIndexed: true,
+          isOptional: true,
+        },
         { name: "account_id", type: "string", isIndexed: true },
         { name: "tags", type: "string", isOptional: true }, // JSON array of tags
         { name: "location", type: "string", isOptional: true }, // JSON object

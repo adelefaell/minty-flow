@@ -26,7 +26,7 @@ export default function RootLayout() {
                 // headerTintColor: theme.colors.primary,
                 // headerTitleStyle: {
                 //   color: theme.colors.onSurface,
-                //   fontWeight: "bold",
+                //   fontWeight: "600",
                 // },
                 header: (props) => <ScreenSharedHeader props={props} />,
                 // animation: "fade",

@@ -1,485 +1,361 @@
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons"
 import {
-  BottomSheetScrollView,
+  BottomSheetFlatList,
+  BottomSheetFooter,
+  type BottomSheetFooterProps,
   BottomSheetTextInput,
 } from "@gorhom/bottom-sheet"
-import type { LucideIcon } from "lucide-react-native"
-// Import all icons from the /icons subpath for dynamic access
-// Note: This increases bundle size but is necessary for icon selection
-import * as lucideIcons from "lucide-react-native/icons"
-import { useMemo, useState } from "react"
-import { Alert, Pressable } from "react-native"
+import type { ComponentProps } from "react"
+import { memo, useCallback, useMemo, useState } from "react"
+import { Pressable, View } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import {
   BottomSheetModalComponent,
   useBottomSheet,
 } from "~/components/bottom-sheet"
-import { Icon } from "~/components/icon"
 import { Text } from "~/components/ui/text"
-import { View } from "~/components/ui/view"
+import {
+  MATERIAL_SYMBOLS,
+  type MintyIconData,
+} from "~/constants/minty-icons-selection"
+import type { MintyColorScheme } from "~/styles/theme/types"
 
-interface IconSelectionSheetProps {
+import { DynamicIcon } from "./dynamic-icon"
+import { IconSymbol } from "./ui/icon-symbol"
+
+interface IconSelectionSheetV2Props {
   id: string
-  onIconSelected?: (_icon: string) => void
+  onIconSelected?: (icon: string) => void
+  initialIcon?: string
+  colorScheme?: MintyColorScheme
 }
 
-// Curated list of commonly used icons relevant for a finance/budgeting app
-const COMMON_ICON_NAMES = [
-  // Finance & Money
-  "DollarSign",
-  "CreditCard",
-  "Wallet",
-  "Coins",
-  "Banknote",
-  "Receipt",
-  "PiggyBank",
-  "TrendingUp",
-  "TrendingDown",
-  "ArrowUpRight",
-  "ArrowDownRight",
-  "ArrowLeftRight",
-  "PieChart",
-  "BarChart",
-  "LineChart",
-  "Activity",
-  "Target",
-  "Award",
-  "Gift",
-  "Briefcase",
-  "Building",
-  "Building2",
-  "Landmark",
-  "Store",
-  "ShoppingCart",
-  "ShoppingBag",
-  "ShoppingBasket",
-  "Package",
-  "Box",
-  "Archive",
-  "Inbox",
-  "Save",
-  "Download",
-  "Upload",
-  // Food & Dining
-  "Utensils",
-  "UtensilsCrossed",
-  "Coffee",
-  "CupSoda",
-  "Beer",
-  "Wine",
-  "Apple",
-  "Cherry",
-  "Cookie",
-  "IceCream",
-  // Transportation
-  "Car",
-  "CarFront",
-  "Bus",
-  "Train",
-  "Plane",
-  "Bike",
-  "Fuel",
-  "Navigation",
-  "MapPin",
-  "Map",
-  "Compass",
-  // Home & Utilities
-  "Home",
-  "House",
-  "Building",
-  "Wrench",
-  "Hammer",
-  "Lightbulb",
-  "Zap",
-  "Droplet",
-  "Thermometer",
-  "Wind",
-  "Cloud",
-  "CloudRain",
-  "Sun",
-  "Moon",
-  // Health & Fitness
-  "Heart",
-  "Activity",
-  "Dumbbell",
-  "Bike",
-  "Running",
-  "Stethoscope",
-  "Pill",
-  "Cross",
-  "Shield",
-  "ShieldCheck",
-  // Entertainment & Leisure
-  "Music",
-  "Video",
-  "Film",
-  "Gamepad2",
-  "Tv",
-  "Headphones",
-  "Mic",
-  "Camera",
-  "Image",
-  "Palette",
-  "BookOpen",
-  "Book",
-  "Library",
-  "Ticket",
-  "PartyPopper",
-  // Education & Work
-  "GraduationCap",
-  "BookOpen",
-  "Book",
-  "PenTool",
-  "Pencil",
-  "Highlighter",
-  "Laptop",
-  "Monitor",
-  "Smartphone",
-  "Tablet",
-  "Printer",
-  "FileText",
-  "File",
-  "Folder",
-  "FolderOpen",
-  "Clipboard",
-  "ClipboardList",
-  "Calendar",
-  "Clock",
-  "Timer",
-  "AlarmClock",
-  // Communication
-  "Mail",
-  "MessageCircle",
-  "MessageSquare",
-  "Phone",
-  "PhoneCall",
-  "Video",
-  "Send",
-  "Share",
-  "Share2",
-  "Link",
-  "ExternalLink",
-  "AtSign",
-  "Hash",
-  // Personal & Social
-  "User",
-  "Users",
-  "UserPlus",
-  "UserMinus",
-  "UserCheck",
-  "UserX",
-  "Baby",
-  "Heart",
-  "HeartHandshake",
-  "Handshake",
-  "Smile",
-  "Frown",
-  // Actions & Controls
-  "Plus",
-  "Minus",
-  "X",
-  "Check",
-  "CheckCircle",
-  "XCircle",
-  "Circle",
-  "Square",
-  "Triangle",
-  "AlertCircle",
-  "Info",
-  "HelpCircle",
-  "QuestionMark",
-  "Exclamation",
-  "Edit",
-  "Edit2",
-  "Edit3",
-  "Trash",
-  "Trash2",
-  "Archive",
-  "Copy",
-  "Clipboard",
-  "Scissors",
-  "Search",
-  "Filter",
-  "Sliders",
-  "Settings",
-  "Cog",
-  "MoreVertical",
-  "MoreHorizontal",
-  "Menu",
-  "Grid",
-  "List",
-  "Layout",
-  "Layers",
-  // Navigation
-  "ChevronRight",
-  "ChevronLeft",
-  "ChevronUp",
-  "ChevronDown",
-  "ArrowRight",
-  "ArrowLeft",
-  "ArrowUp",
-  "ArrowDown",
-  "ArrowUpRight",
-  "ArrowDownRight",
-  "ArrowUpLeft",
-  "ArrowDownLeft",
-  "Move",
-  "Maximize",
-  "Minimize",
-  "ZoomIn",
-  "ZoomOut",
-  // Status & Feedback
-  "Bell",
-  "BellOff",
-  "Star",
-  "Bookmark",
-  "Flag",
-  "Tag",
-  "Tags",
-  "Lock",
-  "Unlock",
-  "Eye",
-  "EyeOff",
-  "Shield",
-  "ShieldCheck",
-  "ShieldAlert",
-  "CheckCircle2",
-  "XCircle",
-  "AlertTriangle",
-  "Info",
-  "HelpCircle",
-  // Technology
-  "Wifi",
-  "Bluetooth",
-  "Battery",
-  "BatteryCharging",
-  "Power",
-  "Zap",
-  "Cpu",
-  "HardDrive",
-  "Server",
-  "Database",
-  "Code",
-  "Terminal",
-  "Command",
-  "Globe",
-  "Rss",
-  "Cast",
-  "Airplay",
-  // Time & Date
-  "Calendar",
-  "Clock",
-  "Timer",
-  "AlarmClock",
-  "History",
-  "RefreshCw",
-  "RotateCw",
-  "RotateCcw",
-  // Miscellaneous
-  "Sparkles",
-  "Wand2",
-  "Magic",
-  "Rocket",
-  "Gem",
-  "Crown",
-  "Trophy",
-  "Medal",
-  "Badge",
-  "Sticker",
-  "Smile",
-  "Heart",
-  "Star",
-  "Moon",
-  "Sun",
-  "Cloud",
-  "Droplet",
-  "Flame",
-  "Snowflake",
-  "Leaf",
-  "TreePine",
-  "Flower",
-  "Bug",
-  "Cat",
-  "Dog",
-  "Fish",
-] as const
+// Grid layout configuration
+const COLUMNS = 6
 
-// Get all available icons by filtering the predefined list
-// to only include icons that actually exist in the imported module
-// Note: React components don't have a .name property, so we store the icon name
-// separately in our data structure for reference and selection
-const getAllIconNames = (): Array<{ name: string; component: LucideIcon }> => {
-  const icons: Array<{ name: string; component: LucideIcon }> = []
-
-  for (const name of COMMON_ICON_NAMES) {
-    // Access icon from the icons namespace
-    // Icons are exported with PascalCase names (e.g., "Home", "User", etc.)
-    // The /icons subpath exports all icons as named exports
-    const IconComponent = (lucideIcons as Record<string, unknown>)[name] as
-      | LucideIcon
-      | undefined
-
-    // Verify it's a valid React component
-    // Note: IconComponent itself doesn't have a .name property,
-    // so we store the name separately for use in selection and callbacks
-    if (IconComponent && typeof IconComponent === "function") {
-      icons.push({
-        name: name as string, // Store the icon name for reference
-        component: IconComponent, // Store the component for rendering
-      })
-    }
-  }
-
-  return icons
-}
-
-// Icon data type
-type IconData = {
-  name: string
-  component: LucideIcon
-}
-
-export const IconSelectionSheet = ({
-  id,
-  onIconSelected,
-}: IconSelectionSheetProps) => {
-  const sheet = useBottomSheet(id)
-  const { theme } = useUnistyles()
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedIcon, setSelectedIcon] = useState<string | null>(null)
-
-  // Get all icons and filter based on search
-  const availableIcons = useMemo(() => {
-    const allIcons = getAllIconNames()
-
-    if (!searchQuery.trim()) {
-      return allIcons
-    }
-
-    const query = searchQuery.toLowerCase().trim()
-    return allIcons.filter((icon) => icon.name.toLowerCase().includes(query))
-  }, [searchQuery])
-
-  const handleIconSelect = (iconName: string) => {
-    setSelectedIcon(iconName)
-  }
-
-  const handleDone = () => {
-    if (selectedIcon) {
-      Alert.alert("Icon Selected", `Selected icon: ${selectedIcon}`)
-      onIconSelected?.(selectedIcon)
-      sheet.dismiss()
-      // Reset state after a delay to allow dismiss animation
-      setTimeout(() => {
-        setSelectedIcon(null)
-        setSearchQuery("")
-      }, 300)
-    } else {
-      Alert.alert("No Icon Selected", "Please select an icon first.")
-    }
-  }
-
-  const renderIconItem = ({ item }: { item: IconData }) => {
-    const isSelected = selectedIcon === item.name
-    const IconComponent = item.component
-
+const IconItem = memo(
+  ({
+    iconName,
+    isSelected,
+    onPress,
+    color,
+    selectedColor,
+  }: {
+    iconName: string
+    isSelected: boolean
+    onPress: (name: string) => void
+    color: string
+    selectedColor: string
+  }) => {
     return (
       <Pressable
-        key={item.name}
-        style={[styles.iconItem, isSelected && styles.iconItemSelected]}
-        onPress={() => handleIconSelect(item.name)}
+        style={[
+          styles.iconItem,
+          isSelected && { backgroundColor: selectedColor },
+        ]}
+        onPress={() => onPress(iconName)}
       >
-        <IconComponent
-          size={24}
-          color={isSelected ? theme.colors.primary : theme.colors.onSurface}
-          strokeWidth={isSelected ? 2.5 : 2}
+        <MaterialCommunityIcons
+          name={
+            iconName as ComponentProps<typeof MaterialCommunityIcons>["name"]
+          }
+          size={28}
+          color={color}
         />
       </Pressable>
     )
-  }
+  },
+)
+
+/**
+ * SearchHeader component - Memoized search input to prevent re-renders
+ */
+const SearchHeader = memo(
+  ({
+    searchQuery,
+    onSearchChange,
+    onClear,
+  }: {
+    searchQuery: string
+    onSearchChange: (text: string) => void
+    onClear: () => void
+  }) => {
+    return (
+      <View style={styles.searchContainer}>
+        <IconSymbol name="magnify" size={20} color={styles.searchIcon.color} />
+        <BottomSheetTextInput
+          style={styles.searchInput}
+          placeholder="Search icons..."
+          placeholderTextColor={styles.searchInputText.color}
+          value={searchQuery}
+          onChangeText={onSearchChange}
+          autoCorrect={false}
+          autoCapitalize="none"
+        />
+        {searchQuery.length > 0 && (
+          <Pressable onPress={onClear}>
+            <IconSymbol
+              name="close"
+              size={20}
+              color={styles.searchInputText.color}
+            />
+          </Pressable>
+        )}
+      </View>
+    )
+  },
+)
+
+/**
+ * IconSelectionSheet - Enhanced icon selection with fuzzy search
+ * Supports Material Symbols and Simple Icons (brand icons)
+ *
+ * @component
+ * @param {string} id - Unique identifier for the bottom sheet
+ * @param {function} onIconSelected - Callback function when an icon is selected
+ * @param {string} initialIcon - Initial selected icon name
+ *
+ * @example
+ * <IconSelectionSheet
+ *   id="icon-picker-v2"
+ *   initialIcon="wallet-outline"
+ *   onIconSelected={(icon) => console.log('Selected icon:', icon)}
+ * />
+ */
+export const IconSelectionSheet = ({
+  id,
+  colorScheme,
+  onIconSelected,
+  initialIcon,
+}: IconSelectionSheetV2Props) => {
+  const sheet = useBottomSheet(id)
+  const { theme } = useUnistyles()
+  const [searchQuery, setSearchQuery] = useState("")
+
+  const [selectedIcon, setSelectedIcon] = useState<string | null>(
+    initialIcon || null,
+  )
+
+  // Reset selection to initialIcon when sheet opens
+  const handleSheetChange = useCallback(
+    (index: number) => {
+      if (index >= 0) {
+        // Sheet is opening or open
+        setSelectedIcon(initialIcon || null)
+        setSearchQuery("")
+      }
+    },
+    [initialIcon],
+  )
+
+  /**
+   * Custom search function to filter icons
+   * Searches through icon names and keywords
+   * Returns results sorted by relevance
+   */
+  const searchIcons = useCallback(
+    (icons: MintyIconData[], query: string): MintyIconData[] => {
+      if (!query.trim()) {
+        return icons
+      }
+
+      const lowerQuery = query.toLowerCase().trim()
+
+      // Score each icon based on match quality
+      const scoredIcons = icons.map((icon) => {
+        let score = 0
+        const iconNameLower = icon.name.toLowerCase()
+
+        // Check icon name matches
+        if (iconNameLower === lowerQuery) {
+          score += 100 // Exact match
+        } else if (iconNameLower.startsWith(lowerQuery)) {
+          score += 50 // Starts with query
+        } else if (iconNameLower.includes(lowerQuery)) {
+          score += 25 // Contains query
+        }
+
+        // Check keyword matches
+        for (const keyword of icon.keywords) {
+          const keywordLower = keyword.toLowerCase()
+          if (keywordLower === lowerQuery) {
+            score += 80 // Exact keyword match
+          } else if (keywordLower.startsWith(lowerQuery)) {
+            score += 40 // Keyword starts with query
+          } else if (keywordLower.includes(lowerQuery)) {
+            score += 20 // Keyword contains query
+          }
+        }
+
+        return { icon, score }
+      })
+
+      // Filter out icons with no matches and sort by score
+      return scoredIcons
+        .filter(({ score }) => score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 100)
+        .map(({ icon }) => icon)
+    },
+    [],
+  )
+
+  // Get filtered icons based on search
+  const availableIcons = useMemo(() => {
+    return searchIcons(MATERIAL_SYMBOLS, searchQuery)
+  }, [searchQuery, searchIcons])
+
+  const handleIconSelect = useCallback((iconName: string) => {
+    setSelectedIcon(iconName)
+  }, [])
+
+  const keyExtractor = useCallback((item: MintyIconData) => item.name, [])
+
+  const handleDone = useCallback(() => {
+    if (selectedIcon) {
+      onIconSelected?.(selectedIcon)
+      sheet.dismiss()
+      setTimeout(() => {
+        setSearchQuery("")
+      }, 300)
+    }
+  }, [selectedIcon, onIconSelected, sheet])
+
+  const renderIconItem = useCallback(
+    ({ item }: { item: MintyIconData }) => {
+      return (
+        <IconItem
+          iconName={item.name}
+          isSelected={selectedIcon === item.name}
+          onPress={handleIconSelect}
+          color={theme.colors.onSurface}
+          selectedColor={theme.colors.secondary}
+        />
+      )
+    },
+    [selectedIcon, handleIconSelect, theme.colors],
+  )
+
+  // Handlers for SearchHeader
+  const handleSearchChange = useCallback((text: string) => {
+    setSearchQuery(text)
+  }, [])
+
+  const handleClearSearch = useCallback(() => {
+    setSearchQuery("")
+  }, [])
+
+  const renderFooter = useCallback(
+    (props: BottomSheetFooterProps) => {
+      return (
+        <BottomSheetFooter {...props}>
+          <View style={styles.footer}>
+            <View style={styles.footerLeft}>
+              {selectedIcon && (
+                <View style={styles.selectedPreview}>
+                  <DynamicIcon
+                    icon={selectedIcon}
+                    size={20}
+                    colorScheme={colorScheme}
+                  />
+                </View>
+              )}
+            </View>
+            <Pressable
+              onPress={handleDone}
+              disabled={!selectedIcon}
+              style={({ pressed }) => [
+                styles.doneButton,
+                pressed && styles.doneButtonPressed,
+                !selectedIcon && styles.doneButtonDisabled,
+              ]}
+            >
+              <IconSymbol name="check" size={20} />
+              <Text style={styles.doneButtonText}>Done</Text>
+            </Pressable>
+          </View>
+        </BottomSheetFooter>
+      )
+    },
+    [handleDone, selectedIcon, colorScheme],
+  )
 
   return (
     <BottomSheetModalComponent
       id={id}
-      snapPoints={["70%"]}
+      snapPoints={["70%", "95%"]}
       backdropOpacity={0.5}
       backdropPressBehavior="close"
       keyboardBehavior="extend"
-      keyboardBlurBehavior="restore"
+      keyboardBlurBehavior="none"
+      enablePanDownToClose={false}
+      enableDynamicSizing={false}
+      skipBottomSheetView={true}
+      footerComponent={renderFooter}
+      enableContentPanningGesture={false}
+      onChange={handleSheetChange}
     >
-      <View style={styles.container}>
-        {/* Title */}
-        <Text variant="h2" style={styles.title}>
-          Icon
-        </Text>
-
-        {/* Search Input */}
-        <View style={styles.searchContainer}>
-          <Icon name="Tag" size={20} color={theme.colors.onSecondary} />
-          <BottomSheetTextInput
-            style={styles.searchInput}
-            placeholder="Search icons..."
-            placeholderTextColor={theme.colors.onSecondary}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-        </View>
-
-        {/* Icon Grid - Using BottomSheetScrollView for proper scrolling */}
-        {availableIcons.length > 0 ? (
-          <BottomSheetScrollView
-            style={styles.scrollView}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={true}
-          >
-            <View style={styles.iconGridWrapper}>
-              {availableIcons.map((item) => renderIconItem({ item }))}
-            </View>
-          </BottomSheetScrollView>
-        ) : (
+      <SearchHeader
+        searchQuery={searchQuery}
+        onSearchChange={handleSearchChange}
+        onClear={handleClearSearch}
+      />
+      <BottomSheetFlatList
+        data={availableIcons}
+        numColumns={COLUMNS}
+        renderItem={renderIconItem}
+        keyExtractor={keyExtractor}
+        contentContainerStyle={styles.flatListContent}
+        showsVerticalScrollIndicator={true}
+        initialNumToRender={60}
+        maxToRenderPerBatch={60}
+        windowSize={7}
+        removeClippedSubviews={false}
+        bounces={true}
+        keyboardDismissMode="none"
+        keyboardShouldPersistTaps="always"
+        ListEmptyComponent={
           <View style={styles.emptyState}>
+            <IconSymbol
+              name="alert-circle-outline"
+              size={48}
+              color={theme.colors.onSecondary}
+            />
             <Text variant="p" style={styles.emptyStateText}>
               No icons found
             </Text>
+            <Text variant="p" style={styles.emptyStateSubtext}>
+              Try a different search term
+            </Text>
           </View>
-        )}
-
-        {/* Footer with Done button - Fixed at bottom */}
-        <View style={styles.footer}>
-          <Pressable onPress={handleDone} style={styles.doneButton}>
-            <Icon name="Check" size={20} color={theme.colors.primary} />
-            <Text style={styles.doneButtonText}>Done</Text>
-          </Pressable>
-        </View>
-      </View>
+        }
+      />
     </BottomSheetModalComponent>
   )
 }
 
 const styles = StyleSheet.create((theme) => ({
-  container: {
-    flex: 1,
+  flatListContent: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 300,
+  },
+  titleContainer: {
+    marginBottom: 16,
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingTop: 16,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 16,
-  },
-  title: {
-    marginBottom: 20,
-    textAlign: "center",
-    color: theme.colors.onSurface,
   },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    marginBottom: 20,
+    marginHorizontal: 20,
+    marginTop: 8,
+    marginBottom: 16,
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderRadius: theme.colors.radius,
     borderWidth: 1,
     borderColor: theme.colors.onSurface,
@@ -490,45 +366,86 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 16,
     color: theme.colors.onSurface,
     padding: 0,
+    minHeight: 24,
   },
-  iconGridWrapper: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 0,
+  searchIcon: {
+    color: theme.colors.onSecondary,
+  },
+  searchInputText: {
+    color: theme.colors.onSecondary,
   },
   emptyState: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 40,
+    paddingVertical: 60,
+    gap: 12,
   },
   emptyStateText: {
     color: theme.colors.onSecondary,
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  emptyStateSubtext: {
+    color: theme.colors.onSecondary,
+    fontSize: 14,
+    opacity: 0.7,
   },
   iconItem: {
-    width: "16.66%", // 6 columns (100% / 6)
+    flex: 1,
     aspectRatio: 1,
     alignItems: "center",
     justifyContent: "center",
-    padding: 8,
+    margin: 4,
     borderRadius: theme.colors.radius,
-  },
-  iconItemSelected: {
-    backgroundColor: theme.colors.secondary,
+    maxWidth: 56,
   },
   footer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingVertical: 16,
-    alignItems: "flex-end",
+    paddingHorizontal: 20,
     borderTopWidth: 1,
-    borderTopColor: theme.colors.onSurface + "20",
+    borderTopColor: `${theme.colors.onSurface}20`,
     backgroundColor: theme.colors.surface,
+    gap: 12,
+  },
+  footerLeft: {
+    flex: 1,
+    minHeight: 40,
+    justifyContent: "center",
+  },
+  selectedPreview: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: theme.colors.radius,
+    backgroundColor: `${theme.colors.secondary}30`,
+  },
+  selectedIconName: {
+    fontSize: 14,
+    color: theme.colors.onSurface,
+    fontWeight: "500",
+    flex: 1,
   },
   doneButton: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: theme.colors.radius,
+    backgroundColor: `${theme.colors.primary}10`,
+  },
+  doneButtonPressed: {
+    opacity: 0.7,
+    backgroundColor: `${theme.colors.primary}15`,
+  },
+  doneButtonDisabled: {
+    opacity: 0.4,
   },
   doneButtonText: {
     fontSize: 16,

@@ -278,11 +278,11 @@ export const isValidDisplay = (display: string): boolean => {
 type FormatterKey = string
 const formatterCache = new Map<FormatterKey, string>()
 
-function getCachedFormatted(
+const getCachedFormatted = (
   value: number,
   locale: string | undefined,
   options: Parameters<typeof numberFormatter>[1],
-) {
+): string => {
   const resolvedLocale = locale ?? getDefaultLocale()
   const key = JSON.stringify({ locale: resolvedLocale, options, value })
   const cached = formatterCache.get(key)
@@ -300,12 +300,12 @@ function getCachedFormatted(
  * - `currencyLook` is intentionally optional so callers can pass formatting
  *   preferences from UI-level stores and avoid cross-store calls in hot paths.
  */
-export function formatDisplayValue(
+export const formatDisplayValue = (
   value: string,
   currency?: string,
   currencyLook?: Intl.NumberFormatOptions["currencyDisplay"],
   locale?: string,
-) {
+): string => {
   const resolvedLocale = locale ?? getDefaultLocale()
 
   const baseOptions: Intl.NumberFormatOptions = {

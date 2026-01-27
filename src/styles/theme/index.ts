@@ -7,6 +7,7 @@ export { ThemeFactory } from "./factory"
 // Export registry functions
 export {
   ALL_THEMES,
+  getThemeStrict,
   STANDALONE_THEMES,
   THEME_GROUPS,
   validateThemeName,

@@ -19,7 +19,7 @@ import * as Haptics from "expo-haptics"
  * - Enhances UX on iOS by giving physical feedback for button presses
  * - Only works on iOS (Android doesn't trigger haptics in this implementation)
  */
-export function HapticTab(props: BottomTabBarButtonProps) {
+export const HapticTab = (props: BottomTabBarButtonProps) => {
   return (
     <PlatformPressable
       {...props}

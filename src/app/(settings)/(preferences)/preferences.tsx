@@ -144,7 +144,7 @@ const styles = StyleSheet.create((theme) => ({
     marginBlock: 10,
   },
   sectionTitle: {
-    fontWeight: "bold",
+    fontWeight: "600",
     color: theme.colors.onSurface,
     paddingHorizontal: 20,
   },

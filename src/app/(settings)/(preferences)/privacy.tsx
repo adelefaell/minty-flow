@@ -107,6 +107,6 @@ const styles = StyleSheet.create((theme) => ({
   },
   settingLabel: {
     fontSize: 15,
-    fontWeight: "bold",
+    fontWeight: "600",
   },
 }))

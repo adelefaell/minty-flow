@@ -58,7 +58,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   title: {
     flex: 1,
-    fontWeight: "bold",
+    fontWeight: "600",
     color: theme.colors.onSurface,
   },
   // backButton: {

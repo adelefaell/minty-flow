@@ -1,5 +1,6 @@
+import { withObservables } from "@nozbe/watermelondb/react"
 import { useFocusEffect, useRouter } from "expo-router"
-import { useCallback, useState } from "react"
+import { useCallback } from "react"
 import { FlatList } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -7,7 +8,8 @@ import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import { logger } from "~/utils/logger"
+import type CategoryModel from "~/database/models/Category"
+import { observeCategoriesByType } from "~/database/services/category-service"
 
 import type { Category, CategoryType } from "../types/categories"
 import { CategoryRow } from "./category-row"
@@ -17,74 +19,61 @@ interface CategoryListProps {
   createdCategory?: string
   updatedCategory?: string
   deletedCategory?: string
+  includeArchived?: boolean
+  searchQuery?: string
 }
 
-// Mock data - replace with actual data source
-const getMockCategories = (_type: CategoryType): Category[] => {
-  // Return empty array for now - will be populated from actual data source
-  return []
+/**
+ * Convert CategoryModel to Category domain type
+ */
+const modelToCategory = (model: CategoryModel): Category => {
+  return {
+    id: model.id,
+    name: model.name,
+    type: model.type,
+    icon: model.icon,
+    colorSchemeName: model.colorSchemeName,
+    colorScheme: model.colorScheme, // Computed getter from model
+    transactionCount: model.transactionCount,
+    isArchived: model.isArchived,
+    createdAt: model.createdAt,
+    updatedAt: model.updatedAt,
+  }
 }
 
-export function CategoryList({
+interface CategoryListInnerProps extends CategoryListProps {
+  categoryModels: CategoryModel[]
+}
+
+const CategoryListInner = ({
   type,
   createdCategory,
   updatedCategory,
   deletedCategory,
-}: CategoryListProps) {
+  categoryModels,
+  includeArchived = false,
+  searchQuery = "",
+}: CategoryListInnerProps & {
+  includeArchived?: boolean
+  searchQuery?: string
+}) => {
   const router = useRouter()
-  const [categories, setCategories] = useState<Category[]>(() =>
-    getMockCategories(type),
-  )
 
-  // Listen for when screen comes into focus and check for created/updated category
+  // Convert models to domain types
+  const categories = categoryModels.map(modelToCategory)
+
+  // Clear URL params when screen comes into focus
+  // The reactive observe will automatically update the list
   useFocusEffect(
     useCallback(() => {
       if (createdCategory) {
-        try {
-          const categoryData = JSON.parse(createdCategory)
-          const newCategory: Category = {
-            ...categoryData,
-            id: `cat_${Date.now()}`,
-            transactionCount: 0,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          }
-          setCategories((prev) => [...prev, newCategory])
-          // Clear the param to avoid re-adding
-          router.setParams({ createdCategory: undefined })
-        } catch (error) {
-          logger.error("Error parsing created category", { error })
-        }
+        router.setParams({ createdCategory: undefined })
       }
-
       if (updatedCategory) {
-        try {
-          const updateData = JSON.parse(updatedCategory)
-          setCategories((prev) =>
-            prev.map((cat) =>
-              cat.id === updateData.id
-                ? { ...cat, name: updateData.name, updatedAt: new Date() }
-                : cat,
-            ),
-          )
-          // Clear the param to avoid re-updating
-          router.setParams({ updatedCategory: undefined })
-        } catch (error) {
-          logger.error("Error parsing updated category", { error })
-        }
+        router.setParams({ updatedCategory: undefined })
       }
-
       if (deletedCategory) {
-        try {
-          const deleteData = JSON.parse(deletedCategory)
-          setCategories((prev) =>
-            prev.filter((cat) => cat.id !== deleteData.id),
-          )
-          // Clear the param to avoid re-deleting
-          router.setParams({ deletedCategory: undefined })
-        } catch (error) {
-          logger.error("Error parsing deleted category", { error })
-        }
+        router.setParams({ deletedCategory: undefined })
       }
     }, [createdCategory, updatedCategory, deletedCategory, router]),
   )
@@ -108,51 +97,83 @@ export function CategoryList({
     })
   }
 
-  const handleEditCategory = (id: string, updates: Partial<Category>) => {
-    setCategories((prev) =>
-      prev.map((cat) =>
-        cat.id === id ? { ...cat, ...updates, updatedAt: new Date() } : cat,
-      ),
+  // Separate active and archived categories
+  const activeCategories = categories.filter((c) => !c.isArchived)
+  const archivedCategories = categories.filter((c) => c.isArchived)
+
+  const renderHeader = () => {
+    // Don't show add buttons when viewing archived categories
+    if (includeArchived) {
+      return null
+    }
+
+    return (
+      <View style={styles.headerContainer}>
+        <Button
+          variant="secondary"
+          size="default"
+          onPress={handleAddCategory}
+          style={styles.headerButton}
+        >
+          <IconSymbol name="plus" size={20} />
+          <Text variant="default" style={styles.headerButtonText}>
+            Add New Category
+          </Text>
+        </Button>
+        <Button
+          variant="secondary"
+          size="default"
+          onPress={handleAddFromPresets}
+          style={styles.headerButton}
+        >
+          <IconSymbol name="shape-plus-outline" size={20} />
+          <Text variant="default" style={styles.headerButtonText}>
+            Add From Presets
+          </Text>
+        </Button>
+        <View style={styles.separator} />
+      </View>
     )
   }
 
-  const handleDeleteCategory = (id: string) => {
-    setCategories((prev) => prev.filter((cat) => cat.id !== id))
-  }
+  // When viewing archived, show ONLY archived categories
+  // When viewing active, show ONLY active categories
+  const allCategories = includeArchived ? archivedCategories : activeCategories
 
-  const activeCategories = categories.filter(
-    (cat) => cat.type === type && !cat.isArchived,
-  )
+  if (allCategories.length === 0) {
+    if (searchQuery) {
+      return (
+        <View style={styles.emptyWrapper}>
+          <View style={styles.emptyContainer}>
+            <IconSymbol name="magnify" size={40} style={styles.emptyIcon} />
+            <Text variant="h4" style={styles.emptyTitle}>
+              No results for "{searchQuery}"
+            </Text>
+            <Text variant="small" style={styles.emptyDescription}>
+              Try a different search term or create a new category
+            </Text>
+          </View>
+        </View>
+      )
+    }
 
-  const renderHeader = () => (
-    <View style={styles.headerContainer}>
-      <Button
-        variant="secondary"
-        size="default"
-        onPress={handleAddCategory}
-        style={styles.headerButton}
-      >
-        <IconSymbol name="plus" size={20} />
-        <Text variant="default" style={styles.headerButtonText}>
-          Add New Category
-        </Text>
-      </Button>
-      <Button
-        variant="secondary"
-        size="default"
-        onPress={handleAddFromPresets}
-        style={styles.headerButton}
-      >
-        <IconSymbol name="shape-plus-outline" size={20} />
-        <Text variant="default" style={styles.headerButtonText}>
-          Add From Presets
-        </Text>
-      </Button>
-      <View style={styles.separator} />
-    </View>
-  )
+    // Don't show empty state with add buttons when viewing archived
+    if (includeArchived) {
+      return (
+        <View style={styles.emptyWrapper}>
+          <View style={styles.emptyContainer}>
+            <IconSymbol name="tag-outline" size={40} style={styles.emptyIcon} />
+            <Text variant="h4" style={styles.emptyTitle}>
+              No archived {type} categories
+            </Text>
+            <Text variant="small" style={styles.emptyDescription}>
+              Archived categories will appear here
+            </Text>
+          </View>
+        </View>
+      )
+    }
 
-  if (activeCategories.length === 0) {
     return (
       <View style={styles.emptyWrapper}>
         {renderHeader()}
@@ -164,6 +185,15 @@ export function CategoryList({
           <Text variant="small" style={styles.emptyDescription}>
             Create your first category to start organizing your transactions
           </Text>
+          <Button
+            variant="default"
+            onPress={handleAddFromPresets}
+            style={styles.emptyButton}
+          >
+            <Text variant="default" style={styles.emptyButtonText}>
+              Add Recommended Categories
+            </Text>
+          </Button>
         </View>
       </View>
     )
@@ -171,15 +201,10 @@ export function CategoryList({
 
   return (
     <FlatList
-      data={activeCategories}
+      data={allCategories}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => (
-        <CategoryRow
-          category={item}
-          onEdit={(updates) => handleEditCategory(item.id, updates)}
-          onDelete={() => handleDeleteCategory(item.id)}
-          transactionCount={item.transactionCount}
-        />
+        <CategoryRow category={item} transactionCount={item.transactionCount} />
       )}
       contentContainerStyle={styles.listContent}
       ListHeaderComponent={renderHeader()}
@@ -246,20 +271,20 @@ const styles = StyleSheet.create((theme) => ({
     marginBottom: 24,
     lineHeight: 20,
   },
-  addButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingVertical: 16,
-    marginTop: 12,
-    marginBottom: 20,
-    backgroundColor: theme.colors.secondary,
-    borderRadius: theme.colors.radius,
+  emptyButton: {
+    minWidth: 200,
   },
-  addButtonText: {
-    fontSize: 16,
+  emptyButtonText: {
     fontWeight: "600",
-    color: theme.colors.onSurface,
+    color: theme.colors.onPrimary,
   },
 }))
+
+// Enhance component with WatermelonDB observables
+// This follows WatermelonDB best practices: https://watermelondb.dev/docs/Query
+export const CategoryList = withObservables(
+  ["type", "includeArchived", "searchQuery"],
+  ({ type, includeArchived = false, searchQuery = "" }: CategoryListProps) => ({
+    categoryModels: observeCategoriesByType(type, includeArchived, searchQuery),
+  }),
+)(CategoryListInner)

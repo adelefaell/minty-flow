@@ -48,7 +48,11 @@ const TOOLTIP_BOTTOM_SPACING = 30
 const TOOLTIP_TOP_SPACING = 10
 const SCREEN_EDGE_PADDING = 12
 
-export function TooltipProvider({ children }: { children: React.ReactNode }) {
+export const TooltipProvider = ({
+  children,
+}: {
+  children: React.ReactNode
+}) => {
   const [tooltip, setTooltip] = useState<TooltipData | null>(null)
   const [tooltipWidth, setTooltipWidth] = useState(0)
 
@@ -216,7 +220,7 @@ export function TooltipProvider({ children }: { children: React.ReactNode }) {
   )
 }
 
-export interface TooltipProps {
+export type TooltipProps = {
   text: string
   children: React.ReactElement<PressableProps>
   delayLongPress?: number
@@ -226,13 +230,13 @@ export interface TooltipProps {
 
 type PressEvent = Parameters<NonNullable<PressableProps["onLongPress"]>>[0]
 
-export function Tooltip({
+export const Tooltip = ({
   text,
   children,
   delayLongPress = 350,
   hapticFeedback = true,
   position = "top",
-}: TooltipProps) {
+}: TooltipProps) => {
   const context = useContext(TooltipContext)
   const pressableRef = useRef<RNView>(null)
 

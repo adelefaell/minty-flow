@@ -31,6 +31,12 @@ export function DeleteCategorySheet({
     sheet.dismiss()
   }
 
+  const transactionCount = category.transactionCount ?? 0
+  const description =
+    transactionCount > 0
+      ? `Deleting this category will leave ${transactionCount} transaction${transactionCount !== 1 ? "s" : ""} with no category. This action is irreversible!`
+      : "Deleting this category cannot be undone. This action is irreversible!"
+
   return (
     <BottomSheetModalComponent id={`delete-category-${category.id}`}>
       <View style={styles.container}>
@@ -39,27 +45,19 @@ export function DeleteCategorySheet({
         </View>
 
         <Text variant="h3" style={styles.title}>
-          Delete Category
+          Confirm deleting {category.name}?
         </Text>
 
         <Text variant="p" style={styles.description}>
-          Are you sure you want to delete "{category.name}"? This action cannot
-          be undone.
-          {category.transactionCount > 0 && (
-            <>
-              {"\n\n"}
-              This category has {category.transactionCount} transaction
-              {category.transactionCount !== 1 ? "s" : ""} associated with it.
-            </>
-          )}
+          {description}
         </Text>
 
         <View style={styles.buttonContainer}>
-          <Button variant="destructive" onPress={handleConfirm}>
-            <Text variant="default">Delete</Text>
-          </Button>
           <Button variant="outline" onPress={handleCancel}>
             <Text variant="default">Cancel</Text>
+          </Button>
+          <Button variant="destructive" onPress={handleConfirm}>
+            <Text variant="default">Delete</Text>
           </Button>
         </View>
       </View>

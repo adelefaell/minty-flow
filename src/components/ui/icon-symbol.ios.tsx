@@ -56,13 +56,13 @@ type IconSymbolProps = {
  * @see {@link https://developer.apple.com/sf-symbols/ | SF Symbols Documentation}
  * @see {@link https://docs.expo.dev/versions/latest/sdk/symbols/ | Expo Symbols Documentation}
  */
-export function IconSymbol({
+export const IconSymbol = ({
   name,
   size = 24,
   color,
   style,
   weight = "regular",
-}: IconSymbolProps) {
+}: IconSymbolProps) => {
   const { theme } = useUnistyles()
   return (
     <SymbolView

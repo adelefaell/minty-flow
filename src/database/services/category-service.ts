@@ -1,8 +1,10 @@
 import { Q } from "@nozbe/watermelondb"
+import type { Observable } from "@nozbe/watermelondb/utils/rx"
 
-import type { Category as CategoryType } from "../../types/categories"
+import type { CategoryType } from "../../types/categories"
 import { database } from "../index"
-import type Category from "../models/Category"
+import type CategoryModel from "../models/Category"
+import { getTransactionModels } from "./transaction-service"
 
 /**
  * Category Service
@@ -14,16 +16,16 @@ import type Category from "../models/Category"
 /**
  * Get the categories collection
  */
-function getCategoryCollection() {
-  return database.get<Category>("categories")
+const getCategoryCollection = () => {
+  return database.get<CategoryModel>("categories")
 }
 
 /**
  * Get all categories
  */
-export async function getCategories(
+export const getCategories = async (
   includeArchived = false,
-): Promise<Category[]> {
+): Promise<CategoryModel[]> => {
   const categories = getCategoryCollection()
   if (includeArchived) {
     return await categories.query().fetch()
@@ -34,7 +36,9 @@ export async function getCategories(
 /**
  * Find a category by ID
  */
-export async function findCategory(id: string): Promise<Category | null> {
+export const findCategory = async (
+  id: string,
+): Promise<CategoryModel | null> => {
   try {
     return await getCategoryCollection().find(id)
   } catch {
@@ -45,7 +49,9 @@ export async function findCategory(id: string): Promise<Category | null> {
 /**
  * Observe all categories reactively
  */
-export function observeCategories(includeArchived = false) {
+export const observeCategories = (
+  includeArchived = false,
+): Observable<CategoryModel[]> => {
   const categories = getCategoryCollection()
   if (includeArchived) {
     return categories.query().observe()
@@ -54,21 +60,58 @@ export function observeCategories(includeArchived = false) {
 }
 
 /**
+ * Observe categories filtered by type
+ * Follows WatermelonDB best practices for reactive queries
+ *
+ * Uses observeWithColumns to react to column changes (name, icon, color_scheme_name, etc.)
+ * not just record additions/deletions. This ensures the list updates when categories are edited.
+ */
+export const observeCategoriesByType = (
+  type: CategoryType,
+  includeArchived = false,
+  searchQuery = "",
+): Observable<CategoryModel[]> => {
+  const categories = getCategoryCollection()
+  let query = categories.query(Q.where("type", type), Q.sortBy("name", Q.asc))
+
+  if (!includeArchived) {
+    query = query.extend(Q.where("is_archived", false))
+  }
+
+  if (searchQuery.trim().length > 0) {
+    query = query.extend(
+      Q.where("name", Q.like(`%${Q.sanitizeLikeString(searchQuery.trim())}%`)),
+    )
+  }
+
+  // Observe specific columns that can change when editing
+  // This makes the query reactive to column changes, not just record additions/deletions
+  return query.observeWithColumns([
+    "name",
+    "icon",
+    "color_scheme_name",
+    "transaction_count",
+    "is_archived",
+    "updated_at",
+  ])
+}
+
+/**
  * Observe a specific category by ID
  */
-export function observeCategoryById(id: string) {
+export const observeCategoryById = (id: string): Observable<CategoryModel> => {
   return getCategoryCollection().findAndObserve(id)
 }
 
 /**
  * Create a new category
  */
-export async function createCategory(data: {
+export const createCategory = async (data: {
   name: string
-  type: "expense" | "income" | "transfer"
+  type: CategoryType
   icon?: string
-  color?: CategoryType["color"]
-}): Promise<Category> {
+  colorSchemeName?: string
+}): Promise<CategoryModel> => {
   return await database.write(async () => {
     return await getCategoryCollection().create((category) => {
       category.name = data.name
@@ -78,8 +121,8 @@ export async function createCategory(data: {
       category.isArchived = false
       category.createdAt = new Date()
       category.updatedAt = new Date()
-      if (data.color) {
-        category.setColor(data.color)
+      if (data.colorSchemeName) {
+        category.setColorScheme(data.colorSchemeName)
       }
     })
   })
@@ -88,20 +131,21 @@ export async function createCategory(data: {
 /**
  * Update category
  */
-export async function updateCategory(
-  category: Category,
+export const updateCategory = async (
+  category: CategoryModel,
   updates: Partial<{
     name: string
     icon: string | undefined
-    color: CategoryType["color"]
+    colorSchemeName: string | undefined
     isArchived: boolean
   }>,
-): Promise<Category> {
+): Promise<CategoryModel> => {
   return await database.write(async () => {
     return await category.update((c) => {
       if (updates.name !== undefined) c.name = updates.name
       if (updates.icon !== undefined) c.icon = updates.icon
-      if (updates.color !== undefined) c.setColor(updates.color)
+      if (updates.colorSchemeName !== undefined)
+        c.setColorScheme(updates.colorSchemeName)
       if (updates.isArchived !== undefined) c.isArchived = updates.isArchived
       c.updatedAt = new Date()
     })
@@ -111,15 +155,15 @@ export async function updateCategory(
 /**
  * Update category by ID
  */
-export async function updateCategoryById(
+export const updateCategoryById = async (
   id: string,
   updates: Partial<{
     name: string
     icon: string | undefined
-    color: CategoryType["color"]
+    colorSchemeName: string | undefined
     isArchived: boolean
   }>,
-): Promise<Category> {
+): Promise<CategoryModel> => {
   const category = await findCategory(id)
   if (!category) {
     throw new Error(`Category with id ${id} not found`)
@@ -128,19 +172,80 @@ export async function updateCategoryById(
 }
 
 /**
- * Delete category (mark as deleted for sync)
+ * Delete category completely. All transactions that belonged to this category
+ * are updated to have no category (uncategorized). The category is then
+ * permanently removed.
+ *
+ * Uses batch operations for performance and atomicity.
  */
-export async function deleteCategory(category: Category): Promise<void> {
-  await database.write(async () => {
-    await category.markAsDeleted()
+export const deleteCategory = async (
+  category: CategoryModel,
+  targetCategoryId: string | null = null,
+): Promise<void> => {
+  const transactions = await getTransactionModels({
+    categoryId: category.id,
+    includeDeleted: false,
   })
+
+  await database.write(async () => {
+    // Prepare transaction updates
+    const transactionOps = transactions.map((transaction) =>
+      transaction.prepareUpdate((t) => {
+        // Move to target category or set to null for "no category"
+        t.categoryId = targetCategoryId
+        t.updatedAt = new Date()
+      }),
+    )
+
+    // Prepare category deletion
+    const categoryOp = category.prepareDestroyPermanently()
+
+    // Execute all operations atomically
+    await database.batch(...transactionOps, categoryOp)
+
+    // If we moved to a target category, we should recalculate its count
+    // (Note: This might be better handled reactively or by also fetching target category)
+  })
+
+  if (targetCategoryId) {
+    await recalculateCategoryTransactionCount(targetCategoryId)
+  }
 }
 
 /**
- * Permanently destroy category
+ * Recalculate transaction count for a category based on actual transactions
  */
-export async function destroyCategory(category: Category): Promise<void> {
-  await database.write(async () => {
-    await category.destroyPermanently()
+export const recalculateCategoryTransactionCount = async (
+  categoryId: string,
+): Promise<number> => {
+  const transactions = await getTransactionModels({
+    categoryId,
+    includeDeleted: false,
   })
+
+  const count = transactions.length
+
+  const category = await findCategory(categoryId)
+  if (category) {
+    await database.write(async () => {
+      await category.update((c) => {
+        c.transactionCount = count
+        c.updatedAt = new Date()
+      })
+    })
+  }
+
+  return count
 }
+
+/**
+ * Recalculate transaction counts for all categories
+ */
+export const recalculateAllCategoryTransactionCounts =
+  async (): Promise<void> => {
+    const categories = await getCategories(true) // Include archived
+
+    for (const category of categories) {
+      await recalculateCategoryTransactionCount(category.id)
+    }
+  }

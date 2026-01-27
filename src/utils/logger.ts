@@ -14,6 +14,133 @@ const COLORS = {
   gray: "\x1b[90m",
 }
 
+/**
+ * Maximum number of keys to display per object to prevent log explosion.
+ */
+const MAX_KEYS = 20
+
+/**
+ * Safely stringify a value with proper Date handling and depth limiting.
+ * 
+ * @param value - The value to stringify
+ * @param depth - Maximum depth for nested objects (default: 3)
+ * @returns Formatted string representation
+ */
+const pretty = (value: unknown, depth = 3): string => {
+  return JSON.stringify(
+    value,
+    (_key, val) => {
+      if (val instanceof Date) {
+        return val.toISOString()
+      }
+      return val
+    },
+    2,
+  )
+}
+
+/**
+ * Indent a multi-line string by prepending spaces to each line.
+ * 
+ * @param str - The string to indent
+ * @returns Indented string
+ */
+const indent = (str: string): string => {
+  return str
+    .split("\n")
+    .map((l) => `  ${l}`)
+    .join("\n")
+}
+
+/**
+ * Pretty print an object as key-value pairs with proper formatting.
+ * Handles Dates, nested objects, and prevents [Object] collapsing.
+ * 
+ * @param obj - The object to print
+ * @param indentLevel - Number of spaces to indent (default: 2)
+ * @returns Formatted string representation
+ */
+const printObject = (obj: Record<string, unknown>, indentLevel = 2): string => {
+  const pad = " ".repeat(indentLevel)
+  const entries = Object.entries(obj)
+  const entriesToShow = entries.slice(0, MAX_KEYS)
+
+  const lines = entriesToShow.map(([key, value]) => {
+    let formatted: string
+
+    if (value instanceof Date) {
+      formatted = value.toISOString()
+    } else if (typeof value === "object" && value !== null) {
+      // Handle nested objects
+      const nested = JSON.stringify(value, null, 2)
+      formatted = nested
+        .split("\n")
+        .map((l, i) => (i === 0 ? l : `${pad}  ${l}`))
+        .join("\n")
+    } else {
+      formatted = JSON.stringify(value)
+    }
+
+    return `${pad}${COLORS.dim}${key}:${COLORS.reset} ${formatted}`
+  })
+
+  // Add truncation notice if we hit the limit
+  if (entries.length > MAX_KEYS) {
+    lines.push(`${pad}${COLORS.dim}... (${entries.length - MAX_KEYS} more keys)${COLORS.reset}`)
+  }
+
+  return lines.join("\n")
+}
+
+/**
+ * Format an array of items into a readable list.
+ * For objects, shows a one-line summary followed by full object details.
+ * 
+ * @param label - The label for the array
+ * @param arr - The array to format
+ * @returns Formatted string representation
+ */
+const formatArray = (label: string, arr: unknown[]): string => {
+  const header = `${COLORS.dim}${label} (${arr.length})${COLORS.reset}`
+
+  const rows = arr.map((item, i) => {
+    if (typeof item === "object" && item !== null) {
+      const record = item as Record<string, unknown>
+
+      // One-line identity summary
+      const title = `${COLORS.gray}  ${i + 1}. ${COLORS.bold}${record.name ?? "—"}${COLORS.reset} ${COLORS.dim}(${record.type ?? "?"}) id=${record.id ?? "?"}${COLORS.reset}`
+
+      // Full object details
+      const details = printObject(record, 4)
+
+      return `${title}\n${details}`
+    }
+
+    return `${COLORS.gray}  ${i + 1}. ${String(item)}${COLORS.reset}`
+  })
+
+  return [header, ...rows].join("\n")
+}
+
+/**
+ * Format metadata object into a readable structure.
+ * Special-cases arrays to use the array formatter for better readability.
+ * 
+ * @param meta - The metadata object to format
+ * @returns Formatted string representation
+ */
+const formatMeta = (meta: Record<string, unknown>): string => {
+  return Object.entries(meta)
+    .map(([key, value]) => {
+      if (Array.isArray(value)) {
+        return formatArray(key, value)
+      }
+
+      return `${COLORS.dim}${key}:${COLORS.reset}\n${indent(pretty(value))}`
+    })
+    .join("\n")
+}
+
 const ICONS = {
   debug: "🔍",
   info: "ℹ️",
@@ -29,7 +156,7 @@ const ICONS = {
  * @param meta - Optional metadata object
  * @internal
  */
-function base(level: LogLevel, msg: string, meta?: Record<string, unknown>) {
+  const base = (level: LogLevel, msg: string, meta?: Record<string, unknown>) => {
   const timestamp = new Date().toISOString()
   const log = { level, msg, meta, timestamp }
 
@@ -62,13 +189,8 @@ function base(level: LogLevel, msg: string, meta?: Record<string, unknown>) {
   // Metadata section (if present)
   let metaSection = ""
   if (meta && Object.keys(meta).length > 0) {
-    const metaStr = JSON.stringify(meta, null, 2)
-      .split("\n")
-      .map((line, idx) =>
-        idx === 0 ? line : `${COLORS.dim}  ${line}${COLORS.reset}`,
-      )
-      .join("\n")
-    metaSection = `\n${COLORS.dim}└─${COLORS.reset} ${COLORS.gray}Meta:${COLORS.reset}\n${COLORS.dim}  ${metaStr}${COLORS.reset}`
+    const metaStr = formatMeta(meta)
+    metaSection = `\n${COLORS.dim}└─ Meta${COLORS.reset}\n${metaStr}`
   }
 
   const output = `${mainLine}${metaSection}`

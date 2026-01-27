@@ -14,6 +14,8 @@ import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import { isSingleEmojiOrLetter } from "~/utils/is-single-emoji-or-letter"
 
+import { Button } from "./ui/button"
+
 interface EmojiLetterSelectionSheetProps {
   id: string
   onIconSelected?: (icon: string) => void
@@ -82,14 +84,10 @@ export const EmojiLetterSelectionSheet = ({
 
         {/* Done Button */}
         <View style={styles.footer}>
-          <Pressable onPress={handleDone} style={styles.doneButton}>
-            <IconSymbol
-              name="check"
-              size={20}
-              color={styles.doneButtonText.color}
-            />
-            <Text style={styles.doneButtonText}>Done</Text>
-          </Pressable>
+          <Button onPress={handleDone} variant="ghost">
+            <IconSymbol name="check" size={20} />
+            <Text>Done</Text>
+          </Button>
         </View>
       </View>
     </BottomSheetModalComponent>
@@ -130,16 +128,16 @@ const styles = StyleSheet.create((theme) => ({
     width: "100%",
     height: "100%",
     fontSize: 64,
-    fontWeight: "bold",
-    color: theme.colors.onSurface,
+    fontWeight: "600",
+    color: theme.colors.primary,
     textAlign: "center",
     opacity: 0, // Hide the actual input, we'll show the display value
     // Don't set fontFamily - let the system use native emoji fonts for input
   },
   previewText: {
     fontSize: 64,
-    fontWeight: "bold",
-    color: theme.colors.onSurface,
+    fontWeight: "600",
+    color: theme.colors.primary,
     textAlign: "center",
     // Don't set fontFamily - let the system use native emoji fonts
     // This ensures emojis render correctly on iOS (Apple Color Emoji) and Android (Noto Color Emoji)
@@ -165,17 +163,5 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: "flex-end",
     alignItems: "center",
     marginTop: "auto",
-  },
-  doneButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-  },
-  doneButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: theme.colors.primary,
   },
 }))

@@ -8,7 +8,7 @@ export interface SwitchProps extends RNSwitchProps {
   native?: boolean
 }
 
-export function Switch({
+export const Switch = ({
   native = false,
   value,
   onValueChange,
@@ -16,7 +16,7 @@ export function Switch({
   thumbColor,
   disabled,
   ...props
-}: SwitchProps) {
+}: SwitchProps) => {
   const { theme } = useUnistyles()
 
   const finalThumbColor =

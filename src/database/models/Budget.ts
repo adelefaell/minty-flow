@@ -1,10 +1,14 @@
 import { Model } from "@nozbe/watermelondb"
 import { date, field, relation } from "@nozbe/watermelondb/decorators"
 
-import type Category from "./Category"
+import type { BudgetPeriod, Budget as BudgetType } from "../../types/budgets"
+import type CategoryModel from "./Category"
 
 /**
  * Budget model representing budget limits.
+ *
+ * Implements the Budget domain type, ensuring the persistence layer
+ * conforms to the business logic contract.
  *
  * Follows WatermelonDB schema patterns:
  * - Column names use snake_case
@@ -12,18 +16,18 @@ import type Category from "./Category"
  * - Date fields end with _at and use number type (Unix timestamps)
  * - Relations use _id suffix for foreign keys
  */
-export default class Budget extends Model {
+export default class BudgetModel extends Model implements BudgetType {
   static table = "budgets"
 
   @field("name") name!: string
   @field("amount") amount!: number
   @field("spent_amount") spentAmount!: number
   @field("currency_code") currencyCode!: string
-  @field("period") period!: "daily" | "weekly" | "monthly" | "yearly" | "custom"
+  @field("period") period!: BudgetPeriod
   @date("start_date") startDate!: Date
   @date("end_date") endDate?: Date
   @field("category_id") categoryId?: string
-  @relation("categories", "category_id") category?: Category
+  @relation("categories", "category_id") category?: CategoryModel
   @field("alert_threshold") alertThreshold?: number
   @field("is_active") isActive!: boolean
   @field("is_archived") isArchived!: boolean
@@ -32,6 +36,7 @@ export default class Budget extends Model {
 
   /**
    * Gets the remaining amount in the budget.
+   * This computed property satisfies the domain type's remainingAmount requirement.
    */
   get remainingAmount(): number {
     return Math.max(0, this.amount - this.spentAmount)
@@ -39,6 +44,7 @@ export default class Budget extends Model {
 
   /**
    * Gets the spending percentage (0-100+).
+   * This computed property satisfies the domain type's spentPercentage requirement.
    */
   get spentPercentage(): number {
     if (this.amount === 0) return 0
@@ -47,6 +53,7 @@ export default class Budget extends Model {
 
   /**
    * Checks if the budget has exceeded the alert threshold.
+   * This computed property satisfies the domain type's isAboveAlertThreshold requirement.
    */
   get isAboveAlertThreshold(): boolean {
     if (!this.alertThreshold) return false
@@ -55,6 +62,7 @@ export default class Budget extends Model {
 
   /**
    * Checks if the budget has been exceeded.
+   * This computed property satisfies the domain type's isExceeded requirement.
    */
   get isExceeded(): boolean {
     return this.spentAmount > this.amount
@@ -62,6 +70,7 @@ export default class Budget extends Model {
 
   /**
    * Checks if the budget is currently active based on dates.
+   * This computed property satisfies the domain type's isCurrentlyActive requirement.
    */
   get isCurrentlyActive(): boolean {
     if (!this.isActive) return false

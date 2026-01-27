@@ -299,7 +299,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   title: {
     fontSize: 28,
-    fontWeight: "bold",
+    fontWeight: "600",
   },
   version: {
     color: theme.colors.onSecondary,
@@ -327,7 +327,7 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.customColors.info,
   },
   toggleButtonText: {
-    fontWeight: "bold",
+    fontWeight: "600",
     fontSize: 14,
     color: theme.colors.onPrimary,
   },
@@ -356,7 +356,7 @@ const styles = StyleSheet.create((theme) => ({
   sectionTitle: {
     marginBottom: 16,
     fontSize: 22,
-    fontWeight: "bold",
+    fontWeight: "600",
   },
   buttonGrid: {
     flexDirection: "row",

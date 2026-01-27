@@ -7,7 +7,9 @@ import { useBottomSheet } from "~/components/bottom-sheet"
 import { ButtonExample } from "~/components/button-example"
 import { CalculatorSheet } from "~/components/calculator-sheet"
 import { ChangeIconSheet } from "~/components/change-icon-sheet"
+import { ColorVariantSheet } from "~/components/color-variant-sheet"
 import { ExampleBottomSheet1 } from "~/components/example-bottom-sheet-1"
+import { IconSelectionExample } from "~/components/icon-selection-sheet-v2-example"
 import ParallaxScrollView from "~/components/parallax-scroll-view"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
@@ -47,6 +49,8 @@ export default function HomeScreen() {
         <ExampleBottomSheet1 />
         <CalculatorSheetExample />
         <ChangeIconSheetExample />
+        <ColorVariantSheetExample />
+        <IconSelectionExample />
       </View>
 
       <ButtonExample />
@@ -54,7 +58,7 @@ export default function HomeScreen() {
   )
 }
 
-function CalculatorSheetExample() {
+const CalculatorSheetExample = () => {
   const sheet = useBottomSheet("calculator-sheet")
 
   const handleSubmit = useCallback(
@@ -88,7 +92,7 @@ function CalculatorSheetExample() {
   )
 }
 
-function ChangeIconSheetExample() {
+const ChangeIconSheetExample = () => {
   const sheet = useBottomSheet("change-icon-sheet")
 
   return (
@@ -103,6 +107,33 @@ function ChangeIconSheetExample() {
           // Handle icon selection
           alert(`Icon selected: ${selectedIcon}`)
           sheet.dismiss()
+        }}
+      />
+    </>
+  )
+}
+
+const ColorVariantSheetExample = () => {
+  const sheet = useBottomSheet("color-variant-sheet")
+
+  return (
+    <>
+      <Pressable style={styles.triggerButton} onPress={() => sheet.present()}>
+        <Text style={styles.triggerButtonText}>Select Color Variant</Text>
+      </Pressable>
+
+      <ColorVariantSheet
+        id="color-variant-sheet"
+        onColorSelected={(schemeName) => {
+          // Color variant has been selected - use it for your purpose
+          alert(`Selected color scheme: ${schemeName}`)
+        }}
+        onClearSelection={() => {
+          // Selection has been cleared
+          alert("Selection cleared")
+        }}
+        onDismiss={() => {
+          // Handle sheet dismiss
         }}
       />
     </>
@@ -149,6 +180,6 @@ const styles = StyleSheet.create((t) => ({
   triggerButtonText: {
     color: t.colors.onPrimary,
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: "600",
   },
 }))

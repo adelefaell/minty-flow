@@ -11,15 +11,20 @@ import { IconSelectionSheet } from "~/components/icon-selection-sheet"
 import { ImageSelectionSheet } from "~/components/image-selection-sheet"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
+import type { MintyColorScheme } from "~/styles/theme/types"
 
 interface ChangeIconSheetProps {
   id: string
+  currentIcon?: string
   onIconSelected?: (_icon: string) => void
+  colorScheme?: MintyColorScheme
 }
 
 export const ChangeIconSheet = ({
   id,
+  currentIcon,
   onIconSelected,
+  colorScheme,
 }: ChangeIconSheetProps) => {
   const sheet = useBottomSheet(id)
   const iconSelectionSheet = useBottomSheet("icon-selection-sheet")
@@ -72,9 +77,11 @@ export const ChangeIconSheet = ({
         </View>
       </BottomSheetModalComponent>
 
-      {/* Nested Selection Sheets - Placeholders for future implementation */}
+      {/* Nested Selection Sheets */}
       <IconSelectionSheet
         id="icon-selection-sheet"
+        colorScheme={colorScheme}
+        initialIcon={currentIcon}
         onIconSelected={(selectedIcon: string) => {
           onIconSelected?.(selectedIcon)
           iconSelectionSheet.dismiss()

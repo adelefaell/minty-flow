@@ -1,22 +1,38 @@
 /**
  * Category type definitions
+ *
+ * Pure domain types with no database dependencies.
+ * These represent the business logic and UI contracts.
+ * The WatermelonDB model implements these types, not the other way around.
  */
 
-import type { IconSymbolName } from "~/components/ui/icon-symbol"
+import type { MintyColorScheme } from "~/styles/theme/types"
 
 export type CategoryType = "expense" | "income" | "transfer"
 
+/**
+ * Category domain type for UI/API usage.
+ *
+ * This is the single source of truth for the Category shape.
+ * The WatermelonDB model implements this interface, ensuring
+ * the persistence layer conforms to the domain model.
+ *
+ * Color scheme is stored as `colorSchemeName` and resolved
+ * at runtime via the theme registry as `colorScheme`.
+ *
+ * Icon can be:
+ * - MaterialCommunityIcons name (e.g., "wallet", "cart-outline")
+ * - Single emoji (e.g., "🍕", "💰")
+ * - Single letter (e.g., "F", "G")
+ * - (Future) Image URL or path
+ */
 export interface Category {
   id: string
   name: string
   type: CategoryType
-  icon?: IconSymbolName
-  color?: {
-    name: string
-    bgClass?: string
-    textClass?: string
-    borderClass?: string
-  }
+  icon?: string
+  colorSchemeName?: string
+  colorScheme?: MintyColorScheme // Computed from colorSchemeName via registry
   transactionCount: number
   isArchived?: boolean
   createdAt: Date
@@ -26,5 +42,5 @@ export interface Category {
 export interface CategoryFormData {
   name: string
   icon?: string
-  color?: Category["color"]
+  colorSchemeName?: string
 }

@@ -36,7 +36,7 @@ const moneyManagementItems: SettingsItem[] = [
     title: "Tags",
     description: "Manage your transaction tags",
     route: "/(settings)/tags",
-    icon: "tag-outline",
+    icon: "tag-multiple-outline",
   },
   {
     id: "trash",
@@ -166,7 +166,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   headerTitle: {
     fontSize: 14,
-    fontWeight: "bold",
+    fontWeight: "600",
     letterSpacing: 0.5,
     color: theme.colors.onSecondary,
   },
@@ -175,7 +175,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   sectionTitle: {
     fontSize: 12,
-    fontWeight: "bold",
+    fontWeight: "600",
     letterSpacing: 0.5,
     color: theme.colors.onSecondary,
     marginBottom: 12,

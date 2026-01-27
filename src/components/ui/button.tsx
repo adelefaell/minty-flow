@@ -26,14 +26,14 @@ export interface ButtonProps extends PressableProps {
   size?: ButtonSize
 }
 
-export function Button({
+export const Button = ({
   variant = "default",
   size = "default",
   disabled,
   style,
   children,
   ...props
-}: ButtonProps) {
+}: ButtonProps) => {
   const contextValue = React.useMemo(() => ({ variant, size }), [variant, size])
 
   return (

@@ -79,7 +79,7 @@ const useBottomSheetStore = create<BottomSheetStore>((set, get) => ({
 /**
  * Hook to control bottom sheets
  */
-export function useBottomSheet(id: string) {
+export const useBottomSheet = (id: string) => {
   const present = useBottomSheetStore((state) => state.present)
   const dismiss = useBottomSheetStore((state) => state.dismiss)
   const snapToIndex = useBottomSheetStore((state) => state.snapToIndex)
@@ -97,7 +97,7 @@ export function useBottomSheet(id: string) {
  * Bottom Sheet Modal Component - Use this for multiple bottom sheets
  * Renders at the root level and overlays everything including tab bars
  */
-export interface BottomSheetModalProps {
+export type BottomSheetModalProps = {
   /** Unique identifier for this bottom sheet */
   id: string
   /** Content to render inside the bottom sheet */
@@ -130,6 +130,14 @@ export interface BottomSheetModalProps {
   keyboardBehavior?: "interactive" | "fillParent" | "extend"
   /** Keyboard blur behavior: 'none' | 'restore' */
   keyboardBlurBehavior?: "none" | "restore"
+  /** Skip the BottomSheetView wrapper (useful for scrollable content like FlatList) */
+  skipBottomSheetView?: boolean
+  /** Footer component render function */
+  footerComponent?: (
+    props: import("@gorhom/bottom-sheet").BottomSheetFooterProps,
+  ) => ReactNode
+  enableContentPanningGesture?: boolean
+  enableHandlePanningGesture?: boolean
 }
 
 export function BottomSheetModalComponent({
@@ -149,6 +157,10 @@ export function BottomSheetModalComponent({
   enableDynamicSizing = true,
   keyboardBehavior = "extend",
   keyboardBlurBehavior = "restore",
+  enableContentPanningGesture = true,
+  enableHandlePanningGesture = true,
+  skipBottomSheetView = false,
+  footerComponent,
 }: BottomSheetModalProps) {
   const registerSheet = useBottomSheetStore((state) => state.registerSheet)
   const unregisterSheet = useBottomSheetStore((state) => state.unregisterSheet)
@@ -297,10 +309,17 @@ export function BottomSheetModalComponent({
       }
       handleIndicatorStyle={sheetStyles.handleIndicator}
       backdropComponent={renderBackdrop}
+      enableContentPanningGesture={enableContentPanningGesture}
+      enableHandlePanningGesture={enableHandlePanningGesture}
+      footerComponent={footerComponent}
     >
-      <BottomSheetView style={sheetStyles.contentContainer}>
-        {children}
-      </BottomSheetView>
+      {skipBottomSheetView ? (
+        children
+      ) : (
+        <BottomSheetView style={sheetStyles.contentContainer}>
+          {children}
+        </BottomSheetView>
+      )}
     </BottomSheetModal>
   )
 }

@@ -21,12 +21,12 @@ import { View } from "./view"
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
 
-interface ToastItemProps {
+type ToastItemProps = {
   toast: Toast
   onHide: (id: string) => void
 }
 
-function ToastItem({ toast, onHide }: ToastItemProps) {
+const ToastItem = ({ toast, onHide }: ToastItemProps) => {
   // Capture toast properties for use in worklets
   const toastPosition = toast.position
   const toastAutoHide = toast.autoHide
@@ -246,7 +246,7 @@ function ToastItem({ toast, onHide }: ToastItemProps) {
   )
 }
 
-export function ToastManager() {
+export const ToastManager = () => {
   const { toasts, hide } = useToastStore()
 
   if (toasts.length === 0) {
@@ -397,7 +397,7 @@ const toastStyles = StyleSheet.create((theme) => ({
   },
   text1: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: "600",
     color: theme.colors.onSurface,
   },
   text2: {

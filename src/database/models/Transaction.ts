@@ -2,19 +2,27 @@ import { Model } from "@nozbe/watermelondb"
 import { date, field, relation } from "@nozbe/watermelondb/decorators"
 
 import type { CategoryType } from "../../types/categories"
-import type Account from "./Account"
-import type Category from "./Category"
+import type {
+  TransactionLocation,
+  Transaction as TransactionType,
+} from "../../types/transactions"
+import type AccountModel from "./Account"
+import type CategoryModel from "./Category"
 
 /**
- * Transaction model representing financial transactions.
+ * Transaction persistence model for WatermelonDB.
+ *
+ * This is a persistence adapter that stores and retrieves transaction data.
+ * It adapts between the domain type (Transaction) and the database schema.
  *
  * Follows WatermelonDB schema patterns:
  * - Column names use snake_case
  * - Boolean fields start with is_
  * - Date fields end with _at and use number type (Unix timestamps)
- * - Relations use _id suffix for foreign keys
+ * - Relations require BOTH @field (for the FK column) and @relation (for the model reference)
+ * - Nullable fields use !: Type | null (not ?: Type)
  */
-export default class Transaction extends Model {
+export default class TransactionModel extends Model implements TransactionType {
   static table = "transactions"
 
   @field("amount") amount!: number
@@ -22,12 +30,17 @@ export default class Transaction extends Model {
   @field("type") type!: CategoryType
   @field("description") description?: string
   @date("date") date!: Date
-  @field("category_id") categoryId!: string
+
+  // Foreign key column + relation for category (nullable for uncategorized transactions)
+  @field("category_id") categoryId!: string | null
+  @relation("categories", "category_id") category!: CategoryModel | null
+
+  // Foreign key column + relation for account (required)
   @field("account_id") accountId!: string
-  @relation("categories", "category_id") category!: Category
-  @relation("accounts", "account_id") account!: Account
-  @field("tags") tags?: string // JSON array
-  @field("location") location?: string // JSON object
+  @relation("accounts", "account_id") account!: AccountModel
+
+  @field("tags") tagsJson?: string // JSON array - stored as string for WatermelonDB
+  @field("location") locationJson?: string // JSON object - stored as string for WatermelonDB
   @field("is_pending") isPending!: boolean
   @field("is_deleted") isDeleted!: boolean
   @date("created_at") createdAt!: Date
@@ -35,36 +48,34 @@ export default class Transaction extends Model {
 
   /**
    * Gets tags as an array.
+   * This computed property satisfies the domain type's tags?: string[] requirement.
    */
-  get tagsArray(): string[] {
-    if (!this.tags) return []
+  get tags(): string[] | undefined {
+    if (!this.tagsJson) return undefined
     try {
-      return JSON.parse(this.tags) as string[]
+      const parsed = JSON.parse(this.tagsJson) as string[]
+      return parsed.length > 0 ? parsed : undefined
     } catch {
-      return []
+      return undefined
     }
   }
 
   /**
    * Sets tags from an array.
    */
-  setTagsArray(tags: string[]) {
-    this.tags = tags.length > 0 ? JSON.stringify(tags) : undefined
+  set tags(value: string[] | undefined) {
+    this.tagsJson =
+      value && value.length > 0 ? JSON.stringify(value) : undefined
   }
 
   /**
    * Gets location as an object.
+   * This computed property satisfies the domain type's location?: TransactionLocation requirement.
    */
-  get locationObject():
-    | { latitude: number; longitude: number; address?: string }
-    | undefined {
-    if (!this.location) return undefined
+  get location(): TransactionLocation | undefined {
+    if (!this.locationJson) return undefined
     try {
-      return JSON.parse(this.location) as {
-        latitude: number
-        longitude: number
-        address?: string
-      }
+      return JSON.parse(this.locationJson) as TransactionLocation
     } catch {
       return undefined
     }
@@ -73,11 +84,27 @@ export default class Transaction extends Model {
   /**
    * Sets location from an object.
    */
-  setLocationObject(
-    location:
-      | { latitude: number; longitude: number; address?: string }
-      | undefined,
-  ) {
-    this.location = location ? JSON.stringify(location) : undefined
+  set location(value: TransactionLocation | undefined) {
+    this.locationJson = value ? JSON.stringify(value) : undefined
+  }
+
+  /**
+   * Legacy getter methods for backward compatibility.
+   * @deprecated Use tags and location properties directly
+   */
+  get tagsArray(): string[] {
+    return this.tags ?? []
+  }
+
+  setTagsArray(tags: string[]) {
+    this.tags = tags
+  }
+
+  get locationObject(): TransactionLocation | undefined {
+    return this.location
+  }
+
+  setLocationObject(location: TransactionLocation | undefined) {
+    this.location = location
   }
 }

@@ -1,11 +1,12 @@
 import { Q } from "@nozbe/watermelondb"
+import type { Observable } from "@nozbe/watermelondb/utils/rx"
 
 import { database } from "../index"
-import type Account from "../models/Account"
-import type Loan from "../models/Loan"
+import type AccountModel from "../models/Account"
+import type LoanModel from "../models/Loan"
 
 /**
- * Loan Service
+ * LoanModel Service
  *
  * Provides functions for managing loan data.
  * Follows WatermelonDB CRUD pattern: https://watermelondb.dev/docs/CRUD
@@ -14,19 +15,19 @@ import type Loan from "../models/Loan"
 /**
  * Get the loans collection
  */
-function getLoanCollection() {
-  return database.get<Loan>("loans")
+const getLoanModelCollection = () => {
+  return database.get<LoanModel>("loans")
 }
 
 /**
  * Get loans with optional filters
  */
-export async function getLoans(filters?: {
+export const getLoanModels = async (filters?: {
   loanType?: "borrowed" | "lent"
   isPaid?: boolean
   includeArchived?: boolean
-}): Promise<Loan[]> {
-  const loans = getLoanCollection()
+}): Promise<LoanModel[]> => {
+  const loans = getLoanModelCollection()
   let query = loans.query()
 
   if (filters?.loanType) {
@@ -45,9 +46,9 @@ export async function getLoans(filters?: {
 /**
  * Find a loan by ID
  */
-export async function findLoan(id: string): Promise<Loan | null> {
+export const findLoanModel = async (id: string): Promise<LoanModel | null> => {
   try {
-    return await getLoanCollection().find(id)
+    return await getLoanModelCollection().find(id)
   } catch {
     return null
   }
@@ -56,12 +57,12 @@ export async function findLoan(id: string): Promise<Loan | null> {
 /**
  * Observe loans reactively with optional filters
  */
-export function observeLoans(filters?: {
+export const observeLoanModels = (filters?: {
   loanType?: "borrowed" | "lent"
   isPaid?: boolean
   includeArchived?: boolean
-}) {
-  const loans = getLoanCollection()
+}): Observable<LoanModel[]> => {
+  const loans = getLoanModelCollection()
   let query = loans.query()
 
   if (filters?.loanType) {
@@ -80,14 +81,14 @@ export function observeLoans(filters?: {
 /**
  * Observe a specific loan by ID
  */
-export function observeLoanById(id: string) {
-  return getLoanCollection().findAndObserve(id)
+export const observeLoanModelById = (id: string): Observable<LoanModel> => {
+  return getLoanModelCollection().findAndObserve(id)
 }
 
 /**
  * Create a new loan
  */
-export async function createLoan(data: {
+export const createLoanModel = async (data: {
   name: string
   description?: string
   principalAmount: number
@@ -99,13 +100,13 @@ export async function createLoan(data: {
   contactPhone?: string
   dueDate?: Date
   accountId?: string
-}): Promise<Loan> {
-  const loans = getLoanCollection()
+}): Promise<LoanModel> => {
+  const loans = getLoanModelCollection()
 
   return await database.write(async () => {
     // Validate account if provided
     if (data.accountId) {
-      const accounts = database.get<Account>("accounts")
+      const accounts = database.get<AccountModel>("accounts")
       const account = await accounts.find(data.accountId)
       if (!account) {
         throw new Error(`Account with id ${data.accountId} not found`)
@@ -135,8 +136,8 @@ export async function createLoan(data: {
 /**
  * Update loan
  */
-export async function updateLoan(
-  loan: Loan,
+export const updateLoanModel = async (
+  loan: LoanModel,
   updates: Partial<{
     name: string
     description: string | undefined
@@ -148,7 +149,7 @@ export async function updateLoan(
     isPaid: boolean
     isArchived: boolean
   }>,
-): Promise<Loan> {
+): Promise<LoanModel> => {
   return await database.write(async () => {
     return await loan.update((l) => {
       if (updates.name !== undefined) l.name = updates.name
@@ -171,7 +172,7 @@ export async function updateLoan(
 /**
  * Update loan by ID
  */
-export async function updateLoanById(
+export const updateLoanModelById = async (
   id: string,
   updates: Partial<{
     name: string
@@ -184,24 +185,24 @@ export async function updateLoanById(
     isPaid: boolean
     isArchived: boolean
   }>,
-): Promise<Loan> {
-  const loan = await findLoan(id)
+): Promise<LoanModel> => {
+  const loan = await findLoanModel(id)
   if (!loan) {
-    throw new Error(`Loan with id ${id} not found`)
+    throw new Error(`LoanModel with id ${id} not found`)
   }
-  return await updateLoan(loan, updates)
+  return await updateLoanModel(loan, updates)
 }
 
 /**
  * Record a payment on a loan
  */
-export async function recordLoanPayment(
-  loan: Loan,
+export const recordLoanModelPayment = async (
+  loan: LoanModel,
   amount: number,
-): Promise<Loan> {
+): Promise<LoanModel> => {
   const newRemaining = Math.max(0, loan.remainingAmount - amount)
   const isPaid = newRemaining === 0
-  return await updateLoan(loan, {
+  return await updateLoanModel(loan, {
     remainingAmount: newRemaining,
     isPaid,
   })
@@ -210,8 +211,10 @@ export async function recordLoanPayment(
 /**
  * Mark loan as paid
  */
-export async function markLoanAsPaid(loan: Loan): Promise<Loan> {
-  return await updateLoan(loan, {
+export const markLoanModelAsPaid = async (
+  loan: LoanModel,
+): Promise<LoanModel> => {
+  return await updateLoanModel(loan, {
     remainingAmount: 0,
     isPaid: true,
   })
@@ -220,7 +223,7 @@ export async function markLoanAsPaid(loan: Loan): Promise<Loan> {
 /**
  * Delete loan (mark as deleted for sync)
  */
-export async function deleteLoan(loan: Loan): Promise<void> {
+export const deleteLoanModel = async (loan: LoanModel): Promise<void> => {
   await database.write(async () => {
     await loan.markAsDeleted()
   })
@@ -229,7 +232,7 @@ export async function deleteLoan(loan: Loan): Promise<void> {
 /**
  * Permanently destroy loan
  */
-export async function destroyLoan(loan: Loan): Promise<void> {
+export const destroyLoanModel = async (loan: LoanModel): Promise<void> => {
   await database.write(async () => {
     await loan.destroyPermanently()
   })

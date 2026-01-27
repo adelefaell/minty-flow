@@ -1,7 +1,9 @@
 import { Q } from "@nozbe/watermelondb"
+import type { Observable } from "@nozbe/watermelondb/utils/rx"
 
+import type { AccountType } from "../../types/accounts"
 import { database } from "../index"
-import type Account from "../models/Account"
+import type AccountModel from "../models/Account"
 
 /**
  * Account Service
@@ -13,14 +15,16 @@ import type Account from "../models/Account"
 /**
  * Get the accounts collection
  */
-function getAccountCollection() {
-  return database.get<Account>("accounts")
+const getAccountCollection = () => {
+  return database.get<AccountModel>("accounts")
 }
 
 /**
  * Get all accounts
  */
-export async function getAccounts(includeArchived = false): Promise<Account[]> {
+export const getAccounts = async (
+  includeArchived = false,
+): Promise<AccountModel[]> => {
   const accounts = getAccountCollection()
   if (includeArchived) {
     return await accounts.query().fetch()
@@ -31,7 +35,7 @@ export async function getAccounts(includeArchived = false): Promise<Account[]> {
 /**
  * Find an account by ID
  */
-export async function findAccount(id: string): Promise<Account | null> {
+export const findAccount = async (id: string): Promise<AccountModel | null> => {
   try {
     return await getAccountCollection().find(id)
   } catch {
@@ -42,7 +46,9 @@ export async function findAccount(id: string): Promise<Account | null> {
 /**
  * Observe all accounts reactively
  */
-export function observeAccounts(includeArchived = false) {
+export const observeAccounts = (
+  includeArchived = false,
+): Observable<AccountModel[]> => {
   const accounts = getAccountCollection()
   if (includeArchived) {
     return accounts.query().observe()
@@ -53,21 +59,21 @@ export function observeAccounts(includeArchived = false) {
 /**
  * Observe a specific account by ID
  */
-export function observeAccountById(id: string) {
+export const observeAccountById = (id: string): Observable<AccountModel> => {
   return getAccountCollection().findAndObserve(id)
 }
 
 /**
  * Create a new account
  */
-export async function createAccount(data: {
+export const createAccount = async (data: {
   name: string
-  type: string
+  type: AccountType
   balance: number
   currencyCode: string
   icon?: string
   color?: string
-}): Promise<Account> {
+}): Promise<AccountModel> => {
   return await database.write(async () => {
     return await getAccountCollection().create((account) => {
       account.name = data.name
@@ -86,18 +92,18 @@ export async function createAccount(data: {
 /**
  * Update account
  */
-export async function updateAccount(
-  account: Account,
+export const updateAccount = async (
+  account: AccountModel,
   updates: Partial<{
     name: string
-    type: string
+    type: AccountType
     balance: number
     currencyCode: string
     icon: string | undefined
     color: string | undefined
     isArchived: boolean
   }>,
-): Promise<Account> {
+): Promise<AccountModel> => {
   return await database.write(async () => {
     return await account.update((a) => {
       if (updates.name !== undefined) a.name = updates.name
@@ -116,18 +122,18 @@ export async function updateAccount(
 /**
  * Update account by ID
  */
-export async function updateAccountById(
+export const updateAccountById = async (
   id: string,
   updates: Partial<{
     name: string
-    type: string
+    type: AccountType
     balance: number
     currencyCode: string
     icon: string | undefined
     color: string | undefined
     isArchived: boolean
   }>,
-): Promise<Account> {
+): Promise<AccountModel> => {
   const account = await findAccount(id)
   if (!account) {
     throw new Error(`Account with id ${id} not found`)
@@ -138,7 +144,7 @@ export async function updateAccountById(
 /**
  * Delete account (mark as deleted for sync)
  */
-export async function deleteAccount(account: Account): Promise<void> {
+export const deleteAccount = async (account: AccountModel): Promise<void> => {
   await database.write(async () => {
     await account.markAsDeleted()
   })
@@ -147,7 +153,7 @@ export async function deleteAccount(account: Account): Promise<void> {
 /**
  * Permanently destroy account
  */
-export async function destroyAccount(account: Account): Promise<void> {
+export const destroyAccount = async (account: AccountModel): Promise<void> => {
   await database.write(async () => {
     await account.destroyPermanently()
   })

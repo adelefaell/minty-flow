@@ -2,13 +2,13 @@ import { Database } from "@nozbe/watermelondb"
 import SQLiteAdapter from "@nozbe/watermelondb/adapters/sqlite"
 
 import migrations from "./migrations"
-import Account from "./models/Account"
-import Budget from "./models/Budget"
-import Category from "./models/Category"
-import Goal from "./models/Goal"
-import Loan from "./models/Loan"
-import Tag from "./models/Tag"
-import Transaction from "./models/Transaction"
+import AccountModel from "./models/Account"
+import BudgetModel from "./models/Budget"
+import CategoryModel from "./models/Category"
+import GoalModel from "./models/Goal"
+import LoanModel from "./models/Loan"
+import TagModel from "./models/Tag"
+import TransactionModel from "./models/Transaction"
 import { schema } from "./schema"
 
 /**
@@ -39,7 +39,15 @@ const adapter = new SQLiteAdapter({
  */
 export const database = new Database({
   adapter,
-  modelClasses: [Account, Budget, Category, Goal, Loan, Tag, Transaction],
+  modelClasses: [
+    AccountModel,
+    BudgetModel,
+    CategoryModel,
+    GoalModel,
+    LoanModel,
+    TagModel,
+    TransactionModel,
+  ],
 })
 
 export type { default as AccountModel } from "./models/Account"

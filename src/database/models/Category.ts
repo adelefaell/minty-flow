@@ -1,68 +1,49 @@
 import { Model } from "@nozbe/watermelondb"
 import { date, field } from "@nozbe/watermelondb/decorators"
 
-import type { CategoryType } from "../../types/categories"
+import { getThemeStrict } from "../../styles/theme/registry"
+import type { Category, CategoryType } from "../../types/categories"
 
 /**
  * Category model representing transaction categories.
+ *
+ * Implements the Category domain type, ensuring the persistence layer
+ * conforms to the business logic contract.
  *
  * Follows WatermelonDB schema patterns:
  * - Column names use snake_case
  * - Boolean fields start with is_
  * - Date fields end with _at and use number type (Unix timestamps)
+ *
+ * Color scheme is stored as a name (color_scheme_name) and resolved at runtime
+ * from the theme registry, similar to Flutter's @Transient() getter pattern.
  */
-export default class Category extends Model {
+export default class CategoryModel extends Model implements Category {
   static table = "categories"
 
   @field("name") name!: string
   @field("type") type!: CategoryType
   @field("icon") icon?: string
-  @field("color_name") colorName?: string
-  @field("color_bg_class") colorBgClass?: string
-  @field("color_text_class") colorTextClass?: string
-  @field("color_border_class") colorBorderClass?: string
+  @field("color_scheme_name") colorSchemeName?: string
   @field("transaction_count") transactionCount!: number
   @field("is_archived") isArchived!: boolean
   @date("created_at") createdAt!: Date
   @date("updated_at") updatedAt!: Date
 
   /**
-   * Gets the color object representation.
+   * Gets the color scheme object from the theme registry.
+   * This is computed at runtime, not stored in the database.
+   * Similar to Flutter's @Transient() getter.
    */
-  get color() {
-    if (!this.colorName) return undefined
-    return {
-      name: this.colorName,
-      bgClass: this.colorBgClass,
-      textClass: this.colorTextClass,
-      borderClass: this.colorBorderClass,
-    }
+  get colorScheme() {
+    return getThemeStrict(this.colorSchemeName)
   }
 
   /**
-   * Sets the color object.
+   * Sets the color scheme by name.
+   * Only the name is stored in the database.
    */
-  setColor(
-    color:
-      | {
-          name: string
-          bgClass?: string
-          textClass?: string
-          borderClass?: string
-        }
-      | undefined,
-  ) {
-    if (!color) {
-      this.colorName = undefined
-      this.colorBgClass = undefined
-      this.colorTextClass = undefined
-      this.colorBorderClass = undefined
-      return
-    }
-
-    this.colorName = color.name
-    this.colorBgClass = color.bgClass
-    this.colorTextClass = color.textClass
-    this.colorBorderClass = color.borderClass
+  setColorScheme(schemeName: string | undefined) {
+    this.colorSchemeName = schemeName
   }
 }

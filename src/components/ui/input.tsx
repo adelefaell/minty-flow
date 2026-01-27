@@ -9,14 +9,14 @@ export interface InputProps extends RNTextInputProps {
   error?: boolean
 }
 
-export function Input({
+export const Input = ({
   error = false,
   editable = true,
   style,
   onFocus,
   onBlur,
   ...props
-}: InputProps) {
+}: InputProps) => {
   const [isFocused, setIsFocused] = useState(false)
 
   const handleFocus = useCallback(

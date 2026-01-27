@@ -1,11 +1,12 @@
 import { Q } from "@nozbe/watermelondb"
+import type { Observable } from "@nozbe/watermelondb/utils/rx"
 
 import { database } from "../index"
-import type Budget from "../models/Budget"
-import type Category from "../models/Category"
+import type BudgetModel from "../models/Budget"
+import type CategoryModel from "../models/Category"
 
 /**
- * Budget Service
+ * BudgetModel Service
  *
  * Provides functions for managing budget data.
  * Follows WatermelonDB CRUD pattern: https://watermelondb.dev/docs/CRUD
@@ -14,18 +15,18 @@ import type Category from "../models/Category"
 /**
  * Get the budgets collection
  */
-function getBudgetCollection() {
-  return database.get<Budget>("budgets")
+const getBudgetModelCollection = () => {
+  return database.get<BudgetModel>("budgets")
 }
 
 /**
  * Get budgets with optional filters
  */
-export async function getBudgets(filters?: {
+export const getBudgetModels = async (filters?: {
   isActive?: boolean
   includeArchived?: boolean
-}): Promise<Budget[]> {
-  const budgets = getBudgetCollection()
+}): Promise<BudgetModel[]> => {
+  const budgets = getBudgetModelCollection()
   let query = budgets.query()
 
   if (filters?.isActive !== undefined) {
@@ -41,9 +42,11 @@ export async function getBudgets(filters?: {
 /**
  * Find a budget by ID
  */
-export async function findBudget(id: string): Promise<Budget | null> {
+export const findBudgetModel = async (
+  id: string,
+): Promise<BudgetModel | null> => {
   try {
-    return await getBudgetCollection().find(id)
+    return await getBudgetModelCollection().find(id)
   } catch {
     return null
   }
@@ -52,11 +55,11 @@ export async function findBudget(id: string): Promise<Budget | null> {
 /**
  * Observe budgets reactively with optional filters
  */
-export function observeBudgets(filters?: {
+export const observeBudgetModels = (filters?: {
   isActive?: boolean
   includeArchived?: boolean
-}) {
-  const budgets = getBudgetCollection()
+}): Observable<BudgetModel[]> => {
+  const budgets = getBudgetModelCollection()
   let query = budgets.query()
 
   if (filters?.isActive !== undefined) {
@@ -72,14 +75,14 @@ export function observeBudgets(filters?: {
 /**
  * Observe a specific budget by ID
  */
-export function observeBudgetById(id: string) {
-  return getBudgetCollection().findAndObserve(id)
+export const observeBudgetModelById = (id: string): Observable<BudgetModel> => {
+  return getBudgetModelCollection().findAndObserve(id)
 }
 
 /**
  * Create a new budget
  */
-export async function createBudget(data: {
+export const createBudgetModel = async (data: {
   name: string
   amount: number
   currencyCode: string
@@ -88,13 +91,13 @@ export async function createBudget(data: {
   endDate?: Date
   categoryId?: string
   alertThreshold?: number
-}): Promise<Budget> {
-  const budgets = getBudgetCollection()
+}): Promise<BudgetModel> => {
+  const budgets = getBudgetModelCollection()
 
   return await database.write(async () => {
     // Validate category if provided
     if (data.categoryId) {
-      const categories = database.get<Category>("categories")
+      const categories = database.get<CategoryModel>("categories")
       const category = await categories.find(data.categoryId)
       if (!category) {
         throw new Error(`Category with id ${data.categoryId} not found`)
@@ -122,8 +125,8 @@ export async function createBudget(data: {
 /**
  * Update budget
  */
-export async function updateBudget(
-  budget: Budget,
+export const updateBudgetModel = async (
+  budget: BudgetModel,
   updates: Partial<{
     name: string
     amount: number
@@ -135,7 +138,7 @@ export async function updateBudget(
     isActive: boolean
     isArchived: boolean
   }>,
-): Promise<Budget> {
+): Promise<BudgetModel> => {
   return await database.write(async () => {
     return await budget.update((b) => {
       if (updates.name !== undefined) b.name = updates.name
@@ -156,7 +159,7 @@ export async function updateBudget(
 /**
  * Update budget by ID
  */
-export async function updateBudgetById(
+export const updateBudgetModelById = async (
   id: string,
   updates: Partial<{
     name: string
@@ -169,22 +172,22 @@ export async function updateBudgetById(
     isActive: boolean
     isArchived: boolean
   }>,
-): Promise<Budget> {
-  const budget = await findBudget(id)
+): Promise<BudgetModel> => {
+  const budget = await findBudgetModel(id)
   if (!budget) {
-    throw new Error(`Budget with id ${id} not found`)
+    throw new Error(`BudgetModel with id ${id} not found`)
   }
-  return await updateBudget(budget, updates)
+  return await updateBudgetModel(budget, updates)
 }
 
 /**
  * Add spending to budget
  */
-export async function addSpending(
-  budget: Budget,
+export const addSpending = async (
+  budget: BudgetModel,
   amount: number,
-): Promise<Budget> {
-  return await updateBudget(budget, {
+): Promise<BudgetModel> => {
+  return await updateBudgetModel(budget, {
     spentAmount: budget.spentAmount + amount,
   })
 }
@@ -192,14 +195,16 @@ export async function addSpending(
 /**
  * Reset budget spent amount
  */
-export async function resetBudgetSpending(budget: Budget): Promise<Budget> {
-  return await updateBudget(budget, { spentAmount: 0 })
+export const resetBudgetModelSpending = async (
+  budget: BudgetModel,
+): Promise<BudgetModel> => {
+  return await updateBudgetModel(budget, { spentAmount: 0 })
 }
 
 /**
  * Delete budget (mark as deleted for sync)
  */
-export async function deleteBudget(budget: Budget): Promise<void> {
+export const deleteBudgetModel = async (budget: BudgetModel): Promise<void> => {
   await database.write(async () => {
     await budget.markAsDeleted()
   })
@@ -208,7 +213,9 @@ export async function deleteBudget(budget: Budget): Promise<void> {
 /**
  * Permanently destroy budget
  */
-export async function destroyBudget(budget: Budget): Promise<void> {
+export const destroyBudgetModel = async (
+  budget: BudgetModel,
+): Promise<void> => {
   await database.write(async () => {
     await budget.destroyPermanently()
   })

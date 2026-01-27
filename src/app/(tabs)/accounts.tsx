@@ -201,7 +201,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   sectionLabel: {
     fontSize: 10,
-    fontWeight: "bold",
+    fontWeight: "600",
     color: theme.colors.customColors.semi,
     textTransform: "uppercase",
     letterSpacing: 0.8,
@@ -217,7 +217,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   balanceAmount: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: "600",
     color: theme.colors.onSurface,
   },
   accountsCountContainer: {
@@ -228,7 +228,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   accountsCount: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: "600",
     color: theme.colors.onSurface,
   },
   newAccountButton: {
@@ -244,7 +244,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   newAccountText: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: "600",
     color: theme.colors.onSurface,
   },
 }))

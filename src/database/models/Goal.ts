@@ -1,15 +1,20 @@
 import { Model } from "@nozbe/watermelondb"
 import { date, field } from "@nozbe/watermelondb/decorators"
 
+import type { Goal as GoalType } from "../../types/goals"
+
 /**
  * Goal model representing financial goals.
+ *
+ * Implements the Goal domain type, ensuring the persistence layer
+ * conforms to the business logic contract.
  *
  * Follows WatermelonDB schema patterns:
  * - Column names use snake_case
  * - Boolean fields start with is_
  * - Date fields end with _at and use number type (Unix timestamps)
  */
-export default class Goal extends Model {
+export default class GoalModel extends Model implements GoalType {
   static table = "goals"
 
   @field("name") name!: string
@@ -27,6 +32,7 @@ export default class Goal extends Model {
 
   /**
    * Gets the progress percentage (0-100).
+   * This computed property satisfies the domain type's progressPercentage requirement.
    */
   get progressPercentage(): number {
     if (this.targetAmount === 0) return 0
@@ -35,6 +41,7 @@ export default class Goal extends Model {
 
   /**
    * Gets the remaining amount to reach the goal.
+   * This computed property satisfies the domain type's remainingAmount requirement.
    */
   get remainingAmount(): number {
     return Math.max(0, this.targetAmount - this.currentAmount)

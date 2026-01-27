@@ -37,8 +37,7 @@ project(':watermelondb-jsi').projectDir =
 `
 
           // Insert before the last line (usually includeBuild or similar)
-          settingsGradle =
-            settingsGradle.trimEnd() + "\n" + watermelondbJSIInclude
+          settingsGradle = `${settingsGradle.trimEnd()}\n${watermelondbJSIInclude}`
           fs.writeFileSync(settingsGradlePath, settingsGradle)
         }
       }

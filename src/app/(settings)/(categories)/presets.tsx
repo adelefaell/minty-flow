@@ -1,8 +1,10 @@
+import { withObservables } from "@nozbe/watermelondb/react"
 import { useLocalSearchParams, useRouter } from "expo-router"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { FlatList } from "react-native"
-import { StyleSheet, useUnistyles } from "react-native-unistyles"
+import { StyleSheet } from "react-native-unistyles"
 
+import { DynamicIcon } from "~/components/dynamic-icon"
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
@@ -13,51 +15,60 @@ import {
   IncomePresets,
   TransferPresets,
 } from "~/constants/pre-sets-categories"
+import type CategoryModel from "~/database/models/Category"
+import {
+  createCategory,
+  observeCategoriesByType,
+} from "~/database/services/category-service"
 import type { Category, CategoryType } from "~/types/categories"
+import { logger } from "~/utils/logger"
+import { Toast } from "~/utils/toast"
 
-export default function CategoryPresetsScreen() {
-  const router = useRouter()
-  const { theme } = useUnistyles()
-  const params = useLocalSearchParams<{
-    type: CategoryType
-  }>()
+const PRESETS_BY_TYPE: Record<
+  CategoryType,
+  readonly (Category & { id: string })[]
+> = {
+  expense: ExpensePresets,
+  income: IncomePresets,
+  transfer: TransferPresets,
+}
 
-  const type = (params.type as CategoryType) || "expense"
-  const [selectedPresets, setSelectedPresets] = useState<Set<string>>(new Set())
-  const [addedPresets, setAddedPresets] = useState<Set<string>>(new Set()) // Track already added presets
-
-  // Helper function to get color value from color name - using system colors
-  const getColorValue = (colorName: string): string => {
-    // Map preset color names to theme system colors
-    const colorMap: Record<string, string> = {
-      emerald: theme.colors.customColors?.success || "#22c55e",
-      blue: theme.colors.customColors?.info || "#3b82f6",
-      red: theme.colors.error || "#ef4444",
-      purple: theme.colors.primary || "#a855f7",
-      pink: "#ec4899",
-      green: theme.colors.customColors?.success || "#22c55e",
-      amber: theme.colors.customColors?.warning || "#f59e0b",
-      teal: "#14b8a6",
-      indigo: "#6366f1",
-      rose: "#f43f5e",
-      orange: theme.colors.customColors?.warning || "#f97316",
-    }
-    return colorMap[colorName] || theme.colors.secondary || "#6b7280"
+function alreadyAddedPresetIds(
+  categoryModels: CategoryModel[],
+  presets: readonly (Category & { id: string })[],
+): Set<string> {
+  const added = new Set<string>()
+  for (const preset of presets) {
+    const match = categoryModels.some(
+      (c) =>
+        c.name === preset.name &&
+        c.type === preset.type &&
+        (c.icon ?? undefined) === (preset.icon ?? undefined) &&
+        (c.colorSchemeName ?? undefined) ===
+          (preset.colorSchemeName ?? undefined),
+    )
+    if (match) added.add(preset.id)
   }
+  return added
+}
 
-  // Get presets based on type - each tab shows only its own presets
-  const presets = (() => {
-    switch (type) {
-      case "expense":
-        return ExpensePresets
-      case "income":
-        return IncomePresets
-      case "transfer":
-        return TransferPresets
-      default:
-        return []
-    }
-  })()
+interface CategoryPresetsScreenInnerProps {
+  type: CategoryType
+  categoryModels: CategoryModel[]
+}
+
+const CategoryPresetsScreenInner = ({
+  type,
+  categoryModels,
+}: CategoryPresetsScreenInnerProps) => {
+  const router = useRouter()
+  const [selectedPresets, setSelectedPresets] = useState<Set<string>>(new Set())
+
+  const presets = PRESETS_BY_TYPE[type] ?? []
+  const addedPresets = useMemo(
+    () => alreadyAddedPresetIds(categoryModels, presets),
+    [categoryModels, presets],
+  )
 
   const togglePreset = (presetId: string) => {
     setSelectedPresets((prev) => {
@@ -71,26 +82,39 @@ export default function CategoryPresetsScreen() {
     })
   }
 
-  const handleAddSelected = () => {
+  const handleAddSelected = async () => {
     const selected = presets.filter((preset) =>
       selectedPresets.has(preset.id),
     ) as Category[]
 
-    // TODO: Save to database
-    // Mark selected presets as added
-    setAddedPresets((prev) => {
-      const selectedIds = selected.map((preset) => preset.id)
-      return new Set([...prev, ...selectedIds])
-    })
+    if (selected.length === 0) return
 
-    // Clear selection
-    setSelectedPresets(new Set())
+    try {
+      // Save all selected presets to database
+      for (const preset of selected) {
+        await createCategory({
+          name: preset.name,
+          type: preset.type,
+          icon: preset.icon,
+          colorSchemeName: preset.colorSchemeName,
+        })
+      }
 
-    // For now, navigate back with the selected presets
-    if (selected.length > 0) {
+      setSelectedPresets(new Set())
+
+      Toast.success({
+        title: "Categories created",
+        description: `Successfully created ${selected.length} categor${selected.length === 1 ? "y" : "ies"}`,
+      })
+
+      // Navigate back
       router.back()
-      // You can pass the selected presets via params or use a state management solution
-      // router.setParams({ selectedPresets: JSON.stringify(selected) })
+    } catch (error) {
+      logger.error("Error creating preset categories", { error })
+      Toast.error({
+        title: "Error",
+        description: "Failed to create categories. Please try again.",
+      })
     }
   }
 
@@ -100,7 +124,7 @@ export default function CategoryPresetsScreen() {
 
     return (
       <Pressable
-        style={styles.presetItem}
+        style={[styles.presetItem, isAdded && styles.presetItemDisabled]}
         onPress={() => {
           if (!isAdded) {
             togglePreset(item.id)
@@ -108,29 +132,13 @@ export default function CategoryPresetsScreen() {
         }}
         disabled={isAdded}
       >
-        {/* Icon container - dark rounded square with colored icon/color */}
-        <View style={styles.iconContainer}>
-          {item.color ? (
-            <View
-              style={[
-                styles.colorIcon,
-                {
-                  backgroundColor: getColorValue(item.color.name),
-                },
-              ]}
-            />
-          ) : (
-            <View style={[styles.colorIcon, { backgroundColor: "#6b7280" }]} />
-          )}
-        </View>
+        {/* Icon container - using DynamicIcon */}
+        <DynamicIcon icon={item.icon} size={24} />
 
         {/* Text content */}
         <View style={styles.textContainer}>
           <Text variant="default" style={styles.presetName}>
             {item.name}
-          </Text>
-          <Text variant="small" style={styles.presetSubtitle}>
-            Preset category
           </Text>
         </View>
 
@@ -143,11 +151,15 @@ export default function CategoryPresetsScreen() {
           </View>
         ) : isSelected ? (
           <View style={styles.checkmark}>
-            <IconSymbol name="check" size={16} color="#ffffff" />
+            <IconSymbol
+              name="check"
+              size={16}
+              color={styles.checkmarkColor.color}
+            />
           </View>
         ) : (
           <View style={styles.plusButton}>
-            <IconSymbol name="plus" size={20} color="#ffffff" />
+            <IconSymbol name="plus" size={20} />
           </View>
         )}
       </Pressable>
@@ -156,12 +168,6 @@ export default function CategoryPresetsScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text variant="h2" style={styles.title}>
-          Preset categories
-        </Text>
-      </View>
-
       <FlatList
         data={presets}
         keyExtractor={(item) => item.id}
@@ -186,23 +192,25 @@ export default function CategoryPresetsScreen() {
   )
 }
 
+const EnhancedCategoryPresetsScreen = withObservables(
+  ["type"],
+  ({ type }: { type: CategoryType }) => ({
+    categoryModels: observeCategoriesByType(type),
+  }),
+)(CategoryPresetsScreenInner)
+
+export default function CategoryPresetsScreen() {
+  const params = useLocalSearchParams<{ type: CategoryType }>()
+  const type = (params.type as CategoryType) || "expense"
+  return <EnhancedCategoryPresetsScreen type={type} />
+}
+
 const styles = StyleSheet.create((theme) => ({
   container: {
     flex: 1,
     backgroundColor: theme.colors.surface,
   },
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 16,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: theme.colors.onSurface,
-  },
   listContent: {
-    paddingHorizontal: 20,
     paddingBottom: 100,
     gap: 0,
   },
@@ -210,37 +218,22 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 16,
-    paddingHorizontal: 0,
+    paddingHorizontal: 20,
     gap: 16,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.secondary,
     borderBottomOpacity: 0.1,
   },
-  iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: theme.colors.secondary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  colorIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
+  presetItemDisabled: {
+    opacity: 0.8,
   },
   textContainer: {
     flex: 1,
-    gap: 4,
   },
   presetName: {
     fontSize: 16,
     fontWeight: "600",
     color: theme.colors.onSurface,
-  },
-  presetSubtitle: {
-    fontSize: 13,
-    color: theme.colors.onSecondary,
   },
   checkmark: {
     width: 32,
@@ -249,6 +242,9 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.primary,
     alignItems: "center",
     justifyContent: "center",
+  },
+  checkmarkColor: {
+    color: theme.colors.onPrimary,
   },
   plusButton: {
     width: 32,
@@ -267,7 +263,7 @@ const styles = StyleSheet.create((theme) => ({
   addedText: {
     fontSize: 12,
     fontWeight: "600",
-    color: theme.colors.onPrimary || "#ffffff",
+    color: theme.colors.onPrimary,
   },
   buttonContainer: {
     position: "absolute",
@@ -284,6 +280,6 @@ const styles = StyleSheet.create((theme) => ({
   addButtonText: {
     fontSize: 16,
     fontWeight: "600",
-    color: theme.colors.onPrimary || "#ffffff",
+    color: theme.colors.onPrimary,
   },
 }))

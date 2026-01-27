@@ -8,7 +8,7 @@ import { View } from "~/components/ui/view"
 import { useProfileStore } from "~/stores/profile.store"
 import { getInitials } from "~/utils/string-utils"
 
-export function ProfileSection() {
+export const ProfileSection = () => {
   const router = useRouter()
   const { name, imageUri } = useProfileStore()
 
@@ -70,7 +70,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   avatarText: {
     fontSize: 48,
-    fontWeight: "bold",
+    fontWeight: "600",
     color: theme.colors.surface,
     lineHeight: 56,
     textAlign: "center",
@@ -78,7 +78,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   profileName: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontWeight: "600",
     color: theme.colors.onSurface,
   },
 }))

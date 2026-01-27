@@ -7,7 +7,7 @@ import { Text } from "./ui/text"
 /**
  * Example usage of the Button component with Unistyles
  */
-export function ButtonExample() {
+export const ButtonExample = () => {
   return (
     <View style={styles.container}>
       {/* Default Button */}

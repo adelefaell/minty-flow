@@ -114,11 +114,15 @@ export const validateThemeName = (themeName: string): boolean => {
 }
 
 /**
- * Get a theme by name without fallback
+ * Get a theme by name without fallback (strict - returns undefined if not found)
+ * Similar to Flutter's getThemeStrict()
  */
-// export const getThemeStrict = (themeName: string): MintyColorScheme | null => {
-//   return ALL_THEMES[themeName] || null
-// }
+export const getThemeStrict = (
+  themeName?: string | null,
+): MintyColorScheme | undefined => {
+  if (!themeName) return undefined
+  return ALL_THEMES[themeName]
+}
 
 /**
  * Get the group containing a specific theme

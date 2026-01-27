@@ -33,14 +33,14 @@ interface CalculatorSheetProps
  * A full-featured calculator presented as a bottom sheet with numeric keypad,
  * backspace, calculator operations, and submit functionality.
  */
-export function CalculatorSheet({
+export const CalculatorSheet = ({
   id,
   onSubmit,
   initialValue,
   title = "Expense",
   onDismiss,
   ...bottomSheetProps
-}: CalculatorSheetProps) {
+}: CalculatorSheetProps) => {
   const {
     display,
     formatDisplay,
@@ -209,15 +209,10 @@ export function CalculatorSheet({
               <IconSymbol name="eraser" size={24} />
             </Pressable>
             <Pressable
-              style={[
-                calculatorStyles.keypadButton,
-                calculatorStyles.keypadButtonHorizontal,
-              ]}
+              style={calculatorStyles.keypadButton}
               onPress={handleToggleSign}
             >
-              <IconSymbol name="plus" size={24} />
-              <Text style={calculatorStyles.keypadButtonText}>/</Text>
-              <IconSymbol name="minus" size={24} />
+              <IconSymbol name="plus-minus-variant" size={24} />
             </Pressable>
             <Pressable
               style={[
@@ -433,7 +428,7 @@ const calculatorStyles = StyleSheet.create((theme) => ({
   },
   title: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontWeight: "600",
   },
   displayContainer: {
     alignItems: "center",
@@ -443,7 +438,7 @@ const calculatorStyles = StyleSheet.create((theme) => ({
   },
   displayValue: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: "600",
     textAlign: "center",
   },
   keypadContainer: {
@@ -461,21 +456,14 @@ const calculatorStyles = StyleSheet.create((theme) => ({
     justifyContent: "center",
     alignItems: "center",
   },
-  keypadButtonHorizontal: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 4,
-  },
   keypadButtonText: {
     color: theme.colors.onSecondary,
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: "600",
   },
   hasActiveOperation: {
     backgroundColor: theme.colors.primary,
   },
-
   actionsContainer: {
     marginTop: 16,
     flexDirection: "row",

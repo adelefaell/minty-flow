@@ -1,7 +1,8 @@
 import { Q } from "@nozbe/watermelondb"
+import type { Observable } from "@nozbe/watermelondb/utils/rx"
 
 import { database } from "../index"
-import type Goal from "../models/Goal"
+import type GoalModel from "../models/Goal"
 
 /**
  * Goal Service
@@ -13,14 +14,16 @@ import type Goal from "../models/Goal"
 /**
  * Get the goals collection
  */
-function getGoalCollection() {
-  return database.get<Goal>("goals")
+const getGoalCollection = () => {
+  return database.get<GoalModel>("goals")
 }
 
 /**
  * Get all goals
  */
-export async function getGoals(includeArchived = false): Promise<Goal[]> {
+export const getGoals = async (
+  includeArchived = false,
+): Promise<GoalModel[]> => {
   const goals = getGoalCollection()
   if (includeArchived) {
     return await goals.query().fetch()
@@ -31,7 +34,7 @@ export async function getGoals(includeArchived = false): Promise<Goal[]> {
 /**
  * Find a goal by ID
  */
-export async function findGoal(id: string): Promise<Goal | null> {
+export const findGoal = async (id: string): Promise<GoalModel | null> => {
   try {
     return await getGoalCollection().find(id)
   } catch {
@@ -42,7 +45,9 @@ export async function findGoal(id: string): Promise<Goal | null> {
 /**
  * Observe all goals reactively
  */
-export function observeGoals(includeArchived = false) {
+export const observeGoals = (
+  includeArchived = false,
+): Observable<GoalModel[]> => {
   const goals = getGoalCollection()
   if (includeArchived) {
     return goals.query().observe()
@@ -53,14 +58,14 @@ export function observeGoals(includeArchived = false) {
 /**
  * Observe a specific goal by ID
  */
-export function observeGoalById(id: string) {
+export const observeGoalById = (id: string): Observable<GoalModel> => {
   return getGoalCollection().findAndObserve(id)
 }
 
 /**
  * Create a new goal
  */
-export async function createGoal(data: {
+export const createGoal = async (data: {
   name: string
   description?: string
   targetAmount: number
@@ -69,7 +74,7 @@ export async function createGoal(data: {
   targetDate?: Date
   icon?: string
   color?: string
-}): Promise<Goal> {
+}): Promise<GoalModel> => {
   return await database.write(async () => {
     return await getGoalCollection().create((goal) => {
       goal.name = data.name
@@ -91,8 +96,8 @@ export async function createGoal(data: {
 /**
  * Update goal
  */
-export async function updateGoal(
-  goal: Goal,
+export const updateGoal = async (
+  goal: GoalModel,
   updates: Partial<{
     name: string
     description: string | undefined
@@ -104,7 +109,7 @@ export async function updateGoal(
     isCompleted: boolean
     isArchived: boolean
   }>,
-): Promise<Goal> {
+): Promise<GoalModel> => {
   return await database.write(async () => {
     return await goal.update((g) => {
       if (updates.name !== undefined) g.name = updates.name
@@ -126,7 +131,7 @@ export async function updateGoal(
 /**
  * Update goal by ID
  */
-export async function updateGoalById(
+export const updateGoalById = async (
   id: string,
   updates: Partial<{
     name: string
@@ -139,7 +144,7 @@ export async function updateGoalById(
     isCompleted: boolean
     isArchived: boolean
   }>,
-): Promise<Goal> {
+): Promise<GoalModel> => {
   const goal = await findGoal(id)
   if (!goal) {
     throw new Error(`Goal with id ${id} not found`)
@@ -150,7 +155,10 @@ export async function updateGoalById(
 /**
  * Add amount to goal
  */
-export async function addToGoal(goal: Goal, amount: number): Promise<Goal> {
+export const addToGoal = async (
+  goal: GoalModel,
+  amount: number,
+): Promise<GoalModel> => {
   const newAmount = goal.currentAmount + amount
   const isCompleted = newAmount >= goal.targetAmount
   return await updateGoal(goal, {
@@ -162,7 +170,7 @@ export async function addToGoal(goal: Goal, amount: number): Promise<Goal> {
 /**
  * Delete goal (mark as deleted for sync)
  */
-export async function deleteGoal(goal: Goal): Promise<void> {
+export const deleteGoal = async (goal: GoalModel): Promise<void> => {
   await database.write(async () => {
     await goal.markAsDeleted()
   })
@@ -171,7 +179,7 @@ export async function deleteGoal(goal: Goal): Promise<void> {
 /**
  * Permanently destroy goal
  */
-export async function destroyGoal(goal: Goal): Promise<void> {
+export const destroyGoal = async (goal: GoalModel): Promise<void> => {
   await database.write(async () => {
     await goal.destroyPermanently()
   })

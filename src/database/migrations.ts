@@ -155,5 +155,32 @@ export default schemaMigrations({
         }),
       ],
     },
+    {
+      // Migration from version 3 to version 4
+      // This migration updates the categories table to use a single color_scheme_name
+      // instead of multiple color class fields (color_name, color_bg_class, etc.)
+      toVersion: 4,
+      steps: [
+        // Add the new color_scheme_name column to categories table
+        {
+          type: "add_columns",
+          table: "categories",
+          columns: [
+            { name: "color_scheme_name", type: "string", isOptional: true },
+          ],
+        },
+      ],
+    },
+    {
+      // Migration from version 4 to version 5
+      // This migration makes category_id optional to support uncategorized transactions
+      // No data migration needed - existing transactions keep their categories
+      toVersion: 5,
+      steps: [
+        // WatermelonDB doesn't support altering column nullability directly
+        // The schema change is declarative - the database adapter handles it
+        // Existing data remains unchanged; new transactions can have null category_id
+      ],
+    },
   ],
 })

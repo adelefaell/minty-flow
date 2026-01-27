@@ -223,7 +223,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: "600",
   },
   settingRow: {
     flexDirection: "row",
@@ -242,7 +242,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   settingLabel: {
     fontSize: 15,
-    fontWeight: "bold",
+    fontWeight: "600",
   },
   settingDescription: {
     fontSize: 13,
@@ -276,7 +276,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   radioLabel: {
     fontSize: 14,
-    fontWeight: "bold",
+    fontWeight: "600",
   },
   radioLabelSelected: {
     color: theme.colors.onSurface,
@@ -297,11 +297,11 @@ const styles = StyleSheet.create((theme) => ({
   },
   demoButtonText: {
     fontSize: 14,
-    fontWeight: "bold",
+    fontWeight: "600",
   },
   hideAllButtonText: {
     fontSize: 14,
-    fontWeight: "bold",
+    fontWeight: "600",
   },
   resetSection: {
     paddingInline: 20,

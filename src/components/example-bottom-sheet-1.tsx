@@ -13,7 +13,7 @@ import { Pressable } from "./ui/pressable"
  * Example Bottom Sheet 1: User Profile Sheet
  * Demonstrates a profile information bottom sheet
  */
-export function ExampleBottomSheet1() {
+export const ExampleBottomSheet1 = () => {
   const sheet = useBottomSheet("profile-sheet")
 
   return (
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
   avatarText: {
     color: "white",
     fontSize: 32,
-    fontWeight: "bold",
+    fontWeight: "600",
   },
   name: {
     marginBottom: 4,

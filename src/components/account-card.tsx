@@ -151,7 +151,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   balance: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontWeight: "600",
     color: theme.colors.onSecondary,
   },
   monthlySummary: {

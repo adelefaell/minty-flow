@@ -170,7 +170,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   avatarText: {
     fontSize: 48,
-    fontWeight: "bold",
+    fontWeight: "600",
     color: theme.colors.surface,
     lineHeight: 56,
     textAlign: "center",
@@ -194,7 +194,7 @@ const styles = StyleSheet.create((theme) => ({
   removeButtonText: {
     fontSize: 14,
     color: theme.colors.error,
-    fontWeight: "bold",
+    fontWeight: "600",
   },
   inputSection: {
     paddingHorizontal: 20,
@@ -202,7 +202,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   label: {
     fontSize: 12,
-    fontWeight: "bold",
+    fontWeight: "600",
     color: theme.colors.onSecondary,
     marginBottom: 8,
     textTransform: "uppercase",

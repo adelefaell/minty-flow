@@ -90,7 +90,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   actionItemTitle: {
     fontSize: 15,
-    fontWeight: "bold",
+    fontWeight: "600",
     color: theme.colors.onSurface,
     marginBottom: 2,
   },
@@ -106,7 +106,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   badgeText: {
     fontSize: 10,
-    fontWeight: "bold",
+    fontWeight: "600",
     color: theme.colors.onSecondary,
   },
   chevron: {
