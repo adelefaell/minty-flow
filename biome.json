@@ -56,10 +56,5 @@
     "formatter": {
       "semicolons": "asNeeded"
     }
-  },
-  "css": {
-    "parser": {
-      "tailwindDirectives": true
-    }
   }
 }

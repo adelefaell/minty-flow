@@ -9,7 +9,7 @@ import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import { useCategorySearchStore } from "~/stores/category-search.store"
 
-import { CategoryList } from "../../../components/category-list"
+import { CategoryList } from "../../../components/categories/category-list"
 import type { CategoryType } from "../../../types/categories"
 
 export default function CategoriesIndexScreen() {

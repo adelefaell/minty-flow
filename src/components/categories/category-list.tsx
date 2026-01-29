@@ -10,8 +10,8 @@ import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import type CategoryModel from "~/database/models/Category"
 import { observeCategoriesByType } from "~/database/services/category-service"
+import type { Category, CategoryType } from "~/types/categories"
 
-import type { Category, CategoryType } from "../types/categories"
 import { CategoryRow } from "./category-row"
 
 interface CategoryListProps {

@@ -6,8 +6,7 @@ import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-
-import type { Category } from "../types/categories"
+import type { Category } from "~/types/categories"
 
 interface CategoryRowProps {
   category: Category

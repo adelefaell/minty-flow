@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { StyleSheet } from "react-native-unistyles"
 
-import { AccountCard } from "~/components/account-card"
+import { AccountCard } from "~/components/accounts/account-card"
 import { ReorderableListV2 } from "~/components/reorderable-list-v2"
 import { Button } from "~/components/ui/button"
 import type { IconSymbolName } from "~/components/ui/icon-symbol"

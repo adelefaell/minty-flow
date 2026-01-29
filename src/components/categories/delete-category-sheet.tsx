@@ -8,19 +8,18 @@ import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
+import type { Category } from "~/types/categories"
 
-import type { Category } from "../types/categories"
-
-interface ArchiveCategorySheetProps {
+interface DeleteCategorySheetProps {
   category: Category
   onConfirm: () => void
 }
 
-export const ArchiveCategorySheet = ({
+export function DeleteCategorySheet({
   category,
   onConfirm,
-}: ArchiveCategorySheetProps) => {
-  const sheet = useBottomSheet(`archive-category-${category.id}`)
+}: DeleteCategorySheetProps) {
+  const sheet = useBottomSheet(`delete-category-${category.id}`)
 
   const handleConfirm = () => {
     onConfirm()
@@ -31,36 +30,33 @@ export const ArchiveCategorySheet = ({
     sheet.dismiss()
   }
 
+  const transactionCount = category.transactionCount ?? 0
+  const description =
+    transactionCount > 0
+      ? `Deleting this category will leave ${transactionCount} transaction${transactionCount !== 1 ? "s" : ""} with no category. This action is irreversible!`
+      : "Deleting this category cannot be undone. This action is irreversible!"
+
   return (
-    <BottomSheetModalComponent id={`archive-category-${category.id}`}>
+    <BottomSheetModalComponent id={`delete-category-${category.id}`}>
       <View style={styles.container}>
         <View style={styles.iconContainer}>
-          <IconSymbol name="server-outline" size={40} style={styles.icon} />
+          <IconSymbol name="trash-can-outline" size={40} style={styles.icon} />
         </View>
 
         <Text variant="h3" style={styles.title}>
-          Archive Category
+          Confirm deleting {category.name}?
         </Text>
 
         <Text variant="p" style={styles.description}>
-          Are you sure you want to archive "{category.name}"? Archived
-          categories will be hidden from the main list but can be restored
-          later.
-          {category.transactionCount > 0 && (
-            <>
-              {"\n\n"}
-              This category has {category.transactionCount} transaction
-              {category.transactionCount !== 1 ? "s" : ""} associated with it.
-            </>
-          )}
+          {description}
         </Text>
 
         <View style={styles.buttonContainer}>
-          <Button variant="default" onPress={handleConfirm}>
-            <Text variant="default">Archive</Text>
-          </Button>
           <Button variant="outline" onPress={handleCancel}>
             <Text variant="default">Cancel</Text>
+          </Button>
+          <Button variant="destructive" onPress={handleConfirm}>
+            <Text variant="default">Delete</Text>
           </Button>
         </View>
       </View>
@@ -78,7 +74,7 @@ const styles = StyleSheet.create((theme) => ({
     marginBottom: 8,
   },
   icon: {
-    color: theme.colors.primary,
+    color: theme.colors.error,
   },
   title: {
     textAlign: "center",

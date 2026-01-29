@@ -3,9 +3,9 @@ import { StyleSheet, useUnistyles } from "react-native-unistyles"
 import type { IconSymbolName } from "~/components/ui/icon-symbol"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 
-import { Pressable } from "./ui/pressable"
-import { Text } from "./ui/text"
-import { View } from "./ui/view"
+import { Pressable } from "../ui/pressable"
+import { Text } from "../ui/text"
+import { View } from "../ui/view"
 
 interface Account {
   id: string

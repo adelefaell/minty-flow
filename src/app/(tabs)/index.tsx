@@ -4,12 +4,9 @@ import { useCallback } from "react"
 import { StyleSheet } from "react-native-unistyles"
 
 import { useBottomSheet } from "~/components/bottom-sheet"
-import { ButtonExample } from "~/components/button-example"
 import { CalculatorSheet } from "~/components/calculator-sheet"
 import { ChangeIconSheet } from "~/components/change-icon-sheet"
 import { ColorVariantSheet } from "~/components/color-variant-sheet"
-import { ExampleBottomSheet1 } from "~/components/example-bottom-sheet-1"
-import { IconSelectionExample } from "~/components/icon-selection-sheet-v2-example"
 import ParallaxScrollView from "~/components/parallax-scroll-view"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
@@ -46,14 +43,10 @@ export default function HomeScreen() {
         <Text variant="p" style={styles.description}>
           Try out these different bottom sheet examples:
         </Text>
-        <ExampleBottomSheet1 />
         <CalculatorSheetExample />
         <ChangeIconSheetExample />
         <ColorVariantSheetExample />
-        <IconSelectionExample />
       </View>
-
-      <ButtonExample />
     </ParallaxScrollView>
   )
 }

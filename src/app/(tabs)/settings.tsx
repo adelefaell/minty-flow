@@ -3,7 +3,7 @@ import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
 import { ActionItem } from "~/components/action-item"
-import { ProfileSection } from "~/components/profile-section"
+import { ProfileSection } from "~/components/profile/profile-section"
 import type { IconSymbolName } from "~/components/ui/icon-symbol"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
