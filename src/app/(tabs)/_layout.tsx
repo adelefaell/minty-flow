@@ -4,7 +4,7 @@ import PagerView, {
   type PagerViewOnPageSelectedEvent,
 } from "react-native-pager-view"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-import { StyleSheet } from "react-native-unistyles"
+import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
@@ -32,63 +32,7 @@ const TabLayout = () => {
   const pagerRef = useRef<PagerView>(null)
   const [activePage, setActivePage] = useState(0)
   const insets = useSafeAreaInsets()
-
-  const styles = StyleSheet.create((t) => ({
-    container: {
-      flex: 1,
-    },
-    pager: {
-      flex: 1,
-    },
-    page: {
-      flex: 1,
-    },
-
-    // ⛔ NEVER paints, NEVER blocks touches
-    tabBarContainer: {
-      position: "absolute",
-      left: 0,
-      right: 0,
-      bottom: 0,
-      alignItems: "center",
-      backgroundColor: "transparent",
-      pointerEvents: "box-none",
-    },
-
-    // ✅ Only real hitbox
-    tabBar: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-evenly",
-      height: 54,
-      width: "90%",
-      borderRadius: t.colors.radius,
-      backgroundColor: t.colors.secondary,
-      marginBottom: insets.bottom + 8,
-
-      pointerEvents: "auto",
-    },
-
-    tabButton: {
-      alignItems: "center",
-      justifyContent: "center",
-    },
-
-    centerButton: {
-      borderRadius: t.colors.radius,
-      backgroundColor: t.colors.primary,
-      alignItems: "center",
-      justifyContent: "center",
-      width: 44,
-      height: 44,
-      zIndex: 20,
-      flexShrink: 0,
-    },
-
-    centerButtonIcon: {
-      color: t.colors.onPrimary,
-    },
-  }))
+  const { theme } = useUnistyles()
 
   const onPageSelected = (e: PagerViewOnPageSelectedEvent) => {
     setActivePage(e.nativeEvent.position)
@@ -124,7 +68,12 @@ const TabLayout = () => {
 
       {/* Floating tab bar */}
       <View style={styles.tabBarContainer}>
-        <View style={styles.tabBar}>
+        <View
+          style={[
+            styles.tabBar(insets.bottom),
+            { backgroundColor: theme.colors.secondary },
+          ]}
+        >
           <Tooltip text="Home">
             <Button
               variant="link"
@@ -154,12 +103,15 @@ const TabLayout = () => {
               onPress={() =>
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
               }
-              style={styles.centerButton}
+              style={[
+                styles.centerButton,
+                { backgroundColor: theme.colors.primary },
+              ]}
             >
               <IconSymbol
                 name="plus"
                 size={28}
-                color={styles.centerButtonIcon.color}
+                color={theme.colors.onPrimary}
               />
             </Button>
           </Tooltip>
@@ -192,3 +144,53 @@ const TabLayout = () => {
 }
 
 export default TabLayout
+
+const styles = StyleSheet.create((t) => ({
+  container: {
+    flex: 1,
+  },
+  pager: {
+    flex: 1,
+  },
+  page: {
+    flex: 1,
+  },
+
+  // ⛔ NEVER paints, NEVER blocks touches
+  tabBarContainer: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: "center",
+    backgroundColor: "transparent",
+    pointerEvents: "box-none",
+  },
+
+  // ✅ Only real hitbox
+  tabBar: (bottomInsets: number) => ({
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-evenly",
+    height: 54,
+    width: "90%",
+    borderRadius: t.colors.radius,
+    marginBottom: bottomInsets + 8,
+    pointerEvents: "auto",
+  }),
+
+  tabButton: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  centerButton: {
+    borderRadius: t.colors.radius,
+    alignItems: "center",
+    justifyContent: "center",
+    width: 44,
+    height: 44,
+    zIndex: 20,
+    flexShrink: 0,
+  },
+}))

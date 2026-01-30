@@ -5,9 +5,9 @@ import { StyleSheet } from "react-native-unistyles"
 
 import { AccountCard } from "~/components/accounts/account-card"
 import { ReorderableListV2 } from "~/components/reorderable-list-v2"
+import { SearchInput } from "~/components/search-input"
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
-import { Input } from "~/components/ui/input"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
@@ -165,27 +165,12 @@ const AccountsScreenInner = ({ accountModels }: AccountsScreenInnerProps) => {
       {/* Search Bar */}
       {!isReorderMode && (
         <View style={styles.searchContainer}>
-          <View style={styles.searchWrapper}>
-            <IconSymbol name="magnify" size={20} style={styles.searchIcon} />
-            <Input
-              placeholder="Search accounts..."
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              style={styles.searchInput}
-              clearButtonMode="while-editing"
-              autoCapitalize="none"
-            />
-            {searchQuery.length > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onPress={clearSearch}
-                style={styles.clearButton}
-              >
-                <IconSymbol name="close" size={20} style={styles.clearIcon} />
-              </Button>
-            )}
-          </View>
+          <SearchInput
+            placeholder="Search accounts..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            onClear={clearSearch}
+          />
         </View>
       )}
 
@@ -193,7 +178,7 @@ const AccountsScreenInner = ({ accountModels }: AccountsScreenInnerProps) => {
         <View
           style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
         >
-          <IconSymbol name="magnify" size={40} style={styles.searchIcon} />
+          <IconSymbol name="magnify" size={40} />
           <Text variant="h4" style={{ marginTop: 16 }}>
             No results for "{searchQuery}"
           </Text>
@@ -324,34 +309,5 @@ const styles = StyleSheet.create((theme) => ({
   searchContainer: {
     marginTop: 16,
     marginBottom: 8,
-  },
-  searchWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: theme.colors.secondary,
-    borderRadius: theme.colors.radius,
-    paddingHorizontal: 12,
-    gap: 8,
-  },
-  searchIcon: {
-    color: theme.colors.onSecondary,
-    opacity: 0.5,
-  },
-  searchInput: {
-    flex: 1,
-    height: 44,
-    backgroundColor: "transparent",
-    borderColor: "transparent",
-    borderWidth: 0,
-    fontSize: 14,
-    shadowColor: "transparent",
-    elevation: 0,
-    paddingHorizontal: 0,
-  },
-  clearButton: {
-    padding: 4,
-  },
-  clearIcon: {
-    color: theme.colors.onSecondary,
   },
 }))

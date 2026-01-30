@@ -326,7 +326,7 @@ const EditAccountScreenInner = ({
             >
               <DynamicIcon
                 icon={formIcon}
-                size={80}
+                size={96}
                 colorScheme={currentColorScheme}
               />
             </Pressable>

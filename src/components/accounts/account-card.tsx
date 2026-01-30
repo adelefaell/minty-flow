@@ -36,7 +36,8 @@ export const AccountCard = ({ account, isReorderMode }: AccountCardProps) => {
       <View variant="muted" style={styles.cardHeader}>
         <DynamicIcon
           icon={account.icon}
-          size={28}
+          size={48}
+          variant="raw"
           colorScheme={account.colorScheme}
         />
         <View variant="muted" style={styles.accountInfo}>
@@ -126,13 +127,6 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-  },
-  iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
   },
   accountInfo: {
     flex: 1,

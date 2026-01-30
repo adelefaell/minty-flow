@@ -2,9 +2,9 @@ import { useLocalSearchParams } from "expo-router"
 import { useState } from "react"
 import { StyleSheet } from "react-native-unistyles"
 
+import { SearchInput } from "~/components/search-input"
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
-import { Input } from "~/components/ui/input"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 
@@ -73,27 +73,12 @@ export default function CategoriesIndexScreen() {
       )} */}
       {/* Search Bar */}
       <View style={styles.searchContainer}>
-        <View style={styles.searchWrapper}>
-          <IconSymbol name="magnify" size={20} style={styles.searchIcon} />
-          <Input
-            placeholder="Search categories..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            style={styles.searchInput}
-            clearButtonMode="while-editing"
-            autoCapitalize="none"
-          />
-          {searchQuery.length > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onPress={clearSearch}
-              style={styles.clearButton}
-            >
-              <IconSymbol name="close" size={20} style={styles.clearIcon} />
-            </Button>
-          )}
-        </View>
+        <SearchInput
+          placeholder="Search categories..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          onClear={clearSearch}
+        />
       </View>
       {/* Show Archived Toggle */}
       <View style={styles.toggleContainer}>
@@ -199,34 +184,5 @@ const styles = StyleSheet.create((theme) => ({
   searchContainer: {
     paddingHorizontal: 20,
     marginBottom: 16,
-  },
-  searchWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: theme.colors.secondary,
-    borderRadius: theme.colors.radius,
-    paddingHorizontal: 12,
-    gap: 8,
-  },
-  searchIcon: {
-    color: theme.colors.onSecondary,
-    opacity: 0.5,
-  },
-  searchInput: {
-    flex: 1,
-    height: 44,
-    backgroundColor: "transparent",
-    borderColor: "transparent",
-    borderWidth: 0,
-    fontSize: 14,
-    shadowColor: "transparent",
-    elevation: 0,
-    paddingHorizontal: 0,
-  },
-  clearButton: {
-    padding: 4,
-  },
-  clearIcon: {
-    color: theme.colors.onSecondary,
   },
 }))
