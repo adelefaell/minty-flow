@@ -21,7 +21,7 @@ const appearanceItems: PreferenceItem[] = [
     title: "Theme",
     description: "Choose your preferred theme",
     route: "/(settings)/(preferences)/theme",
-    icon: "palette-swatch-outline",
+    icon: "palette-swatch",
   },
   {
     id: "money-formatting",
@@ -52,14 +52,14 @@ const otherPreferenceItems: PreferenceItem[] = [
     title: "Privacy",
     description: "Manage privacy and security settings",
     route: "/(settings)/(preferences)/privacy",
-    icon: "lock-outline",
+    icon: "lock",
   },
   {
     id: "transaction-location",
     title: "Transaction Location",
     description: "Configure transaction location settings",
     route: "/(settings)/(preferences)/transaction-location",
-    icon: "map-marker-outline",
+    icon: "map-marker",
   },
   {
     id: "exchange-rates",
@@ -73,21 +73,21 @@ const otherPreferenceItems: PreferenceItem[] = [
     title: "Trash bin",
     description: "Manage deleted items and retention period",
     route: "/(settings)/(preferences)/trash-bin",
-    icon: "trash-can-outline",
+    icon: "trash-can",
   },
   {
     id: "reminder",
     title: "Reminder",
     description: "Set up daily reminders for expense tracking",
     route: "/(settings)/(preferences)/reminder",
-    icon: "bell-outline",
+    icon: "bell",
   },
   {
     id: "pending-transactions",
     title: "Pending transactions",
     description: "Configure pending transaction settings",
     route: "/(settings)/(preferences)/pending-transactions",
-    icon: "clock-outline",
+    icon: "clock",
   },
 ]
 

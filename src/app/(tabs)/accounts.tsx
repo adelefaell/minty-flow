@@ -125,7 +125,7 @@ const AccountsScreenInner = ({ accountModels }: AccountsScreenInnerProps) => {
                   })
                 }
               >
-                <IconSymbol name="archive-outline" size={24} />
+                <IconSymbol name="archive" size={24} />
               </Button>
               <Button variant="ghost" size="icon" onPress={handleToggleReorder}>
                 <IconSymbol name="swap-vertical" size={24} />

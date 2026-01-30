@@ -486,7 +486,7 @@ const EditCategoryScreenInner = ({
               onPress={() => colorVariantSheet.present()}
             >
               <View style={styles.colorSelectorLeft} variant="muted">
-                <IconSymbol name="palette-outline" size={24} />
+                <IconSymbol name="palette" size={24} />
                 <Text variant="default" style={styles.colorLabel}>
                   Change color
                 </Text>
@@ -525,7 +525,8 @@ const EditCategoryScreenInner = ({
                 style={styles.actionButton}
               >
                 <IconSymbol
-                  name="archive-arrow-up-outline"
+                  name="archive-arrow-up"
+                  outline
                   size={20}
                   style={styles.restoreIcon}
                 />
@@ -540,7 +541,8 @@ const EditCategoryScreenInner = ({
                 style={styles.actionButton}
               >
                 <IconSymbol
-                  name="archive-arrow-down-outline"
+                  name="archive-arrow-down"
+                  outline
                   size={20}
                   style={styles.archiveIcon}
                 />
@@ -555,7 +557,8 @@ const EditCategoryScreenInner = ({
               style={styles.actionButton}
             >
               <IconSymbol
-                name="trash-can-outline"
+                name="trash-can"
+                outline
                 size={20}
                 style={[
                   styles.deleteIcon,

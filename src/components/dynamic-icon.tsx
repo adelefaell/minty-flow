@@ -101,7 +101,7 @@ export const DynamicIcon: FC<DynamicIconProps> = ({
           },
         ]}
       >
-        <IconSymbol name="shape-outline" size={size} color={color} />
+        <IconSymbol name="shape" size={size} color={color} outline />
       </View>
     )
   }

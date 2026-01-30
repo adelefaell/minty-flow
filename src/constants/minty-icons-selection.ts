@@ -25,31 +25,31 @@ export const MATERIAL_SYMBOLS: MintyIconData[] = [
 
     keywords: ["money", "cash", "payment"],
   },
-  {
-    name: "wallet-outline",
+  // {
+  //   name: "wallet-outline",
 
-    keywords: ["money", "cash", "payment"],
-  },
+  //   keywords: ["money", "cash", "payment"],
+  // },
   {
     name: "credit-card",
 
     keywords: ["payment", "card", "credit"],
   },
-  {
-    name: "credit-card-outline",
+  // {
+  //   name: "credit-card-outline",
 
-    keywords: ["payment", "card", "credit"],
-  },
+  //   keywords: ["payment", "card", "credit"],
+  // },
   {
     name: "bank",
 
     keywords: ["banking", "finance", "institution"],
   },
-  {
-    name: "bank-outline",
+  // {
+  //   name: "bank-outline",
 
-    keywords: ["banking", "finance", "institution"],
-  },
+  //   keywords: ["banking", "finance", "institution"],
+  // },
   {
     name: "cash",
 
@@ -110,11 +110,11 @@ export const MATERIAL_SYMBOLS: MintyIconData[] = [
 
     keywords: ["savings", "save", "money"],
   },
-  {
-    name: "piggy-bank-outline",
+  // {
+  //   name: "piggy-bank-outline",
 
-    keywords: ["savings", "save", "money"],
-  },
+  //   keywords: ["savings", "save", "money"],
+  // },
   {
     name: "safe",
 
@@ -150,21 +150,21 @@ export const MATERIAL_SYMBOLS: MintyIconData[] = [
 
     keywords: ["label", "category", "price"],
   },
-  {
-    name: "tag-outline",
+  // {
+  //   name: "tag-outline",
 
-    keywords: ["label", "category", "price"],
-  },
+  //   keywords: ["label", "category", "price"],
+  // },
   {
     name: "tag-multiple",
 
     keywords: ["labels", "categories", "tags"],
   },
-  {
-    name: "tag-multiple-outline",
+  // {
+  //   name: "tag-multiple-outline",
 
-    keywords: ["labels", "categories", "tags"],
-  },
+  //   keywords: ["labels", "categories", "tags"],
+  // },
 
   // Shopping & Stores
   {
@@ -172,41 +172,41 @@ export const MATERIAL_SYMBOLS: MintyIconData[] = [
 
     keywords: ["shopping", "buy", "purchase"],
   },
-  {
-    name: "cart-outline",
+  // {
+  //   name: "cart-outline",
 
-    keywords: ["shopping", "buy", "purchase"],
-  },
+  //   keywords: ["shopping", "buy", "purchase"],
+  // },
   {
     name: "shopping",
 
     keywords: ["bag", "buy", "purchase"],
   },
-  {
-    name: "shopping-outline",
+  // {
+  //   name: "shopping-outline",
 
-    keywords: ["bag", "buy", "purchase"],
-  },
+  //   keywords: ["bag", "buy", "purchase"],
+  // },
   {
     name: "store",
 
     keywords: ["shop", "retail", "business"],
   },
-  {
-    name: "store-outline",
+  // {
+  //   name: "store-outline",
 
-    keywords: ["shop", "retail", "business"],
-  },
+  //   keywords: ["shop", "retail", "business"],
+  // },
   {
     name: "basket",
 
     keywords: ["shopping", "groceries", "buy"],
   },
-  {
-    name: "basket-outline",
+  // {
+  //   name: "basket-outline",
 
-    keywords: ["shopping", "groceries", "buy"],
-  },
+  //   keywords: ["shopping", "groceries", "buy"],
+  // },
   {
     name: "barcode",
 
@@ -224,11 +224,11 @@ export const MATERIAL_SYMBOLS: MintyIconData[] = [
 
     keywords: ["dining", "meal", "restaurant"],
   },
-  {
-    name: "food-outline",
+  // {
+  //   name: "food-outline",
 
-    keywords: ["dining", "meal", "restaurant"],
-  },
+  //   keywords: ["dining", "meal", "restaurant"],
+  // },
   {
     name: "silverware-fork-knife",
 
@@ -239,11 +239,11 @@ export const MATERIAL_SYMBOLS: MintyIconData[] = [
 
     keywords: ["cafe", "drink", "beverage"],
   },
-  {
-    name: "coffee-outline",
+  // {
+  //   name: "coffee-outline",
 
-    keywords: ["cafe", "drink", "beverage"],
-  },
+  //   keywords: ["cafe", "drink", "beverage"],
+  // },
   {
     name: "hamburger",
 
@@ -301,11 +301,11 @@ export const MATERIAL_SYMBOLS: MintyIconData[] = [
 
     keywords: ["vehicle", "transport", "auto"],
   },
-  {
-    name: "car-outline",
+  // {
+  //   name: "car-outline",
 
-    keywords: ["vehicle", "transport", "auto"],
-  },
+  //   keywords: ["vehicle", "transport", "auto"],
+  // },
   {
     name: "bus",
 
@@ -363,11 +363,11 @@ export const MATERIAL_SYMBOLS: MintyIconData[] = [
 
     keywords: ["house", "residence", "property"],
   },
-  {
-    name: "home-outline",
+  // {
+  //   name: "home-outline",
 
-    keywords: ["house", "residence", "property"],
-  },
+  //   keywords: ["house", "residence", "property"],
+  // },
   {
     name: "bed",
 
@@ -388,11 +388,11 @@ export const MATERIAL_SYMBOLS: MintyIconData[] = [
 
     keywords: ["refrigerator", "appliance", "kitchen"],
   },
-  {
-    name: "fridge-outline",
+  // {
+  //   name: "fridge-outline",
 
-    keywords: ["refrigerator", "appliance", "kitchen"],
-  },
+  //   keywords: ["refrigerator", "appliance", "kitchen"],
+  // },
   {
     name: "washing-machine",
 
@@ -492,11 +492,11 @@ export const MATERIAL_SYMBOLS: MintyIconData[] = [
 
     keywords: ["health", "love", "wellness"],
   },
-  {
-    name: "heart-outline",
+  // {
+  //   name: "heart-outline",
 
-    keywords: ["health", "love", "wellness"],
-  },
+  //   keywords: ["health", "love", "wellness"],
+  // },
   {
     name: "heart-pulse",
 
@@ -599,11 +599,11 @@ export const MATERIAL_SYMBOLS: MintyIconData[] = [
 
     keywords: ["photo", "photography", "picture"],
   },
-  {
-    name: "camera-outline",
+  // {
+  //   name: "camera-outline",
 
-    keywords: ["photo", "photography", "picture"],
-  },
+  //   keywords: ["photo", "photography", "picture"],
+  // },
   {
     name: "party-popper",
 
@@ -621,21 +621,21 @@ export const MATERIAL_SYMBOLS: MintyIconData[] = [
 
     keywords: ["work", "business", "office"],
   },
-  {
-    name: "briefcase-outline",
+  // {
+  //   name: "briefcase-outline",
 
-    keywords: ["work", "business", "office"],
-  },
+  //   keywords: ["work", "business", "office"],
+  // },
   {
     name: "office-building",
 
     keywords: ["work", "business", "corporate"],
   },
-  {
-    name: "office-building-outline",
+  // {
+  //   name: "office-building-outline",
 
-    keywords: ["work", "business", "corporate"],
-  },
+  //   keywords: ["work", "business", "corporate"],
+  // },
   {
     name: "domain",
 
@@ -646,21 +646,21 @@ export const MATERIAL_SYMBOLS: MintyIconData[] = [
 
     keywords: ["document", "paper", "file"],
   },
-  {
-    name: "file-document-outline",
+  // {
+  //   name: "file-document-outline",
 
-    keywords: ["document", "paper", "file"],
-  },
+  //   keywords: ["document", "paper", "file"],
+  // },
   {
     name: "clipboard",
 
     keywords: ["document", "notes", "list"],
   },
-  {
-    name: "clipboard-outline",
+  // {
+  //   name: "clipboard-outline",
 
-    keywords: ["document", "notes", "list"],
-  },
+  //   keywords: ["document", "notes", "list"],
+  // },
   {
     name: "pencil",
 
@@ -688,11 +688,11 @@ export const MATERIAL_SYMBOLS: MintyIconData[] = [
 
     keywords: ["education", "learning", "academy"],
   },
-  {
-    name: "school-outline",
+  // {
+  //   name: "school-outline",
 
-    keywords: ["education", "learning", "academy"],
-  },
+  //   keywords: ["education", "learning", "academy"],
+  // },
   {
     name: "book-open-page-variant",
 
@@ -703,21 +703,21 @@ export const MATERIAL_SYMBOLS: MintyIconData[] = [
 
     keywords: ["school", "student", "bag"],
   },
-  {
-    name: "pencil-box-outline",
+  // {
+  //   name: "pencil-box-outline",
 
-    keywords: ["school", "supplies", "stationery"],
-  },
+  //   keywords: ["school", "supplies", "stationery"],
+  // },
   {
     name: "palette",
 
     keywords: ["art", "design", "creative"],
   },
-  {
-    name: "palette-outline",
+  // {
+  //   name: "palette-outline",
 
-    keywords: ["art", "design", "creative"],
-  },
+  //   keywords: ["art", "design", "creative"],
+  // },
 
   // Gifts & Occasions
   {
@@ -725,11 +725,11 @@ export const MATERIAL_SYMBOLS: MintyIconData[] = [
 
     keywords: ["present", "surprise", "celebration"],
   },
-  {
-    name: "gift-outline",
+  // {
+  //   name: "gift-outline",
 
-    keywords: ["present", "surprise", "celebration"],
-  },
+  //   keywords: ["present", "surprise", "celebration"],
+  // },
   {
     name: "card",
 
@@ -767,11 +767,11 @@ export const MATERIAL_SYMBOLS: MintyIconData[] = [
 
     keywords: ["storage", "digital", "subscription"],
   },
-  {
-    name: "cloud-outline",
+  // {
+  //   name: "cloud-outline",
 
-    keywords: ["storage", "digital", "subscription"],
-  },
+  //   keywords: ["storage", "digital", "subscription"],
+  // },
   {
     name: "calendar-clock",
 
@@ -794,11 +794,11 @@ export const MATERIAL_SYMBOLS: MintyIconData[] = [
 
     keywords: ["insurance", "protection", "security"],
   },
-  {
-    name: "shield-outline",
+  // {
+  //   name: "shield-outline",
 
-    keywords: ["insurance", "protection", "security"],
-  },
+  //   keywords: ["insurance", "protection", "security"],
+  // },
   {
     name: "shield-check",
 
@@ -814,11 +814,11 @@ export const MATERIAL_SYMBOLS: MintyIconData[] = [
 
     keywords: ["security", "secure", "protected"],
   },
-  {
-    name: "lock-outline",
+  // {
+  //   name: "lock-outline",
 
-    keywords: ["security", "secure", "protected"],
-  },
+  //   keywords: ["security", "secure", "protected"],
+  // },
 
   // Personal Care
   {
@@ -942,101 +942,101 @@ export const MATERIAL_SYMBOLS: MintyIconData[] = [
 
     keywords: ["favorite", "rating", "special"],
   },
-  {
-    name: "star-outline",
+  // {
+  //   name: "star-outline",
 
-    keywords: ["favorite", "rating", "special"],
-  },
+  //   keywords: ["favorite", "rating", "special"],
+  // },
   {
     name: "flag",
 
     keywords: ["marker", "important", "bookmark"],
   },
-  {
-    name: "flag-outline",
+  // {
+  //   name: "flag-outline",
 
-    keywords: ["marker", "important", "bookmark"],
-  },
+  //   keywords: ["marker", "important", "bookmark"],
+  // },
   {
     name: "bell",
 
     keywords: ["notification", "alert", "reminder"],
   },
-  {
-    name: "bell-outline",
+  // {
+  //   name: "bell-outline",
 
-    keywords: ["notification", "alert", "reminder"],
-  },
+  //   keywords: ["notification", "alert", "reminder"],
+  // },
   {
     name: "help-circle",
 
     keywords: ["question", "help", "info"],
   },
-  {
-    name: "help-circle-outline",
+  // {
+  //   name: "help-circle-outline",
 
-    keywords: ["question", "help", "info"],
-  },
+  //   keywords: ["question", "help", "info"],
+  // },
   {
     name: "information",
 
     keywords: ["info", "details", "help"],
   },
-  {
-    name: "information-outline",
+  // {
+  //   name: "information-outline",
 
-    keywords: ["info", "details", "help"],
-  },
+  //   keywords: ["info", "details", "help"],
+  // },
   {
     name: "alert-circle",
 
     keywords: ["warning", "alert", "attention"],
   },
-  {
-    name: "alert-circle-outline",
+  // {
+  //   name: "alert-circle-outline",
 
-    keywords: ["warning", "alert", "attention"],
-  },
+  //   keywords: ["warning", "alert", "attention"],
+  // },
   {
     name: "check-circle",
 
     keywords: ["success", "done", "complete"],
   },
-  {
-    name: "check-circle-outline",
+  // {
+  //   name: "check-circle-outline",
 
-    keywords: ["success", "done", "complete"],
-  },
+  //   keywords: ["success", "done", "complete"],
+  // },
   {
     name: "close-circle",
 
     keywords: ["cancel", "close", "remove"],
   },
-  {
-    name: "close-circle-outline",
+  // {
+  //   name: "close-circle-outline",
 
-    keywords: ["cancel", "close", "remove"],
-  },
+  //   keywords: ["cancel", "close", "remove"],
+  // },
   {
     name: "plus-circle",
 
     keywords: ["add", "new", "create"],
   },
-  {
-    name: "plus-circle-outline",
+  // {
+  //   name: "plus-circle-outline",
 
-    keywords: ["add", "new", "create"],
-  },
+  //   keywords: ["add", "new", "create"],
+  // },
   {
     name: "minus-circle",
 
     keywords: ["remove", "delete", "subtract"],
   },
-  {
-    name: "minus-circle-outline",
+  // {
+  //   name: "minus-circle-outline",
 
-    keywords: ["remove", "delete", "subtract"],
-  },
+  //   keywords: ["remove", "delete", "subtract"],
+  // },
   {
     name: "dots-horizontal",
 

@@ -367,7 +367,7 @@ export const CalculatorSheet = ({
               onPress={handleBackspace}
               onLongPress={clear}
             >
-              <IconSymbol name="backspace-outline" size={24} />
+              <IconSymbol name="backspace" size={24} />
             </Pressable>
             <Pressable
               style={[

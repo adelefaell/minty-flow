@@ -58,21 +58,13 @@ export const ChangeIconSheet = ({
             </Text>
           </View>
           <View style={styles.content}>
+            <ActionItem icon="shape" title="Icon" onPress={handleIconPress} />
             <ActionItem
-              icon="shape-outline"
-              title="Icon"
-              onPress={handleIconPress}
-            />
-            <ActionItem
-              icon="tag-outline"
+              icon="tag"
               title="Emoji/Letter"
               onPress={handleEmojiLetterPress}
             />
-            <ActionItem
-              icon="image-outline"
-              title="Image"
-              onPress={handleImagePress}
-            />
+            <ActionItem icon="image" title="Image" onPress={handleImagePress} />
           </View>
         </View>
       </BottomSheetModalComponent>

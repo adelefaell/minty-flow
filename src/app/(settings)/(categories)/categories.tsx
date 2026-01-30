@@ -103,7 +103,8 @@ export default function CategoriesIndexScreen() {
           variant="ghost"
         >
           <IconSymbol
-            name={showArchived ? "eye-outline" : "eye-off-outline"}
+            name={showArchived ? "eye" : "eye-off"}
+            outline
             size={20}
             style={styles.toggleIcon}
           />

@@ -413,7 +413,7 @@ const EditAccountScreenInner = ({
               onPress={() => accountTypeSheet.present()}
             >
               <View style={styles.settingsLeft}>
-                <IconSymbol name="shape-outline" size={24} />
+                <IconSymbol name="shape" size={24} />
                 <Text variant="default" style={styles.settingsLabel}>
                   Account type
                 </Text>
@@ -436,7 +436,7 @@ const EditAccountScreenInner = ({
               onPress={() => colorVariantSheet.present()}
             >
               <View style={styles.settingsLeft}>
-                <IconSymbol name="palette-outline" size={24} />
+                <IconSymbol name="palette" size={24} />
                 <Text variant="default" style={styles.settingsLabel}>
                   Change color
                 </Text>
@@ -482,7 +482,7 @@ const EditAccountScreenInner = ({
                   accessibilityState={{ checked: value }}
                 >
                   <View style={styles.switchLeft}>
-                    <IconSymbol name="eye-off-outline" size={24} />
+                    <IconSymbol name="eye-off" size={24} />
                     <Text variant="default" style={styles.switchLabel}>
                       Exclude from balance
                     </Text>
@@ -509,7 +509,7 @@ const EditAccountScreenInner = ({
                     accessibilityState={{ checked: value }}
                   >
                     <View style={styles.switchLeft}>
-                      <IconSymbol name="star-outline" size={24} />
+                      <IconSymbol name="star" size={24} />
                       <Text variant="default" style={styles.switchLabel}>
                         Primary account
                       </Text>
@@ -536,7 +536,8 @@ const EditAccountScreenInner = ({
                   style={styles.actionButton}
                 >
                   <IconSymbol
-                    name="archive-arrow-up-outline"
+                    name="archive-arrow-up"
+                    outline
                     size={20}
                     style={styles.restoreIcon}
                   />
@@ -550,7 +551,7 @@ const EditAccountScreenInner = ({
                   style={styles.actionButton}
                 >
                   <IconSymbol
-                    name="trash-can-outline"
+                    name="trash-can"
                     size={20}
                     style={styles.deleteIcon}
                   />
@@ -567,7 +568,8 @@ const EditAccountScreenInner = ({
                   style={styles.actionButton}
                 >
                   <IconSymbol
-                    name="archive-arrow-down-outline"
+                    name="archive-arrow-down"
+                    outline
                     size={20}
                     style={styles.archiveIcon}
                   />

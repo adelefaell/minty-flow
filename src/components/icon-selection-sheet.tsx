@@ -318,7 +318,8 @@ export const IconSelectionSheet = ({
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <IconSymbol
-              name="alert-circle-outline"
+              name="alert-circle"
+              outline
               size={48}
               color={theme.colors.onSecondary}
             />

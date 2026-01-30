@@ -78,7 +78,7 @@ const AccountDetailsScreenInner = ({ account }: AccountDetailsProps) => {
 
       <View style={styles.content}>
         <View style={styles.placeholderContainer}>
-          <IconSymbol name="chart-box-outline" size={48} color="gray" />
+          <IconSymbol name="chart-box" size={48} color="gray" outline />
           <Text variant="default" style={styles.placeholderText}>
             Transactions coming soon
           </Text>

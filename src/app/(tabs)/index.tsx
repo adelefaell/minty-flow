@@ -37,6 +37,17 @@ export default function HomeScreen() {
         </Link>
       </View>
 
+      {/* <View style={styles.stepContainer}>
+        <Text variant="h2" style={styles.pageTitle}>
+          Icons List
+        </Text>
+        <Link href="/icons-list" style={styles.link}>
+          <Link.Trigger>
+            <Text>Dont click here →</Text>
+          </Link.Trigger>
+        </Link>
+      </View> */}
+
       <View style={styles.stepContainer}>
         <Text variant="h2" style={styles.pageTitle}>
           Bottom Sheet Examples

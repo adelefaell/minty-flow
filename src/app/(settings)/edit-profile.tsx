@@ -88,7 +88,7 @@ export default function EditProfileScreen() {
               )}
             </View>
             <View style={styles.cameraIconContainer}>
-              <IconSymbol name="camera-outline" size={20} />
+              <IconSymbol name="camera" size={20} />
             </View>
           </Pressable>
           {localImageUri && (

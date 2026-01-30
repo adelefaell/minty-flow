@@ -33,14 +33,14 @@ export default function PrivacyScreen() {
     {
       id: "lock-app",
       label: "Lock app",
-      icon: "lock-open-outline",
+      icon: "lock-open",
       value: lockApp,
       onValueChange: setLockApp,
     },
     {
       id: "lock-after-closing",
       label: "Lock after closing",
-      icon: "lock-outline",
+      icon: "lock",
       value: lockAfterClosing,
       onValueChange: setLockAfterClosing,
     },
