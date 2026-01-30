@@ -5,7 +5,6 @@ import { useLocalSearchParams, useNavigation, useRouter } from "expo-router"
 import { useEffect, useRef, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { ScrollView } from "react-native"
-import { KeyboardStickyView } from "react-native-keyboard-controller"
 import { StyleSheet } from "react-native-unistyles"
 
 import { useBottomSheet } from "~/components/bottom-sheet"
@@ -14,6 +13,7 @@ import { DeleteCategorySheet } from "~/components/categories/delete-category-she
 import { ChangeIconSheet } from "~/components/change-icon-sheet"
 import { ColorVariantSheet } from "~/components/color-variant-sheet"
 import { DynamicIcon } from "~/components/dynamic-icon"
+import { KeyboardStickyViewMinty } from "~/components/keyboard-sticky-view-minty"
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Input } from "~/components/ui/input"
@@ -24,7 +24,6 @@ import {
   UnsavedChangesSheet,
   useUnsavedChangesWarning,
 } from "~/components/unsaved-changes-sheet"
-import { offset } from "~/constants/keyboard-view-offset"
 import type CategoryModel from "~/database/models/Category"
 import {
   createCategory,
@@ -581,7 +580,7 @@ const EditCategoryScreenInner = ({
         )}
       </ScrollView>
 
-      <KeyboardStickyView offset={offset}>
+      <KeyboardStickyViewMinty>
         <View style={styles.actions}>
           <Button
             variant="outline"
@@ -609,7 +608,7 @@ const EditCategoryScreenInner = ({
             </Text>
           </Button>
         </View>
-      </KeyboardStickyView>
+      </KeyboardStickyViewMinty>
 
       {/* Bottom Sheets */}
       {!isAddMode && categoryModel && (

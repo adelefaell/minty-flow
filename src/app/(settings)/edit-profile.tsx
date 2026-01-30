@@ -3,23 +3,20 @@ import * as ImagePicker from "expo-image-picker"
 import { useRouter } from "expo-router"
 import { useEffect, useState } from "react"
 import { Alert, ScrollView } from "react-native"
-import { KeyboardStickyView } from "react-native-keyboard-controller"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { StyleSheet } from "react-native-unistyles"
 
+import { KeyboardStickyViewMinty } from "~/components/keyboard-sticky-view-minty"
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Input } from "~/components/ui/input"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import { offset } from "~/constants/keyboard-view-offset"
 import { useProfileStore } from "~/stores/profile.store"
 import { getInitials } from "~/utils/string-utils"
 
 export default function EditProfileScreen() {
   const router = useRouter()
-  const insets = useSafeAreaInsets()
   const { name, imageUri, setName, setImageUri } = useProfileStore()
 
   const [localName, setLocalName] = useState(name)
@@ -113,18 +110,13 @@ export default function EditProfileScreen() {
       </ScrollView>
 
       {/* Save Button */}
-      <KeyboardStickyView offset={offset}>
-        <View
-          style={[
-            styles.buttonContainer,
-            { paddingBottom: Math.max(insets.bottom + 8, 24) },
-          ]}
-        >
+      <KeyboardStickyViewMinty>
+        <View style={styles.buttonContainer}>
           <Button onPress={handleSave} style={styles.saveButton}>
             <Text>Save</Text>
           </Button>
         </View>
-      </KeyboardStickyView>
+      </KeyboardStickyViewMinty>
     </View>
   )
 }
@@ -223,7 +215,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   buttonContainer: {
     paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingVertical: 16,
     backgroundColor: theme.colors.surface,
   },
   saveButton: {

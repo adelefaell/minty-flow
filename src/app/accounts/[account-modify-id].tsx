@@ -5,7 +5,6 @@ import { useLocalSearchParams, useNavigation, useRouter } from "expo-router"
 import { useEffect, useRef, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { ScrollView } from "react-native"
-import { KeyboardStickyView } from "react-native-keyboard-controller"
 import { StyleSheet } from "react-native-unistyles"
 
 import { AccountTypeSelectorSheet } from "~/components/accounts/account-type-selector-sheet"
@@ -17,6 +16,7 @@ import { ChangeIconSheet } from "~/components/change-icon-sheet"
 import { ColorVariantSheet } from "~/components/color-variant-sheet"
 import { CurrencySelectorSheet } from "~/components/currency-selector-sheet"
 import { DynamicIcon } from "~/components/dynamic-icon"
+import { KeyboardStickyViewMinty } from "~/components/keyboard-sticky-view-minty"
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Input } from "~/components/ui/input"
@@ -28,7 +28,6 @@ import {
   UnsavedChangesSheet,
   useUnsavedChangesWarning,
 } from "~/components/unsaved-changes-sheet"
-import { offset } from "~/constants/keyboard-view-offset"
 import type AccountModel from "~/database/models/Account"
 import {
   createAccount,
@@ -587,7 +586,7 @@ const EditAccountScreenInner = ({
         )}
       </ScrollView>
 
-      <KeyboardStickyView offset={offset}>
+      <KeyboardStickyViewMinty>
         <View style={styles.actions}>
           <Button
             variant="outline"
@@ -615,7 +614,7 @@ const EditAccountScreenInner = ({
             </Text>
           </Button>
         </View>
-      </KeyboardStickyView>
+      </KeyboardStickyViewMinty>
 
       {!isAddMode && accountModel && (
         <>

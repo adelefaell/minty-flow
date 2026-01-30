@@ -1,6 +1,8 @@
 import {
   BottomSheetBackdrop,
   type BottomSheetBackdropProps,
+  BottomSheetFooter,
+  type BottomSheetFooterProps,
   BottomSheetModal,
   BottomSheetView,
 } from "@gorhom/bottom-sheet"
@@ -29,6 +31,10 @@ const sheetStyles = UnistylesSheet.create((theme) => ({
   handleIndicator: {
     backgroundColor: theme.colors.onSurface,
   },
+  footerContainer: (bottomPadding: number) => ({
+    backgroundColor: theme.colors.surface,
+    paddingBottom: bottomPadding,
+  }),
 }))
 
 /**
@@ -134,9 +140,7 @@ export type BottomSheetModalProps = {
   /** Skip the BottomSheetView wrapper (useful for scrollable content like FlatList) */
   skipBottomSheetView?: boolean
   /** Footer component render function */
-  footerComponent?: (
-    props: import("@gorhom/bottom-sheet").BottomSheetFooterProps,
-  ) => ReactNode
+  footerComponent?: ReactNode
   enableContentPanningGesture?: boolean
   enableHandlePanningGesture?: boolean
 }
@@ -293,6 +297,25 @@ export function BottomSheetModalComponent({
     ],
   )
 
+  // Centralized Footer Renderer
+  const renderFooter = useCallback(
+    (props: BottomSheetFooterProps) => {
+      if (!footerComponent) return null
+
+      return (
+        <BottomSheetFooter
+          {...props}
+          style={sheetStyles.footerContainer(bottomPadding)}
+        >
+          {/* This allows you to pass simple Views/Buttons without manual wrapping */}
+
+          {footerComponent}
+        </BottomSheetFooter>
+      )
+    },
+
+    [footerComponent, bottomPadding],
+  )
   // Don't render until context is ready to avoid context errors
   if (!isReady) {
     return null
@@ -315,7 +338,7 @@ export function BottomSheetModalComponent({
       backdropComponent={renderBackdrop}
       enableContentPanningGesture={enableContentPanningGesture}
       enableHandlePanningGesture={enableHandlePanningGesture}
-      footerComponent={footerComponent}
+      footerComponent={renderFooter}
     >
       {skipBottomSheetView ? (
         children
