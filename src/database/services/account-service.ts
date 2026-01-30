@@ -1,7 +1,11 @@
 import { Q } from "@nozbe/watermelondb"
 import type { Observable } from "@nozbe/watermelondb/utils/rx"
 
-import type { AccountType } from "../../types/accounts"
+import type {
+  AddAccountsFormSchema,
+  UpdateAccountsFormSchema,
+} from "~/schemas/accounts.schema"
+
 import { database } from "../index"
 import type AccountModel from "../models/Account"
 
@@ -27,10 +31,20 @@ export const getAccounts = async (
 ): Promise<AccountModel[]> => {
   const accounts = getAccountCollection()
   if (includeArchived) {
-    return await accounts.query().fetch()
+    return await accounts.query(Q.sortBy("sort_order", Q.asc)).fetch()
   }
-  return await accounts.query(Q.where("is_archived", false)).fetch()
+  return await accounts
+    .query(Q.where("is_archived", false), Q.sortBy("sort_order", Q.asc))
+    .fetch()
 }
+
+/**
+ * Get all accounts
+ */
+export const observeArchivedAccounts = () =>
+  getAccountCollection()
+    .query(Q.where("is_archived", true), Q.sortBy("sort_order", Q.asc))
+    .observe()
 
 /**
  * Find an account by ID
@@ -51,9 +65,11 @@ export const observeAccounts = (
 ): Observable<AccountModel[]> => {
   const accounts = getAccountCollection()
   if (includeArchived) {
-    return accounts.query().observe()
+    return accounts.query(Q.sortBy("sort_order", Q.asc)).observe()
   }
-  return accounts.query(Q.where("is_archived", false)).observe()
+  return accounts
+    .query(Q.where("is_archived", false), Q.sortBy("sort_order", Q.asc))
+    .observe()
 }
 
 /**
@@ -66,14 +82,16 @@ export const observeAccountById = (id: string): Observable<AccountModel> => {
 /**
  * Create a new account
  */
-export const createAccount = async (data: {
-  name: string
-  type: AccountType
-  balance: number
-  currencyCode: string
-  icon?: string
-  color?: string
-}): Promise<AccountModel> => {
+export const createAccount = async (
+  data: AddAccountsFormSchema,
+): Promise<AccountModel> => {
+  // Get the last account's sort order to append the new one at the end
+  const lastAccount = await getAccountCollection()
+    .query(Q.sortBy("sort_order", Q.desc), Q.take(1))
+    .fetch()
+  const nextSortOrder =
+    lastAccount.length > 0 ? (lastAccount[0].sortOrder || 0) + 1 : 0
+
   return await database.write(async () => {
     return await getAccountCollection().create((account) => {
       account.name = data.name
@@ -81,10 +99,10 @@ export const createAccount = async (data: {
       account.balance = data.balance
       account.currencyCode = data.currencyCode
       account.icon = data.icon
-      account.color = data.color
-      account.isArchived = false
-      account.createdAt = new Date()
-      account.updatedAt = new Date()
+      account.colorSchemeName = data.colorSchemeName
+      account.isPrimary = data.isPrimary
+      account.sortOrder = nextSortOrder
+      account.excludeFromBalance = data.excludeFromBalance
     })
   })
 }
@@ -94,15 +112,7 @@ export const createAccount = async (data: {
  */
 export const updateAccount = async (
   account: AccountModel,
-  updates: Partial<{
-    name: string
-    type: AccountType
-    balance: number
-    currencyCode: string
-    icon: string | undefined
-    color: string | undefined
-    isArchived: boolean
-  }>,
+  updates: Partial<UpdateAccountsFormSchema>,
 ): Promise<AccountModel> => {
   return await database.write(async () => {
     return await account.update((a) => {
@@ -112,8 +122,12 @@ export const updateAccount = async (
       if (updates.currencyCode !== undefined)
         a.currencyCode = updates.currencyCode
       if (updates.icon !== undefined) a.icon = updates.icon
-      if (updates.color !== undefined) a.color = updates.color
+      if (updates.colorSchemeName !== undefined)
+        a.colorSchemeName = updates.colorSchemeName
       if (updates.isArchived !== undefined) a.isArchived = updates.isArchived
+      if (updates.isPrimary !== undefined) a.isPrimary = updates.isPrimary
+      if (updates.excludeFromBalance !== undefined)
+        a.excludeFromBalance = updates.excludeFromBalance
       a.updatedAt = new Date()
     })
   })
@@ -124,15 +138,7 @@ export const updateAccount = async (
  */
 export const updateAccountById = async (
   id: string,
-  updates: Partial<{
-    name: string
-    type: AccountType
-    balance: number
-    currencyCode: string
-    icon: string | undefined
-    color: string | undefined
-    isArchived: boolean
-  }>,
+  updates: Partial<UpdateAccountsFormSchema>,
 ): Promise<AccountModel> => {
   const account = await findAccount(id)
   if (!account) {
@@ -156,5 +162,21 @@ export const deleteAccount = async (account: AccountModel): Promise<void> => {
 export const destroyAccount = async (account: AccountModel): Promise<void> => {
   await database.write(async () => {
     await account.destroyPermanently()
+  })
+}
+
+/**
+ * Update the order of accounts
+ */
+export const updateAccountsOrder = async (
+  accounts: AccountModel[],
+): Promise<void> => {
+  await database.write(async () => {
+    const updates = accounts.map((account, index) =>
+      account.prepareUpdate((a) => {
+        a.sortOrder = index
+      }),
+    )
+    await database.batch(...updates)
   })
 }

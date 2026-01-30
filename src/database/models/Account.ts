@@ -1,6 +1,8 @@
 import { Model } from "@nozbe/watermelondb"
 import { date, field } from "@nozbe/watermelondb/decorators"
 
+import { getThemeStrict } from "~/styles/theme"
+
 import type { Account, AccountType } from "../../types/accounts"
 
 /**
@@ -22,8 +24,28 @@ export default class AccountModel extends Model implements Account {
   @field("balance") balance!: number
   @field("currency_code") currencyCode!: string
   @field("icon") icon?: string
-  @field("color") color?: string
+  @field("color_scheme_name") colorSchemeName?: string
   @field("is_archived") isArchived!: boolean
+  @field("is_primary") isPrimary!: boolean
+  @field("exclude_from_balance") excludeFromBalance!: boolean
   @date("created_at") createdAt!: Date
   @date("updated_at") updatedAt!: Date
+  @field("sort_order") sortOrder?: number
+
+  /**
+   * Gets the color scheme object from the theme registry.
+   * This is computed at runtime, not stored in the database.
+   * Similar to Flutter's @Transient() getter.
+   */
+  get colorScheme() {
+    return getThemeStrict(this.colorSchemeName)
+  }
+
+  /**
+   * Sets the color scheme by name.
+   * Only the name is stored in the database.
+   */
+  setColorScheme(schemeName: string | undefined) {
+    this.colorSchemeName = schemeName
+  }
 }

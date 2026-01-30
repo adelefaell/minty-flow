@@ -5,10 +5,11 @@ import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { KeyboardProvider } from "react-native-keyboard-controller"
 import { useUnistyles } from "react-native-unistyles"
 
-import { ScreenSharedHeader } from "~/components/screen-shared-header"
 import { ToastManager } from "~/components/ui/toast"
 import { TooltipProvider } from "~/components/ui/tooltip"
 import "react-native-reanimated"
+
+import { NewEnum } from "~/types/new"
 
 export default function RootLayout() {
   const { theme } = useUnistyles()
@@ -20,15 +21,15 @@ export default function RootLayout() {
           <BottomSheetModalProvider>
             <Stack
               screenOptions={{
-                // headerStyle: {
-                //   backgroundColor: theme.colors.surface,
-                // },
-                // headerTintColor: theme.colors.primary,
-                // headerTitleStyle: {
-                //   color: theme.colors.onSurface,
-                //   fontWeight: "600",
-                // },
-                header: (props) => <ScreenSharedHeader props={props} />,
+                headerStyle: {
+                  backgroundColor: theme.colors.surface,
+                },
+                headerTintColor: theme.colors.primary,
+                headerTitleStyle: {
+                  color: theme.colors.onSurface,
+                  fontWeight: "600",
+                },
+                // header: (props) => <ScreenSharedHeader props={props} />,
                 // animation: "fade",
               }}
             >
@@ -158,6 +159,35 @@ export default function RootLayout() {
                 options={{
                   presentation: "modal",
                   title: "Transaction Location",
+                }}
+              />
+              <Stack.Screen
+                name="accounts/[accountId]"
+                options={{
+                  presentation: "modal",
+                  title: "Account Details",
+                }}
+              />
+              <Stack.Screen
+                name="accounts/[account-modify-id]"
+                options={({ route }) => {
+                  const params = route.params as
+                    | { "account-modify-id"?: string }
+                    | undefined
+                  return {
+                    presentation: "modal",
+                    title:
+                      params?.["account-modify-id"] === NewEnum.NEW
+                        ? "Create Account"
+                        : "Edit Account",
+                  }
+                }}
+              />
+              <Stack.Screen
+                name="accounts/archived-accounts"
+                options={{
+                  presentation: "modal",
+                  title: "Archived Accounts",
                 }}
               />
             </Stack>

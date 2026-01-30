@@ -19,7 +19,7 @@ import { schema } from "./schema"
  */
 const adapter = new SQLiteAdapter({
   schema,
-  migrations,
+  // migrations,
   dbName: "minty_flow_db",
   jsi: true, // Use JSI for better performance (React Native only)
   // onSetUpError: (error) => {

@@ -2,9 +2,8 @@ import { useCallback } from "react"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import { IconSymbol } from "~/components/ui/icon-symbol"
-import { useAmountFormattingStore } from "~/stores/amount-formatting.store"
 import { useCalculatorStore } from "~/stores/calculator.store"
-import { useCurrencyStore } from "~/stores/currency.store"
+import { useMoneyFormattingStore } from "~/stores/money-formatting.store"
 import { Operation } from "~/types/calculator"
 
 import {
@@ -25,6 +24,8 @@ interface CalculatorSheetProps
   initialValue?: number
   /** Title to display at the top (default: "Expense") */
   title?: string
+  /** Currency code to use for formatting (if not provided, uses store default) */
+  currencyCode?: string
 }
 
 /**
@@ -38,12 +39,12 @@ export const CalculatorSheet = ({
   onSubmit,
   initialValue,
   title = "Expense",
+  currencyCode,
   onDismiss,
   ...bottomSheetProps
 }: CalculatorSheetProps) => {
   const {
     display,
-    formatDisplay,
     inputNumber,
     inputDecimal,
     backspace,
@@ -58,8 +59,10 @@ export const CalculatorSheet = ({
     hasActiveOperation,
   } = useCalculatorStore()
 
-  const { preferredCurrency } = useCurrencyStore()
-  const { currencyLook } = useAmountFormattingStore()
+  const preferredCurrency = useMoneyFormattingStore((s) => s.preferredCurrency)
+  const formatDisplay = useMoneyFormattingStore((s) => s.formatDisplay)
+  const currencyLook = useMoneyFormattingStore((s) => s.currencyLook)
+
   const { theme } = useUnistyles()
 
   // Helper to check if an operation is currently active
@@ -72,38 +75,11 @@ export const CalculatorSheet = ({
   // Ensure we always have a valid display value
   const displayValue = display || "0"
 
-  // Try to format, with fallback to ensure we always have a valid display
-  let formattedDisplay: string
-  try {
-    formattedDisplay = formatDisplay(
-      displayValue,
-      preferredCurrency || "USD",
-      currencyLook,
-    )
-    // Validate the formatted result
-    if (
-      !formattedDisplay ||
-      formattedDisplay.trim() === "" ||
-      formattedDisplay === "NaN" ||
-      formattedDisplay.includes("undefined") ||
-      formattedDisplay.includes("null")
-    ) {
-      throw new Error("Invalid formatted display")
-    }
-  } catch {
-    // Fallback to simple formatting
-    const num = parseFloat(displayValue) || 0
-    if (preferredCurrency) {
-      formattedDisplay = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: preferredCurrency,
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2,
-      }).format(num)
-    } else {
-      formattedDisplay = num.toString()
-    }
-  }
+  // One-liner: The store handles privacy, currency look, and locale.
+  const formattedDisplay = formatDisplay(
+    displayValue,
+    currencyCode, // If undefined, the store uses preferredCurrency automatically
+  )
 
   // Handle number input
   const handleNumberPress = useCallback(
@@ -183,7 +159,7 @@ export const CalculatorSheet = ({
               <>
                 {formatDisplay(
                   previousValue.toString(),
-                  preferredCurrency || "USD",
+                  currencyCode || preferredCurrency || "USD",
                   currencyLook,
                 )}{" "}
                 {operation}{" "}
@@ -191,7 +167,7 @@ export const CalculatorSheet = ({
                   ? "?"
                   : formatDisplay(
                       displayValue,
-                      preferredCurrency || "USD",
+                      currencyCode || preferredCurrency || "USD",
                       currencyLook,
                     )}
               </>

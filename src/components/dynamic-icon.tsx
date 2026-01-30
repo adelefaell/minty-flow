@@ -17,15 +17,17 @@ interface DynamicIconProps {
   icon?: string | null
   size?: IconSize
   colorScheme?: MintyColorScheme | null
+  color?: string
 }
 
 export const DynamicIcon: FC<DynamicIconProps> = ({
   icon,
   size = 24,
   colorScheme,
+  color: explicitColor,
 }) => {
   // Extract color and background from colorScheme
-  const color = colorScheme?.primary || undefined
+  const color = explicitColor || colorScheme?.primary || undefined
   const bgColor = colorScheme?.secondary || undefined
   const containerSize = size * 2 // Make container 2x icon size for circular appearance
 

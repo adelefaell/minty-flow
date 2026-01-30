@@ -1,44 +1,44 @@
+import { useRouter } from "expo-router"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
-import type { IconSymbolName } from "~/components/ui/icon-symbol"
 import { IconSymbol } from "~/components/ui/icon-symbol"
+import { useMoneyFormattingStore } from "~/stores/money-formatting.store"
+import type { Account } from "~/types/accounts"
 
+import { DynamicIcon } from "../dynamic-icon"
 import { Pressable } from "../ui/pressable"
 import { Text } from "../ui/text"
 import { View } from "../ui/view"
 
-interface Account {
-  id: string
-  name: string
-  type: string
-  icon: IconSymbolName
-  iconColor: string
-  balance: number
-  currency: string
-  currencySymbol: string
-  monthlyIn: number
-  monthlyOut: number
-  monthlyNet: number
-}
-
 interface AccountCardProps {
   account: Account
+  isReorderMode: boolean
 }
 
-export const AccountCard = ({ account }: AccountCardProps) => {
+export const AccountCard = ({ account, isReorderMode }: AccountCardProps) => {
+  const router = useRouter()
+
+  const formatDisplay = useMoneyFormattingStore((s) => s.formatDisplay)
   const { theme } = useUnistyles()
+
+  const handleViewAccount = () => {
+    if (!isReorderMode) {
+      router.push({
+        pathname: "/accounts/[accountId]",
+        params: {
+          accountId: account.id,
+        },
+      })
+    }
+  }
   return (
-    <Pressable style={styles.card}>
+    <Pressable style={styles.card} onPress={handleViewAccount}>
       <View variant="muted" style={styles.cardHeader}>
-        <View
-          variant="muted"
-          style={[
-            styles.iconContainer,
-            { backgroundColor: `${account.iconColor}20` },
-          ]}
-        >
-          <IconSymbol name={account.icon} size={24} color={account.iconColor} />
-        </View>
+        <DynamicIcon
+          icon={account.icon}
+          size={28}
+          colorScheme={account.colorScheme}
+        />
         <View variant="muted" style={styles.accountInfo}>
           <Text variant="h3" style={styles.accountName}>
             {account.name}
@@ -48,8 +48,7 @@ export const AccountCard = ({ account }: AccountCardProps) => {
           </Text>
         </View>
         <Text variant="h2" style={styles.balance}>
-          {account.currencySymbol}
-          {account.balance.toFixed(2)}
+          {formatDisplay(account.balance.toString(), account.currencyCode)}
         </Text>
       </View>
 
@@ -71,8 +70,7 @@ export const AccountCard = ({ account }: AccountCardProps) => {
               variant="default"
               style={[styles.summaryAmount, styles.incomeAmount]}
             >
-              {account.currencySymbol}
-              {account.monthlyIn.toFixed(2)}
+              {formatDisplay("0", account.currencyCode)}
             </Text>
           </View>
           <View variant="muted" style={styles.summaryItem}>
@@ -88,8 +86,7 @@ export const AccountCard = ({ account }: AccountCardProps) => {
               variant="default"
               style={[styles.summaryAmount, styles.expenseAmount]}
             >
-              {account.currencySymbol}
-              {account.monthlyOut.toFixed(2)}
+              {formatDisplay("0", account.currencyCode)}
             </Text>
           </View>
           <View variant="muted" style={styles.summaryItem}>
@@ -102,8 +99,7 @@ export const AccountCard = ({ account }: AccountCardProps) => {
               <Text style={styles.summaryItemLabel}>NET</Text>
             </View>
             <Text variant="default" style={styles.summaryAmount}>
-              {account.currencySymbol}
-              {account.monthlyNet.toFixed(2)}
+              {formatDisplay("0", account.currencyCode)}
             </Text>
           </View>
         </View>

@@ -118,7 +118,7 @@ function MyComponent() {
 import { Controller } from "react-hook-form"
 
 function CategoryForm() {
-  const { control } = useForm<CategoryFormData>()
+  const { control } = useForm<CategoriesFormSchema>()
   const sheet = useBottomSheet("category-icon-picker")
 
   return (

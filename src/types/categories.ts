@@ -8,7 +8,14 @@
 
 import type { MintyColorScheme } from "~/styles/theme/types"
 
-export type CategoryType = "expense" | "income" | "transfer"
+export const CategoryTypeEnum = {
+  EXPENSE: "expense",
+  INCOME: "income",
+  TRANSFER: "transfer",
+} as const
+
+export type CategoryType =
+  (typeof CategoryTypeEnum)[keyof typeof CategoryTypeEnum]
 
 /**
  * Category domain type for UI/API usage.
@@ -37,10 +44,4 @@ export interface Category {
   isArchived?: boolean
   createdAt: Date
   updatedAt: Date
-}
-
-export interface CategoryFormData {
-  name: string
-  icon?: string
-  colorSchemeName?: string
 }

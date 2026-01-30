@@ -185,7 +185,7 @@ const CategoryListInner = ({
           <Text variant="small" style={styles.emptyDescription}>
             Create your first category to start organizing your transactions
           </Text>
-          <Button
+          {/* <Button
             variant="default"
             onPress={handleAddFromPresets}
             style={styles.emptyButton}
@@ -193,7 +193,7 @@ const CategoryListInner = ({
             <Text variant="default" style={styles.emptyButtonText}>
               Add Recommended Categories
             </Text>
-          </Button>
+          </Button> */}
         </View>
       </View>
     )

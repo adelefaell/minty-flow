@@ -1,121 +1,126 @@
+import { withObservables } from "@nozbe/watermelondb/react"
+import { useRouter } from "expo-router"
 import { useState } from "react"
 import { StyleSheet } from "react-native-unistyles"
 
 import { AccountCard } from "~/components/accounts/account-card"
 import { ReorderableListV2 } from "~/components/reorderable-list-v2"
 import { Button } from "~/components/ui/button"
-import type { IconSymbolName } from "~/components/ui/icon-symbol"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
+import type AccountModel from "~/database/models/Account"
+import {
+  observeAccounts,
+  updateAccountsOrder,
+} from "~/database/services/account-service"
+import { NewEnum } from "~/types/new"
+import { logger } from "~/utils/logger"
 
-interface Account {
-  id: string
-  name: string
-  type: string
-  icon: IconSymbolName
-  iconColor: string
-  balance: number
-  currency: string
-  currencySymbol: string
-  monthlyIn: number
-  monthlyOut: number
-  monthlyNet: number
+interface AccountsScreenInnerProps {
+  accountModels: AccountModel[]
 }
 
-const STATIC_ACCOUNTS: Account[] = [
-  {
-    id: "1",
-    name: "Test",
-    type: "INVESTMENT",
-    icon: "wallet-bifold-outline",
-    iconColor: "#FF9500", // Orange
-    balance: 400.0,
-    currency: "USD",
-    currencySymbol: "$",
-    monthlyIn: 0.0,
-    monthlyOut: 0.0,
-    monthlyNet: 0.0,
-  },
-  {
-    id: "2",
-    name: "Another Test",
-    type: "CHECKING",
-    icon: "credit-card-outline",
-    iconColor: "#5E5CE6", // Purple
-    balance: 120.0,
-    currency: "EUR",
-    currencySymbol: "€",
-    monthlyIn: 0.0,
-    monthlyOut: 0.0,
-    monthlyNet: 0.0,
-  },
-  {
-    id: "3",
-    name: "Wallet",
-    type: "CHECKING",
-    icon: "wallet-bifold-outline",
-    iconColor: "#FF2D55", // Pink
-    balance: 100000.0,
-    currency: "LBP",
-    currencySymbol: "LE",
-    monthlyIn: 0.0,
-    monthlyOut: 0.0,
-    monthlyNet: 0.0,
-  },
-]
+const AccountsScreenInner = ({ accountModels }: AccountsScreenInnerProps) => {
+  const router = useRouter()
 
-export default function AccountsScreen() {
-  const [accounts, setAccounts] = useState<Account[]>(STATIC_ACCOUNTS)
   const [isReorderMode, setIsReorderMode] = useState(false)
+  const [reorderedAccounts, setReorderedAccounts] = useState<AccountModel[]>([])
 
   // Group balances by currency
-  const balancesByCurrency = accounts.reduce(
+  const balancesByCurrency = accountModels.reduce(
     (acc, account) => {
-      const existing = acc.find((item) => item.currency === account.currency)
+      const existing = acc.find(
+        (item) => item.currency === account.currencyCode,
+      )
       if (existing) {
         existing.balance += account.balance
       } else {
         acc.push({
-          currency: account.currency,
-          currencySymbol: account.currencySymbol,
+          currency: account.currencyCode,
           balance: account.balance,
         })
       }
       return acc
     },
-    [] as { currency: string; currencySymbol: string; balance: number }[],
+    [] as { currency: string; balance: number }[],
   )
 
   const handleToggleReorder = () => {
     setIsReorderMode(!isReorderMode)
+    if (!isReorderMode) {
+      // Entering reorder mode - initialize with current accounts
+      setReorderedAccounts(accountModels)
+    }
   }
 
-  const handleSaveReorder = () => {
-    // Save the reordered accounts (you can add persistence logic here)
+  const handleSaveReorder = async () => {
+    try {
+      await updateAccountsOrder(reorderedAccounts)
+      setIsReorderMode(false)
+      setReorderedAccounts([])
+    } catch (error) {
+      logger.error("Failed to save account order:", { error })
+    }
+  }
+
+  const handleCancelReorder = () => {
     setIsReorderMode(false)
+    setReorderedAccounts([])
   }
 
-  const handleReorder = (newData: Account[]) => {
-    setAccounts(newData)
+  const handleReorder = (newData: AccountModel[]) => {
+    // Update local state with the new order
+    setReorderedAccounts(newData)
   }
+
+  const handleAddAccount = () => {
+    router.push({
+      pathname: "/accounts/[account-modify-id]",
+      params: {
+        "account-modify-id": NewEnum.NEW,
+      },
+    })
+  }
+
+  // Use reordered accounts if in reorder mode, otherwise use original
+  const displayAccounts = isReorderMode ? reorderedAccounts : accountModels
 
   return (
     <View style={styles.container}>
       <View style={styles.titleContainer}>
         <Text variant="h4">Accounts</Text>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          onPress={isReorderMode ? handleSaveReorder : handleToggleReorder}
-        >
-          <IconSymbol
-            name={isReorderMode ? "check" : "swap-vertical"}
-            size={24}
-          />
-        </Button>
+        <View style={styles.actionButtons}>
+          {isReorderMode ? (
+            <>
+              <Button variant="ghost" size="icon" onPress={handleCancelReorder}>
+                <IconSymbol name="close" size={24} />
+              </Button>
+              <Button variant="ghost" size="icon" onPress={handleSaveReorder}>
+                <IconSymbol name="check" size={24} />
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                onPress={() =>
+                  router.push({
+                    pathname: "/accounts/archived-accounts",
+                  })
+                }
+              >
+                <IconSymbol name="archive-outline" size={24} />
+              </Button>
+              <Button variant="ghost" size="icon" onPress={handleToggleReorder}>
+                <IconSymbol name="swap-vertical" size={24} />
+              </Button>
+            </>
+          )}
+        </View>
       </View>
 
       <View style={styles.header}>
@@ -129,7 +134,6 @@ export default function AccountsScreen() {
                 {item.currency}
               </Text>
               <Text variant="h3" style={styles.balanceAmount}>
-                {item.currencySymbol}
                 {item.balance.toFixed(2)}
               </Text>
             </View>
@@ -141,33 +145,47 @@ export default function AccountsScreen() {
             ACCOUNTS
           </Text>
           <Text variant="small" style={styles.accountsCount}>
-            {accounts.length}
+            {accountModels.length}
           </Text>
         </View>
       </View>
 
       <ReorderableListV2
-        data={accounts}
+        data={displayAccounts}
         onReorder={handleReorder}
         showButtons={isReorderMode}
-        renderItem={({ item }: { item: Account }) => (
-          <AccountCard account={item} />
+        renderItem={({ item }) => (
+          <AccountCard account={item} isReorderMode={isReorderMode} />
         )}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         ListFooterComponent={
-          <Pressable style={styles.newAccountButton}>
-            <IconSymbol name="plus" size={24} />
-            <Text variant="default" style={styles.newAccountText}>
-              New Account
-            </Text>
-          </Pressable>
+          !isReorderMode ? (
+            <Pressable
+              style={styles.newAccountButton}
+              onPress={handleAddAccount}
+            >
+              <IconSymbol name="plus" size={24} />
+              <Text variant="default" style={styles.newAccountText}>
+                New Account
+              </Text>
+            </Pressable>
+          ) : null
         }
       />
     </View>
   )
 }
+
+// HOC to observe accounts from WatermelonDB
+const enhance = withObservables([], () => ({
+  accountModels: observeAccounts(),
+}))
+
+const AccountsScreen = enhance(AccountsScreenInner)
+
+export default AccountsScreen
 
 const styles = StyleSheet.create((theme) => ({
   container: {
@@ -192,6 +210,10 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: "center",
     justifyContent: "space-between",
     marginTop: 40,
+  },
+  actionButtons: {
+    flexDirection: "row",
+    gap: 8,
   },
   header: {
     marginTop: 20,

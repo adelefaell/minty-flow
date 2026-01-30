@@ -94,6 +94,9 @@ export const VALID_ICON_NAMES = defineValidIcons([
   "gift-outline",
   "piggy-bank-outline",
   "chart-line",
+  "archive-arrow-down-outline",
+  "archive-arrow-up-outline",
+  "star-outline",
   // filled
   "wallet",
   "cog",
@@ -101,6 +104,11 @@ export const VALID_ICON_NAMES = defineValidIcons([
   "shape",
   "magnify",
   "anchor",
+  "pencil",
+  "archive-outline",
+  "currency-usd",
+  "bank-outline",
+  "dots-horizontal",
 ] as const)
 
 /**

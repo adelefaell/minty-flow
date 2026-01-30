@@ -1,6 +1,11 @@
 import { Q } from "@nozbe/watermelondb"
 import type { Observable } from "@nozbe/watermelondb/utils/rx"
 
+import type {
+  AddCategoriesFormSchema,
+  UpdateCategoriesFormSchema,
+} from "~/schemas/categories.schema"
+
 import type { CategoryType } from "../../types/categories"
 import { database } from "../index"
 import type CategoryModel from "../models/Category"
@@ -106,12 +111,9 @@ export const observeCategoryById = (id: string): Observable<CategoryModel> => {
 /**
  * Create a new category
  */
-export const createCategory = async (data: {
-  name: string
-  type: CategoryType
-  icon?: string
-  colorSchemeName?: string
-}): Promise<CategoryModel> => {
+export const createCategory = async (
+  data: AddCategoriesFormSchema,
+): Promise<CategoryModel> => {
   return await database.write(async () => {
     return await getCategoryCollection().create((category) => {
       category.name = data.name
@@ -133,12 +135,7 @@ export const createCategory = async (data: {
  */
 export const updateCategory = async (
   category: CategoryModel,
-  updates: Partial<{
-    name: string
-    icon: string | undefined
-    colorSchemeName: string | undefined
-    isArchived: boolean
-  }>,
+  updates: Partial<UpdateCategoriesFormSchema>,
 ): Promise<CategoryModel> => {
   return await database.write(async () => {
     return await category.update((c) => {

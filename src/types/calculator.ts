@@ -79,19 +79,6 @@ export interface CalculatorStore extends CalculatorState {
    */
   reset: (initialValue?: number) => void
   /**
-   * Format the display value with currency.
-   *
-   * @param value - The value to format
-   * @param currency - Optional currency code
-   * @param currencyLook - Optional currency display style
-   * @returns Formatted display string
-   */
-  formatDisplay: (
-    value: string,
-    currency?: string,
-    currencyLook?: Intl.NumberFormatOptions["currencyDisplay"],
-  ) => string
-  /**
    * Get the current calculator value.
    *
    * @returns Current value as number

@@ -7,6 +7,7 @@ import { useBottomSheet } from "~/components/bottom-sheet"
 import { CalculatorSheet } from "~/components/calculator-sheet"
 import { ChangeIconSheet } from "~/components/change-icon-sheet"
 import { ColorVariantSheet } from "~/components/color-variant-sheet"
+import { CurrencySelectorSheet } from "~/components/currency-selector-sheet"
 import ParallaxScrollView from "~/components/parallax-scroll-view"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
@@ -46,6 +47,7 @@ export default function HomeScreen() {
         <CalculatorSheetExample />
         <ChangeIconSheetExample />
         <ColorVariantSheetExample />
+        <CurrencySelectorSheetExample />
       </View>
     </ParallaxScrollView>
   )
@@ -127,6 +129,25 @@ const ColorVariantSheetExample = () => {
         }}
         onDismiss={() => {
           // Handle sheet dismiss
+        }}
+      />
+    </>
+  )
+}
+
+const CurrencySelectorSheetExample = () => {
+  const sheet = useBottomSheet("currency-selector-sheet")
+
+  return (
+    <>
+      <Pressable style={styles.triggerButton} onPress={() => sheet.present()}>
+        <Text style={styles.triggerButtonText}>Open Currency Selector</Text>
+      </Pressable>
+
+      <CurrencySelectorSheet
+        id="currency-selector-sheet"
+        onCurrencySelected={(code) => {
+          alert(`Selected currency: ${code}`)
         }}
       />
     </>

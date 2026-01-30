@@ -2,17 +2,21 @@ import { create } from "zustand"
 import { devtools } from "zustand/middleware"
 import { immer } from "zustand/middleware/immer"
 
-import { useAmountFormattingStore } from "~/stores/amount-formatting.store"
 import type { CalculatorStore, Operation } from "~/types/calculator"
 import { calculateOperation } from "~/utils/calculate-operations"
-import {
-  CALCULATOR_CONFIG,
-  formatDisplayValue,
-  getDefaultLocale,
-  isValidDisplay,
-  normalizeDisplay,
-  roundToDecimals,
-} from "~/utils/number-format"
+import { CALCULATOR_CONFIG, roundToDecimals } from "~/utils/number-format"
+
+const exceedsLimits = (next: string): boolean => {
+  const digits = next.replace(/[.-]/g, "").length
+  if (digits > CALCULATOR_CONFIG.MAX_DIGITS) return true
+
+  if (next.includes(".")) {
+    const decimals = next.split(".")[1]?.length ?? 0
+    if (decimals > CALCULATOR_CONFIG.MAX_DECIMALS) return true
+  }
+
+  return false
+}
 
 // ------------------------
 // Refactored store
@@ -32,18 +36,17 @@ export const useCalculatorStore = create<CalculatorStore>()(
       // -- Actions --
       inputNumber: (num: string) => {
         set((state) => {
-          if (state.waitingForOperand) {
-            state.display = num
-            state.inputValue = parseFloat(num) || 0
-            state.waitingForOperand = false
-            return
-          }
+          const next = state.waitingForOperand
+            ? num
+            : state.display === "0"
+              ? num
+              : state.display + num
 
-          const newDisplay = normalizeDisplay(state.display + num)
-          if (!isValidDisplay(newDisplay)) return
+          if (exceedsLimits(next)) return
 
-          state.display = newDisplay
-          state.inputValue = parseFloat(newDisplay) || 0
+          state.display = next
+          state.inputValue = Number(next) || 0
+          state.waitingForOperand = false
         }, false)
       },
 
@@ -55,8 +58,13 @@ export const useCalculatorStore = create<CalculatorStore>()(
             state.waitingForOperand = false
             return
           }
+
           if (state.display.includes(".")) return
-          state.display = `${state.display}.`
+
+          const next = `${state.display}.`
+          if (exceedsLimits(next)) return
+
+          state.display = next
         }, false)
       },
 
@@ -80,13 +88,12 @@ export const useCalculatorStore = create<CalculatorStore>()(
       backspace: () => {
         set((state) => {
           if (state.display.length > 1) {
-            const newDisplay = state.display.slice(0, -1)
-            // Normalize after backspace to handle cases like "0." -> "0"
-            const normalized = normalizeDisplay(newDisplay)
-            state.display = normalized
-            state.inputValue = parseFloat(normalized) || 0
+            const next = state.display.slice(0, -1)
+            state.display = next
+            state.inputValue = Number(next) || 0
             return
           }
+
           state.display = CALCULATOR_CONFIG.DEFAULT_DISPLAY
           state.inputValue = 0
         }, false)
@@ -94,38 +101,11 @@ export const useCalculatorStore = create<CalculatorStore>()(
 
       toggleSign: () => {
         set((state) => {
-          const currentValue = state.inputValue
-          if (currentValue === 0) return // Don't toggle zero
+          if (state.inputValue === 0) return
 
-          const newValue = -currentValue
-          state.inputValue = newValue
-
-          // Reconstruct display string from the new numeric value, preserving decimal format
-          const hasDecimal = state.display.includes(".")
-          const isTrailingDecimal = state.display.endsWith(".")
-
-          if (isTrailingDecimal) {
-            // Preserve trailing decimal point: "5." -> "-5." or "-5." -> "5."
-            const absValue = Math.abs(newValue)
-            state.display = newValue < 0 ? `-${absValue}.` : `${absValue}.`
-          } else if (hasDecimal) {
-            // Preserve decimal places: "5.23" -> "-5.23" or "-5.23" -> "5.23"
-            // Get decimal part from original display
-            const decimalMatch = state.display.match(/\.(\d*)$/)
-            const decimalPart = decimalMatch?.[1] || ""
-
-            // Use the new numeric value to get the integer part
-            const absValue = Math.abs(newValue)
-            const integerPart = Math.floor(absValue).toString()
-
-            state.display =
-              newValue < 0
-                ? `-${integerPart}.${decimalPart}`
-                : `${integerPart}.${decimalPart}`
-          } else {
-            // Simple integer: "5" -> "-5" or "-5" -> "5"
-            state.display = newValue.toString()
-          }
+          const next = -state.inputValue
+          state.inputValue = next
+          state.display = next.toString()
         }, false)
       },
 
@@ -235,20 +215,6 @@ export const useCalculatorStore = create<CalculatorStore>()(
           state.waitingForOperand = initialValue !== 0 // Set to true if there's an initial value
           state.showCalculatorActions = false
         }, false)
-      },
-
-      // Backwards-compatible formatDisplay helper: prefers injected currencyLook to avoid
-      // a cross-store lookup in hot code paths. If not provided, falls back to the other store.
-      formatDisplay: (
-        value: string,
-        currency?: string,
-        currencyLook?: Intl.NumberFormatOptions["currencyDisplay"],
-      ) => {
-        const resolvedCurrencyLook =
-          currencyLook ?? useAmountFormattingStore.getState().currencyLook
-        // Pass explicit locale to make behavior deterministic and testable
-        const locale = getDefaultLocale()
-        return formatDisplayValue(value, currency, resolvedCurrencyLook, locale)
       },
 
       // Selectors

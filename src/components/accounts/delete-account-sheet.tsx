@@ -8,18 +8,18 @@ import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import type { Category } from "~/types/categories"
+import type { Account } from "~/types/accounts"
 
-interface ArchiveCategorySheetProps {
-  category: Category
+interface DeleteAccountSheetProps {
+  account: Account
   onConfirm: () => void
 }
 
-export const ArchiveCategorySheet = ({
-  category,
+export function DeleteAccountSheet({
+  account,
   onConfirm,
-}: ArchiveCategorySheetProps) => {
-  const sheet = useBottomSheet(`archive-category-${category.id}`)
+}: DeleteAccountSheetProps) {
+  const sheet = useBottomSheet(`delete-account-${account.id}`)
 
   const handleConfirm = () => {
     onConfirm()
@@ -30,40 +30,30 @@ export const ArchiveCategorySheet = ({
     sheet.dismiss()
   }
 
+  const description =
+    "Deleting this account cannot be undone. This action is irreversible!"
+
   return (
-    <BottomSheetModalComponent id={`archive-category-${category.id}`}>
+    <BottomSheetModalComponent id={`delete-account-${account.id}`}>
       <View style={styles.container}>
         <View style={styles.iconContainer}>
-          <IconSymbol
-            name="archive-arrow-down-outline"
-            size={40}
-            style={styles.icon}
-          />
+          <IconSymbol name="trash-can-outline" size={40} style={styles.icon} />
         </View>
 
         <Text variant="h3" style={styles.title}>
-          Archive Category
+          Confirm deleting {account.name}?
         </Text>
 
         <Text variant="p" style={styles.description}>
-          Are you sure you want to archive "{category.name}"? Archived
-          categories will be hidden from the main list but can be restored
-          later.
-          {category.transactionCount > 0 && (
-            <>
-              {"\n\n"}
-              This category has {category.transactionCount} transaction
-              {category.transactionCount !== 1 ? "s" : ""} associated with it.
-            </>
-          )}
+          {description}
         </Text>
 
         <View style={styles.buttonContainer}>
-          <Button variant="default" onPress={handleConfirm}>
-            <Text variant="default">Archive</Text>
-          </Button>
           <Button variant="outline" onPress={handleCancel}>
             <Text variant="default">Cancel</Text>
+          </Button>
+          <Button variant="destructive" onPress={handleConfirm}>
+            <Text variant="default">Delete</Text>
           </Button>
         </View>
       </View>
@@ -81,7 +71,7 @@ const styles = StyleSheet.create((theme) => ({
     marginBottom: 8,
   },
   icon: {
-    color: theme.colors.primary,
+    color: theme.colors.error,
   },
   title: {
     textAlign: "center",

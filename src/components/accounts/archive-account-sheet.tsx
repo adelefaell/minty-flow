@@ -8,18 +8,18 @@ import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import type { Category } from "~/types/categories"
+import type { AccountModel } from "~/database"
 
-interface ArchiveCategorySheetProps {
-  category: Category
+interface ArchiveAccountSheetProps {
+  account: AccountModel
   onConfirm: () => void
 }
 
-export const ArchiveCategorySheet = ({
-  category,
+export const ArchiveAccountSheet = ({
+  account,
   onConfirm,
-}: ArchiveCategorySheetProps) => {
-  const sheet = useBottomSheet(`archive-category-${category.id}`)
+}: ArchiveAccountSheetProps) => {
+  const sheet = useBottomSheet(`archive-account-${account.id}`)
 
   const handleConfirm = () => {
     onConfirm()
@@ -31,7 +31,7 @@ export const ArchiveCategorySheet = ({
   }
 
   return (
-    <BottomSheetModalComponent id={`archive-category-${category.id}`}>
+    <BottomSheetModalComponent id={`archive-account-${account.id}`}>
       <View style={styles.container}>
         <View style={styles.iconContainer}>
           <IconSymbol
@@ -42,20 +42,12 @@ export const ArchiveCategorySheet = ({
         </View>
 
         <Text variant="h3" style={styles.title}>
-          Archive Category
+          Archive Account
         </Text>
 
         <Text variant="p" style={styles.description}>
-          Are you sure you want to archive "{category.name}"? Archived
-          categories will be hidden from the main list but can be restored
-          later.
-          {category.transactionCount > 0 && (
-            <>
-              {"\n\n"}
-              This category has {category.transactionCount} transaction
-              {category.transactionCount !== 1 ? "s" : ""} associated with it.
-            </>
-          )}
+          Are you sure you want to archive "{account.name}"? Archived accounts
+          will be hidden from the main list but can be restored later.
         </Text>
 
         <View style={styles.buttonContainer}>

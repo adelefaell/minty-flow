@@ -1,3 +1,4 @@
+import { zodResolver } from "@hookform/resolvers/zod"
 import { withObservables } from "@nozbe/watermelondb/react"
 import type { EventArg } from "@react-navigation/native"
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router"
@@ -30,15 +31,16 @@ import {
   observeCategoryById,
   updateCategory,
 } from "~/database/services/category-service"
+import {
+  type AddCategoriesFormSchema,
+  addCategoriesSchema,
+} from "~/schemas/categories.schema"
 import { getThemeStrict } from "~/styles/theme/registry"
+import { NewEnum } from "~/types/new"
 import { logger } from "~/utils/logger"
 import { Toast } from "~/utils/toast"
 
-import type {
-  Category,
-  CategoryFormData,
-  CategoryType,
-} from "../../../types/categories"
+import type { CategoryType } from "../../../types/categories"
 
 interface EditCategoryScreenProps {
   categoryId: string
@@ -63,7 +65,6 @@ const EditCategoryScreenInner = ({
   const categoryType = isAddMode
     ? selectedType
     : (categoryModel?.type as CategoryType) || "expense"
-  const transactionCount = categoryModel?.transactionCount || 0
 
   // Form state management with react-hook-form
   // Use categoryModel directly in defaultValues - react-hook-form handles initialization
@@ -73,7 +74,8 @@ const EditCategoryScreenInner = ({
     formState: { errors, isDirty },
     watch,
     setValue,
-  } = useForm<CategoryFormData>({
+  } = useForm({
+    resolver: zodResolver(addCategoriesSchema),
     defaultValues: {
       name: categoryModel?.name || "",
       icon: categoryModel?.icon || "shape",
@@ -95,13 +97,17 @@ const EditCategoryScreenInner = ({
   const isNavigatingRef = useRef(false)
 
   // Bottom sheet controls
-  const deleteSheet = useBottomSheet(`delete-category-${categoryId || "new"}`)
-  const archiveSheet = useBottomSheet(`archive-category-${categoryId || "new"}`)
+  const deleteSheet = useBottomSheet(
+    `delete-category-${categoryId || NewEnum.NEW}`,
+  )
+  const archiveSheet = useBottomSheet(
+    `archive-category-${categoryId || NewEnum.NEW}`,
+  )
   const changeIconSheet = useBottomSheet(
-    `change-icon-category-${categoryId || "new"}`,
+    `change-icon-category-${categoryId || NewEnum.NEW}`,
   )
   const colorVariantSheet = useBottomSheet(
-    `color-variant-category-${categoryId || "new"}`,
+    `color-variant-category-${categoryId || NewEnum.NEW}`,
   )
 
   // Handle navigation with unsaved changes warning
@@ -134,7 +140,7 @@ const EditCategoryScreenInner = ({
     return unsubscribe
   }, [navigation, isDirty, isSubmitting, router, unsavedChangesWarning])
 
-  const onSubmit = async (data: CategoryFormData) => {
+  const onSubmit = async (data: AddCategoriesFormSchema) => {
     // Validate name
     const trimmedName = data.name.trim()
     if (!trimmedName) {
@@ -335,16 +341,6 @@ const EditCategoryScreenInner = ({
     setValue("colorSchemeName", undefined, { shouldDirty: true })
   }
 
-  // Construct a minimal category object for the delete dialog
-  const categoryForDelete: Category = {
-    id: categoryId || "",
-    name: formName || categoryModel?.name || "",
-    type: categoryType,
-    transactionCount,
-    createdAt: categoryModel?.createdAt || new Date(),
-    updatedAt: categoryModel?.updatedAt || new Date(),
-  }
-
   // Resolve color scheme from form value
   const currentColorScheme = getThemeStrict(formColorSchemeName)
 
@@ -367,7 +363,7 @@ const EditCategoryScreenInner = ({
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
       >
-        <View style={styles.form} key={categoryModel?.id || "new"}>
+        <View style={styles.form} key={categoryModel?.id || NewEnum.NEW}>
           {/* Icon Selection */}
           <View style={styles.field}>
             <Text
@@ -488,13 +484,13 @@ const EditCategoryScreenInner = ({
               style={styles.colorSelector}
               onPress={() => colorVariantSheet.present()}
             >
-              <View style={styles.colorSelectorLeft}>
+              <View style={styles.colorSelectorLeft} variant="muted">
                 <IconSymbol name="palette-outline" size={24} />
                 <Text variant="default" style={styles.colorLabel}>
                   Change color
                 </Text>
               </View>
-              <View style={styles.colorSelectorRight}>
+              <View style={styles.colorSelectorRight} variant="muted">
                 {currentColorScheme ? (
                   <View
                     style={[
@@ -528,7 +524,7 @@ const EditCategoryScreenInner = ({
                 style={styles.actionButton}
               >
                 <IconSymbol
-                  name="check-circle-outline"
+                  name="archive-arrow-up-outline"
                   size={20}
                   style={styles.restoreIcon}
                 />
@@ -543,7 +539,7 @@ const EditCategoryScreenInner = ({
                 style={styles.actionButton}
               >
                 <IconSymbol
-                  name="server-outline"
+                  name="archive-arrow-down-outline"
                   size={20}
                   style={styles.archiveIcon}
                 />
@@ -612,14 +608,14 @@ const EditCategoryScreenInner = ({
       </KeyboardStickyView>
 
       {/* Bottom Sheets */}
-      {!isAddMode && (
+      {!isAddMode && categoryModel && (
         <>
           <DeleteCategorySheet
-            category={categoryForDelete}
+            category={categoryModel}
             onConfirm={handleDelete}
           />
           <ArchiveCategorySheet
-            category={categoryForDelete}
+            category={categoryModel}
             onConfirm={handleArchive}
           />
         </>
@@ -627,7 +623,7 @@ const EditCategoryScreenInner = ({
 
       {/* Icon Selection Sheet */}
       <ChangeIconSheet
-        id={`change-icon-category-${categoryId || "new"}`}
+        id={`change-icon-category-${categoryId || NewEnum.NEW}`}
         currentIcon={formIcon}
         onIconSelected={handleIconSelected}
         colorScheme={currentColorScheme}
@@ -635,7 +631,7 @@ const EditCategoryScreenInner = ({
 
       {/* Color Variant Sheet */}
       <ColorVariantSheet
-        id={`color-variant-category-${categoryId || "new"}`}
+        id={`color-variant-category-${categoryId || NewEnum.NEW}`}
         selectedSchemeName={formColorSchemeName || undefined}
         onColorSelected={handleColorSelected}
         onClearSelection={handleColorCleared}
@@ -659,21 +655,23 @@ const EnhancedEditScreen = withObservables(
     categoryModel,
   }: {
     categoryId: string
-    categoryModel?: CategoryModel
-  }) => (
-    <EditCategoryScreenInner
-      key={categoryModel?.id || categoryId}
-      categoryId={categoryId}
-      categoryModel={categoryModel}
-    />
-  ),
+    categoryModel: CategoryModel
+  }) => {
+    return (
+      <EditCategoryScreenInner
+        key={categoryModel?.id || categoryId}
+        categoryId={categoryId}
+        categoryModel={categoryModel}
+      />
+    )
+  },
 )
 
 // Main component - conditionally use observable based on mode
 export default function EditCategoryScreen() {
   const params = useLocalSearchParams<{
     categoryId: string
-    initialType?: CategoryType
+    initialType: CategoryType
   }>()
 
   const isAddMode = params.categoryId === "add-category" || !params.categoryId
@@ -739,8 +737,6 @@ const styles = StyleSheet.create((theme) => ({
     padding: 12,
     backgroundColor: theme.colors.secondary,
     borderRadius: theme.colors.radius,
-    borderWidth: 1,
-    borderColor: theme.colors.onSurface,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -842,10 +838,10 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: "space-between",
     paddingVertical: 12,
     paddingHorizontal: 16,
-    backgroundColor: theme.colors.surface,
+    backgroundColor: theme.colors.secondary,
     borderRadius: theme.colors.radius,
-    borderWidth: 1,
-    borderColor: theme.colors.onSurface,
+    // borderWidth: 1,
+    // borderColor: theme.colors.onSurface,
   },
   colorSelectorLeft: {
     flexDirection: "row",
@@ -860,22 +856,21 @@ const styles = StyleSheet.create((theme) => ({
   colorLabel: {
     fontSize: 16,
     fontWeight: "500",
-    color: theme.colors.onSurface,
+    color: theme.colors.onSecondary,
   },
   colorPreview: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: theme.colors.onSurface,
+    borderColor: theme.colors.onSecondary,
   },
   defaultColorText: {
     fontSize: 14,
-    color: theme.colors.onSurface,
+    color: theme.colors.onSecondary,
     opacity: 0.6,
   },
   chevronIcon: {
-    color: theme.colors.onSurface,
+    color: theme.colors.onSecondary,
     opacity: 0.4,
   },
   loadingContainer: {

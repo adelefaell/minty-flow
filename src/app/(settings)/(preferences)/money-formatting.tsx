@@ -6,36 +6,37 @@ import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import {
-  type MoneyFormat,
-  useAmountFormattingStore,
-} from "~/stores/amount-formatting.store"
-import { useCurrencyStore } from "~/stores/currency.store"
+  MoneyFormatEnum,
+  type MoneyFormatType,
+  useMoneyFormattingStore,
+} from "~/stores/money-formatting.store"
 
 const formatOptions: Array<{
-  value: MoneyFormat
+  value: MoneyFormatType
   label: string
   description: string
 }> = [
   {
-    value: "symbol",
+    value: MoneyFormatEnum.SYMBOL,
     label: "Symbol",
     description: "Display currency symbol (e.g., $, €, £)",
   },
   {
-    value: "code",
+    value: MoneyFormatEnum.CODE,
     label: "Code",
     description: "Display currency code (e.g., USD, EUR, GBP)",
   },
   {
-    value: "name",
+    value: MoneyFormatEnum.NAME,
     label: "Name",
     description: "Display currency name (e.g., US Dollar, Euro)",
   },
 ]
 
 export default function MoneyFormattingScreen() {
-  const { currencyLook, setCurrencyLook } = useAmountFormattingStore()
-  const { preferredCurrency } = useCurrencyStore()
+  const preferredCurrency = useMoneyFormattingStore((s) => s.preferredCurrency)
+  const setCurrencyLook = useMoneyFormattingStore((s) => s.setCurrencyLook)
+  const currencyLook = useMoneyFormattingStore((s) => s.currencyLook)
 
   const exampleAmount = 1234.56
   const exampleFormatted = useMemo(() => {
