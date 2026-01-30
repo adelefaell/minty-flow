@@ -14,6 +14,7 @@ import {
   useState,
 } from "react"
 import { InteractionManager, Keyboard } from "react-native"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { StyleSheet as UnistylesSheet } from "react-native-unistyles"
 import { create } from "zustand"
 
@@ -162,6 +163,9 @@ export function BottomSheetModalComponent({
   skipBottomSheetView = false,
   footerComponent,
 }: BottomSheetModalProps) {
+  const insets = useSafeAreaInsets()
+  const bottomPadding = Math.max(insets.bottom, 20)
+
   const registerSheet = useBottomSheetStore((state) => state.registerSheet)
   const unregisterSheet = useBottomSheetStore((state) => state.unregisterSheet)
   const snapToIndex = useBottomSheetStore((state) => state.snapToIndex)
@@ -316,7 +320,12 @@ export function BottomSheetModalComponent({
       {skipBottomSheetView ? (
         children
       ) : (
-        <BottomSheetView style={sheetStyles.contentContainer}>
+        <BottomSheetView
+          style={[
+            sheetStyles.contentContainer,
+            { paddingBottom: bottomPadding },
+          ]}
+        >
           {children}
         </BottomSheetView>
       )}

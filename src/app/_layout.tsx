@@ -29,6 +29,7 @@ export default function RootLayout() {
                   color: theme.colors.onSurface,
                   fontWeight: "600",
                 },
+                headerShadowVisible: false,
                 // header: (props) => <ScreenSharedHeader props={props} />,
                 // animation: "fade",
               }}

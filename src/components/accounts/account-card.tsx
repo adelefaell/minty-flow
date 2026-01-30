@@ -44,7 +44,12 @@ export const AccountCard = ({ account, isReorderMode }: AccountCardProps) => {
             {account.name}
           </Text>
           <Text variant="small" style={styles.accountType}>
-            {account.type}
+            {account.type}{" "}
+            {account.isPrimary && (
+              <>
+                • <IconSymbol name="star" size={14} />
+              </>
+            )}
           </Text>
         </View>
         <Text variant="h2" style={styles.balance}>
