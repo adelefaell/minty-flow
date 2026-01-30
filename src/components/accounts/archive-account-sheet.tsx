@@ -34,11 +34,7 @@ export const ArchiveAccountSheet = ({
     <BottomSheetModalComponent id={`archive-account-${account.id}`}>
       <View style={styles.container}>
         <View style={styles.iconContainer}>
-          <IconSymbol
-            name="archive-arrow-down-outline"
-            size={40}
-            style={styles.icon}
-          />
+          <IconSymbol name="archive-arrow-down" size={40} style={styles.icon} />
         </View>
 
         <Text variant="h3" style={styles.title}>

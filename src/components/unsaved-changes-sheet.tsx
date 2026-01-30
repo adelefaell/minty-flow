@@ -62,7 +62,7 @@ export const UnsavedChangesSheet = () => {
     <BottomSheetModalComponent id={UNSAVED_CHANGES_SHEET_ID}>
       <View style={styles.container}>
         <View style={styles.iconContainer}>
-          <IconSymbol name="alert-outline" size={40} style={styles.icon} />
+          <IconSymbol name="alert" size={40} style={styles.icon} outline />
         </View>
 
         <Text variant="h3" style={styles.title}>

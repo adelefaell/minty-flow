@@ -126,7 +126,7 @@ const CategoryListInner = ({
           onPress={handleAddFromPresets}
           style={styles.headerButton}
         >
-          <IconSymbol name="shape-plus-outline" size={20} />
+          <IconSymbol name="shape-plus" size={20} />
           <Text variant="default" style={styles.headerButtonText}>
             Add From Presets
           </Text>
@@ -170,7 +170,7 @@ const CategoryListInner = ({
       return (
         <View style={styles.emptyWrapper}>
           <View style={styles.emptyContainer}>
-            <IconSymbol name="tag-outline" size={40} style={styles.emptyIcon} />
+            <IconSymbol name="tag" size={40} style={styles.emptyIcon} />
             <Text variant="h4" style={styles.emptyTitle}>
               No archived {type} categories
             </Text>
@@ -186,7 +186,7 @@ const CategoryListInner = ({
       <View style={styles.emptyWrapper}>
         {renderHeader()}
         <View style={styles.emptyContainer}>
-          <IconSymbol name="tag-outline" size={40} style={styles.emptyIcon} />
+          <IconSymbol name="tag" size={40} style={styles.emptyIcon} />
           <Text variant="h4" style={styles.emptyTitle}>
             No {type} categories yet
           </Text>

@@ -40,7 +40,7 @@ export function DeleteCategorySheet({
     <BottomSheetModalComponent id={`delete-category-${category.id}`}>
       <View style={styles.container}>
         <View style={styles.iconContainer}>
-          <IconSymbol name="trash-can-outline" size={40} style={styles.icon} />
+          <IconSymbol name="trash-can" size={40} style={styles.icon} />
         </View>
 
         <Text variant="h3" style={styles.title}>

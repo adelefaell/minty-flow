@@ -132,7 +132,7 @@ const TabLayout = () => {
               onPress={() => goTo(0)}
               style={styles.tabButton}
             >
-              <IconSymbol name="circle-outline" style={isActiveTab(0)} />
+              <IconSymbol name="circle" style={isActiveTab(0)} />
             </Button>
           </Tooltip>
 
@@ -143,7 +143,7 @@ const TabLayout = () => {
               onPress={() => goTo(1)}
               style={styles.tabButton}
             >
-              <IconSymbol name="chart-box-outline" style={isActiveTab(1)} />
+              <IconSymbol name="chart-box" style={isActiveTab(1)} />
             </Button>
           </Tooltip>
 
@@ -171,7 +171,7 @@ const TabLayout = () => {
               onPress={() => goTo(2)}
               style={styles.tabButton}
             >
-              <IconSymbol name="wallet-bifold-outline" style={isActiveTab(2)} />
+              <IconSymbol name="wallet-bifold" style={isActiveTab(2)} />
             </Button>
           </Tooltip>
 

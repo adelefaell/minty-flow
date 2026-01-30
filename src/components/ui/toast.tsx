@@ -90,15 +90,15 @@ const ToastItem = ({ toast, onHide }: ToastItemProps) => {
   const getIconName = (): IconSymbolName => {
     switch (toast.type) {
       case "success":
-        return "check-circle-outline"
+        return "check-circle"
       case "error":
-        return "alert-circle-outline"
+        return "alert-circle"
       case "warn":
-        return "alert-outline"
+        return "alert"
       case "info":
-        return "information-outline"
+        return "information"
       default:
-        return "bell-outline"
+        return "bell"
     }
   }
 

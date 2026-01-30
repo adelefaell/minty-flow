@@ -125,7 +125,8 @@ export const ImageSelectionSheet = ({
           {/* Paste Image Option */}
           <Pressable style={styles.pasteOption} onPress={handlePasteImage}>
             <IconSymbol
-              name="clipboard-outline"
+              name="clipboard"
+              outline
               size={20}
               style={styles.optionIcon}
             />
@@ -150,7 +151,8 @@ export const ImageSelectionSheet = ({
                 />
               ) : (
                 <IconSymbol
-                  name="image-outline"
+                  name="image"
+                  outline
                   size={48}
                   style={styles.previewPlaceholderIcon}
                 />
@@ -161,7 +163,8 @@ export const ImageSelectionSheet = ({
           {/* Pick Image Option */}
           <Pressable style={styles.pickOption} onPress={handlePickImage}>
             <IconSymbol
-              name="image-multiple-outline"
+              name="image-multiple"
+              outline
               size={20}
               style={styles.optionIcon}
             />
