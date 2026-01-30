@@ -64,12 +64,27 @@ export const observeAccounts = (
   includeArchived = false,
 ): Observable<AccountModel[]> => {
   const accounts = getAccountCollection()
-  if (includeArchived) {
-    return accounts.query(Q.sortBy("sort_order", Q.asc)).observe()
+  let query = accounts.query(Q.sortBy("sort_order", Q.asc))
+
+  if (!includeArchived) {
+    query = query.extend(Q.where("is_archived", false))
   }
-  return accounts
-    .query(Q.where("is_archived", false), Q.sortBy("sort_order", Q.asc))
-    .observe()
+
+  // Observe specific columns that can change when editing
+  // This makes the query reactive to column changes, not just record additions/deletions
+  return query.observeWithColumns([
+    "name",
+    "type",
+    "balance",
+    "currency_code",
+    "icon",
+    "color_scheme_name",
+    "is_archived",
+    "is_primary",
+    "exclude_from_balance",
+    "updated_at",
+    "sort_order",
+  ])
 }
 
 /**

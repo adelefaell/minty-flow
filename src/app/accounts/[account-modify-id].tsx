@@ -28,6 +28,7 @@ import {
   UnsavedChangesSheet,
   useUnsavedChangesWarning,
 } from "~/components/unsaved-changes-sheet"
+import { offset } from "~/constants/keyboard-view-offset"
 import type AccountModel from "~/database/models/Account"
 import {
   createAccount,
@@ -584,7 +585,7 @@ const EditAccountScreenInner = ({
         )}
       </ScrollView>
 
-      <KeyboardStickyView>
+      <KeyboardStickyView offset={offset}>
         <View style={styles.actions}>
           <Button
             variant="outline"

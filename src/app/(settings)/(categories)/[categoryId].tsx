@@ -24,6 +24,7 @@ import {
   UnsavedChangesSheet,
   useUnsavedChangesWarning,
 } from "~/components/unsaved-changes-sheet"
+import { offset } from "~/constants/keyboard-view-offset"
 import type CategoryModel from "~/database/models/Category"
 import {
   createCategory,
@@ -577,7 +578,7 @@ const EditCategoryScreenInner = ({
         )}
       </ScrollView>
 
-      <KeyboardStickyView>
+      <KeyboardStickyView offset={offset}>
         <View style={styles.actions}>
           <Button
             variant="outline"

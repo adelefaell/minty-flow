@@ -13,6 +13,7 @@ import { Input } from "~/components/ui/input"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
+import { offset } from "~/constants/keyboard-view-offset"
 import { useProfileStore } from "~/stores/profile.store"
 import { getInitials } from "~/utils/string-utils"
 
@@ -65,8 +66,6 @@ export default function EditProfileScreen() {
     setImageUri(localImageUri)
     router.back()
   }
-
-  const offset = { closed: 0, opened: 10 }
 
   return (
     <View style={styles.container}>

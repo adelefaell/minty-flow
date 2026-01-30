@@ -74,19 +74,12 @@ export const observeCategories = (
 export const observeCategoriesByType = (
   type: CategoryType,
   includeArchived = false,
-  searchQuery = "",
 ): Observable<CategoryModel[]> => {
   const categories = getCategoryCollection()
   let query = categories.query(Q.where("type", type), Q.sortBy("name", Q.asc))
 
   if (!includeArchived) {
     query = query.extend(Q.where("is_archived", false))
-  }
-
-  if (searchQuery.trim().length > 0) {
-    query = query.extend(
-      Q.where("name", Q.like(`%${Q.sanitizeLikeString(searchQuery.trim())}%`)),
-    )
   }
 
   // Observe specific columns that can change when editing

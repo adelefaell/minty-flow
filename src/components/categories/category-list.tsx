@@ -140,7 +140,15 @@ const CategoryListInner = ({
   // When viewing active, show ONLY active categories
   const allCategories = includeArchived ? archivedCategories : activeCategories
 
-  if (allCategories.length === 0) {
+  // Filter categories based on search query
+  const filteredCategories = allCategories.filter((category) => {
+    if (searchQuery.trim().length === 0) return true
+    return category.name
+      .toLowerCase()
+      .includes(searchQuery.trim().toLowerCase())
+  })
+
+  if (filteredCategories.length === 0) {
     if (searchQuery) {
       return (
         <View style={styles.emptyWrapper}>
@@ -201,7 +209,7 @@ const CategoryListInner = ({
 
   return (
     <FlatList
-      data={allCategories}
+      data={filteredCategories}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => (
         <CategoryRow category={item} transactionCount={item.transactionCount} />
@@ -283,8 +291,8 @@ const styles = StyleSheet.create((theme) => ({
 // Enhance component with WatermelonDB observables
 // This follows WatermelonDB best practices: https://watermelondb.dev/docs/Query
 export const CategoryList = withObservables(
-  ["type", "includeArchived", "searchQuery"],
-  ({ type, includeArchived = false, searchQuery = "" }: CategoryListProps) => ({
-    categoryModels: observeCategoriesByType(type, includeArchived, searchQuery),
+  ["type", "includeArchived"],
+  ({ type, includeArchived = false }: CategoryListProps) => ({
+    categoryModels: observeCategoriesByType(type, includeArchived),
   }),
 )(CategoryListInner)

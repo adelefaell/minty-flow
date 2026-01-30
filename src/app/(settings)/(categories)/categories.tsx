@@ -7,7 +7,6 @@ import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Input } from "~/components/ui/input"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import { useCategorySearchStore } from "~/stores/category-search.store"
 
 import { CategoryList } from "../../../components/categories/category-list"
 import type { CategoryType } from "../../../types/categories"
@@ -20,7 +19,12 @@ export default function CategoriesIndexScreen() {
   }>()
   const [activeTab, setActiveTab] = useState<CategoryType>("expense")
   const [showArchived, setShowArchived] = useState(false)
-  const { searchQuery, setSearchQuery, clearSearch } = useCategorySearchStore()
+
+  const [searchQuery, setSearchQuery] = useState("")
+
+  const clearSearch = () => {
+    setSearchQuery("")
+  }
 
   const tabs: { type: CategoryType; label: string }[] = [
     { type: "expense", label: "Expense" },

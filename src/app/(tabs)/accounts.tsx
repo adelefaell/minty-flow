@@ -7,6 +7,7 @@ import { AccountCard } from "~/components/accounts/account-card"
 import { ReorderableListV2 } from "~/components/reorderable-list-v2"
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
+import { Input } from "~/components/ui/input"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
@@ -24,6 +25,7 @@ interface AccountsScreenInnerProps {
 
 const AccountsScreenInner = ({ accountModels }: AccountsScreenInnerProps) => {
   const router = useRouter()
+  const [searchQuery, setSearchQuery] = useState("")
 
   const [isReorderMode, setIsReorderMode] = useState(false)
   const [reorderedAccounts, setReorderedAccounts] = useState<AccountModel[]>([])
@@ -46,6 +48,10 @@ const AccountsScreenInner = ({ accountModels }: AccountsScreenInnerProps) => {
     },
     [] as { currency: string; balance: number }[],
   )
+
+  const clearSearch = () => {
+    setSearchQuery("")
+  }
 
   const handleToggleReorder = () => {
     setIsReorderMode(!isReorderMode)
@@ -84,8 +90,14 @@ const AccountsScreenInner = ({ accountModels }: AccountsScreenInnerProps) => {
     })
   }
 
+  // Filter accounts based on search query
+  const filteredAccounts = accountModels.filter((account) => {
+    if (searchQuery.trim().length === 0) return true
+    return account.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
+  })
+
   // Use reordered accounts if in reorder mode, otherwise use original
-  const displayAccounts = isReorderMode ? reorderedAccounts : accountModels
+  const displayAccounts = isReorderMode ? reorderedAccounts : filteredAccounts
 
   return (
     <View style={styles.container}>
@@ -145,43 +157,83 @@ const AccountsScreenInner = ({ accountModels }: AccountsScreenInnerProps) => {
             ACCOUNTS
           </Text>
           <Text variant="small" style={styles.accountsCount}>
-            {accountModels.length}
+            {filteredAccounts.length}
           </Text>
         </View>
       </View>
 
-      <ReorderableListV2
-        data={displayAccounts}
-        onReorder={handleReorder}
-        showButtons={isReorderMode}
-        renderItem={({ item }) => (
-          <AccountCard account={item} isReorderMode={isReorderMode} />
-        )}
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        ListFooterComponent={
-          !isReorderMode ? (
-            <Pressable
-              style={styles.newAccountButton}
-              onPress={handleAddAccount}
-            >
-              <IconSymbol name="plus" size={24} />
-              <Text variant="default" style={styles.newAccountText}>
-                New Account
-              </Text>
-            </Pressable>
-          ) : null
-        }
-      />
+      {/* Search Bar */}
+      {!isReorderMode && (
+        <View style={styles.searchContainer}>
+          <View style={styles.searchWrapper}>
+            <IconSymbol name="magnify" size={20} style={styles.searchIcon} />
+            <Input
+              placeholder="Search accounts..."
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              style={styles.searchInput}
+              clearButtonMode="while-editing"
+              autoCapitalize="none"
+            />
+            {searchQuery.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onPress={clearSearch}
+                style={styles.clearButton}
+              >
+                <IconSymbol name="close" size={20} style={styles.clearIcon} />
+              </Button>
+            )}
+          </View>
+        </View>
+      )}
+
+      {filteredAccounts.length === 0 && searchQuery.trim().length > 0 ? (
+        <View
+          style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+        >
+          <IconSymbol name="magnify" size={40} style={styles.searchIcon} />
+          <Text variant="h4" style={{ marginTop: 16 }}>
+            No results for "{searchQuery}"
+          </Text>
+        </View>
+      ) : (
+        <ReorderableListV2
+          data={displayAccounts}
+          onReorder={handleReorder}
+          showButtons={isReorderMode}
+          renderItem={({ item }) => (
+            <AccountCard account={item} isReorderMode={isReorderMode} />
+          )}
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          ListFooterComponent={
+            !isReorderMode ? (
+              <Pressable
+                style={styles.newAccountButton}
+                onPress={handleAddAccount}
+              >
+                <IconSymbol name="plus" size={24} />
+                <Text variant="default" style={styles.newAccountText}>
+                  New Account
+                </Text>
+              </Pressable>
+            ) : null
+          }
+        />
+      )}
     </View>
   )
 }
 
 // HOC to observe accounts from WatermelonDB
-const enhance = withObservables([], () => ({
-  accountModels: observeAccounts(),
-}))
+const enhance = withObservables([], () => {
+  return {
+    accountModels: observeAccounts(false),
+  }
+})
 
 const AccountsScreen = enhance(AccountsScreenInner)
 
@@ -268,5 +320,38 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 16,
     fontWeight: "600",
     color: theme.colors.onSurface,
+  },
+  searchContainer: {
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  searchWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: theme.colors.secondary,
+    borderRadius: theme.colors.radius,
+    paddingHorizontal: 12,
+    gap: 8,
+  },
+  searchIcon: {
+    color: theme.colors.onSecondary,
+    opacity: 0.5,
+  },
+  searchInput: {
+    flex: 1,
+    height: 44,
+    backgroundColor: "transparent",
+    borderColor: "transparent",
+    borderWidth: 0,
+    fontSize: 14,
+    shadowColor: "transparent",
+    elevation: 0,
+    paddingHorizontal: 0,
+  },
+  clearButton: {
+    padding: 4,
+  },
+  clearIcon: {
+    color: theme.colors.onSecondary,
   },
 }))
