@@ -19,19 +19,21 @@
  * - Single letter
  * - (Future) Image URL or path
  */
+export const TagKindEnum = {
+  GENERIC: "generic",
+  LOCATION: "location",
+  CONTACT: "contact",
+} as const
+
+export type TagKindType = (typeof TagKindEnum)[keyof typeof TagKindEnum]
+
 export interface Tag {
   id: string
   name: string
-  color?: string
+  type: TagKindType
+  colorSchemeName?: string
   icon?: string
-  usageCount: number
-  isArchived?: boolean
+  transactionCount: number
   createdAt: Date
   updatedAt: Date
-}
-
-export interface TagFormData {
-  name: string
-  color?: string
-  icon?: string
 }

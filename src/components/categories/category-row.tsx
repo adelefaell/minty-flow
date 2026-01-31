@@ -21,9 +21,9 @@ export const CategoryRow = ({
 
   const handleEdit = () => {
     router.push({
-      pathname: "/(settings)/(categories)/[categoryId]",
+      pathname: "/settings/categories/[category-modify-id]",
       params: {
-        categoryId: category.id,
+        "category-modify-id": category.id,
       },
     })
   }

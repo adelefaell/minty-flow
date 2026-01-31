@@ -1,8 +1,10 @@
 import { Model } from "@nozbe/watermelondb"
 import { date, field } from "@nozbe/watermelondb/decorators"
 
+import type { TransactionType } from "~/types/transactions"
+
 import { getThemeStrict } from "../../styles/theme/registry"
-import type { Category, CategoryType } from "../../types/categories"
+import type { Category } from "../../types/categories"
 
 /**
  * Category model representing transaction categories.
@@ -22,7 +24,7 @@ export default class CategoryModel extends Model implements Category {
   static table = "categories"
 
   @field("name") name!: string
-  @field("type") type!: CategoryType
+  @field("type") type!: TransactionType
   @field("icon") icon?: string
   @field("color_scheme_name") colorSchemeName?: string
   @field("transaction_count") transactionCount!: number

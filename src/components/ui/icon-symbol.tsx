@@ -110,6 +110,9 @@ export const VALID_ICON_NAMES = defineValidIcons([
   "archive-arrow-down",
   "star",
   "trending-up",
+  "account-details",
+  "map",
+  "account",
 ] as const)
 
 /**

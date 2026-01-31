@@ -7,7 +7,7 @@ import { appSchema, tableSchema } from "@nozbe/watermelondb"
  * Each table represents a collection of models that can be queried and manipulated.
  */
 export const schema = appSchema({
-  version: 3,
+  version: 4,
   tables: [
     // Categories table - stores transaction categories
     tableSchema({
@@ -73,10 +73,10 @@ export const schema = appSchema({
       name: "tags",
       columns: [
         { name: "name", type: "string" },
-        { name: "color", type: "string", isOptional: true },
+        { name: "type", type: "string" }, // "generic" | "location" | "contact"
+        { name: "color_scheme_name", type: "string", isOptional: true },
         { name: "icon", type: "string", isOptional: true },
-        { name: "usage_count", type: "number" }, // Track how many times tag is used
-        { name: "is_archived", type: "boolean" },
+        { name: "transaction_count", type: "number" }, // Track how many times tag is used
         { name: "created_at", type: "number" },
         { name: "updated_at", type: "number" },
       ],
@@ -93,7 +93,7 @@ export const schema = appSchema({
         { name: "currency_code", type: "string" },
         { name: "target_date", type: "number", isOptional: true },
         { name: "icon", type: "string", isOptional: true },
-        { name: "color", type: "string", isOptional: true },
+        { name: "color_scheme_name", type: "string", isOptional: true },
         { name: "is_completed", type: "boolean" },
         { name: "is_archived", type: "boolean" },
         { name: "created_at", type: "number" },

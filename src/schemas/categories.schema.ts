@@ -1,12 +1,12 @@
 import { z } from "zod"
 
-import { CategoryTypeEnum } from "~/types/categories"
+import { TransactionTypeEnum } from "~/types/transactions"
 
 const addCategoriesSchema = z.object({
-  name: z.string().min(3),
+  name: z.string().min(1, "Category name is required"),
   icon: z.string().optional(),
   colorSchemeName: z.string().optional(),
-  type: z.enum(CategoryTypeEnum),
+  type: z.enum(TransactionTypeEnum),
 })
 
 const updateCategoriesSchema = addCategoriesSchema.extend({

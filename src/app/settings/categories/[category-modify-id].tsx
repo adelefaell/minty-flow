@@ -37,14 +37,15 @@ import {
   addCategoriesSchema,
 } from "~/schemas/categories.schema"
 import { getThemeStrict } from "~/styles/theme/registry"
-import type { Category, CategoryType } from "~/types/categories"
+import type { Category } from "~/types/categories"
 import { NewEnum } from "~/types/new"
+import { type TransactionType, TransactionTypeEnum } from "~/types/transactions"
 import { logger } from "~/utils/logger"
 import { Toast } from "~/utils/toast"
 
 interface EditCategoryScreenProps {
-  categoryId: string
-  initialType?: CategoryType
+  categoryModifyId: string
+  initialType?: TransactionType
   categoryModel?: CategoryModel
   category?: Category
 }
@@ -52,17 +53,16 @@ interface EditCategoryScreenProps {
 // TODO: refactor this component to use the new form components
 
 const EditCategoryScreenInner = ({
-  categoryId,
+  categoryModifyId,
   initialType,
   categoryModel,
   category,
 }: EditCategoryScreenProps) => {
   const router = useRouter()
-  const isAddMode = categoryId === "add-category" || !categoryId
-  const [selectedType, setSelectedType] = useState<CategoryType>(
-    initialType || category?.type || "expense",
-  )
-  const categoryType = isAddMode ? selectedType : category?.type || "expense"
+  const isAddMode = categoryModifyId === NewEnum.NEW || !categoryModifyId
+  const TransactionType = isAddMode
+    ? initialType || category?.type || TransactionTypeEnum.EXPENSE
+    : category?.type || TransactionTypeEnum.EXPENSE
 
   // Form state management with react-hook-form
   // Use categoryModel directly in defaultValues - react-hook-form handles initialization
@@ -78,6 +78,7 @@ const EditCategoryScreenInner = ({
       name: category?.name || "",
       icon: category?.icon || "shape",
       colorSchemeName: category?.colorSchemeName || undefined,
+      type: TransactionType,
     },
   })
 
@@ -85,6 +86,7 @@ const EditCategoryScreenInner = ({
   const formName = watch("name")
   const formIcon = watch("icon")
   const formColorSchemeName = watch("colorSchemeName")
+  const formType = watch("type")
 
   // Loading state
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -96,16 +98,16 @@ const EditCategoryScreenInner = ({
 
   // Bottom sheet controls
   const deleteSheet = useBottomSheet(
-    `delete-category-${categoryId || NewEnum.NEW}`,
+    `delete-category-${categoryModifyId || NewEnum.NEW}`,
   )
   const archiveSheet = useBottomSheet(
-    `archive-category-${categoryId || NewEnum.NEW}`,
+    `archive-category-${categoryModifyId || NewEnum.NEW}`,
   )
   const changeIconSheet = useBottomSheet(
-    `change-icon-category-${categoryId || NewEnum.NEW}`,
+    `change-icon-category-${categoryModifyId || NewEnum.NEW}`,
   )
   const colorVariantSheet = useBottomSheet(
-    `color-variant-category-${categoryId || NewEnum.NEW}`,
+    `color-variant-category-${categoryModifyId || NewEnum.NEW}`,
   )
 
   // Handle navigation with unsaved changes warning
@@ -139,16 +141,7 @@ const EditCategoryScreenInner = ({
   }, [navigation, isDirty, isSubmitting, router, unsavedChangesWarning])
 
   const onSubmit = async (data: AddCategoriesFormSchema) => {
-    // Validate name
     const trimmedName = data.name.trim()
-    if (!trimmedName) {
-      return
-    }
-
-    if (trimmedName.length > 50) {
-      return
-    }
-
     setIsSubmitting(true)
 
     try {
@@ -156,15 +149,15 @@ const EditCategoryScreenInner = ({
         // Create new category
         await createCategory({
           name: trimmedName,
-          type: selectedType,
+          type: data.type,
           icon: data.icon,
           colorSchemeName: data.colorSchemeName,
         })
 
-        // Toast.success({
-        //   title: "Category created",
-        //   description: "Your new category has been created",
-        // })
+        Toast.success({
+          title: "Category created",
+          description: "Your new category has been created",
+        })
 
         // Navigate back after successful creation
         isNavigatingRef.current = true
@@ -186,10 +179,10 @@ const EditCategoryScreenInner = ({
           colorSchemeName: data.colorSchemeName,
         })
 
-        // Toast.success({
-        //   title: "Category updated",
-        //   description: "Your changes have been saved",
-        // })
+        Toast.success({
+          title: "Category updated",
+          description: "Your changes have been saved",
+        })
 
         // Navigate back after successful update
         isNavigatingRef.current = true
@@ -315,12 +308,12 @@ const EditCategoryScreenInner = ({
     }
   }
 
-  const typeLabel = categoryType.charAt(0).toUpperCase() + categoryType.slice(1)
+  const typeLabel = formType.charAt(0).toUpperCase() + formType.slice(1)
 
-  const types: { type: CategoryType; label: string }[] = [
-    { type: "expense", label: "Expense" },
-    { type: "income", label: "Income" },
-    { type: "transfer", label: "Transfer" },
+  const types: { type: TransactionType; label: string }[] = [
+    { type: TransactionTypeEnum.EXPENSE, label: "Expense" },
+    { type: TransactionTypeEnum.INCOME, label: "Income" },
+    { type: TransactionTypeEnum.TRANSFER, label: "Transfer" },
   ]
 
   // Handle icon selection
@@ -440,16 +433,17 @@ const EditCategoryScreenInner = ({
                       key={typeOption.type}
                       style={[
                         styles.typeOption,
-                        selectedType === typeOption.type &&
-                          styles.typeOptionActive,
+                        formType === typeOption.type && styles.typeOptionActive,
                       ]}
-                      onPress={() => setSelectedType(typeOption.type)}
+                      onPress={() =>
+                        setValue("type", typeOption.type, { shouldDirty: true })
+                      }
                     >
                       <Text
                         variant="default"
                         style={[
                           styles.typeOptionText,
-                          selectedType === typeOption.type &&
+                          formType === typeOption.type &&
                             styles.typeOptionTextActive,
                         ]}
                       >
@@ -523,7 +517,6 @@ const EditCategoryScreenInner = ({
               >
                 <IconSymbol
                   name="archive-arrow-up"
-                  outline
                   size={20}
                   style={styles.restoreIcon}
                 />
@@ -539,7 +532,6 @@ const EditCategoryScreenInner = ({
               >
                 <IconSymbol
                   name="archive-arrow-down"
-                  outline
                   size={20}
                   style={styles.archiveIcon}
                 />
@@ -555,7 +547,6 @@ const EditCategoryScreenInner = ({
             >
               <IconSymbol
                 name="trash-can"
-                outline
                 size={20}
                 style={[
                   styles.deleteIcon,
@@ -618,7 +609,7 @@ const EditCategoryScreenInner = ({
 
       {/* Icon Selection Sheet */}
       <ChangeIconSheet
-        id={`change-icon-category-${categoryId || NewEnum.NEW}`}
+        id={`change-icon-category-${categoryModifyId || NewEnum.NEW}`}
         currentIcon={formIcon}
         onIconSelected={handleIconSelected}
         colorScheme={currentColorScheme}
@@ -626,7 +617,7 @@ const EditCategoryScreenInner = ({
 
       {/* Color Variant Sheet */}
       <ColorVariantSheet
-        id={`color-variant-category-${categoryId || NewEnum.NEW}`}
+        id={`color-variant-category-${categoryModifyId || NewEnum.NEW}`}
         selectedSchemeName={formColorSchemeName || undefined}
         onColorSelected={handleColorSelected}
         onClearSelection={handleColorCleared}
@@ -657,7 +648,7 @@ const EnhancedEditScreen = withObservables(
     return (
       <EditCategoryScreenInner
         key={category?.id || categoryId}
-        categoryId={categoryId}
+        categoryModifyId={categoryId}
         category={category}
         categoryModel={categoryModel} // keep for mutations
       />
@@ -667,24 +658,26 @@ const EnhancedEditScreen = withObservables(
 // Main component - conditionally use observable based on mode
 export default function EditCategoryScreen() {
   const params = useLocalSearchParams<{
-    categoryId: string
-    initialType: CategoryType
+    "category-modify-id": string
+    initialType: TransactionType
   }>()
 
-  const isAddMode = params.categoryId === "add-category" || !params.categoryId
+  const isAddMode =
+    params["category-modify-id"] === NewEnum.NEW ||
+    !params["category-modify-id"]
 
   // Only use withObservables in edit mode
   if (isAddMode) {
     return (
       <EditCategoryScreenInner
-        categoryId={params.categoryId || "add-category"}
+        categoryModifyId={params["category-modify-id"] || NewEnum.NEW}
         initialType={params.initialType}
       />
     )
   }
 
   // In edit mode, use the enhanced component with observable
-  return <EnhancedEditScreen categoryId={params.categoryId} />
+  return <EnhancedEditScreen categoryId={params["category-modify-id"]} />
 }
 
 const styles = StyleSheet.create((theme) => ({

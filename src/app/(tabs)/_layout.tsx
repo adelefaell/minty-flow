@@ -12,9 +12,9 @@ import { Tooltip } from "~/components/ui/tooltip"
 import { View } from "~/components/ui/view"
 
 import HomeScreen from "."
-import AccountsScreen from "./accounts"
-import SettingsScreen from "./settings"
-import StatsScreen from "./stats"
+import AccountsScreen from "./accounts-view"
+import SettingsScreen from "./settings-view"
+import StatsScreen from "./stats-view"
 
 type TabConfig = {
   key: string

@@ -6,9 +6,14 @@
  * The WatermelonDB model implements these types, not the other way around.
  */
 
-import type { CategoryType } from "./categories"
+export const TransactionTypeEnum = {
+  EXPENSE: "expense",
+  INCOME: "income",
+  TRANSFER: "transfer",
+} as const
 
-export type TransactionType = CategoryType
+export type TransactionType =
+  (typeof TransactionTypeEnum)[keyof typeof TransactionTypeEnum]
 
 export interface TransactionLocation {
   latitude: number
@@ -38,17 +43,4 @@ export interface Transaction {
   isDeleted: boolean
   createdAt: Date
   updatedAt: Date
-}
-
-export interface TransactionFormData {
-  amount: number
-  currencyCode: string
-  type: TransactionType
-  description?: string
-  date: Date
-  categoryId?: string | null // Optional or null - supports uncategorized transactions
-  accountId: string
-  tags?: string[]
-  location?: TransactionLocation
-  isPending?: boolean
 }

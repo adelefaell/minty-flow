@@ -39,13 +39,13 @@ minty-flow-native/
 │   │   │   ├── settings.tsx    # Settings tab
 │   │   │   └── stats.tsx       # Stats tab
 │   │   │
-│   │   └── (settings)/          # Settings navigation group
+│   │   └── settings/          # Settings navigation group
 │   │       ├── (categories)/   # Category settings
 │   │       │   ├── categories.tsx
 │   │       │   ├── presets.tsx
 │   │       │   └── [categoryId].tsx  # Dynamic category detail
 │   │       │
-│   │       ├── (preferences)/ # User preferences
+│   │       ├── preferences/ # User preferences
 │   │       │   ├── preferences.tsx
 │   │       │   ├── theme.tsx
 │   │       │   ├── exchange-rates.tsx
@@ -189,7 +189,7 @@ minty-flow-native/
 ### `/src/app`
 Expo Router file-based routing directory. Routes are defined by the file structure:
 - `(tabs)` - Tab navigation group
-- `(settings)` - Settings navigation group with nested routes
+- `settings` - Settings navigation group with nested routes
 - `_layout.tsx` - Layout wrapper components
 - `[categoryId].tsx` - Dynamic route parameters
 

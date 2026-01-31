@@ -5,8 +5,8 @@ import type {
   AddCategoriesFormSchema,
   UpdateCategoriesFormSchema,
 } from "~/schemas/categories.schema"
+import type { TransactionType } from "~/types/transactions"
 
-import type { CategoryType } from "../../types/categories"
 import { database } from "../index"
 import type CategoryModel from "../models/Category"
 import { getTransactionModels } from "./transaction-service"
@@ -52,19 +52,6 @@ export const findCategory = async (
 }
 
 /**
- * Observe all categories reactively
- */
-export const observeCategories = (
-  includeArchived = false,
-): Observable<CategoryModel[]> => {
-  const categories = getCategoryCollection()
-  if (includeArchived) {
-    return categories.query().observe()
-  }
-  return categories.query(Q.where("is_archived", false)).observe()
-}
-
-/**
  * Observe categories filtered by type
  * Follows WatermelonDB best practices for reactive queries
  *
@@ -72,7 +59,7 @@ export const observeCategories = (
  * not just record additions/deletions. This ensures the list updates when categories are edited.
  */
 export const observeCategoriesByType = (
-  type: CategoryType,
+  type: TransactionType,
   includeArchived = false,
 ): Observable<CategoryModel[]> => {
   const categories = getCategoryCollection()
@@ -87,10 +74,10 @@ export const observeCategoriesByType = (
   return query.observeWithColumns([
     "name",
     "icon",
+    "type",
     "color_scheme_name",
     "transaction_count",
     "is_archived",
-    "updated_at",
   ])
 }
 

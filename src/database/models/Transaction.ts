@@ -1,10 +1,10 @@
 import { Model } from "@nozbe/watermelondb"
 import { date, field, relation } from "@nozbe/watermelondb/decorators"
 
-import type { CategoryType } from "../../types/categories"
 import type {
+  Transaction,
   TransactionLocation,
-  Transaction as TransactionType,
+  TransactionType,
 } from "../../types/transactions"
 import type AccountModel from "./Account"
 import type CategoryModel from "./Category"
@@ -22,12 +22,12 @@ import type CategoryModel from "./Category"
  * - Relations require BOTH @field (for the FK column) and @relation (for the model reference)
  * - Nullable fields use !: Type | null (not ?: Type)
  */
-export default class TransactionModel extends Model implements TransactionType {
+export default class TransactionModel extends Model implements Transaction {
   static table = "transactions"
 
   @field("amount") amount!: number
   @field("currency_code") currencyCode!: string
-  @field("type") type!: CategoryType
+  @field("type") type!: TransactionType
   @field("description") description?: string
   @date("date") date!: Date
 

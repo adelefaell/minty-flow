@@ -21,16 +21,13 @@ import {
   observeCategoriesByType,
 } from "~/database/services/category-service"
 import { modelToCategory } from "~/database/utils/model-to-category"
-import {
-  type Category,
-  type CategoryType,
-  CategoryTypeEnum,
-} from "~/types/categories"
+import type { Category } from "~/types/categories"
+import { type TransactionType, TransactionTypeEnum } from "~/types/transactions"
 import { logger } from "~/utils/logger"
 import { Toast } from "~/utils/toast"
 
 const PRESETS_BY_TYPE: Record<
-  CategoryType,
+  TransactionType,
   readonly (Category & { id: string })[]
 > = {
   expense: ExpensePresets,
@@ -58,7 +55,7 @@ function alreadyAddedPresetIds(
 }
 
 interface CategoryPresetsScreenInnerProps {
-  type: CategoryType
+  type: TransactionType
   categoryModels: CategoryModel[]
 }
 
@@ -202,14 +199,14 @@ const CategoryPresetsScreenInner = ({
 
 const EnhancedCategoryPresetsScreen = withObservables(
   ["type"],
-  ({ type }: { type: CategoryType }) => ({
+  ({ type }: { type: TransactionType }) => ({
     categoryModels: observeCategoriesByType(type),
   }),
 )(CategoryPresetsScreenInner)
 
 export default function CategoryPresetsScreen() {
-  const params = useLocalSearchParams<{ type: CategoryType }>()
-  const type = params.type || CategoryTypeEnum.EXPENSE
+  const params = useLocalSearchParams<{ type: TransactionType }>()
+  const type = params.type || TransactionTypeEnum.EXPENSE
   return <EnhancedCategoryPresetsScreen type={type} />
 }
 

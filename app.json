@@ -13,6 +13,7 @@
       "bundleIdentifier": "com.anonymous.mintyflownative"
     },
     "android": {
+      "permissions": ["READ_CONTACTS", "WRITE_CONTACTS"],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./src/assets/images/android-icon-foreground.png",
@@ -42,7 +43,13 @@
         }
       ],
       "expo-localization",
-      "./plugins/withWatermelonDBJSI.js"
+      "./plugins/withWatermelonDBJSI.js",
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "Allow $(PRODUCT_NAME) to access your contacts."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

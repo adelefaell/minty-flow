@@ -21,6 +21,7 @@ import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Input } from "~/components/ui/input"
 import { Pressable } from "~/components/ui/pressable"
+import { Separator } from "~/components/ui/separator"
 import { Switch } from "~/components/ui/switch"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
@@ -42,12 +43,9 @@ import {
 } from "~/schemas/accounts.schema"
 import { useMoneyFormattingStore } from "~/stores/money-formatting.store"
 import { getThemeStrict } from "~/styles/theme/registry"
-import {
-  type Account,
-  type AccountType,
-  AccountTypeEnum,
-} from "~/types/accounts"
+import { type Account, AccountTypeEnum } from "~/types/accounts"
 import { NewEnum } from "~/types/new"
+import { accountTypesList } from "~/utils/account-types-list"
 import { logger } from "~/utils/logger"
 import { Toast } from "~/utils/toast"
 
@@ -77,7 +75,7 @@ const EditAccountScreenInner = ({
     resolver: zodResolver(addAccountsSchema),
     defaultValues: {
       name: account?.name || "",
-      type: (account?.type as AccountType) || AccountTypeEnum,
+      type: account?.type || AccountTypeEnum.CHECKING,
       balance: account?.balance || 0,
       currencyCode: account?.currencyCode || "USD",
       icon: account?.icon || "wallet-bifold-outline",
@@ -271,14 +269,6 @@ const EditAccountScreenInner = ({
     }
   }
 
-  const accountTypes: { type: AccountType; label: string }[] = [
-    { type: "checking", label: "Checking" },
-    { type: "savings", label: "Savings" },
-    { type: "credit", label: "Credit" },
-    { type: "investment", label: "Investment" },
-    { type: "other", label: "Other" },
-  ]
-
   const handleIconSelected = (icon: string) => {
     setValue("icon", icon, { shouldDirty: true })
     changeIconSheet.dismiss()
@@ -426,7 +416,7 @@ const EditAccountScreenInner = ({
               </View>
               <View style={styles.settingsRight}>
                 <Text variant="default" style={styles.settingsValue}>
-                  {accountTypes.find((t) => t.type === formType)?.label}
+                  {accountTypesList.find((t) => t.type === formType)?.label}
                 </Text>
                 <IconSymbol
                   name="chevron-right"
@@ -472,7 +462,7 @@ const EditAccountScreenInner = ({
           </View>
 
           {/* Divider */}
-          <View style={styles.divider} />
+          <Separator />
 
           {/* Switches Section */}
           <View style={styles.switchesSection}>
@@ -530,6 +520,9 @@ const EditAccountScreenInner = ({
               />
             )}
           </View>
+
+          {/* Divider */}
+          {!isAddMode && <Separator />}
         </View>
 
         {!isAddMode && (
@@ -543,7 +536,6 @@ const EditAccountScreenInner = ({
                 >
                   <IconSymbol
                     name="archive-arrow-up"
-                    outline
                     size={20}
                     style={styles.restoreIcon}
                   />
@@ -818,12 +810,6 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 16,
     color: theme.colors.onSecondary,
     opacity: 0.6,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: theme.colors.onSurface,
-    opacity: 0.1,
-    // marginVertical: 4,
   },
   switchesSection: {
     gap: 0,

@@ -8,14 +8,7 @@
 
 import type { MintyColorScheme } from "~/styles/theme/types"
 
-export const CategoryTypeEnum = {
-  EXPENSE: "expense",
-  INCOME: "income",
-  TRANSFER: "transfer",
-} as const
-
-export type CategoryType =
-  (typeof CategoryTypeEnum)[keyof typeof CategoryTypeEnum]
+import type { TransactionType } from "./transactions"
 
 /**
  * Category domain type for UI/API usage.
@@ -36,7 +29,7 @@ export type CategoryType =
 export interface Category {
   id: string
   name: string
-  type: CategoryType
+  type: TransactionType
   icon?: string
   colorSchemeName?: string
   colorScheme?: MintyColorScheme // Computed from colorSchemeName via registry

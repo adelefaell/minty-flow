@@ -7,9 +7,9 @@ import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
+import { type TransactionType, TransactionTypeEnum } from "~/types/transactions"
 
 import { CategoryList } from "../../../components/categories/category-list"
-import type { CategoryType } from "../../../types/categories"
 
 export default function CategoriesIndexScreen() {
   const params = useLocalSearchParams<{
@@ -17,7 +17,9 @@ export default function CategoriesIndexScreen() {
     updatedCategory?: string
     deletedCategory?: string
   }>()
-  const [activeTab, setActiveTab] = useState<CategoryType>("expense")
+  const [activeTab, setActiveTab] = useState<TransactionType>(
+    TransactionTypeEnum.EXPENSE,
+  )
   const [showArchived, setShowArchived] = useState(false)
 
   const [searchQuery, setSearchQuery] = useState("")
@@ -26,10 +28,10 @@ export default function CategoriesIndexScreen() {
     setSearchQuery("")
   }
 
-  const tabs: { type: CategoryType; label: string }[] = [
-    { type: "expense", label: "Expense" },
-    { type: "income", label: "Income" },
-    { type: "transfer", label: "Transfer" },
+  const tabs: { type: TransactionType; label: string }[] = [
+    { type: TransactionTypeEnum.EXPENSE, label: "Expense" },
+    { type: TransactionTypeEnum.INCOME, label: "Income" },
+    { type: TransactionTypeEnum.TRANSFER, label: "Transfer" },
   ]
 
   return (
@@ -89,7 +91,6 @@ export default function CategoriesIndexScreen() {
         >
           <IconSymbol
             name={showArchived ? "eye" : "eye-off"}
-            outline
             size={20}
             style={styles.toggleIcon}
           />

@@ -9,23 +9,13 @@ import {
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Text } from "~/components/ui/text"
 import type { AccountType } from "~/types/accounts"
+import { accountTypesList } from "~/utils/account-types-list"
 
 interface AccountTypeSelectorSheetProps {
   id: string
   onTypeSelected: (type: AccountType) => void
   selectedType: AccountType
 }
-
-const accountTypes: {
-  type: AccountType
-  label: string
-}[] = [
-  { type: "checking", label: "Checking" },
-  { type: "savings", label: "Savings" },
-  { type: "credit", label: "Credit" },
-  { type: "investment", label: "Investment" },
-  { type: "other", label: "Other" },
-]
 
 export const AccountTypeSelectorSheet = memo(
   ({ id, onTypeSelected, selectedType }: AccountTypeSelectorSheetProps) => {
@@ -46,7 +36,7 @@ export const AccountTypeSelectorSheet = memo(
             Select Account Type
           </Text>
           <View style={styles.optionsContainer}>
-            {accountTypes.map((t) => (
+            {accountTypesList.map((t) => (
               <Pressable
                 key={t.type}
                 style={({ pressed }) => [

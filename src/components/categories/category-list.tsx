@@ -11,12 +11,13 @@ import { View } from "~/components/ui/view"
 import type CategoryModel from "~/database/models/Category"
 import { observeCategoriesByType } from "~/database/services/category-service"
 import { modelToCategory } from "~/database/utils/model-to-category"
-import type { CategoryType } from "~/types/categories"
+import { NewEnum } from "~/types/new"
+import type { TransactionType } from "~/types/transactions"
 
 import { CategoryRow } from "./category-row"
 
 interface CategoryListProps {
-  type: CategoryType
+  type: TransactionType
   createdCategory?: string
   updatedCategory?: string
   deletedCategory?: string
@@ -63,9 +64,9 @@ const CategoryListInner = ({
 
   const handleAddCategory = () => {
     router.push({
-      pathname: "/(settings)/(categories)/[categoryId]",
+      pathname: "/settings/categories/[category-modify-id]",
       params: {
-        categoryId: "add-category",
+        "category-modify-id": NewEnum.NEW,
         initialType: type,
       },
     })
@@ -73,7 +74,7 @@ const CategoryListInner = ({
 
   const handleAddFromPresets = () => {
     router.push({
-      pathname: "/(settings)/(categories)/presets",
+      pathname: "/settings/categories/presets",
       params: {
         type,
       },

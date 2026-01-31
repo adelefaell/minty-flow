@@ -82,7 +82,6 @@ export const observeAccounts = (
     "is_archived",
     "is_primary",
     "exclude_from_balance",
-    "updated_at",
     "sort_order",
   ])
 }
