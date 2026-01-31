@@ -35,13 +35,18 @@ import {
   observeAccountById,
   updateAccount,
 } from "~/database/services/account-service"
+import { modelToAccount } from "~/database/utils/model-to-account"
 import {
   type AddAccountsFormSchema,
   addAccountsSchema,
 } from "~/schemas/accounts.schema"
 import { useMoneyFormattingStore } from "~/stores/money-formatting.store"
 import { getThemeStrict } from "~/styles/theme/registry"
-import type { AccountType } from "~/types/accounts"
+import {
+  type Account,
+  type AccountType,
+  AccountTypeEnum,
+} from "~/types/accounts"
 import { NewEnum } from "~/types/new"
 import { logger } from "~/utils/logger"
 import { Toast } from "~/utils/toast"
@@ -49,11 +54,13 @@ import { Toast } from "~/utils/toast"
 interface EditAccountScreenProps {
   accountId: string
   accountModel?: AccountModel
+  account?: Account
 }
 
 const EditAccountScreenInner = ({
   accountId,
   accountModel,
+  account,
 }: EditAccountScreenProps) => {
   const router = useRouter()
   const isAddMode = accountId === NewEnum.NEW || !accountId
@@ -69,14 +76,14 @@ const EditAccountScreenInner = ({
   } = useForm({
     resolver: zodResolver(addAccountsSchema),
     defaultValues: {
-      name: accountModel?.name || "",
-      type: (accountModel?.type as AccountType) || "checking",
-      balance: accountModel?.balance || 0,
-      currencyCode: accountModel?.currencyCode || "USD",
-      icon: accountModel?.icon || "wallet-bifold-outline",
-      colorSchemeName: accountModel?.colorSchemeName || undefined,
-      isPrimary: accountModel?.isPrimary || false,
-      excludeFromBalance: accountModel?.excludeFromBalance || false,
+      name: account?.name || "",
+      type: (account?.type as AccountType) || AccountTypeEnum,
+      balance: account?.balance || 0,
+      currencyCode: account?.currencyCode || "USD",
+      icon: account?.icon || "wallet-bifold-outline",
+      colorSchemeName: account?.colorSchemeName || undefined,
+      isPrimary: account?.isPrimary || false,
+      excludeFromBalance: account?.excludeFromBalance || false,
     },
   })
 
@@ -296,7 +303,7 @@ const EditAccountScreenInner = ({
 
   const currentColorScheme = getThemeStrict(formColorSchemeName)
 
-  if (!isAddMode && !accountModel) {
+  if (!isAddMode && !account) {
     return (
       <View style={styles.container}>
         <View style={styles.loadingContainer}>
@@ -312,7 +319,7 @@ const EditAccountScreenInner = ({
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
       >
-        <View style={styles.form} key={accountModel?.id || NewEnum.NEW}>
+        <View style={styles.form} key={account?.id || NewEnum.NEW}>
           {/* Icon Selection */}
           <View style={styles.iconSection}>
             <Pressable
@@ -527,7 +534,7 @@ const EditAccountScreenInner = ({
 
         {!isAddMode && (
           <View style={styles.deleteSection}>
-            {accountModel?.isArchived ? (
+            {account?.isArchived ? (
               <>
                 <Button
                   variant="ghost"
@@ -616,13 +623,10 @@ const EditAccountScreenInner = ({
         </View>
       </KeyboardStickyViewMinty>
 
-      {!isAddMode && accountModel && (
+      {!isAddMode && account && (
         <>
-          <DeleteAccountSheet account={accountModel} onConfirm={handleDelete} />
-          <ArchiveAccountSheet
-            account={accountModel}
-            onConfirm={handleArchive}
-          />
+          <DeleteAccountSheet account={account} onConfirm={handleDelete} />
+          <ArchiveAccountSheet account={account} onConfirm={handleArchive} />
         </>
       )}
 
@@ -676,11 +680,14 @@ const EnhancedEditScreen = withObservables(["accountId"], ({ accountId }) => ({
     accountId: string
     accountModel: AccountModel
   }) => {
+    const account = accountModel ? modelToAccount(accountModel) : undefined
+
     return (
       <EditAccountScreenInner
         key={accountModel?.id || accountId}
         accountId={accountId}
         accountModel={accountModel}
+        account={account}
       />
     )
   },
@@ -712,7 +719,7 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 24,
+    paddingBottom: 100,
   },
   form: {
     gap: 32,

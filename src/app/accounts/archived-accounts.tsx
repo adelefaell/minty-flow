@@ -7,14 +7,17 @@ import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import type AccountModel from "~/database/models/Account"
 import { observeArchivedAccounts } from "~/database/services/account-service"
+import { modelToAccount } from "~/database/utils/model-to-account"
 
-interface ArchivedAccountsScreenProps {
-  archivedAccounts: AccountModel[]
+interface ArchivedAccountsScreenInnerProps {
+  archivedAccountsModels: AccountModel[]
 }
 
 const ArchivedAccountsScreenInner = ({
-  archivedAccounts,
-}: ArchivedAccountsScreenProps) => {
+  archivedAccountsModels,
+}: ArchivedAccountsScreenInnerProps) => {
+  const archivedAccounts = archivedAccountsModels.map(modelToAccount)
+
   return (
     <View style={styles.container}>
       <View style={styles.titleContainer}>
@@ -56,11 +59,11 @@ const ArchivedAccountsScreenInner = ({
   )
 }
 
-const enhance = withObservables([], () => ({
-  archivedAccounts: observeArchivedAccounts(),
+const ArchivedAccountsScreen = withObservables([], () => ({
+  archivedAccountsModels: observeArchivedAccounts(),
 }))
 
-export default enhance(ArchivedAccountsScreenInner)
+export default ArchivedAccountsScreen(ArchivedAccountsScreenInner)
 
 const styles = StyleSheet.create((theme) => ({
   container: {

@@ -10,13 +10,17 @@ import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import type AccountModel from "~/database/models/Account"
 import { observeAccountById } from "~/database/services/account-service"
+import { modelToAccount } from "~/database/utils/model-to-account"
 import { getThemeStrict } from "~/styles/theme/registry"
 
 interface AccountDetailsProps {
-  account: AccountModel
+  accountModel: AccountModel
 }
 
-const AccountDetailsScreenInner = ({ account }: AccountDetailsProps) => {
+const AccountDetailsScreenInner = ({ accountModel }: AccountDetailsProps) => {
+  // Convert models to domain types
+  const account = modelToAccount(accountModel)
+
   const router = useRouter()
   const navigation = useNavigation()
 
@@ -148,9 +152,9 @@ const styles = StyleSheet.create((theme) => ({
 const EnhancedAccountDetailsScreen = withObservables(
   ["accountId"],
   ({ accountId }) => ({
-    account: observeAccountById(accountId),
+    accountModel: observeAccountById(accountId),
   }),
-)(({ account }) => <AccountDetailsScreenInner account={account} />)
+)(AccountDetailsScreenInner)
 
 export default function AccountDetailsScreen() {
   const { accountId } = useLocalSearchParams<{ accountId: string }>()

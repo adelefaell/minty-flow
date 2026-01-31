@@ -20,7 +20,12 @@ import {
   createCategory,
   observeCategoriesByType,
 } from "~/database/services/category-service"
-import type { Category, CategoryType } from "~/types/categories"
+import { modelToCategory } from "~/database/utils/model-to-category"
+import {
+  type Category,
+  type CategoryType,
+  CategoryTypeEnum,
+} from "~/types/categories"
 import { logger } from "~/utils/logger"
 import { Toast } from "~/utils/toast"
 
@@ -34,7 +39,7 @@ const PRESETS_BY_TYPE: Record<
 }
 
 function alreadyAddedPresetIds(
-  categoryModels: CategoryModel[],
+  categoryModels: Category[],
   presets: readonly (Category & { id: string })[],
 ): Set<string> {
   const added = new Set<string>()
@@ -61,13 +66,16 @@ const CategoryPresetsScreenInner = ({
   type,
   categoryModels,
 }: CategoryPresetsScreenInnerProps) => {
+  // Convert models to domain types
+  const categories = categoryModels.map(modelToCategory)
+
   const router = useRouter()
   const [selectedPresets, setSelectedPresets] = useState<Set<string>>(new Set())
 
   const presets = PRESETS_BY_TYPE[type] ?? []
   const addedPresets = useMemo(
-    () => alreadyAddedPresetIds(categoryModels, presets),
-    [categoryModels, presets],
+    () => alreadyAddedPresetIds(categories, presets),
+    [categories, presets],
   )
 
   const togglePreset = (presetId: string) => {
@@ -201,7 +209,7 @@ const EnhancedCategoryPresetsScreen = withObservables(
 
 export default function CategoryPresetsScreen() {
   const params = useLocalSearchParams<{ type: CategoryType }>()
-  const type = (params.type as CategoryType) || "expense"
+  const type = params.type || CategoryTypeEnum.EXPENSE
   return <EnhancedCategoryPresetsScreen type={type} />
 }
 

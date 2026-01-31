@@ -31,21 +31,22 @@ import {
   observeCategoryById,
   updateCategory,
 } from "~/database/services/category-service"
+import { modelToCategory } from "~/database/utils/model-to-category"
 import {
   type AddCategoriesFormSchema,
   addCategoriesSchema,
 } from "~/schemas/categories.schema"
 import { getThemeStrict } from "~/styles/theme/registry"
+import type { Category, CategoryType } from "~/types/categories"
 import { NewEnum } from "~/types/new"
 import { logger } from "~/utils/logger"
 import { Toast } from "~/utils/toast"
-
-import type { CategoryType } from "../../../types/categories"
 
 interface EditCategoryScreenProps {
   categoryId: string
   initialType?: CategoryType
   categoryModel?: CategoryModel
+  category?: Category
 }
 
 // TODO: refactor this component to use the new form components
@@ -54,17 +55,14 @@ const EditCategoryScreenInner = ({
   categoryId,
   initialType,
   categoryModel,
+  category,
 }: EditCategoryScreenProps) => {
   const router = useRouter()
   const isAddMode = categoryId === "add-category" || !categoryId
   const [selectedType, setSelectedType] = useState<CategoryType>(
-    (initialType as CategoryType) ||
-      (categoryModel?.type as CategoryType) ||
-      "expense",
+    initialType || category?.type || "expense",
   )
-  const categoryType = isAddMode
-    ? selectedType
-    : (categoryModel?.type as CategoryType) || "expense"
+  const categoryType = isAddMode ? selectedType : category?.type || "expense"
 
   // Form state management with react-hook-form
   // Use categoryModel directly in defaultValues - react-hook-form handles initialization
@@ -77,9 +75,9 @@ const EditCategoryScreenInner = ({
   } = useForm({
     resolver: zodResolver(addCategoriesSchema),
     defaultValues: {
-      name: categoryModel?.name || "",
-      icon: categoryModel?.icon || "shape",
-      colorSchemeName: categoryModel?.colorSchemeName || undefined,
+      name: category?.name || "",
+      icon: category?.icon || "shape",
+      colorSchemeName: category?.colorSchemeName || undefined,
     },
   })
 
@@ -216,7 +214,7 @@ const EditCategoryScreenInner = ({
 
   const handleDelete = async () => {
     try {
-      if (!categoryModel) {
+      if (!categoryModel || !category) {
         Toast.error({
           title: "Error",
           description: "Category not found",
@@ -225,10 +223,10 @@ const EditCategoryScreenInner = ({
       }
 
       // Prevent deletion if category has transactions
-      if (categoryModel.transactionCount > 0) {
+      if (category.transactionCount > 0) {
         Toast.error({
           title: "Cannot delete category",
-          description: `This category has ${categoryModel.transactionCount} transaction${categoryModel.transactionCount !== 1 ? "s" : ""}. Please remove or reassign all transactions before deleting.`,
+          description: `This category has ${category.transactionCount} transaction${category.transactionCount !== 1 ? "s" : ""}. Please remove or reassign all transactions before deleting.`,
         })
         return
       }
@@ -255,7 +253,7 @@ const EditCategoryScreenInner = ({
 
   const handleArchive = async () => {
     try {
-      if (!categoryModel) {
+      if (!categoryModel || !category) {
         Toast.error({
           title: "Error",
           description: "Category not found",
@@ -287,7 +285,7 @@ const EditCategoryScreenInner = ({
 
   const handleRestore = async () => {
     try {
-      if (!categoryModel) {
+      if (!categoryModel || !category) {
         Toast.error({
           title: "Error",
           description: "Category not found",
@@ -345,7 +343,7 @@ const EditCategoryScreenInner = ({
   const currentColorScheme = getThemeStrict(formColorSchemeName)
 
   // Show loading state if category is being loaded in edit mode
-  if (!isAddMode && !categoryModel) {
+  if (!isAddMode && !category) {
     return (
       <View style={styles.container}>
         <View style={styles.loadingContainer}>
@@ -363,7 +361,7 @@ const EditCategoryScreenInner = ({
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
       >
-        <View style={styles.form} key={categoryModel?.id || NewEnum.NEW}>
+        <View style={styles.form} key={category?.id || NewEnum.NEW}>
           {/* Icon Selection */}
           <View style={styles.field}>
             <Text
@@ -517,7 +515,7 @@ const EditCategoryScreenInner = ({
 
         {!isAddMode && (
           <View style={styles.deleteSection}>
-            {categoryModel?.isArchived ? (
+            {category?.isArchived ? (
               <Button
                 variant="ghost"
                 onPress={handleRestore}
@@ -561,7 +559,7 @@ const EditCategoryScreenInner = ({
                 size={20}
                 style={[
                   styles.deleteIcon,
-                  (categoryModel?.transactionCount ?? 0) > 0 &&
+                  (category?.transactionCount ?? 0) > 0 &&
                     styles.deleteIconDisabled,
                 ]}
               />
@@ -569,7 +567,7 @@ const EditCategoryScreenInner = ({
                 variant="default"
                 style={[
                   styles.deleteText,
-                  (categoryModel?.transactionCount ?? 0) > 0 &&
+                  (category?.transactionCount ?? 0) > 0 &&
                     styles.deleteTextDisabled,
                 ]}
               >
@@ -611,16 +609,10 @@ const EditCategoryScreenInner = ({
       </KeyboardStickyViewMinty>
 
       {/* Bottom Sheets */}
-      {!isAddMode && categoryModel && (
+      {!isAddMode && category && (
         <>
-          <DeleteCategorySheet
-            category={categoryModel}
-            onConfirm={handleDelete}
-          />
-          <ArchiveCategorySheet
-            category={categoryModel}
-            onConfirm={handleArchive}
-          />
+          <DeleteCategorySheet category={category} onConfirm={handleDelete} />
+          <ArchiveCategorySheet category={category} onConfirm={handleArchive} />
         </>
       )}
 
@@ -660,16 +652,18 @@ const EnhancedEditScreen = withObservables(
     categoryId: string
     categoryModel: CategoryModel
   }) => {
+    const category = categoryModel ? modelToCategory(categoryModel) : undefined
+
     return (
       <EditCategoryScreenInner
-        key={categoryModel?.id || categoryId}
+        key={category?.id || categoryId}
         categoryId={categoryId}
-        categoryModel={categoryModel}
+        category={category}
+        categoryModel={categoryModel} // keep for mutations
       />
     )
   },
 )
-
 // Main component - conditionally use observable based on mode
 export default function EditCategoryScreen() {
   const params = useLocalSearchParams<{

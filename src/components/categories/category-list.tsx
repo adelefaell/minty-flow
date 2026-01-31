@@ -10,7 +10,8 @@ import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import type CategoryModel from "~/database/models/Category"
 import { observeCategoriesByType } from "~/database/services/category-service"
-import type { Category, CategoryType } from "~/types/categories"
+import { modelToCategory } from "~/database/utils/model-to-category"
+import type { CategoryType } from "~/types/categories"
 
 import { CategoryRow } from "./category-row"
 
@@ -21,24 +22,6 @@ interface CategoryListProps {
   deletedCategory?: string
   includeArchived?: boolean
   searchQuery?: string
-}
-
-/**
- * Convert CategoryModel to Category domain type
- */
-const modelToCategory = (model: CategoryModel): Category => {
-  return {
-    id: model.id,
-    name: model.name,
-    type: model.type,
-    icon: model.icon,
-    colorSchemeName: model.colorSchemeName,
-    colorScheme: model.colorScheme, // Computed getter from model
-    transactionCount: model.transactionCount,
-    isArchived: model.isArchived,
-    createdAt: model.createdAt,
-    updatedAt: model.updatedAt,
-  }
 }
 
 interface CategoryListInnerProps extends CategoryListProps {

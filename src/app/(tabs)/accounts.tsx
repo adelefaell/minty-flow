@@ -16,6 +16,7 @@ import {
   observeAccounts,
   updateAccountsOrder,
 } from "~/database/services/account-service"
+import { modelToAccount } from "~/database/utils/model-to-account"
 import { NewEnum } from "~/types/new"
 import { logger } from "~/utils/logger"
 
@@ -25,13 +26,24 @@ interface AccountsScreenInnerProps {
 
 const AccountsScreenInner = ({ accountModels }: AccountsScreenInnerProps) => {
   const router = useRouter()
+
   const [searchQuery, setSearchQuery] = useState("")
-
   const [isReorderMode, setIsReorderMode] = useState(false)
-  const [reorderedAccounts, setReorderedAccounts] = useState<AccountModel[]>([])
+  const [reorderedModels, setReorderedModels] = useState<AccountModel[]>([])
 
-  // Group balances by currency
-  const balancesByCurrency = accountModels.reduce(
+  // Filter on models (source of truth)
+  const filteredModels = accountModels.filter((model) => {
+    if (!searchQuery.trim()) return true
+    return model.name.toLowerCase().includes(searchQuery.toLowerCase())
+  })
+
+  const displayModels = isReorderMode ? reorderedModels : filteredModels
+
+  // Map only for UI
+  const displayAccounts = displayModels.map(modelToAccount)
+
+  // Balance calculation (domain only)
+  const balancesByCurrency = displayAccounts.reduce(
     (acc, account) => {
       const existing = acc.find(
         (item) => item.currency === account.currencyCode,
@@ -49,55 +61,42 @@ const AccountsScreenInner = ({ accountModels }: AccountsScreenInnerProps) => {
     [] as { currency: string; balance: number }[],
   )
 
-  const clearSearch = () => {
-    setSearchQuery("")
-  }
-
   const handleToggleReorder = () => {
-    setIsReorderMode(!isReorderMode)
+    // Clear search first
+    setSearchQuery("")
+
     if (!isReorderMode) {
-      // Entering reorder mode - initialize with current accounts
-      setReorderedAccounts(accountModels)
+      setReorderedModels(accountModels) // use the full list here
     }
+
+    setIsReorderMode((prev) => !prev)
   }
 
   const handleSaveReorder = async () => {
     try {
-      await updateAccountsOrder(reorderedAccounts)
+      await updateAccountsOrder(reorderedModels)
       setIsReorderMode(false)
-      setReorderedAccounts([])
+      setReorderedModels([])
     } catch (error) {
-      logger.error("Failed to save account order:", { error })
+      logger.error("Failed to save account order", { error })
     }
   }
 
   const handleCancelReorder = () => {
     setIsReorderMode(false)
-    setReorderedAccounts([])
+    setReorderedModels([])
   }
 
-  const handleReorder = (newData: AccountModel[]) => {
-    // Update local state with the new order
-    setReorderedAccounts(newData)
+  const handleReorder = (newModels: AccountModel[]) => {
+    setReorderedModels(newModels)
   }
 
   const handleAddAccount = () => {
     router.push({
       pathname: "/accounts/[account-modify-id]",
-      params: {
-        "account-modify-id": NewEnum.NEW,
-      },
+      params: { "account-modify-id": NewEnum.NEW },
     })
   }
-
-  // Filter accounts based on search query
-  const filteredAccounts = accountModels.filter((account) => {
-    if (searchQuery.trim().length === 0) return true
-    return account.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
-  })
-
-  // Use reordered accounts if in reorder mode, otherwise use original
-  const displayAccounts = isReorderMode ? reorderedAccounts : filteredAccounts
 
   return (
     <View style={styles.container}>
@@ -120,9 +119,7 @@ const AccountsScreenInner = ({ accountModels }: AccountsScreenInnerProps) => {
                 variant="ghost"
                 size="icon"
                 onPress={() =>
-                  router.push({
-                    pathname: "/accounts/archived-accounts",
-                  })
+                  router.push({ pathname: "/accounts/archived-accounts" })
                 }
               >
                 <IconSymbol name="archive" size={24} />
@@ -139,6 +136,7 @@ const AccountsScreenInner = ({ accountModels }: AccountsScreenInnerProps) => {
         <Text variant="small" style={styles.sectionLabel}>
           TOTAL BALANCE
         </Text>
+
         <View style={styles.balanceContainer}>
           {balancesByCurrency.map((item) => (
             <View key={item.currency} style={styles.balanceRow}>
@@ -157,72 +155,59 @@ const AccountsScreenInner = ({ accountModels }: AccountsScreenInnerProps) => {
             ACCOUNTS
           </Text>
           <Text variant="small" style={styles.accountsCount}>
-            {filteredAccounts.length}
+            {filteredModels.length}
           </Text>
         </View>
       </View>
 
-      {/* Search Bar */}
       {!isReorderMode && (
         <View style={styles.searchContainer}>
           <SearchInput
             placeholder="Search accounts..."
             value={searchQuery}
             onChangeText={setSearchQuery}
-            onClear={clearSearch}
+            onClear={() => setSearchQuery("")}
           />
         </View>
       )}
 
-      {filteredAccounts.length === 0 && searchQuery.trim().length > 0 ? (
-        <View
-          style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
-        >
-          <IconSymbol name="magnify" size={40} />
-          <Text variant="h4" style={{ marginTop: 16 }}>
-            No results for "{searchQuery}"
-          </Text>
-        </View>
-      ) : (
-        <ReorderableListV2
-          data={displayAccounts}
-          onReorder={handleReorder}
-          showButtons={isReorderMode}
-          renderItem={({ item }) => (
-            <AccountCard account={item} isReorderMode={isReorderMode} />
-          )}
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          ListFooterComponent={
-            !isReorderMode ? (
-              <Pressable
-                style={styles.newAccountButton}
-                onPress={handleAddAccount}
-              >
-                <IconSymbol name="plus" size={24} />
-                <Text variant="default" style={styles.newAccountText}>
-                  New Account
-                </Text>
-              </Pressable>
-            ) : null
-          }
-        />
-      )}
+      <ReorderableListV2
+        data={displayModels}
+        onReorder={handleReorder}
+        showButtons={isReorderMode}
+        renderItem={({ item }) => (
+          <AccountCard
+            account={modelToAccount(item)}
+            isReorderMode={isReorderMode}
+          />
+        )}
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        ListFooterComponent={
+          !isReorderMode ? (
+            <Pressable
+              style={styles.newAccountButton}
+              onPress={handleAddAccount}
+            >
+              <IconSymbol name="plus" size={24} />
+              <Text variant="default" style={styles.newAccountText}>
+                New Account
+              </Text>
+            </Pressable>
+          ) : null
+        }
+      />
     </View>
   )
 }
 
-// HOC to observe accounts from WatermelonDB
-const enhance = withObservables([], () => {
-  return {
-    accountModels: observeAccounts(false),
-  }
-})
+// Watermelon binding (models only)
+const enhance = withObservables([], () => ({
+  accountModels: observeAccounts(false),
+}))
 
-const AccountsScreen = enhance(AccountsScreenInner)
-
-export default AccountsScreen
+export default enhance(AccountsScreenInner)
 
 const styles = StyleSheet.create((theme) => ({
   container: {
@@ -230,17 +215,11 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.surface,
     paddingHorizontal: 20,
   },
-  scrollView: {
-    flex: 1,
-  },
+  scrollView: { flex: 1 },
   scrollContent: {
     paddingTop: 5,
     paddingBottom: 100,
     gap: 15,
-  },
-  footerContainer: {
-    marginTop: 10,
-    paddingBottom: 20,
   },
   titleContainer: {
     flexDirection: "row",
@@ -252,12 +231,8 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     gap: 8,
   },
-  header: {
-    marginTop: 20,
-  },
-  balanceContainer: {
-    gap: 5,
-  },
+  header: { marginTop: 20 },
+  balanceContainer: { gap: 5 },
   sectionLabel: {
     fontSize: 10,
     fontWeight: "600",
@@ -268,7 +243,6 @@ const styles = StyleSheet.create((theme) => ({
   balanceRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
   },
   currencyLabel: {
     fontSize: 14,
@@ -282,17 +256,14 @@ const styles = StyleSheet.create((theme) => ({
   accountsCountContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
     paddingBlock: 10,
   },
   accountsCount: {
     fontSize: 16,
     fontWeight: "600",
-    color: theme.colors.onSurface,
   },
   newAccountButton: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "center",
     gap: 8,
     paddingVertical: 16,
@@ -304,7 +275,6 @@ const styles = StyleSheet.create((theme) => ({
   newAccountText: {
     fontSize: 16,
     fontWeight: "600",
-    color: theme.colors.onSurface,
   },
   searchContainer: {
     marginTop: 16,

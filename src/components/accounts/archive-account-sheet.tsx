@@ -8,10 +8,10 @@ import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import type { AccountModel } from "~/database"
+import type { Account } from "~/types/accounts"
 
 interface ArchiveAccountSheetProps {
-  account: AccountModel
+  account: Account
   onConfirm: () => void
 }
 
@@ -29,6 +29,8 @@ export const ArchiveAccountSheet = ({
   const handleCancel = () => {
     sheet.dismiss()
   }
+
+  // TODO: add trasnaction count here when deleting
 
   return (
     <BottomSheetModalComponent id={`archive-account-${account.id}`}>
