@@ -1,7 +1,6 @@
 import { Database } from "@nozbe/watermelondb"
 import SQLiteAdapter from "@nozbe/watermelondb/adapters/sqlite"
 
-import migrations from "./migrations"
 import AccountModel from "./models/Account"
 import BudgetModel from "./models/Budget"
 import CategoryModel from "./models/Category"

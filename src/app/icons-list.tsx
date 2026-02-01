@@ -5,6 +5,7 @@ import { IconSymbol, VALID_ICON_NAMES } from "~/components/ui/icon-symbol"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 
+// TODO: delete later
 export default function IconsScreen() {
   return (
     <ScrollView>

@@ -113,6 +113,7 @@ export const VALID_ICON_NAMES = defineValidIcons([
   "account-details",
   "map",
   "account",
+  "open-in-new",
 ] as const)
 
 /**

@@ -12,7 +12,8 @@
       "!node_modules",
       "!dist",
       "!build",
-      "!src/utils/logger.ts"
+      "!src/utils/logger.ts",
+      "!scripts/*"
     ]
   },
   "formatter": {
