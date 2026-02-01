@@ -35,6 +35,7 @@ export const VALID_ICON_NAMES = defineValidIcons([
   "swap-vertical",
   "eye",
   "eye-off",
+  "open-in-new",
   // Status & Alerts
   "alert",
   "alert-circle",

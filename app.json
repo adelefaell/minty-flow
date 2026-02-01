@@ -2,6 +2,11 @@
   "expo": {
     "name": "minty-flow-native",
     "slug": "minty-flow-native",
+    "extra": {
+      "eas": {
+        "projectId": "minty-flow-native-project-id"
+      }
+    },
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./src/assets/images/icon.png",
