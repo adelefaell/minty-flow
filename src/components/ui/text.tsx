@@ -14,7 +14,7 @@ import {
   useButtonTextContext,
 } from "./button"
 
-type TextVariant =
+export type TextVariant =
   | "default"
   | "h1"
   | "h2"

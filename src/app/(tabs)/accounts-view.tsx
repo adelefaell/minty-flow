@@ -8,6 +8,7 @@ import { ReorderableListV2 } from "~/components/reorderable-list-v2"
 import { SearchInput } from "~/components/search-input"
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
+import { Money } from "~/components/ui/money"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
@@ -143,9 +144,12 @@ const AccountsScreenInner = ({ accountModels }: AccountsScreenInnerProps) => {
               <Text variant="default" style={styles.currencyLabel}>
                 {item.currency}
               </Text>
-              <Text variant="h3" style={styles.balanceAmount}>
-                {item.balance.toFixed(2)}
-              </Text>
+              <Money
+                value={item.balance}
+                variant="h3"
+                currency={item.currency}
+                style={styles.balanceAmount}
+              />
             </View>
           ))}
         </View>

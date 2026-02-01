@@ -2,10 +2,10 @@ import { useRouter } from "expo-router"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import { IconSymbol } from "~/components/ui/icon-symbol"
-import { useMoneyFormattingStore } from "~/stores/money-formatting.store"
 import type { Account } from "~/types/accounts"
 
 import { DynamicIcon } from "../dynamic-icon"
+import { Money } from "../ui/money"
 import { Pressable } from "../ui/pressable"
 import { Text } from "../ui/text"
 import { View } from "../ui/view"
@@ -18,7 +18,6 @@ interface AccountCardProps {
 export const AccountCard = ({ account, isReorderMode }: AccountCardProps) => {
   const router = useRouter()
 
-  const formatDisplay = useMoneyFormattingStore((s) => s.formatDisplay)
   const { theme } = useUnistyles()
 
   const handleViewAccount = () => {
@@ -53,9 +52,13 @@ export const AccountCard = ({ account, isReorderMode }: AccountCardProps) => {
             )}
           </Text>
         </View>
-        <Text variant="h2" style={styles.balance}>
-          {formatDisplay(account.balance.toString(), account.currencyCode)}
-        </Text>
+
+        <Money
+          value={account.balance}
+          variant="h2"
+          style={styles.balance}
+          currency={account.currencyCode}
+        />
       </View>
 
       <View variant="muted" style={styles.monthlySummary}>
@@ -72,12 +75,13 @@ export const AccountCard = ({ account, isReorderMode }: AccountCardProps) => {
               />
               <Text style={styles.summaryItemLabel}>IN</Text>
             </View>
-            <Text
+
+            <Money
+              value={0}
               variant="default"
               style={[styles.summaryAmount, styles.incomeAmount]}
-            >
-              {formatDisplay("0", account.currencyCode)}
-            </Text>
+              currency={account.currencyCode}
+            />
           </View>
           <View variant="muted" style={styles.summaryItem}>
             <View variant="muted" style={styles.summaryItemHeader}>
@@ -88,12 +92,13 @@ export const AccountCard = ({ account, isReorderMode }: AccountCardProps) => {
               />
               <Text style={styles.summaryItemLabel}>OUT</Text>
             </View>
-            <Text
+
+            <Money
+              value={0}
               variant="default"
               style={[styles.summaryAmount, styles.expenseAmount]}
-            >
-              {formatDisplay("0", account.currencyCode)}
-            </Text>
+              currency={account.currencyCode}
+            />
           </View>
           <View variant="muted" style={styles.summaryItem}>
             <View variant="muted" style={styles.summaryItemHeader}>
@@ -104,9 +109,13 @@ export const AccountCard = ({ account, isReorderMode }: AccountCardProps) => {
               />
               <Text style={styles.summaryItemLabel}>NET</Text>
             </View>
-            <Text variant="default" style={styles.summaryAmount}>
-              {formatDisplay("0", account.currencyCode)}
-            </Text>
+
+            <Money
+              value={0}
+              variant="default"
+              style={styles.summaryAmount}
+              currency={account.currencyCode}
+            />
           </View>
         </View>
       </View>

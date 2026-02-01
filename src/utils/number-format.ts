@@ -116,7 +116,7 @@ const getCachedFormatted = (
   locale: string,
   options: NumberFormatterOptions,
 ): string => {
-  const key = `${locale}|${value}|${options.currency ?? ""}|${options.minimumFractionDigits}|${options.maximumFractionDigits}|${options.signDisplay}`
+  const key = `${locale}|${value}|${options.currency ?? ""}|${options.minimumFractionDigits}|${options.maximumFractionDigits}|${options.signDisplay}|${options.notation ?? "standard"}|${options.showCurrency ?? true}`
 
   const cached = cache.get(key)
   if (cached) return cached
@@ -127,52 +127,109 @@ const getCachedFormatted = (
 }
 
 // ------------------------
+// Public formatter options
+// ------------------------
+export interface FormatDisplayValueOptions {
+  currency?: string
+  currencyDisplay?: Intl.NumberFormatOptions["currencyDisplay"]
+  locale?: string
+  compact?: boolean
+  hideSign?: boolean
+  showSign?: boolean
+  hideSymbol?: boolean
+  addParentheses?: boolean
+  minimumFractionDigits?: number
+  maximumFractionDigits?: number
+}
+
+// ------------------------
 // Public formatter (single source of truth)
 // ------------------------
 export const formatDisplayValue = (
-  raw: string,
-  currency?: string,
-  currencyDisplay?: Intl.NumberFormatOptions["currencyDisplay"],
-  locale?: string,
+  raw: string | number,
+  options: FormatDisplayValueOptions = {},
 ): string => {
+  const {
+    currency,
+    currencyDisplay,
+    locale,
+    compact = false,
+    hideSign = false,
+    showSign = false,
+    hideSymbol = false,
+    addParentheses = false,
+    minimumFractionDigits,
+    maximumFractionDigits,
+  } = options
+
+  // Convert number to string
+  const stringValue = typeof raw === "number" ? raw.toString() : raw
   const resolvedLocale = locale ?? getDefaultLocale()
 
+  // Determine sign display
+  const signDisplayValue: Intl.NumberFormatOptions["signDisplay"] = hideSign
+    ? "never"
+    : showSign
+      ? "exceptZero"
+      : "auto"
+
   // Allow "." or "123."
-  if (raw.endsWith(".")) {
-    const base = raw.slice(0, -1)
+  if (stringValue.endsWith(".")) {
+    const base = stringValue.slice(0, -1)
     const num = base === "" ? 0 : Number(base)
     if (Number.isNaN(num)) return "0."
 
     const formatted = getCachedFormatted(num, resolvedLocale, {
-      currency,
+      currency: hideSymbol ? undefined : currency,
       currencyDisplay,
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-      signDisplay: "negative",
+      signDisplay: signDisplayValue,
+      notation: compact ? "compact" : "standard",
+      showCurrency: !hideSymbol,
     })
 
     return `${formatted}.`
   }
 
-  const num = Number(raw)
+  const num = Number(stringValue)
   if (Number.isNaN(num)) {
-    if (raw === ".") return "0."
+    if (stringValue === ".") return "0."
     return CALCULATOR_CONFIG.DEFAULT_DISPLAY
   }
 
-  let minDecimals = 0
-  if (raw.includes(".")) {
-    const decimals = raw.split(".")[1]?.length ?? 0
-    minDecimals = Math.min(decimals, CALCULATOR_CONFIG.MAX_DECIMALS)
+  // Determine fraction digits
+  let minDecimals = minimumFractionDigits ?? 0
+  const maxDecimals = maximumFractionDigits ?? CALCULATOR_CONFIG.MAX_DECIMALS
+
+  // If raw string has decimals and no explicit min was set, preserve them
+  // Only check for string inputs (numbers won't have trailing decimals)
+  if (
+    minimumFractionDigits === undefined &&
+    typeof raw === "string" &&
+    stringValue.includes(".")
+  ) {
+    const decimals = stringValue.split(".")[1]?.length ?? 0
+    minDecimals = Math.min(decimals, maxDecimals)
   }
 
-  return getCachedFormatted(num, resolvedLocale, {
-    currency,
+  let result = getCachedFormatted(num, resolvedLocale, {
+    currency: hideSymbol ? undefined : currency,
     currencyDisplay,
     minimumFractionDigits: minDecimals,
-    maximumFractionDigits: CALCULATOR_CONFIG.MAX_DECIMALS,
-    signDisplay: "negative",
+    maximumFractionDigits: maxDecimals,
+    signDisplay: signDisplayValue,
+    notation: compact ? "compact" : "standard",
+    showCurrency: !hideSymbol,
   })
+
+  // Handle parentheses for negative values
+  if (addParentheses && num < 0) {
+    result = result.replace(/^-/, "")
+    return `(${result})`
+  }
+
+  return result
 }
 
 // ------------------------

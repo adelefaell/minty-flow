@@ -2,9 +2,11 @@ import { useCallback } from "react"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import { IconSymbol } from "~/components/ui/icon-symbol"
+import { currencyRegistryService } from "~/services"
 import { useCalculatorStore } from "~/stores/calculator.store"
 import { useMoneyFormattingStore } from "~/stores/money-formatting.store"
 import { Operation } from "~/types/calculator"
+import { formatDisplayValue } from "~/utils/number-format"
 
 import {
   BottomSheetModalComponent,
@@ -60,7 +62,6 @@ export const CalculatorSheet = ({
   } = useCalculatorStore()
 
   const preferredCurrency = useMoneyFormattingStore((s) => s.preferredCurrency)
-  const formatDisplay = useMoneyFormattingStore((s) => s.formatDisplay)
   const currencyLook = useMoneyFormattingStore((s) => s.currencyLook)
 
   const { theme } = useUnistyles()
@@ -76,10 +77,9 @@ export const CalculatorSheet = ({
   const displayValue = display || "0"
 
   // One-liner: The store handles privacy, currency look, and locale.
-  const formattedDisplay = formatDisplay(
-    displayValue,
-    currencyCode, // If undefined, the store uses preferredCurrency automatically
-  )
+  const formattedDisplay = formatDisplayValue(displayValue, {
+    currency: currencyCode, // If undefined, the store uses preferredCurrency automatically
+  })
 
   // Handle number input
   const handleNumberPress = useCallback(
@@ -139,6 +139,10 @@ export const CalculatorSheet = ({
     [initialValue, reset, bottomSheetProps.onChange],
   )
 
+  const code = "USD"
+
+  const usdCurrency = currencyRegistryService.getCurrencyByCode(code)
+
   return (
     <BottomSheetModalComponent
       id={id}
@@ -157,19 +161,19 @@ export const CalculatorSheet = ({
           <Text style={calculatorStyles.displayValue}>
             {operation && previousValue !== null ? (
               <>
-                {formatDisplay(
-                  previousValue.toString(),
-                  currencyCode || preferredCurrency || "USD",
-                  currencyLook,
-                )}{" "}
+                {formatDisplayValue(previousValue, {
+                  currency:
+                    currencyCode || preferredCurrency || usdCurrency?.code,
+                  currencyDisplay: currencyLook,
+                })}{" "}
                 {operation}{" "}
                 {waitingForOperand
                   ? "?"
-                  : formatDisplay(
-                      displayValue,
-                      currencyCode || preferredCurrency || "USD",
-                      currencyLook,
-                    )}
+                  : formatDisplayValue(displayValue, {
+                      currency:
+                        currencyCode || preferredCurrency || usdCurrency?.code,
+                      currencyDisplay: currencyLook,
+                    })}
               </>
             ) : (
               formattedDisplay

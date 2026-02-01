@@ -41,12 +41,12 @@ import {
   type AddAccountsFormSchema,
   addAccountsSchema,
 } from "~/schemas/accounts.schema"
-import { useMoneyFormattingStore } from "~/stores/money-formatting.store"
 import { getThemeStrict } from "~/styles/theme/registry"
 import { type Account, AccountTypeEnum } from "~/types/accounts"
 import { NewEnum } from "~/types/new"
 import { accountTypesList } from "~/utils/account-types-list"
 import { logger } from "~/utils/logger"
+import { formatDisplayValue } from "~/utils/number-format"
 import { Toast } from "~/utils/toast"
 
 interface EditAccountScreenProps {
@@ -62,7 +62,6 @@ const EditAccountScreenInner = ({
 }: EditAccountScreenProps) => {
   const router = useRouter()
   const isAddMode = accountId === NewEnum.NEW || !accountId
-  const formatDisplay = useMoneyFormattingStore((s) => s.formatDisplay)
 
   // Form state management with Zod validation
   const {
@@ -361,8 +360,9 @@ const EditAccountScreenInner = ({
               control={control}
               name="balance"
               render={({ field: { value } }) => {
-                const num = value.toString()
-                const formatted = formatDisplay(num, formCurrencyCode)
+                const formatted = formatDisplayValue(value, {
+                  currency: formCurrencyCode,
+                })
                 return (
                   <Pressable
                     style={styles.balanceContainer}

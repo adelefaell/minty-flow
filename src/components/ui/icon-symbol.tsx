@@ -114,6 +114,8 @@ export const VALID_ICON_NAMES = defineValidIcons([
   "map",
   "account",
   "open-in-new",
+  "asterisk",
+  "shield-alert",
 ] as const)
 
 /**

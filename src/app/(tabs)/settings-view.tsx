@@ -90,13 +90,6 @@ const otherSettingsItems: SettingsItem[] = [
     route: "/settings/data-management",
     icon: "server",
   },
-  {
-    id: "notifications",
-    title: "Notifications",
-    description: "Manage your notification preferences",
-    route: "/settings/notifications",
-    icon: "bell",
-  },
 ]
 
 export default function SettingsScreen() {

@@ -48,18 +48,11 @@ const appearanceItems: PreferenceItem[] = [
 
 const otherPreferenceItems: PreferenceItem[] = [
   {
-    id: "privacy",
-    title: "Privacy",
-    description: "Manage privacy and security settings",
-    route: "/settings/preferences/privacy",
-    icon: "lock",
-  },
-  {
-    id: "transaction-location",
-    title: "Transaction Location",
-    description: "Configure transaction location settings",
-    route: "/settings/preferences/transaction-location",
-    icon: "map-marker",
+    id: "pending-transactions",
+    title: "Pending transactions",
+    description: "Configure pending transaction settings",
+    route: "/settings/preferences/pending-transactions",
+    icon: "clock",
   },
   {
     id: "exchange-rates",
@@ -76,18 +69,25 @@ const otherPreferenceItems: PreferenceItem[] = [
     icon: "trash-can",
   },
   {
+    id: "privacy",
+    title: "Privacy",
+    description: "Manage privacy and security settings",
+    route: "/settings/preferences/privacy",
+    icon: "shield-alert",
+  },
+  {
+    id: "transaction-location",
+    title: "Transaction Location",
+    description: "Configure transaction location settings",
+    route: "/settings/preferences/transaction-location",
+    icon: "map-marker",
+  },
+  {
     id: "reminder",
     title: "Reminder",
     description: "Set up daily reminders for expense tracking",
     route: "/settings/preferences/reminder",
     icon: "bell",
-  },
-  {
-    id: "pending-transactions",
-    title: "Pending transactions",
-    description: "Configure pending transaction settings",
-    route: "/settings/preferences/pending-transactions",
-    icon: "clock",
   },
 ]
 

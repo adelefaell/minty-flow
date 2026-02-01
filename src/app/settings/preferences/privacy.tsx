@@ -8,6 +8,7 @@ import { Pressable } from "~/components/ui/pressable"
 import { Switch } from "~/components/ui/switch"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
+import { useMoneyFormattingStore } from "~/stores/money-formatting.store"
 
 interface PrivacySetting {
   id: string
@@ -18,17 +19,19 @@ interface PrivacySetting {
 }
 
 export default function PrivacyScreen() {
-  const [maskNumberAtStartup, setMaskNumberAtStartup] = useState(false)
   const [lockApp, setLockApp] = useState(false)
   const [lockAfterClosing, setLockAfterClosing] = useState(false)
+
+  const privacyMode = useMoneyFormattingStore((s) => s.privacyMode)
+  const setPrivacyMode = useMoneyFormattingStore((s) => s.setPrivacyMode)
 
   const settings: PrivacySetting[] = [
     {
       id: "mask-number",
-      label: "Mask numbers (*) at startup",
-      icon: "eye-off",
-      value: maskNumberAtStartup,
-      onValueChange: setMaskNumberAtStartup,
+      label: "Mask numbers (⁕) at startup",
+      icon: "asterisk",
+      value: privacyMode,
+      onValueChange: setPrivacyMode,
     },
     {
       id: "lock-app",

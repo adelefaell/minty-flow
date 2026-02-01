@@ -3,9 +3,6 @@ import { create } from "zustand"
 import { createJSONStorage, devtools, persist } from "zustand/middleware"
 import { immer } from "zustand/middleware/immer"
 
-import { logger } from "~/utils/logger"
-import { formatDisplayValue, getDefaultLocale } from "~/utils/number-format"
-
 /**
  * Single MMKV storage for all money-related UI preferences
  */
@@ -47,18 +44,12 @@ interface MoneyFormattingStore {
 
   setPrivacyMode: (value: boolean) => void
   togglePrivacyMode: () => void
-
-  /**
-   * UI-facing formatter
-   * Applies currency + look + locale (+ privacy later)
-   */
-  formatDisplay: (value: string, currency?: string, locale?: string) => string
 }
 
 export const useMoneyFormattingStore = create<MoneyFormattingStore>()(
   devtools(
     persist(
-      immer((set, get) => ({
+      immer((set) => ({
         /* ───────── State ───────── */
 
         preferredCurrency: "USD",
@@ -89,27 +80,6 @@ export const useMoneyFormattingStore = create<MoneyFormattingStore>()(
           set((state) => {
             state.privacyMode = !state.privacyMode
           })
-        },
-
-        formatDisplay: (value, currency, locale) => {
-          const { currencyLook, preferredCurrency, privacyMode } = get()
-
-          if (privacyMode) return "••••"
-
-          try {
-            const result = formatDisplayValue(
-              value,
-              currency ?? preferredCurrency,
-              currencyLook,
-              locale ?? getDefaultLocale(),
-            )
-
-            // Final sanity check before returning to UI
-            return result || value || "0"
-          } catch (error) {
-            logger.error("Formatting failed", { error })
-            return value // Fallback to raw string if everything explodes
-          }
         },
       })),
       {

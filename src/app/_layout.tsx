@@ -89,10 +89,6 @@ export default function RootLayout() {
                 options={{ presentation: "modal", title: "Data Management" }}
               />
               <Stack.Screen
-                name="settings/notifications"
-                options={{ presentation: "modal", title: "Notifications" }}
-              />
-              <Stack.Screen
                 name="settings/budgets"
                 options={{ presentation: "modal", title: "Budgets" }}
               />
