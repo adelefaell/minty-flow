@@ -98,7 +98,6 @@ const TabLayout = () => {
 
           <Tooltip text="Add Transaction">
             <Button
-              variant="default"
               size="icon"
               onPress={() =>
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
