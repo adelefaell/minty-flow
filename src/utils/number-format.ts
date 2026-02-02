@@ -102,7 +102,7 @@ const numberFormatter = (
   const sign = base.startsWith("-") || base.startsWith("+") ? base[0] : ""
   const number = base.replace(/^[+-]/, "")
 
-  return `${sign}${label}${number}`
+  return `${sign}${label} ${number}`
 }
 
 // ------------------------
@@ -116,7 +116,7 @@ const getCachedFormatted = (
   locale: string,
   options: NumberFormatterOptions,
 ): string => {
-  const key = `${locale}|${value}|${options.currency ?? ""}|${options.minimumFractionDigits}|${options.maximumFractionDigits}|${options.signDisplay}|${options.notation ?? "standard"}|${options.showCurrency ?? true}`
+  const key = `${locale}|${value}|${options.currency ?? ""}|${options.currencyDisplay ?? "symbol"}|${options.minimumFractionDigits}|${options.maximumFractionDigits}|${options.signDisplay}|${options.notation ?? "standard"}|${options.showCurrency ?? true}`
 
   const cached = cache.get(key)
   if (cached) return cached

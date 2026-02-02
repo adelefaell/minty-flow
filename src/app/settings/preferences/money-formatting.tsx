@@ -1,7 +1,7 @@
-import { useMemo } from "react"
 import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
+import { Money } from "~/components/ui/money"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
@@ -39,16 +39,6 @@ export default function MoneyFormattingScreen() {
   const currencyLook = useMoneyFormattingStore((s) => s.currencyLook)
 
   const exampleAmount = 1234.56
-  const exampleFormatted = useMemo(() => {
-    const currency = preferredCurrency || "USD"
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency,
-      currencyDisplay: currencyLook,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(exampleAmount)
-  }, [preferredCurrency, currencyLook])
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -57,11 +47,16 @@ export default function MoneyFormattingScreen() {
         <Text variant="small" style={styles.previewLabel}>
           Preview
         </Text>
-        <Text variant="h2" style={styles.previewValue}>
-          {exampleFormatted}
-        </Text>
+
+        <Money
+          value={exampleAmount}
+          variant="h2"
+          currency={preferredCurrency}
+          currencyDisplay={currencyLook}
+        />
+
         <Text variant="small" style={styles.previewDescription}>
-          Example: {exampleAmount.toLocaleString()}
+          Example: {exampleAmount}
         </Text>
       </View>
 
