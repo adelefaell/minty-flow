@@ -27,7 +27,6 @@ export function DeleteAccountSheet({
   }
 
   // TODO: add trasnaction count here when deleting
-
   const handleCancel = () => {
     sheet.dismiss()
   }

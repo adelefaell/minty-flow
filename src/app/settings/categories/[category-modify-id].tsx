@@ -50,8 +50,6 @@ interface EditCategoryScreenProps {
   category?: Category
 }
 
-// TODO: refactor this component to use the new form components
-
 const EditCategoryScreenInner = ({
   categoryModifyId,
   initialType,

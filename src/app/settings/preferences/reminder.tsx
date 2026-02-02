@@ -251,7 +251,7 @@ export default function ReminderScreen() {
   )
 }
 
-// TODO: DELETE LATER
+// TODO: refactore this LATER
 async function schedulePushNotification() {
   await Notifications.scheduleNotificationAsync({
     content: {
@@ -311,7 +311,7 @@ const styles = StyleSheet.create((theme) => ({
     gap: 12,
   },
   actionButton: {
-    marginTop: 8,
+    marginTop: 100,
     paddingVertical: 10,
     paddingHorizontal: 20,
     justifyContent: "space-between",

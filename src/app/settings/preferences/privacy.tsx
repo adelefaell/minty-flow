@@ -28,7 +28,7 @@ export default function PrivacyScreen() {
   const settings: PrivacySetting[] = [
     {
       id: "mask-number",
-      label: "Mask numbers (⁕) at startup",
+      label: "Mask money (⁕) at startup",
       icon: "asterisk",
       value: privacyMode,
       onValueChange: setPrivacyMode,
