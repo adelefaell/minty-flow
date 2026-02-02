@@ -5,10 +5,10 @@ import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { KeyboardProvider } from "react-native-keyboard-controller"
 import { useUnistyles } from "react-native-unistyles"
 
-import { ToastManager } from "~/components/ui/toast"
-import { TooltipProvider } from "~/components/ui/tooltip"
 import "react-native-reanimated"
 
+import { ToastManager } from "~/components/ui/toast"
+import { TooltipProvider } from "~/components/ui/tooltip"
 import { NewEnum } from "~/types/new"
 
 export default function RootLayout() {
