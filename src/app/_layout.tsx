@@ -35,10 +35,6 @@ export default function RootLayout() {
               }}
             >
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="toast-demo"
-                options={{ presentation: "modal", title: "Toast Demo" }}
-              />
 
               {/* settings screens */}
               <Stack.Screen

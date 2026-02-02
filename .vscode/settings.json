@@ -7,7 +7,4 @@
   },
 
   "prettier.semi": false
-  "[typescriptreact]": {
-    "editor.defaultFormatter": "biomejs.biome"
-  }
 }
