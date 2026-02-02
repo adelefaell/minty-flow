@@ -241,7 +241,7 @@ export default function ReminderScreen() {
           <Button
             variant="default"
             onPress={async () => await schedulePushNotification()}
-            style={styles.actionButton}
+            style={[styles.actionButton, { marginTop: 100 }]}
           >
             <Text variant="default">Press Test Notification</Text>
           </Button>
@@ -311,7 +311,6 @@ const styles = StyleSheet.create((theme) => ({
     gap: 12,
   },
   actionButton: {
-    marginTop: 100,
     paddingVertical: 10,
     paddingHorizontal: 20,
     justifyContent: "space-between",
