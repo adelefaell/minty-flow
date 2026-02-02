@@ -23,6 +23,10 @@ import type { Category } from "../../types/categories"
 export default class CategoryModel extends Model implements Category {
   static table = "categories"
 
+  static associations = {
+    transactions: { type: "has_many", foreignKey: "category_id" },
+  } as const
+
   @field("name") name!: string
   @field("type") type!: TransactionType
   @field("icon") icon?: string
@@ -34,8 +38,6 @@ export default class CategoryModel extends Model implements Category {
 
   /**
    * Gets the color scheme object from the theme registry.
-   * This is computed at runtime, not stored in the database.
-   * Similar to Flutter's @Transient() getter.
    */
   get colorScheme() {
     return getThemeStrict(this.colorSchemeName)
@@ -43,7 +45,6 @@ export default class CategoryModel extends Model implements Category {
 
   /**
    * Sets the color scheme by name.
-   * Only the name is stored in the database.
    */
   setColorScheme(schemeName: string | undefined) {
     this.colorSchemeName = schemeName

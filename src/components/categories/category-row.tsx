@@ -66,6 +66,7 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.secondary,
     borderRadius: theme.colors.radius,
     minHeight: 60,
+    marginHorizontal: 20,
   },
   rowContent: {
     backgroundColor: theme.colors.secondary,

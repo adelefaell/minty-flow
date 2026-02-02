@@ -19,6 +19,10 @@ import type { Account, AccountType } from "../../types/accounts"
 export default class AccountModel extends Model implements Account {
   static table = "accounts"
 
+  static associations = {
+    transactions: { type: "has_many", foreignKey: "account_id" },
+  } as const
+
   @field("name") name!: string
   @field("type") type!: AccountType
   @field("balance") balance!: number
@@ -34,8 +38,6 @@ export default class AccountModel extends Model implements Account {
 
   /**
    * Gets the color scheme object from the theme registry.
-   * This is computed at runtime, not stored in the database.
-   * Similar to Flutter's @Transient() getter.
    */
   get colorScheme() {
     return getThemeStrict(this.colorSchemeName)
@@ -43,7 +45,6 @@ export default class AccountModel extends Model implements Account {
 
   /**
    * Sets the color scheme by name.
-   * Only the name is stored in the database.
    */
   setColorScheme(schemeName: string | undefined) {
     this.colorSchemeName = schemeName

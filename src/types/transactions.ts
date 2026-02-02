@@ -5,7 +5,6 @@
  * These represent the business logic and UI contracts.
  * The WatermelonDB model implements these types, not the other way around.
  */
-
 export const TransactionTypeEnum = {
   EXPENSE: "expense",
   INCOME: "income",
@@ -30,17 +29,22 @@ export interface TransactionLocation {
  */
 export interface Transaction {
   id: string
-  amount: number
-  currencyCode: string
-  type: TransactionType
-  description?: string
-  date: Date
-  categoryId?: string | null // Optional - supports uncategorized transactions
-  accountId: string
-  tags?: string[] // Computed from JSON string in model
-  location?: TransactionLocation // Computed from JSON string in model
-  isPending: boolean
+  type: TransactionType // "expense" | "income" | "transfer"
+  transactionDate: Date
   isDeleted: boolean
+  deletedAt?: Date
+  title?: string
+  description?: string
+  amount: number
+  currency: string
+  isPending: boolean
+
+  subtype?: string // More specific classification
+  extra?: Record<string, string> // Custom metadata object (stored as JSON)
+
+  categoryId?: string | null
+  accountId: string
+  location?: string
   createdAt: Date
   updatedAt: Date
 }

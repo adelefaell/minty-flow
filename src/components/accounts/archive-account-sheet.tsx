@@ -31,7 +31,6 @@ export const ArchiveAccountSheet = ({
   }
 
   // TODO: add trasnaction count here when deleting
-
   return (
     <BottomSheetModalComponent id={`archive-account-${account.id}`}>
       <View style={styles.container}>

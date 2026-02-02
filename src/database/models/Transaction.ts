@@ -9,27 +9,23 @@ import type {
 import type AccountModel from "./Account"
 import type CategoryModel from "./Category"
 
-/**
- * Transaction persistence model for WatermelonDB.
- *
- * This is a persistence adapter that stores and retrieves transaction data.
- * It adapts between the domain type (Transaction) and the database schema.
- *
- * Follows WatermelonDB schema patterns:
- * - Column names use snake_case
- * - Boolean fields start with is_
- * - Date fields end with _at and use number type (Unix timestamps)
- * - Relations require BOTH @field (for the FK column) and @relation (for the model reference)
- * - Nullable fields use !: Type | null (not ?: Type)
- */
 export default class TransactionModel extends Model implements Transaction {
   static table = "transactions"
 
-  @field("amount") amount!: number
-  @field("currency_code") currencyCode!: string
-  @field("type") type!: TransactionType
+  // Core transaction fields
+  @field("type") type!: TransactionType // "expense" | "income" | "transfer"
+  @date("transaction_date") transactionDate!: Date
+  @field("is_deleted") isDeleted!: boolean
+  @date("deleted_at") deletedAt?: Date
+  @field("title") title?: string
   @field("description") description?: string
-  @date("date") date!: Date
+  @field("amount") amount!: number
+  @field("currency") currency!: string
+  @field("is_pending") isPending!: boolean
+
+  // Additional fields
+  @field("subtype") subtype?: string
+  @field("extra") private extraJson!: string | null
 
   // Foreign key column + relation for category (nullable for uncategorized transactions)
   @field("category_id") categoryId!: string | null
@@ -39,40 +35,53 @@ export default class TransactionModel extends Model implements Transaction {
   @field("account_id") accountId!: string
   @relation("accounts", "account_id") account!: AccountModel
 
-  @field("tags") tagsJson?: string // JSON array - stored as string for WatermelonDB
-  @field("location") locationJson?: string // JSON object - stored as string for WatermelonDB
-  @field("is_pending") isPending!: boolean
-  @field("is_deleted") isDeleted!: boolean
+  @field("location") private locationJson!: string | null
+
   @date("created_at") createdAt!: Date
   @date("updated_at") updatedAt!: Date
 
+  /* ---------------- Domain adapters ---------------- */
+
   /**
-   * Gets tags as an array.
-   * This computed property satisfies the domain type's tags?: string[] requirement.
+   * Gets extra metadata as an object.
+   * Returns parsed JSON or undefined if empty.
    */
-  get tags(): string[] | undefined {
-    if (!this.tagsJson) return undefined
+  get extra(): Record<string, string> | undefined {
+    if (!this.extraJson) return undefined
     try {
-      const parsed = JSON.parse(this.tagsJson) as string[]
-      return parsed.length > 0 ? parsed : undefined
+      return JSON.parse(this.extraJson) as Record<string, string>
     } catch {
       return undefined
     }
   }
 
   /**
-   * Sets tags from an array.
+   * Sets extra metadata from an object.
    */
-  set tags(value: string[] | undefined) {
-    this.tagsJson =
-      value && value.length > 0 ? JSON.stringify(value) : undefined
+  set extra(value: Record<string, string> | undefined) {
+    this.extraJson = value ? JSON.stringify(value) : null
   }
 
   /**
-   * Gets location as an object.
-   * This computed property satisfies the domain type's location?: TransactionLocation requirement.
+   * Gets location as a string (as per the Transaction interface).
+   * Returns the raw JSON string stored in the database.
    */
-  get location(): TransactionLocation | undefined {
+  get location(): string | undefined {
+    return this.locationJson || undefined
+  }
+
+  /**
+   * Sets location from a string.
+   */
+  set location(value: string | undefined) {
+    this.locationJson = value || null
+  }
+
+  /**
+   * Helper method to get location as an object.
+   * Use this when you need to work with the parsed location data.
+   */
+  getLocationObject(): TransactionLocation | undefined {
     if (!this.locationJson) return undefined
     try {
       return JSON.parse(this.locationJson) as TransactionLocation
@@ -82,29 +91,10 @@ export default class TransactionModel extends Model implements Transaction {
   }
 
   /**
-   * Sets location from an object.
+   * Helper method to set location from an object.
+   * Use this when you want to store location data.
    */
-  set location(value: TransactionLocation | undefined) {
-    this.locationJson = value ? JSON.stringify(value) : undefined
-  }
-
-  /**
-   * Legacy getter methods for backward compatibility.
-   * @deprecated Use tags and location properties directly
-   */
-  get tagsArray(): string[] {
-    return this.tags ?? []
-  }
-
-  setTagsArray(tags: string[]) {
-    this.tags = tags
-  }
-
-  get locationObject(): TransactionLocation | undefined {
-    return this.location
-  }
-
-  setLocationObject(location: TransactionLocation | undefined) {
-    this.location = location
+  setLocationObject(value: TransactionLocation | undefined): void {
+    this.locationJson = value ? JSON.stringify(value) : null
   }
 }

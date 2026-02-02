@@ -7,7 +7,7 @@ import { appSchema, tableSchema } from "@nozbe/watermelondb"
  * Each table represents a collection of models that can be queried and manipulated.
  */
 export const schema = appSchema({
-  version: 4,
+  version: 5,
   tables: [
     // Categories table - stores transaction categories
     tableSchema({
@@ -29,7 +29,7 @@ export const schema = appSchema({
       name: "accounts",
       columns: [
         { name: "name", type: "string" },
-        { name: "type", type: "string" }, // e.g., "checking", "savings", "credit"
+        { name: "type", type: "string" }, // e.g., "checking" "savings", "credit"
         { name: "balance", type: "number" },
         { name: "currency_code", type: "string" },
         { name: "icon", type: "string", isOptional: true },
@@ -47,22 +47,24 @@ export const schema = appSchema({
     tableSchema({
       name: "transactions",
       columns: [
-        { name: "amount", type: "number" },
-        { name: "currency_code", type: "string" },
-        { name: "type", type: "string" }, // "expense" | "income" | "transfer"
-        { name: "description", type: "string", isOptional: true },
-        { name: "date", type: "number" },
-        {
-          name: "category_id",
-          type: "string",
-          isIndexed: true,
-          isOptional: true,
-        },
-        { name: "account_id", type: "string", isIndexed: true },
-        { name: "tags", type: "string", isOptional: true }, // JSON array of tags
-        { name: "location", type: "string", isOptional: true }, // JSON object
-        { name: "is_pending", type: "boolean" },
+        { name: "transaction_date", type: "number" },
         { name: "is_deleted", type: "boolean" },
+        { name: "deleted_at", type: "number", isOptional: true },
+        { name: "title", type: "string", isOptional: true },
+        { name: "description", type: "string", isOptional: true },
+        { name: "amount", type: "number" },
+        { name: "currency", type: "string" },
+        { name: "is_pending", type: "boolean" },
+
+        // CLEAR PURPOSE:
+        { name: "type", type: "string" }, // ADD THIS: "expense" | "income" | "transfer"
+        { name: "subtype", type: "string", isOptional: true }, // "recurring" | "one-time" | "subscription" etc.
+        { name: "extra", type: "string", isOptional: true }, // JSON for custom metadata
+        // REMOVE extra_tags - use transaction_tags join table instead
+
+        { name: "category_id", type: "string", isIndexed: true },
+        { name: "account_id", type: "string", isIndexed: true },
+        { name: "location", type: "string", isOptional: true },
         { name: "created_at", type: "number" },
         { name: "updated_at", type: "number" },
       ],
@@ -79,6 +81,24 @@ export const schema = appSchema({
         { name: "transaction_count", type: "number" }, // Track how many times tag is used
         { name: "created_at", type: "number" },
         { name: "updated_at", type: "number" },
+      ],
+    }),
+
+    // Join table for Transactions and Tags
+    tableSchema({
+      name: "transaction_tags",
+      columns: [
+        { name: "transaction_id", type: "string", isIndexed: true },
+        { name: "tag_id", type: "string", isIndexed: true },
+      ],
+    }),
+
+    // Join table for Transactions and Attachments
+    tableSchema({
+      name: "transaction_attachments",
+      columns: [
+        { name: "transaction_id", type: "string", isIndexed: true },
+        { name: "attachment_id", type: "string", isIndexed: true },
       ],
     }),
 

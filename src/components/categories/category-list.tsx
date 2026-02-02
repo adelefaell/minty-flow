@@ -14,6 +14,7 @@ import { modelToCategory } from "~/database/utils/model-to-category"
 import { NewEnum } from "~/types/new"
 import type { TransactionType } from "~/types/transactions"
 
+import { Separator } from "../ui/separator"
 import { CategoryRow } from "./category-row"
 
 interface CategoryListProps {
@@ -92,31 +93,34 @@ const CategoryListInner = ({
     }
 
     return (
-      <View style={styles.headerContainer}>
-        <Button
-          variant="secondary"
-          size="default"
-          onPress={handleAddCategory}
-          style={styles.headerButton}
-        >
-          <IconSymbol name="plus" size={20} />
-          <Text variant="default" style={styles.headerButtonText}>
-            Add New Category
-          </Text>
-        </Button>
-        <Button
-          variant="secondary"
-          size="default"
-          onPress={handleAddFromPresets}
-          style={styles.headerButton}
-        >
-          <IconSymbol name="shape-plus" size={20} />
-          <Text variant="default" style={styles.headerButtonText}>
-            Add From Presets
-          </Text>
-        </Button>
-        <View style={styles.separator} />
-      </View>
+      <>
+        <View style={styles.headerContainer}>
+          <Button
+            variant="secondary"
+            size="default"
+            onPress={handleAddCategory}
+            style={styles.headerButton}
+          >
+            <IconSymbol name="plus" size={20} />
+            <Text variant="default" style={styles.headerButtonText}>
+              Add New Category
+            </Text>
+          </Button>
+          <Button
+            variant="secondary"
+            size="default"
+            onPress={handleAddFromPresets}
+            style={styles.headerButton}
+          >
+            <IconSymbol name="shape-plus" size={20} />
+            <Text variant="default" style={styles.headerButtonText}>
+              Add From Presets
+            </Text>
+          </Button>
+        </View>
+
+        <Separator />
+      </>
     )
   }
 
@@ -206,8 +210,6 @@ const CategoryListInner = ({
 
 const styles = StyleSheet.create((theme) => ({
   listContent: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
     paddingBottom: 100,
     gap: 8,
   },
@@ -227,13 +229,6 @@ const styles = StyleSheet.create((theme) => ({
   headerButtonText: {
     fontSize: 16,
     fontWeight: "600",
-  },
-  separator: {
-    height: 1,
-    backgroundColor: theme.colors.onSurface,
-    opacity: 0.1,
-    marginTop: 4,
-    marginBottom: 8,
   },
   emptyWrapper: {
     flex: 1,
