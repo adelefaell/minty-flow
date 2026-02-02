@@ -20,7 +20,6 @@ import { KeyboardStickyViewMinty } from "~/components/keyboard-sticky-view-minty
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Input } from "~/components/ui/input"
-import { Money } from "~/components/ui/money"
 import { Pressable } from "~/components/ui/pressable"
 import { Separator } from "~/components/ui/separator"
 import { Switch } from "~/components/ui/switch"
@@ -47,6 +46,7 @@ import { type Account, AccountTypeEnum } from "~/types/accounts"
 import { NewEnum } from "~/types/new"
 import { accountTypesList } from "~/utils/account-types-list"
 import { logger } from "~/utils/logger"
+import { formatDisplayValue } from "~/utils/number-format"
 import { Toast } from "~/utils/toast"
 
 interface EditAccountScreenProps {
@@ -359,21 +359,22 @@ const EditAccountScreenInner = ({
             <Controller
               control={control}
               name="balance"
-              render={({ field: { value } }) => (
-                <Pressable
-                  style={styles.balanceContainer}
-                  onPress={() => calculatorSheet.present()}
-                >
-                  <Money
-                    value={value}
-                    currency={formCurrencyCode}
-                    style={styles.balanceValue}
-                  />
-                  <Text variant="muted" style={styles.updateBalanceLabel}>
-                    Update balance
-                  </Text>
-                </Pressable>
-              )}
+              render={({ field: { value } }) => {
+                const formatted = formatDisplayValue(value, {
+                  currency: formCurrencyCode,
+                })
+                return (
+                  <Pressable
+                    style={styles.balanceContainer}
+                    onPress={() => calculatorSheet.present()}
+                  >
+                    <Text style={styles.balanceValue}>{formatted}</Text>
+                    <Text variant="muted" style={styles.updateBalanceLabel}>
+                      Update balance
+                    </Text>
+                  </Pressable>
+                )
+              }}
             />
           </View>
 

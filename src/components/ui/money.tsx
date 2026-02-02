@@ -4,10 +4,7 @@ import type { StyleProp, TextStyle } from "react-native"
 // import { StyleSheet } from "react-native-unistyles"
 
 import { Text, type TextVariant } from "~/components/ui/text"
-import {
-  type MoneyFormatType,
-  useMoneyFormattingStore,
-} from "~/stores/money-formatting.store"
+import { useMoneyFormattingStore } from "~/stores/money-formatting.store"
 import { formatDisplayValue } from "~/utils/number-format"
 
 export interface MoneyProps {
@@ -23,7 +20,6 @@ export interface MoneyProps {
   addParentheses?: boolean
   disablePrivacyMode?: boolean
   variant?: TextVariant
-  currencyDisplay?: MoneyFormatType
 }
 
 /**

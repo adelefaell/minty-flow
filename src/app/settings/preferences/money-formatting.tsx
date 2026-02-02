@@ -52,7 +52,6 @@ export default function MoneyFormattingScreen() {
           value={exampleAmount}
           variant="h2"
           currency={preferredCurrency}
-          currencyDisplay={currencyLook}
         />
 
         <Text variant="small" style={styles.previewDescription}>
