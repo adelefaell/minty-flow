@@ -6,6 +6,7 @@ import { StyleSheet } from "react-native-unistyles"
 import { DynamicIcon } from "~/components/dynamic-icon"
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
+import { Money } from "~/components/ui/money"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import type AccountModel from "~/database/models/Account"
@@ -74,10 +75,7 @@ const AccountDetailsScreenInner = ({ accountModel }: AccountDetailsProps) => {
         <Text variant="default" style={styles.accountType}>
           {account.type.toUpperCase()}
         </Text>
-        <Text variant="h1" style={styles.balance}>
-          {/* TODO: Format currency properly */}
-          {account.currencyCode} {account.balance.toFixed(2)}
-        </Text>
+        <Money value={account.balance} variant="h1" style={styles.balance} />
       </View>
 
       <View style={styles.content}>
