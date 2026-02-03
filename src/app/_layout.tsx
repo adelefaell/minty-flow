@@ -49,27 +49,36 @@ export default function RootLayout() {
                 name="settings/categories/categories-view"
                 options={{ presentation: "modal", title: "Categories" }}
               />
+
+              <Stack.Screen
+                name="settings/categories/[categoryId]/index"
+                options={{
+                  presentation: "modal",
+                  title: "Category Details",
+                }}
+              />
+
               <Stack.Screen
                 name="settings/categories/presets"
                 options={{ presentation: "modal", title: "Add from Presets" }}
               />
               <Stack.Screen
-                name="settings/categories/[category-modify-id]"
+                name="settings/categories/[categoryId]/modify"
                 options={({ route }) => {
                   const params = route.params as
-                    | { "category-modify-id"?: string }
+                    | { categoryId?: string }
                     | undefined
                   return {
                     presentation: "modal",
                     title:
-                      params?.["category-modify-id"] === NewEnum.NEW
+                      params?.categoryId === NewEnum.NEW
                         ? "Create Category"
                         : "Edit Category",
                   }
                 }}
               />
               <Stack.Screen
-                name="settings/tags/tags-view"
+                name="settings/tags/index"
                 options={{ presentation: "modal", title: "Tags" }}
               />
               <Stack.Screen
@@ -77,7 +86,7 @@ export default function RootLayout() {
                 options={{ presentation: "modal", title: "Trash" }}
               />
               <Stack.Screen
-                name="settings/preferences/preferences-view"
+                name="settings/preferences/index"
                 options={{ presentation: "modal", title: "Preferences" }}
               />
               <Stack.Screen
@@ -155,22 +164,22 @@ export default function RootLayout() {
                 }}
               />
               <Stack.Screen
-                name="accounts/[accountId]"
+                name="accounts/[accountId]/index"
                 options={{
                   presentation: "modal",
                   title: "Account Details",
                 }}
               />
               <Stack.Screen
-                name="accounts/[account-modify-id]"
+                name="accounts/[accountId]/modify"
                 options={({ route }) => {
                   const params = route.params as
-                    | { "account-modify-id"?: string }
+                    | { accountId?: string }
                     | undefined
                   return {
                     presentation: "modal",
                     title:
-                      params?.["account-modify-id"] === NewEnum.NEW
+                      params?.accountId === NewEnum.NEW
                         ? "Create Account"
                         : "Edit Account",
                   }
@@ -184,17 +193,13 @@ export default function RootLayout() {
                 }}
               />
               <Stack.Screen
-                name="settings/tags/[tag-modify-id]"
+                name="settings/tags/[tagId]"
                 options={({ route }) => {
-                  const params = route.params as
-                    | { "tag-modify-id"?: string }
-                    | undefined
+                  const params = route.params as { tagId?: string } | undefined
                   return {
                     presentation: "modal",
                     title:
-                      params?.["tag-modify-id"] === NewEnum.NEW
-                        ? "Create Tag"
-                        : "Edit Tag",
+                      params?.tagId === NewEnum.NEW ? "Create Tag" : "Edit Tag",
                   }
                 }}
               />

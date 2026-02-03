@@ -19,17 +19,17 @@ export const CategoryRow = ({
 }: CategoryRowProps) => {
   const router = useRouter()
 
-  const handleEdit = () => {
+  const handleView = () => {
     router.push({
-      pathname: "/settings/categories/[category-modify-id]",
+      pathname: "/settings/categories/[categoryId]",
       params: {
-        "category-modify-id": category.id,
+        categoryId: category.id,
       },
     })
   }
 
   return (
-    <Pressable style={styles.row} onPress={handleEdit}>
+    <Pressable style={styles.row} onPress={handleView}>
       <View style={styles.rowContent}>
         {/* Icon/Color indicator */}
         <DynamicIcon

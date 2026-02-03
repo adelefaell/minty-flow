@@ -1,8 +1,7 @@
 import * as Haptics from "expo-haptics"
-import { useRef, useState } from "react"
-import PagerView, {
-  type PagerViewOnPageSelectedEvent,
-} from "react-native-pager-view"
+import { useLocalSearchParams } from "expo-router"
+import { useEffect } from "react"
+import PagerView, { usePagerView } from "react-native-pager-view"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
@@ -29,36 +28,23 @@ const tabs: TabConfig[] = [
 ]
 
 const TabLayout = () => {
-  const pagerRef = useRef<PagerView>(null)
-  const [activePage, setActivePage] = useState(0)
   const insets = useSafeAreaInsets()
   const { theme } = useUnistyles()
-
-  const onPageSelected = (e: PagerViewOnPageSelectedEvent) => {
-    setActivePage(e.nativeEvent.position)
-    if (process.env.EXPO_OS === "ios") {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-    }
-  }
-
-  const goTo = (index: number) => {
-    pagerRef.current?.setPage(index)
-    if (process.env.EXPO_OS === "ios") {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-    }
-  }
+  const { initialPage } = useLocalSearchParams() // from expo-router
+  const { ref: pagerRef, activePage, setPage } = usePagerView()
 
   const isActiveTab = (index: number) =>
     activePage === index ? { opacity: 1 } : { opacity: 0.8 }
 
+  useEffect(() => {
+    if (initialPage != null && Number(initialPage) !== activePage) {
+      setPage(Number(initialPage))
+    }
+  }, [initialPage, activePage, setPage])
+
   return (
     <View style={styles.container}>
-      <PagerView
-        ref={pagerRef}
-        style={styles.pager}
-        initialPage={0}
-        onPageSelected={onPageSelected}
-      >
+      <PagerView ref={pagerRef} style={styles.pager} initialPage={0}>
         {tabs.map((tab) => (
           <View key={tab.key} style={styles.page}>
             <tab.component />
@@ -78,7 +64,7 @@ const TabLayout = () => {
             <Button
               variant="link"
               size="icon"
-              onPress={() => goTo(0)}
+              onPress={() => setPage(0)}
               style={styles.tabButton}
             >
               <IconSymbol name="circle" style={isActiveTab(0)} />
@@ -89,7 +75,7 @@ const TabLayout = () => {
             <Button
               variant="link"
               size="icon"
-              onPress={() => goTo(1)}
+              onPress={() => setPage(1)}
               style={styles.tabButton}
             >
               <IconSymbol name="chart-box" style={isActiveTab(1)} />
@@ -119,7 +105,7 @@ const TabLayout = () => {
             <Button
               variant="link"
               size="icon"
-              onPress={() => goTo(2)}
+              onPress={() => setPage(2)}
               style={styles.tabButton}
             >
               <IconSymbol name="wallet-bifold" style={isActiveTab(2)} />
@@ -130,7 +116,7 @@ const TabLayout = () => {
             <Button
               variant="link"
               size="icon"
-              onPress={() => goTo(3)}
+              onPress={() => setPage(3)}
               style={styles.tabButton}
             >
               <IconSymbol name="cog" style={isActiveTab(3)} />

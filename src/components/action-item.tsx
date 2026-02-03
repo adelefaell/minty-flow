@@ -22,9 +22,9 @@ export const ActionItem = ({
 }: ActionItemProps) => {
   return (
     <Pressable
-      style={(state) => [
+      style={() => [
         styles.actionItem,
-        state.pressed && styles.actionItemPressed,
+        // state.pressed && styles.actionItemPressed,
         soon && { opacity: 0.5 },
       ]}
       onPress={onPress}
@@ -65,9 +65,9 @@ const styles = StyleSheet.create((theme) => ({
     paddingHorizontal: 20,
     // backgroundColor: theme.card,
   },
-  actionItemPressed: {
-    opacity: 0.8,
-  },
+  // actionItemPressed: {
+  //   opacity: 0.8,
+  // },
   actionItemLeft: {
     flexDirection: "row",
     alignItems: "center",

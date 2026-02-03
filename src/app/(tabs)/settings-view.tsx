@@ -35,7 +35,7 @@ const moneyManagementItems: SettingsItem[] = [
     id: "tags",
     title: "Tags",
     description: "Manage your transaction tags",
-    route: "/settings/tags/tags-view",
+    route: "/settings/tags",
     icon: "tag-multiple",
   },
   {
@@ -80,7 +80,7 @@ const otherSettingsItems: SettingsItem[] = [
     id: "preferences",
     title: "Preferences",
     description: "General preferences",
-    route: "/settings/preferences/preferences-view",
+    route: "/settings/preferences",
     icon: "puzzle-edit",
   },
   {

@@ -6,22 +6,22 @@ import { StyleSheet } from "react-native-unistyles"
 import { DynamicIcon } from "~/components/dynamic-icon"
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
-import { Money } from "~/components/ui/money"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import type AccountModel from "~/database/models/Account"
-import { observeAccountById } from "~/database/services/account-service"
-import { modelToAccount } from "~/database/utils/model-to-account"
+import type CategoryModel from "~/database/models/Category"
+import { observeCategoryById } from "~/database/services/category-service"
+import { modelToCategory } from "~/database/utils/model-to-category"
 import { getThemeStrict } from "~/styles/theme/registry"
 
-interface AccountDetailsProps {
-  accountModel: AccountModel
+interface CategoryDetailsProps {
+  categoryModel: CategoryModel
 }
 
-const AccountDetailsScreenInner = ({ accountModel }: AccountDetailsProps) => {
+const CategoryDetailsScreenInner = ({
+  categoryModel,
+}: CategoryDetailsProps) => {
   // Convert models to domain types
-  const account = modelToAccount(accountModel)
-
+  const category = modelToCategory(categoryModel)
   const router = useRouter()
   const navigation = useNavigation()
 
@@ -33,8 +33,8 @@ const AccountDetailsScreenInner = ({ accountModel }: AccountDetailsProps) => {
           size="icon"
           onPress={() =>
             router.push({
-              pathname: "/accounts/[account-modify-id]",
-              params: { "account-modify-id": account.id },
+              pathname: "/settings/categories/[categoryId]/modify",
+              params: { categoryId: category.id },
             })
           }
         >
@@ -42,21 +42,21 @@ const AccountDetailsScreenInner = ({ accountModel }: AccountDetailsProps) => {
         </Button>
       ),
     })
-  }, [navigation, router, account.id])
+  }, [navigation, router, category.id])
 
-  if (!account) {
+  if (!category) {
     return (
       <View style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Text variant="default">Loading account...</Text>
+          <Text variant="default">Loading category...</Text>
         </View>
       </View>
     )
   }
 
-  const colorScheme = getThemeStrict(account.colorSchemeName)
-  // Fallback if theme lookup fails, use account.color or default
-  const iconColor = colorScheme?.primary || account.colorSchemeName || "#CCCCCC"
+  const colorScheme = getThemeStrict(category.colorSchemeName)
+  // Fallback if theme lookup fails, use category.color or default
+  const iconColor = colorScheme?.primary || category.colorSchemeName
   const iconBgColor = colorScheme?.secondary || `${iconColor}20`
 
   return (
@@ -64,18 +64,17 @@ const AccountDetailsScreenInner = ({ accountModel }: AccountDetailsProps) => {
       <View style={styles.header}>
         <View style={[styles.iconContainer, { backgroundColor: iconBgColor }]}>
           <DynamicIcon
-            icon={account.icon || "wallet-bifold-outline"}
+            icon={category.icon || "shapes"}
             size={40}
             color={iconColor}
           />
         </View>
-        <Text variant="h3" style={styles.accountName}>
-          {account.name}
+        <Text variant="h3" style={styles.categoryName}>
+          {category.name}
         </Text>
-        <Text variant="default" style={styles.accountType}>
-          {account.type.toUpperCase()}
+        <Text variant="default" style={styles.categoryType}>
+          {category.type.toUpperCase()}
         </Text>
-        <Money value={account.balance} variant="h1" style={styles.balance} />
       </View>
 
       <View style={styles.content}>
@@ -115,12 +114,12 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: "center",
     marginBottom: 8,
   },
-  accountName: {
+  categoryName: {
     fontSize: 20,
     fontWeight: "600",
     color: theme.colors.onSurface,
   },
-  accountType: {
+  categoryType: {
     fontSize: 12,
     color: theme.colors.customColors.semi,
     letterSpacing: 1,
@@ -147,17 +146,17 @@ const styles = StyleSheet.create((theme) => ({
   },
 }))
 
-const EnhancedAccountDetailsScreen = withObservables(
-  ["accountId"],
-  ({ accountId }) => ({
-    accountModel: observeAccountById(accountId),
+const EnhancedCategoryDetailsScreen = withObservables(
+  ["categoryId"],
+  ({ categoryId }) => ({
+    categoryModel: observeCategoryById(categoryId),
   }),
-)(AccountDetailsScreenInner)
+)(CategoryDetailsScreenInner)
 
-export default function AccountDetailsScreen() {
-  const { accountId } = useLocalSearchParams<{ accountId: string }>()
+export default function CategoryDetailsScreen() {
+  const { categoryId } = useLocalSearchParams<{ categoryId: string }>()
 
-  if (!accountId) return null
+  if (!categoryId) return null
 
-  return <EnhancedAccountDetailsScreen accountId={accountId} />
+  return <EnhancedCategoryDetailsScreen categoryId={categoryId} />
 }

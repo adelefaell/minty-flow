@@ -65,9 +65,9 @@ const CategoryListInner = ({
 
   const handleAddCategory = () => {
     router.push({
-      pathname: "/settings/categories/[category-modify-id]",
+      pathname: "/settings/categories/[categoryId]/modify",
       params: {
-        "category-modify-id": NewEnum.NEW,
+        categoryId: NewEnum.NEW,
         initialType: type,
       },
     })

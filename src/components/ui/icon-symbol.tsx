@@ -116,6 +116,8 @@ export const VALID_ICON_NAMES = defineValidIcons([
   "open-in-new",
   "asterisk",
   "shield-alert",
+  "vibrate",
+  "vibrate-off",
 ] as const)
 
 /**

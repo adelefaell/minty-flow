@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { withObservables } from "@nozbe/watermelondb/react"
 import type { EventArg } from "@react-navigation/native"
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router"
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
@@ -62,6 +62,21 @@ const EditAccountScreenInner = ({
 }: EditAccountScreenProps) => {
   const router = useRouter()
   const isAddMode = accountId === NewEnum.NEW || !accountId
+  const handleGoBack = useCallback(() => {
+    if (account?.id) {
+      router.replace({
+        pathname: "/accounts/[accountId]",
+        params: {
+          accountId: account?.id,
+        },
+      })
+    } else {
+      router.replace({
+        pathname: "/(tabs)",
+        params: { initialPage: 2 },
+      })
+    }
+  }, [account?.id, router.replace])
 
   // Form state management with Zod validation
   const {
@@ -136,7 +151,7 @@ const EditAccountScreenInner = ({
         unsavedChangesWarning.show(
           () => {
             isNavigatingRef.current = true
-            router.back()
+            handleGoBack()
           },
           () => {},
         )
@@ -144,7 +159,7 @@ const EditAccountScreenInner = ({
     )
 
     return unsubscribe
-  }, [navigation, isDirty, isSubmitting, router, unsavedChangesWarning])
+  }, [navigation, isDirty, isSubmitting, unsavedChangesWarning, handleGoBack])
 
   const onSubmit = async (data: AddAccountsFormSchema) => {
     setIsSubmitting(true)
@@ -163,7 +178,7 @@ const EditAccountScreenInner = ({
         })
 
         isNavigatingRef.current = true
-        router.back()
+        handleGoBack()
       } else {
         if (!accountModel) {
           Toast.error({ title: "Error", description: "Account not found" })
@@ -183,7 +198,7 @@ const EditAccountScreenInner = ({
         })
 
         isNavigatingRef.current = true
-        router.back()
+        handleGoBack()
       }
     } catch (error) {
       logger.error("Error saving account", { error })
@@ -197,7 +212,6 @@ const EditAccountScreenInner = ({
   }
 
   const handleSubmit = handleFormSubmit(onSubmit)
-  const handleCancel = () => router.back()
 
   const handleDelete = async () => {
     try {
@@ -210,7 +224,9 @@ const EditAccountScreenInner = ({
       })
 
       isNavigatingRef.current = true
-      router.back()
+      router.replace({
+        pathname: "/accounts/archived-accounts",
+      })
     } catch (error) {
       logger.error("Error deleting account", { error })
       Toast.error({
@@ -234,7 +250,10 @@ const EditAccountScreenInner = ({
       })
 
       isNavigatingRef.current = true
-      router.back()
+      router.replace({
+        pathname: "/(tabs)",
+        params: { initialPage: 2 },
+      })
     } catch (error) {
       logger.error("Error archiving account", { error })
       Toast.error({
@@ -258,7 +277,10 @@ const EditAccountScreenInner = ({
       })
 
       isNavigatingRef.current = true
-      router.back()
+      router.replace({
+        pathname: "/(tabs)",
+        params: { initialPage: 2 },
+      })
     } catch (error) {
       logger.error("Error restoring account", { error })
       Toast.error({
@@ -589,7 +611,7 @@ const EditAccountScreenInner = ({
         <View style={styles.actions}>
           <Button
             variant="outline"
-            onPress={handleCancel}
+            onPress={handleGoBack}
             style={styles.button}
           >
             <Text variant="default" style={styles.cancelText}>
@@ -686,8 +708,8 @@ const EnhancedEditScreen = withObservables(["accountId"], ({ accountId }) => ({
 )
 
 export default function EditAccountScreen() {
-  const params = useLocalSearchParams<{ "account-modify-id": string }>()
-  const accountId = params["account-modify-id"]
+  const params = useLocalSearchParams<{ accountId: string }>()
+  const accountId = params.accountId
   const isAddMode = accountId === NewEnum.NEW || !accountId
 
   if (isAddMode) {

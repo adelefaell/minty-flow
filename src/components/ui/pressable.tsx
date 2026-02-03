@@ -4,12 +4,37 @@ import {
 } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
+import { useAndroidSoundStore } from "~/stores/android-sound.store"
+
 export interface PressableProps extends RNPressableProps {
   native?: boolean
+  disableRipple?: boolean
 }
 
-export const Pressable = ({ native, style, ...props }: PressableProps) => {
-  if (native) return <RNPressable style={style} {...props} />
+export const Pressable = ({
+  native,
+  style,
+  disableRipple,
+  ...props
+}: PressableProps) => {
+  const disableSound = useAndroidSoundStore((s) => s.disableSound)
+
+  const sharedRipple = disableRipple
+    ? undefined
+    : {
+        color: pressableStyles.ripple.color,
+        foreground: true, // <-- KEY TO MAKE IT SHOW
+      }
+
+  if (native)
+    return (
+      <RNPressable
+        style={style}
+        android_disableSound={disableSound}
+        android_ripple={sharedRipple}
+        {...props}
+      />
+    )
 
   return (
     <RNPressable
@@ -18,10 +43,8 @@ export const Pressable = ({ native, style, ...props }: PressableProps) => {
           ? (state) => [style(state), pressableStyles.base]
           : [style, pressableStyles.base]
       }
-      android_ripple={{
-        color: pressableStyles.ripple.color,
-        foreground: true, // <-- KEY TO MAKE IT SHOW
-      }}
+      android_ripple={sharedRipple}
+      android_disableSound={disableSound}
       {...props}
     />
   )

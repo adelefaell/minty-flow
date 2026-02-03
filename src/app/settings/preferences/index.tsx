@@ -3,9 +3,11 @@ import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
 import { ActionItem } from "~/components/action-item"
+import { ToggleItem } from "~/components/toggle-item"
 import type { IconSymbolName } from "~/components/ui/icon-symbol"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
+import { useAndroidSoundStore } from "~/stores/android-sound.store"
 
 interface PreferenceItem {
   id: string
@@ -93,6 +95,8 @@ const otherPreferenceItems: PreferenceItem[] = [
 
 export default function PreferencesScreen() {
   const router = useRouter()
+  const setSoundEnabled = useAndroidSoundStore((s) => s.setSoundEnabled)
+  const disableSound = useAndroidSoundStore((s) => s.disableSound)
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -128,6 +132,21 @@ export default function PreferencesScreen() {
           ))}
         </View>
       </View>
+
+      {/* Feedback Section */}
+      <View style={styles.section}>
+        <Text variant="h4" style={styles.sectionTitle}>
+          Button Feedback
+        </Text>
+        <View style={styles.itemsList}>
+          <ToggleItem
+            icon={disableSound ? "vibrate-off" : "vibrate"}
+            title="Sound/Hapttic feedback upon click"
+            value={!disableSound}
+            onValueChange={(enabled) => setSoundEnabled(enabled)}
+          />
+        </View>
+      </View>
     </ScrollView>
   )
 }
@@ -141,12 +160,13 @@ const styles = StyleSheet.create((theme) => ({
     paddingBottom: 40,
   },
   section: {
-    marginBlock: 10,
+    marginVertical: 10,
   },
   sectionTitle: {
     fontWeight: "600",
     color: theme.colors.onSurface,
     paddingHorizontal: 20,
+    paddingBottom: 10,
   },
   itemsList: {
     gap: 0,

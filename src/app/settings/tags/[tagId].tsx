@@ -635,8 +635,8 @@ const EnhancedEditTagScreen = withObservables(
 })
 
 export default function EditTagScreen() {
-  const { "tag-modify-id": tagId } = useLocalSearchParams<{
-    "tag-modify-id": string
+  const { tagId } = useLocalSearchParams<{
+    tagId: string
   }>()
   if (tagId === NewEnum.NEW || !tagId)
     return <EditTagScreenInner tagId={NewEnum.NEW} />

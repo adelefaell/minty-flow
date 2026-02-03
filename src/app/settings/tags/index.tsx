@@ -33,8 +33,8 @@ const TagsScreenInner = ({ tagModels }: TagsScreenInnerProps) => {
 
   const handleAddTag = () => {
     router.push({
-      pathname: "/settings/tags/[tag-modify-id]",
-      params: { "tag-modify-id": NewEnum.NEW },
+      pathname: "/settings/tags/[tagId]",
+      params: { tagId: NewEnum.NEW },
     })
   }
 

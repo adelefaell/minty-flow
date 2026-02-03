@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { withObservables } from "@nozbe/watermelondb/react"
 import type { EventArg } from "@react-navigation/native"
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router"
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
@@ -18,6 +18,7 @@ import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Input } from "~/components/ui/input"
 import { Pressable } from "~/components/ui/pressable"
+import { Separator } from "~/components/ui/separator"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import {
@@ -57,7 +58,24 @@ const EditCategoryScreenInner = ({
   category,
 }: EditCategoryScreenProps) => {
   const router = useRouter()
+
   const isAddMode = categoryModifyId === NewEnum.NEW || !categoryModifyId
+
+  const handleGoBack = useCallback(() => {
+    if (category?.id) {
+      router.replace({
+        pathname: "/settings/categories/[categoryId]",
+        params: {
+          categoryId: category?.id,
+        },
+      })
+    } else {
+      router.replace({
+        pathname: "/settings/categories/categories-view",
+      })
+    }
+  }, [category?.id, router.replace])
+
   const TransactionType = isAddMode
     ? initialType || category?.type || TransactionTypeEnum.EXPENSE
     : category?.type || TransactionTypeEnum.EXPENSE
@@ -126,7 +144,7 @@ const EditCategoryScreenInner = ({
           () => {
             // User confirmed - allow navigation
             isNavigatingRef.current = true
-            router.back()
+            handleGoBack()
           },
           () => {
             // User cancelled - do nothing
@@ -136,7 +154,7 @@ const EditCategoryScreenInner = ({
     )
 
     return unsubscribe
-  }, [navigation, isDirty, isSubmitting, router, unsavedChangesWarning])
+  }, [navigation, isDirty, isSubmitting, unsavedChangesWarning, handleGoBack])
 
   const onSubmit = async (data: AddCategoriesFormSchema) => {
     const trimmedName = data.name.trim()
@@ -159,7 +177,7 @@ const EditCategoryScreenInner = ({
 
         // Navigate back after successful creation
         isNavigatingRef.current = true
-        router.back()
+        handleGoBack()
       } else {
         // Update existing category
         if (!categoryModel) {
@@ -184,7 +202,7 @@ const EditCategoryScreenInner = ({
 
         // Navigate back after successful update
         isNavigatingRef.current = true
-        router.back()
+        handleGoBack()
       }
     } catch (error) {
       logger.error("Error saving category", { error })
@@ -198,10 +216,6 @@ const EditCategoryScreenInner = ({
   }
 
   const handleSubmit = handleFormSubmit(onSubmit)
-
-  const handleCancel = () => {
-    router.back()
-  }
 
   const handleDelete = async () => {
     try {
@@ -232,7 +246,9 @@ const EditCategoryScreenInner = ({
 
       // Navigate back after successful deletion
       isNavigatingRef.current = true
-      router.back()
+      router.replace({
+        pathname: "/settings/categories/categories-view",
+      })
     } catch (error) {
       logger.error("Error deleting category", { error })
       Toast.error({
@@ -264,7 +280,9 @@ const EditCategoryScreenInner = ({
 
       // Navigate back after successful archiving
       isNavigatingRef.current = true
-      router.back()
+      router.replace({
+        pathname: "/settings/categories/categories-view",
+      })
     } catch (error) {
       logger.error("Error archiving category", { error })
       Toast.error({
@@ -296,7 +314,7 @@ const EditCategoryScreenInner = ({
 
       // Navigate back after successful restoration
       isNavigatingRef.current = true
-      router.back()
+      handleGoBack()
     } catch (error) {
       logger.error("Error restoring category", { error })
       Toast.error({
@@ -507,6 +525,7 @@ const EditCategoryScreenInner = ({
 
         {!isAddMode && (
           <View style={styles.deleteSection}>
+            <Separator />
             {category?.isArchived ? (
               <Button
                 variant="ghost"
@@ -571,7 +590,7 @@ const EditCategoryScreenInner = ({
         <View style={styles.actions}>
           <Button
             variant="outline"
-            onPress={handleCancel}
+            onPress={handleGoBack}
             style={styles.button}
           >
             <Text variant="default" style={styles.cancelText}>
@@ -656,26 +675,24 @@ const EnhancedEditScreen = withObservables(
 // Main component - conditionally use observable based on mode
 export default function EditCategoryScreen() {
   const params = useLocalSearchParams<{
-    "category-modify-id": string
+    categoryId: string
     initialType: TransactionType
   }>()
 
-  const isAddMode =
-    params["category-modify-id"] === NewEnum.NEW ||
-    !params["category-modify-id"]
+  const isAddMode = params.categoryId === NewEnum.NEW || !params.categoryId
 
   // Only use withObservables in edit mode
   if (isAddMode) {
     return (
       <EditCategoryScreenInner
-        categoryModifyId={params["category-modify-id"] || NewEnum.NEW}
+        categoryModifyId={params["categoryId"] || NewEnum.NEW}
         initialType={params.initialType}
       />
     )
   }
 
   // In edit mode, use the enhanced component with observable
-  return <EnhancedEditScreen categoryId={params["category-modify-id"]} />
+  return <EnhancedEditScreen categoryId={params.categoryId} />
 }
 
 const styles = StyleSheet.create((theme) => ({
@@ -687,11 +704,11 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
   },
   scrollContent: {
-    padding: 20,
     gap: 24,
     paddingBottom: 24,
   },
   form: {
+    padding: 20,
     gap: 20,
   },
   field: {
@@ -774,8 +791,6 @@ const styles = StyleSheet.create((theme) => ({
   deleteSection: {
     marginTop: 20,
     paddingBlock: 20,
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.onSurface,
     gap: 12,
   },
   actionButton: {

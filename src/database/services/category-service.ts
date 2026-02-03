@@ -89,6 +89,25 @@ export const observeCategoryById = (id: string): Observable<CategoryModel> => {
 }
 
 /**
+ * Observe a specific category by ID
+ * Observes specific columns to ensure reactivity to field changes
+ */
+export const observeCategoryByIdV2 = (
+  id: string,
+): Observable<CategoryModel[]> => {
+  return getCategoryCollection()
+    .query(Q.where("id", id))
+    .observeWithColumns([
+      "name",
+      "icon",
+      "type",
+      "color_scheme_name",
+      "transaction_count",
+      "is_archived",
+    ])
+}
+
+/**
  * Create a new category
  */
 export const createCategory = async (

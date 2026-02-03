@@ -94,8 +94,8 @@ const AccountsScreenInner = ({ accountModels }: AccountsScreenInnerProps) => {
 
   const handleAddAccount = () => {
     router.push({
-      pathname: "/accounts/[account-modify-id]",
-      params: { "account-modify-id": NewEnum.NEW },
+      pathname: "/accounts/[accountId]/modify",
+      params: { accountId: NewEnum.NEW },
     })
   }
 

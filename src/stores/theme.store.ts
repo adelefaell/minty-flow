@@ -1,7 +1,7 @@
 import { createMMKV } from "react-native-mmkv"
 import { UnistylesRuntime } from "react-native-unistyles"
 import { create } from "zustand"
-import { createJSONStorage, persist } from "zustand/middleware"
+import { createJSONStorage, devtools, persist } from "zustand/middleware"
 
 import type { ThemeKey } from "~/styles/unistyles"
 
@@ -58,32 +58,34 @@ interface ThemeStore {
  * @see https://github.com/pmndrs/zustand
  */
 export const useThemeStore = create<ThemeStore>()(
-  persist(
-    (set) => ({
-      // Default to first dark theme (electricLavender)
-      themeMode: "electricLavender",
+  devtools(
+    persist(
+      (set) => ({
+        // Default to first dark theme (electricLavender)
+        themeMode: "electricLavender",
 
-      // Actions
-      setThemeMode: (mode) => {
-        set({ themeMode: mode })
+        // Actions
+        setThemeMode: (mode) => {
+          set({ themeMode: mode })
 
-        // Update UnistylesRuntime directly when theme mode changes
-        UnistylesRuntime.setTheme(mode)
+          // Update UnistylesRuntime directly when theme mode changes
+          UnistylesRuntime.setTheme(mode)
+        },
+      }),
+      {
+        name: "theme-preferences",
+        storage: createJSONStorage(() => ({
+          getItem: (name) => themeStorage.getString(name) ?? null,
+          setItem: (name, value) => themeStorage.set(name, value),
+          removeItem: (name) => themeStorage.remove(name),
+        })),
+        onRehydrateStorage: () => (state) => {
+          // Sync UnistylesRuntime when store hydrates on app start
+          if (state?.themeMode) {
+            UnistylesRuntime.setTheme(state.themeMode)
+          }
+        },
       },
-    }),
-    {
-      name: "theme-preferences",
-      storage: createJSONStorage(() => ({
-        getItem: (name) => themeStorage.getString(name) ?? null,
-        setItem: (name, value) => themeStorage.set(name, value),
-        removeItem: (name) => themeStorage.remove(name),
-      })),
-      onRehydrateStorage: () => (state) => {
-        // Sync UnistylesRuntime when store hydrates on app start
-        if (state?.themeMode) {
-          UnistylesRuntime.setTheme(state.themeMode)
-        }
-      },
-    },
+    ),
   ),
 )

@@ -20,8 +20,8 @@ export const TagCard = ({ tag }: TagCardProps) => {
 
   const handlePress = () => {
     router.push({
-      pathname: "/settings/tags/[tag-modify-id]",
-      params: { "tag-modify-id": tag.id },
+      pathname: "/settings/tags/[tagId]",
+      params: { tagId: tag.id },
     })
   }
 
