@@ -1,8 +1,6 @@
 import { createMMKV } from "react-native-mmkv"
 import { create } from "zustand"
 import { createJSONStorage, devtools, persist } from "zustand/middleware"
-import { immer } from "zustand/middleware/immer"
-
 /**
  * Single MMKV storage for all money-related UI preferences
  */
@@ -49,39 +47,20 @@ interface MoneyFormattingStore {
 export const useMoneyFormattingStore = create<MoneyFormattingStore>()(
   devtools(
     persist(
-      immer((set) => ({
-        /* ───────── State ───────── */
-
+      (set) => ({
         preferredCurrency: "USD",
         currencyLook: MoneyFormatEnum.SYMBOL,
         privacyMode: false,
 
-        /* ───────── Actions ───────── */
+        setCurrency: (currency) => set({ preferredCurrency: currency }),
 
-        setCurrency: (currency) => {
-          set((state) => {
-            state.preferredCurrency = currency
-          })
-        },
+        setCurrencyLook: (currencyLook) => set({ currencyLook }),
 
-        setCurrencyLook: (value) => {
-          set((state) => {
-            state.currencyLook = value
-          })
-        },
+        setPrivacyMode: (privacyMode) => set({ privacyMode }),
 
-        setPrivacyMode: (value) => {
-          set((state) => {
-            state.privacyMode = value
-          })
-        },
-
-        togglePrivacyMode: () => {
-          set((state) => {
-            state.privacyMode = !state.privacyMode
-          })
-        },
-      })),
+        togglePrivacyMode: () =>
+          set((state) => ({ privacyMode: !state.privacyMode })),
+      }),
       {
         name: "money-formatting-store",
         storage: createJSONStorage(() => ({

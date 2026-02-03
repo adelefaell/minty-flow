@@ -1,6 +1,6 @@
 import { createMMKV } from "react-native-mmkv"
 import { create } from "zustand"
-import { createJSONStorage, persist } from "zustand/middleware"
+import { createJSONStorage, devtools, persist } from "zustand/middleware"
 
 import type { ToastPosition } from "./toast.store"
 
@@ -70,31 +70,34 @@ interface ToastStyleStore {
  * @see https://github.com/pmndrs/zustand
  */
 export const useToastStyleStore = create<ToastStyleStore>()(
-  persist(
-    (set) => ({
-      // Default state
-      position: "top",
-      showProgressBar: false,
-      showCloseIcon: true,
+  devtools(
+    persist(
+      (set) => ({
+        // Default state
+        position: "top",
+        showProgressBar: false,
+        showCloseIcon: true,
 
-      // Actions
-      setPosition: (position) => set({ position }),
-      setShowProgressBar: (show) => set({ showProgressBar: show }),
-      setShowCloseIcon: (show) => set({ showCloseIcon: show }),
-      resetToDefaults: () =>
-        set({
-          position: "top",
-          showProgressBar: true,
-          showCloseIcon: true,
-        }),
-    }),
-    {
-      name: "toast-style",
-      storage: createJSONStorage(() => ({
-        getItem: (name) => toastStyleStorage.getString(name) ?? null,
-        setItem: (name, value) => toastStyleStorage.set(name, value),
-        removeItem: (name) => toastStyleStorage.remove(name),
-      })),
-    },
+        // Actions
+        setPosition: (position) => set({ position }),
+        setShowProgressBar: (show) => set({ showProgressBar: show }),
+        setShowCloseIcon: (show) => set({ showCloseIcon: show }),
+        resetToDefaults: () =>
+          set({
+            position: "top",
+            showProgressBar: true,
+            showCloseIcon: true,
+          }),
+      }),
+      {
+        name: "toast-style",
+        storage: createJSONStorage(() => ({
+          getItem: (name) => toastStyleStorage.getString(name) ?? null,
+          setItem: (name, value) => toastStyleStorage.set(name, value),
+          removeItem: (name) => toastStyleStorage.remove(name),
+        })),
+      },
+    ),
+    { name: "toast-style-store-dev" },
   ),
 )

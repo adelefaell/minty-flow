@@ -1,6 +1,5 @@
 import { create } from "zustand"
 import { devtools } from "zustand/middleware"
-import { immer } from "zustand/middleware/immer"
 
 import type { CalculatorStore, Operation } from "~/types/calculator"
 import { calculateOperation } from "~/utils/calculate-operations"
@@ -18,216 +17,189 @@ const exceedsLimits = (next: string): boolean => {
   return false
 }
 
-// ------------------------
-// Refactored store
-// ------------------------
 export const useCalculatorStore = create<CalculatorStore>()(
   devtools(
-    immer((set, get) => ({
-      // -- State (separate display text from numeric value) --
+    (set, get) => ({
+      /* ───────── State ───────── */
       display: CALCULATOR_CONFIG.DEFAULT_DISPLAY,
-      // parsed numeric value of `display` (kept for convenience/performance)
       inputValue: 0,
       previousValue: null,
       operation: null,
       waitingForOperand: false,
       showCalculatorActions: false,
 
-      // -- Actions --
-      inputNumber: (num: string) => {
-        set((state) => {
-          const next = state.waitingForOperand
+      /* ───────── Actions ───────── */
+      inputNumber: (num) => {
+        const state = get()
+        const next = state.waitingForOperand
+          ? num
+          : state.display === "0"
             ? num
-            : state.display === "0"
-              ? num
-              : state.display + num
+            : state.display + num
 
-          if (exceedsLimits(next)) return
+        if (exceedsLimits(next)) return
 
-          state.display = next
-          state.inputValue = Number(next) || 0
-          state.waitingForOperand = false
-        }, false)
+        set({
+          display: next,
+          inputValue: Number(next) || 0,
+          waitingForOperand: false,
+        })
       },
 
       inputDecimal: () => {
-        set((state) => {
-          if (state.waitingForOperand) {
-            state.display = "0."
-            state.inputValue = 0
-            state.waitingForOperand = false
-            return
-          }
+        const state = get()
+        if (state.waitingForOperand) {
+          set({ display: "0.", inputValue: 0, waitingForOperand: false })
+          return
+        }
 
-          if (state.display.includes(".")) return
+        if (state.display.includes(".")) return
 
-          const next = `${state.display}.`
-          if (exceedsLimits(next)) return
+        const next = `${state.display}.`
+        if (exceedsLimits(next)) return
 
-          state.display = next
-        }, false)
+        set({ display: next })
       },
 
       clear: () => {
-        set((state) => {
-          if (state.operation !== null && state.previousValue !== null) {
-            state.display = CALCULATOR_CONFIG.DEFAULT_DISPLAY
-            state.inputValue = 0
-            state.waitingForOperand = true
-            return
-          }
+        const state = get()
+        if (state.operation !== null && state.previousValue !== null) {
+          set({
+            display: CALCULATOR_CONFIG.DEFAULT_DISPLAY,
+            inputValue: 0,
+            waitingForOperand: true,
+          })
+          return
+        }
 
-          state.display = CALCULATOR_CONFIG.DEFAULT_DISPLAY
-          state.inputValue = 0
-          state.previousValue = null
-          state.operation = null
-          state.waitingForOperand = false
-        }, false)
+        set({
+          display: CALCULATOR_CONFIG.DEFAULT_DISPLAY,
+          inputValue: 0,
+          previousValue: null,
+          operation: null,
+          waitingForOperand: false,
+        })
       },
 
       backspace: () => {
-        set((state) => {
-          if (state.display.length > 1) {
-            const next = state.display.slice(0, -1)
-            state.display = next
-            state.inputValue = Number(next) || 0
-            return
-          }
-
-          state.display = CALCULATOR_CONFIG.DEFAULT_DISPLAY
-          state.inputValue = 0
-        }, false)
+        const { display } = get()
+        if (display.length > 1) {
+          const next = display.slice(0, -1)
+          set({ display: next, inputValue: Number(next) || 0 })
+        } else {
+          set({ display: CALCULATOR_CONFIG.DEFAULT_DISPLAY, inputValue: 0 })
+        }
       },
 
       toggleSign: () => {
-        set((state) => {
-          if (state.inputValue === 0) return
-
-          const next = -state.inputValue
-          state.inputValue = next
-          state.display = next.toString()
-        }, false)
+        const { inputValue } = get()
+        if (inputValue === 0) return
+        const next = -inputValue
+        set({ inputValue: next, display: next.toString() })
       },
 
-      performOperation: (nextOperation: Operation) => {
-        const { showCalculatorActions, toggleCalculatorActions } = get()
-        if (!showCalculatorActions) toggleCalculatorActions()
+      performOperation: (nextOperation) => {
+        const state = get()
+        if (!state.showCalculatorActions) state.toggleCalculatorActions()
 
-        set((state) => {
-          const inputValue = state.inputValue
+        const { inputValue, previousValue, operation, waitingForOperand } =
+          state
 
-          if (state.previousValue === null) {
-            state.previousValue = inputValue
-            state.operation = nextOperation
-            state.display = CALCULATOR_CONFIG.DEFAULT_DISPLAY
-            state.inputValue = 0
-            state.waitingForOperand = true
-            return
-          }
+        if (previousValue === null) {
+          set({
+            previousValue: inputValue,
+            operation: nextOperation,
+            display: CALCULATOR_CONFIG.DEFAULT_DISPLAY,
+            inputValue: 0,
+            waitingForOperand: true,
+          })
+          return
+        }
 
-          // If we're waiting for an operand (just pressed an operation and no number typed),
-          // simply replace the current operation with the new one
-          if (state.waitingForOperand) {
-            state.operation = nextOperation
-            return
-          }
+        if (waitingForOperand) {
+          set({ operation: nextOperation })
+          return
+        }
 
-          // previousValue is guaranteed to be non-null here due to check above
-          const currentValue = state.previousValue
+        const result = calculateOperation(
+          operation as Operation,
+          previousValue,
+          inputValue,
+        )
 
-          const result = calculateOperation(
-            state.operation as Operation,
-            currentValue,
-            inputValue,
-          )
+        if (!Number.isFinite(result) || Number.isNaN(result)) {
+          set({
+            display: CALCULATOR_CONFIG.DEFAULT_DISPLAY,
+            inputValue: 0,
+            previousValue: null,
+            operation: null,
+            waitingForOperand: false,
+          })
+          return
+        }
 
-          // Check for division by zero or invalid result
-          if (!Number.isFinite(result) || Number.isNaN(result)) {
-            // Reset on error
-            state.display = CALCULATOR_CONFIG.DEFAULT_DISPLAY
-            state.inputValue = 0
-            state.previousValue = null
-            state.operation = null
-            state.waitingForOperand = false
-            return
-          }
-
-          state.previousValue = roundToDecimals(
+        set({
+          previousValue: roundToDecimals(
             result,
             CALCULATOR_CONFIG.MAX_DECIMALS,
-          )
-          state.operation = nextOperation
-          state.display = CALCULATOR_CONFIG.DEFAULT_DISPLAY
-          state.inputValue = 0
-          state.waitingForOperand = true
-        }, false)
+          ),
+          operation: nextOperation,
+          display: CALCULATOR_CONFIG.DEFAULT_DISPLAY,
+          inputValue: 0,
+          waitingForOperand: true,
+        })
       },
 
       calculateResult: () => {
-        set((state) => {
-          if (state.previousValue === null || state.operation === null) return
+        const { previousValue, operation, inputValue } = get()
+        if (previousValue === null || operation === null) return
 
-          const inputValue = state.inputValue
-          const currentValue = state.previousValue
-          const result = calculateOperation(
-            state.operation,
-            currentValue,
-            inputValue,
-          )
+        const result = calculateOperation(operation, previousValue, inputValue)
 
-          // Check for division by zero or invalid result
-          if (!Number.isFinite(result) || Number.isNaN(result)) {
-            state.display = CALCULATOR_CONFIG.DEFAULT_DISPLAY
-            state.inputValue = 0
-            state.previousValue = null
-            state.operation = null
-            state.waitingForOperand = false
-            return
-          }
+        if (!Number.isFinite(result) || Number.isNaN(result)) {
+          set({
+            display: CALCULATOR_CONFIG.DEFAULT_DISPLAY,
+            inputValue: 0,
+            previousValue: null,
+            operation: null,
+            waitingForOperand: false,
+          })
+          return
+        }
 
-          const rounded = roundToDecimals(
-            result,
-            CALCULATOR_CONFIG.MAX_DECIMALS,
-          )
-          // Convert to string, removing unnecessary trailing zeros
-          // but preserving decimal point if it's a decimal number
-          const displayStr = rounded.toString()
-          state.display = displayStr
-          state.inputValue = rounded
-          state.previousValue = null
-          state.operation = null
-          state.waitingForOperand = true // Next number input should overwrite the result
-        }, false)
+        const rounded = roundToDecimals(result, CALCULATOR_CONFIG.MAX_DECIMALS)
+        set({
+          display: rounded.toString(),
+          inputValue: rounded,
+          previousValue: null,
+          operation: null,
+          waitingForOperand: true,
+        })
       },
 
-      toggleCalculatorActions: () => {
-        set((state) => {
-          state.showCalculatorActions = !state.showCalculatorActions
-        }, false)
-      },
+      toggleCalculatorActions: () =>
+        set((state) => ({
+          showCalculatorActions: !state.showCalculatorActions,
+        })),
 
-      reset: (initialValue = 0) => {
-        set((state) => {
-          state.display = initialValue.toString()
-          state.inputValue = initialValue
-          state.previousValue = null
-          state.operation = null
-          state.waitingForOperand = initialValue !== 0 // Set to true if there's an initial value
-          state.showCalculatorActions = false
-        }, false)
-      },
+      reset: (initialValue = 0) =>
+        set({
+          display: initialValue.toString(),
+          inputValue: initialValue,
+          previousValue: null,
+          operation: null,
+          waitingForOperand: initialValue !== 0,
+          showCalculatorActions: false,
+        }),
 
-      // Selectors
-      getCurrentValue: () => {
-        const state = get()
-        return state.inputValue || 0
-      },
+      /* ───────── Selectors ───────── */
+      getCurrentValue: () => get().inputValue || 0,
 
       hasActiveOperation: () => {
         const state = get()
         return state.operation !== null && state.previousValue !== null
       },
-    })) as Parameters<typeof devtools<CalculatorStore>>[0],
+    }),
     { name: "calculator-store" },
   ),
 )
