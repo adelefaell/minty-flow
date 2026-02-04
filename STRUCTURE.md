@@ -3,7 +3,6 @@
 ```
 ./
 ├── .github/
-│   ├── CODEOWNER.txt
 │   └── CODEOWNERS
 ├── .gitignore
 ├── .husky/
@@ -32,6 +31,7 @@
 ├── .zed/
 │   └── settings.json
 ├── README.md
+├── STRUCTURE.md
 ├── app.json
 ├── babel.config.js
 ├── biome.json
