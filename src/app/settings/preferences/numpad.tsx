@@ -139,7 +139,7 @@ export default function NumpadScreen() {
                       )}
                     </View>
                     {/* Label & description container */}
-                    <View>
+                    <View style={styles.optionRowContentLabelWrap}>
                       <Text
                         style={[
                           styles.optionLabel,
@@ -272,6 +272,9 @@ const styles = StyleSheet.create((theme) => ({
     paddingVertical: 8,
     backgroundColor: theme.colors.secondary,
     gap: 12,
+  },
+  optionRowContentLabelWrap: {
+    backgroundColor: theme.colors.secondary,
   },
 
   numpadContainer: {
