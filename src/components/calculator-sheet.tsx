@@ -36,8 +36,6 @@ interface CalculatorSheetProps
   currencyCode?: string
 }
 
-const renderKey = (key: string, index: number) => {}
-
 /**
  * Calculator Bottom Sheet Component
  *
@@ -464,6 +462,3 @@ const calculatorStyles = StyleSheet.create((theme) => ({
     justifyContent: "center",
   },
 }))
-function chunkArray(numpadLayout: string[], arg1: number) {
-  throw new Error("Function not implemented.")
-}
