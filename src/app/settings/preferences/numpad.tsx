@@ -10,63 +10,70 @@ import {
   useNumpadStyleStore,
 } from "~/stores/numpad-style.store"
 
-const NumpadRenderer = ({ type }: { type: NumpadStyleType }) => {
-  const classicNumpad = [
-    "7",
-    "8",
-    "9",
-    null,
-    "4",
-    "5",
-    "6",
-    null,
-    "1",
-    "2",
-    "3",
-    null,
-    "0",
-    null,
-    null,
-    null,
-  ]
-  const modernNumpad = [
-    "1",
-    "2",
-    "3",
-    null,
-    "4",
-    "5",
-    "6",
-    null,
-    "7",
-    "8",
-    "9",
-    null,
-    "0",
-    null,
-    null,
-    null,
-  ]
+function toInt(value: string): number | null {
+  const n = parseInt(value, 10)
+  return Number.isNaN(n) ? null : n
+}
+export const classicNumpad = [
+  "eraser",
+  "plus-minus-variant",
+  "percent",
+  "division",
+  "7",
+  "8",
+  "9",
+  "multiply",
+  "4",
+  "5",
+  "6",
+  "minus",
+  "1",
+  "2",
+  "3",
+  "plus",
+  "decimal",
+  "0",
+  "backspace",
+  "equal",
+]
+export const modernNumpad = [
+  "eraser",
+  "plus-minus-variant",
+  "percent",
+  "division",
+  "1",
+  "2",
+  "3",
+  "multiply",
+  "4",
+  "5",
+  "6",
+  "minus",
+  "7",
+  "8",
+  "9",
+  "plus",
+  "decimal",
+  "0",
+  "backspace",
+  "equal",
+]
 
+const NumpadRenderer = ({ type }: { type: NumpadStyleType }) => {
   // Select the layout based on the passed prop
   const activeLayout = type === "modern" ? modernNumpad : classicNumpad
 
   return (
     <View style={styles.numpadContainer}>
       <View style={styles.grid}>
-        {activeLayout.map((key, keyIndex) => {
-          const isZero = key === "0"
-          const isSpacer = key === null
-
-          // Logic to allow '0' to span two columns
-          if (isSpacer && activeLayout[keyIndex - 1] === "0") return null
+        {activeLayout.slice(4).map((key, keyIndex) => {
+          const isNumber = toInt(key)
 
           return (
-            <View
-              key={`key-${keyIndex.toString()}`}
-              style={[styles.button, isZero && styles.wideButton]}
-            >
-              {key !== null && <Text style={styles.buttonText}>{key}</Text>}
+            <View key={`key-${keyIndex.toString()}`} style={[styles.button]}>
+              {key !== null && (
+                <Text style={styles.buttonText}>{isNumber && key}</Text>
+              )}
             </View>
           )
         })}
@@ -115,27 +122,39 @@ export default function NumpadScreen() {
               style={styles.optionRow}
               onPress={() => setNumpadStyle(option.value)}
             >
-              <View
-                native
-                style={[
-                  styles.radioButton,
-                  isSelected && styles.radioButtonSelected,
-                ]}
-              >
-                {isSelected && <View native style={styles.radioButtonInner} />}
-              </View>
               <View native style={styles.optionContent}>
-                <Text
-                  style={[
-                    styles.optionLabel,
-                    isSelected && styles.optionLabelSelected,
-                  ]}
-                >
-                  {option.label}
-                </Text>
-                <Text variant="small" style={styles.optionDescription}>
-                  {option.description}
-                </Text>
+                <View style={styles.optionContentRow}>
+                  {/* Radio, label and description Container */}
+                  <View style={styles.optionRowContentLabelSection}>
+                    {/* Radio container */}
+                    <View
+                      native
+                      style={[
+                        styles.radioButton,
+                        isSelected && styles.radioButtonSelected,
+                      ]}
+                    >
+                      {isSelected && (
+                        <View native style={styles.radioButtonInner} />
+                      )}
+                    </View>
+                    {/* Label & description container */}
+                    <View>
+                      <Text
+                        style={[
+                          styles.optionLabel,
+                          isSelected && styles.optionLabelSelected,
+                        ]}
+                      >
+                        {option.label}
+                      </Text>
+                      <Text variant="small" style={styles.optionDescription}>
+                        {option.description}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
                 <NumpadRenderer type={option.value} />
               </View>
             </Pressable>
@@ -232,6 +251,7 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 16,
     fontWeight: "500",
     color: theme.colors.onSurface,
+    backgroundColor: theme.colors.secondary,
   },
   optionLabelSelected: {
     color: theme.colors.primary,
@@ -241,6 +261,17 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 13,
     color: theme.colors.onSecondary,
     lineHeight: 18,
+  },
+
+  optionContentRow: {
+    flexDirection: "column",
+  },
+  optionRowContentLabelSection: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+    backgroundColor: theme.colors.secondary,
+    gap: 12,
   },
 
   numpadContainer: {
