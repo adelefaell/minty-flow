@@ -1,12 +1,18 @@
 import { useCallback } from "react"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
+import { classicNumpad, modernNumpad } from "~/app/settings/preferences/numpad"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { currencyRegistryService } from "~/services"
 import { useCalculatorStore } from "~/stores/calculator.store"
 import { useMoneyFormattingStore } from "~/stores/money-formatting.store"
+import {
+  NumpadStyleEnum,
+  useNumpadStyleStore,
+} from "~/stores/numpad-style.store"
 import { Operation } from "~/types/calculator"
 import { formatDisplayValue } from "~/utils/number-format"
+import { chunkNumpadArray } from "~/utils/numpad-utils"
 
 import {
   BottomSheetModalComponent,
@@ -60,6 +66,8 @@ export const CalculatorSheet = ({
     waitingForOperand,
     hasActiveOperation,
   } = useCalculatorStore()
+
+  const numpadStyle = useNumpadStyleStore((s) => s.numpadStyle)
 
   const preferredCurrency = useMoneyFormattingStore((s) => s.preferredCurrency)
   const currencyLook = useMoneyFormattingStore((s) => s.currencyLook)
@@ -143,6 +151,11 @@ export const CalculatorSheet = ({
 
   const usdCurrency = currencyRegistryService.getCurrencyByCode(code)
 
+  const numpadLayout =
+    numpadStyle === NumpadStyleEnum.CLASSIC ? classicNumpad : modernNumpad
+
+  const rows = chunkNumpadArray(numpadLayout, 4)
+
   return (
     <BottomSheetModalComponent
       id={id}
@@ -180,217 +193,214 @@ export const CalculatorSheet = ({
             )}
           </Text>
         </View>
-
         {/* Keypad - 4 columns, 5 rows */}
         <View style={calculatorStyles.keypadContainer}>
-          {/* Row 1 - C, +/-, %, ÷ */}
-          <View style={calculatorStyles.keypadRow}>
-            <Pressable style={calculatorStyles.keypadButton} onPress={clear}>
-              <IconSymbol name="eraser" size={24} />
-            </Pressable>
-            <Pressable
-              style={calculatorStyles.keypadButton}
-              onPress={handleToggleSign}
+          {rows.map((row, rowIndex) => (
+            <View
+              key={`row-${rowIndex.toString()}`}
+              style={calculatorStyles.keypadRow}
             >
-              <IconSymbol name="plus-minus-variant" size={24} />
-            </Pressable>
-            <Pressable
-              style={[
-                calculatorStyles.keypadButton,
-                isOperationActive(Operation.PERCENT) &&
-                  calculatorStyles.hasActiveOperation,
-              ]}
-              onPress={() => performOperation(Operation.PERCENT)}
-            >
-              <IconSymbol
-                name="percent"
-                size={24}
-                color={
-                  isOperationActive(Operation.PERCENT)
-                    ? theme.colors.onPrimary
-                    : undefined
+              {row.map((key, index) => {
+                // (C) eraser
+                if (key === "eraser") {
+                  return (
+                    <Pressable
+                      key={`key-${rowIndex}-${index.toString()}`}
+                      style={calculatorStyles.keypadButton}
+                      onPress={clear}
+                    >
+                      <IconSymbol name="eraser" size={24} />
+                    </Pressable>
+                  )
+                  // (+/-) plus-minus-variant
+                } else if (key === "plus-minus-variant") {
+                  return (
+                    <Pressable
+                      key={`key-${rowIndex}-${index.toString()}`}
+                      style={calculatorStyles.keypadButton}
+                      onPress={handleToggleSign}
+                    >
+                      <IconSymbol name="plus-minus-variant" size={24} />
+                    </Pressable>
+                  )
+                  // (%) percent
+                } else if (key === "percent") {
+                  return (
+                    <Pressable
+                      key={`key-${rowIndex}-${index.toString()}`}
+                      style={[
+                        calculatorStyles.keypadButton,
+                        isOperationActive(Operation.PERCENT) &&
+                          calculatorStyles.hasActiveOperation,
+                      ]}
+                      onPress={() => performOperation(Operation.PERCENT)}
+                    >
+                      <IconSymbol
+                        name="percent"
+                        size={24}
+                        color={
+                          isOperationActive(Operation.PERCENT)
+                            ? theme.colors.onPrimary
+                            : undefined
+                        }
+                      />
+                    </Pressable>
+                  )
+                  // (÷) division
+                } else if (key === "division") {
+                  return (
+                    <Pressable
+                      key={`key-${rowIndex}-${index.toString()}`}
+                      style={[
+                        calculatorStyles.keypadButton,
+                        isOperationActive(Operation.DIVIDE) &&
+                          calculatorStyles.hasActiveOperation,
+                      ]}
+                      onPress={() => performOperation(Operation.DIVIDE)}
+                    >
+                      <IconSymbol
+                        name="division"
+                        size={24}
+                        color={
+                          isOperationActive(Operation.DIVIDE)
+                            ? theme.colors.onPrimary
+                            : undefined
+                        }
+                      />
+                    </Pressable>
+                  )
+                  // (*) multiply
+                } else if (key === "multiply") {
+                  return (
+                    <Pressable
+                      key={`key-${rowIndex}-${index.toString()}`}
+                      style={[
+                        calculatorStyles.keypadButton,
+                        isOperationActive(Operation.MULTIPLY) &&
+                          calculatorStyles.hasActiveOperation,
+                      ]}
+                      onPress={() => performOperation(Operation.MULTIPLY)}
+                    >
+                      <IconSymbol
+                        name="close"
+                        size={24}
+                        color={
+                          isOperationActive(Operation.MULTIPLY)
+                            ? theme.colors.onPrimary
+                            : undefined
+                        }
+                      />
+                    </Pressable>
+                  )
+                  // (-) minus
+                } else if (key === "minus") {
+                  return (
+                    <Pressable
+                      key={`key-${rowIndex}-${index.toString()}`}
+                      style={[
+                        calculatorStyles.keypadButton,
+                        isOperationActive(Operation.MINUS) &&
+                          calculatorStyles.hasActiveOperation,
+                      ]}
+                      onPress={() => performOperation(Operation.MINUS)}
+                    >
+                      <IconSymbol
+                        name="minus"
+                        size={24}
+                        color={
+                          isOperationActive(Operation.MINUS)
+                            ? theme.colors.onPrimary
+                            : undefined
+                        }
+                      />
+                    </Pressable>
+                  )
+                  // (+) plus
+                } else if (key === "plus") {
+                  return (
+                    <Pressable
+                      key={`key-${rowIndex}-${index.toString()}`}
+                      style={[
+                        calculatorStyles.keypadButton,
+                        isOperationActive(Operation.PLUS) &&
+                          calculatorStyles.hasActiveOperation,
+                      ]}
+                      onPress={() => performOperation(Operation.PLUS)}
+                    >
+                      <IconSymbol
+                        name="plus"
+                        size={24}
+                        color={
+                          isOperationActive(Operation.PLUS)
+                            ? theme.colors.onPrimary
+                            : undefined
+                        }
+                      />
+                    </Pressable>
+                  )
+                  // (.) decimal
+                } else if (key === "decimal") {
+                  return (
+                    <Pressable
+                      key={`key-${rowIndex}-${index.toString()}`}
+                      style={calculatorStyles.keypadButton}
+                      onPress={handleDecimalPress}
+                    >
+                      <Text style={calculatorStyles.keypadButtonText}>.</Text>
+                    </Pressable>
+                  )
+                  // (⌫) backspace
+                } else if (key === "backspace") {
+                  return (
+                    <Pressable
+                      key={`key-${rowIndex}-${index.toString()}`}
+                      style={calculatorStyles.keypadButton}
+                      onPress={handleBackspace}
+                      onLongPress={clear}
+                    >
+                      <IconSymbol name="backspace" size={24} />
+                    </Pressable>
+                  )
+                  // (=) equal
+                } else if (key === "equal") {
+                  return (
+                    <Pressable
+                      key={`key-${rowIndex}-${index.toString()}`}
+                      style={[
+                        calculatorStyles.keypadButton,
+                        !hasActiveOperation() &&
+                          calculatorStyles.hasActiveOperation,
+                      ]}
+                      onPress={handleEquals}
+                    >
+                      {hasActiveOperation() ? (
+                        <IconSymbol name="equal" size={24} />
+                      ) : (
+                        <IconSymbol
+                          name="check"
+                          size={24}
+                          color={theme.colors.onPrimary}
+                        />
+                      )}
+                    </Pressable>
+                  )
+                } else {
+                  // (1, 2, 3, 4, ...) Number
+                  return (
+                    <Pressable
+                      key={`key-${rowIndex}-${index.toString()}`}
+                      style={calculatorStyles.keypadButton}
+                      onPress={() => handleNumberPress(key)}
+                    >
+                      <Text style={calculatorStyles.keypadButtonText}>
+                        {key}
+                      </Text>
+                    </Pressable>
+                  )
                 }
-              />
-            </Pressable>
-            <Pressable
-              style={[
-                calculatorStyles.keypadButton,
-                isOperationActive(Operation.DIVIDE) &&
-                  calculatorStyles.hasActiveOperation,
-              ]}
-              onPress={() => performOperation(Operation.DIVIDE)}
-            >
-              <IconSymbol
-                name="division"
-                size={24}
-                color={
-                  isOperationActive(Operation.DIVIDE)
-                    ? theme.colors.onPrimary
-                    : undefined
-                }
-              />
-            </Pressable>
-          </View>
-
-          {/* Row 2 - 7, 8, 9, × */}
-          <View style={calculatorStyles.keypadRow}>
-            <Pressable
-              style={calculatorStyles.keypadButton}
-              onPress={() => handleNumberPress("7")}
-            >
-              <Text style={calculatorStyles.keypadButtonText}>7</Text>
-            </Pressable>
-            <Pressable
-              style={calculatorStyles.keypadButton}
-              onPress={() => handleNumberPress("8")}
-            >
-              <Text style={calculatorStyles.keypadButtonText}>8</Text>
-            </Pressable>
-            <Pressable
-              style={calculatorStyles.keypadButton}
-              onPress={() => handleNumberPress("9")}
-            >
-              <Text style={calculatorStyles.keypadButtonText}>9</Text>
-            </Pressable>
-            <Pressable
-              style={[
-                calculatorStyles.keypadButton,
-                isOperationActive(Operation.MULTIPLY) &&
-                  calculatorStyles.hasActiveOperation,
-              ]}
-              onPress={() => performOperation(Operation.MULTIPLY)}
-            >
-              <IconSymbol
-                name="close"
-                size={24}
-                color={
-                  isOperationActive(Operation.MULTIPLY)
-                    ? theme.colors.onPrimary
-                    : undefined
-                }
-              />
-            </Pressable>
-          </View>
-
-          {/* Row 3 - 4, 5, 6, - */}
-          <View style={calculatorStyles.keypadRow}>
-            <Pressable
-              style={calculatorStyles.keypadButton}
-              onPress={() => handleNumberPress("4")}
-            >
-              <Text style={calculatorStyles.keypadButtonText}>4</Text>
-            </Pressable>
-            <Pressable
-              style={calculatorStyles.keypadButton}
-              onPress={() => handleNumberPress("5")}
-            >
-              <Text style={calculatorStyles.keypadButtonText}>5</Text>
-            </Pressable>
-            <Pressable
-              style={calculatorStyles.keypadButton}
-              onPress={() => handleNumberPress("6")}
-            >
-              <Text style={calculatorStyles.keypadButtonText}>6</Text>
-            </Pressable>
-            <Pressable
-              style={[
-                calculatorStyles.keypadButton,
-                isOperationActive(Operation.MINUS) &&
-                  calculatorStyles.hasActiveOperation,
-              ]}
-              onPress={() => performOperation(Operation.MINUS)}
-            >
-              <IconSymbol
-                name="minus"
-                size={24}
-                color={
-                  isOperationActive(Operation.MINUS)
-                    ? theme.colors.onPrimary
-                    : undefined
-                }
-              />
-            </Pressable>
-          </View>
-
-          {/* Row 4 - 1, 2, 3, + */}
-          <View style={calculatorStyles.keypadRow}>
-            <Pressable
-              style={calculatorStyles.keypadButton}
-              onPress={() => handleNumberPress("1")}
-            >
-              <Text style={calculatorStyles.keypadButtonText}>1</Text>
-            </Pressable>
-            <Pressable
-              style={calculatorStyles.keypadButton}
-              onPress={() => handleNumberPress("2")}
-            >
-              <Text style={calculatorStyles.keypadButtonText}>2</Text>
-            </Pressable>
-            <Pressable
-              style={calculatorStyles.keypadButton}
-              onPress={() => handleNumberPress("3")}
-            >
-              <Text style={calculatorStyles.keypadButtonText}>3</Text>
-            </Pressable>
-            <Pressable
-              style={[
-                calculatorStyles.keypadButton,
-                isOperationActive(Operation.PLUS) &&
-                  calculatorStyles.hasActiveOperation,
-              ]}
-              onPress={() => performOperation(Operation.PLUS)}
-            >
-              <IconSymbol
-                name="plus"
-                size={24}
-                color={
-                  isOperationActive(Operation.PLUS)
-                    ? theme.colors.onPrimary
-                    : undefined
-                }
-              />
-            </Pressable>
-          </View>
-
-          {/* Row 5 - , (decimal), 0, ⌫ (backspace), = (equals) */}
-          <View style={calculatorStyles.keypadRow}>
-            <Pressable
-              style={calculatorStyles.keypadButton}
-              onPress={handleDecimalPress}
-            >
-              <Text style={calculatorStyles.keypadButtonText}>.</Text>
-            </Pressable>
-            <Pressable
-              style={calculatorStyles.keypadButton}
-              onPress={() => handleNumberPress("0")}
-            >
-              <Text style={calculatorStyles.keypadButtonText}>0</Text>
-            </Pressable>
-            <Pressable
-              style={calculatorStyles.keypadButton}
-              onPress={handleBackspace}
-              onLongPress={clear}
-            >
-              <IconSymbol name="backspace" size={24} />
-            </Pressable>
-            <Pressable
-              style={[
-                calculatorStyles.keypadButton,
-                !hasActiveOperation() && calculatorStyles.hasActiveOperation,
-              ]}
-              onPress={handleEquals}
-            >
-              {hasActiveOperation() ? (
-                <IconSymbol name="equal" size={24} />
-              ) : (
-                <IconSymbol
-                  name="check"
-                  size={24}
-                  color={theme.colors.onPrimary}
-                />
-              )}
-            </Pressable>
-          </View>
+              })}
+            </View>
+          ))}
         </View>
       </View>
     </BottomSheetModalComponent>
