@@ -1,9 +1,11 @@
 import { Q } from "@nozbe/watermelondb"
 import type { Observable } from "@nozbe/watermelondb/utils/rx"
+import { map } from "rxjs/operators"
 
-import type { TagKindType } from "../../types/tags"
+import type { Tag, TagKindType } from "../../types/tags"
 import { database } from "../index"
 import type TagModel from "../models/Tag"
+import { modelToTag } from "../utils/model-to-tag"
 
 /**
  * Tag Service
@@ -41,7 +43,7 @@ export const findTag = async (id: string): Promise<TagModel | null> => {
 /**
  * Observe all tags reactively
  */
-export const observeTags = (): Observable<TagModel[]> => {
+export const observeTags = (): Observable<Tag[]> => {
   const tags = getTagCollection()
   return tags
     .query(Q.sortBy("name", Q.asc))
@@ -52,6 +54,11 @@ export const observeTags = (): Observable<TagModel[]> => {
       "icon",
       "transaction_count",
     ])
+    .pipe(
+      map((results) => {
+        return results.map(modelToTag) // convert to immutable plain object here
+      }),
+    )
 }
 
 /**

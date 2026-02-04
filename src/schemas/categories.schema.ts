@@ -7,11 +7,10 @@ const addCategoriesSchema = z.object({
   icon: z.string().optional(),
   colorSchemeName: z.string().optional(),
   type: z.enum(TransactionTypeEnum),
-})
-
-const updateCategoriesSchema = addCategoriesSchema.extend({
   isArchived: z.boolean().default(false),
 })
+
+const updateCategoriesSchema = addCategoriesSchema
 
 export { addCategoriesSchema, updateCategoriesSchema }
 export type AddCategoriesFormSchema = z.infer<typeof addCategoriesSchema>

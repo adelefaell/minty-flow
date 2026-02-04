@@ -1,13 +1,14 @@
+import type { StyleProp, ViewStyle } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
 import { View } from "./view"
 
-// interface IProps {
-//   futrueProps?: boolean
-// }
+interface SeparatorProps {
+  style?: StyleProp<ViewStyle>
+}
 
-export const Separator = () => {
-  return <View native style={styles.divider} />
+export const Separator = ({ style }: SeparatorProps) => {
+  return <View native style={[styles.divider, style]} />
 }
 
 const styles = StyleSheet.create((theme) => ({

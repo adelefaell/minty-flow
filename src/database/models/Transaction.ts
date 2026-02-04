@@ -1,5 +1,5 @@
 import { Model } from "@nozbe/watermelondb"
-import { date, field, relation } from "@nozbe/watermelondb/decorators"
+import { children, date, field, relation } from "@nozbe/watermelondb/decorators"
 
 import type {
   Transaction,
@@ -8,6 +8,7 @@ import type {
 } from "../../types/transactions"
 import type AccountModel from "./Account"
 import type CategoryModel from "./Category"
+import type TransactionTagModel from "./TransactionTag"
 
 export default class TransactionModel extends Model implements Transaction {
   static table = "transactions"
@@ -39,6 +40,8 @@ export default class TransactionModel extends Model implements Transaction {
 
   @date("created_at") createdAt!: Date
   @date("updated_at") updatedAt!: Date
+
+  @children("transaction_tags") transactionTags!: TransactionTagModel[]
 
   /* ---------------- Domain adapters ---------------- */
 

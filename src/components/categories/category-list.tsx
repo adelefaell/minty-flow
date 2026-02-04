@@ -8,9 +8,11 @@ import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import type CategoryModel from "~/database/models/Category"
-import { observeCategoriesByType } from "~/database/services/category-service"
-import { modelToCategory } from "~/database/utils/model-to-category"
+import {
+  observeArchivedCategoryCountByType,
+  observeCategoriesByType,
+} from "~/database/services/category-service"
+import type { Category } from "~/types/categories"
 import { NewEnum } from "~/types/new"
 import type { TransactionType } from "~/types/transactions"
 
@@ -27,7 +29,8 @@ interface CategoryListProps {
 }
 
 interface CategoryListInnerProps extends CategoryListProps {
-  categoryModels: CategoryModel[]
+  categories: Category[]
+  archivedCount: number
 }
 
 const CategoryListInner = ({
@@ -35,17 +38,12 @@ const CategoryListInner = ({
   createdCategory,
   updatedCategory,
   deletedCategory,
-  categoryModels,
+  categories,
+  archivedCount,
   includeArchived = false,
   searchQuery = "",
-}: CategoryListInnerProps & {
-  includeArchived?: boolean
-  searchQuery?: string
-}) => {
+}: CategoryListInnerProps) => {
   const router = useRouter()
-
-  // Convert models to domain types
-  const categories = categoryModels.map(modelToCategory)
 
   // Clear URL params when screen comes into focus
   // The reactive observe will automatically update the list
@@ -76,6 +74,15 @@ const CategoryListInner = ({
   const handleAddFromPresets = () => {
     router.push({
       pathname: "/settings/categories/presets",
+      params: {
+        type,
+      },
+    })
+  }
+
+  const handleViewArchived = () => {
+    router.push({
+      pathname: "/settings/categories/archived",
       params: {
         type,
       },
@@ -120,6 +127,37 @@ const CategoryListInner = ({
         </View>
 
         <Separator />
+      </>
+    )
+  }
+
+  const renderFooter = () => {
+    if (includeArchived || archivedCount === 0) {
+      return null
+    }
+
+    return (
+      <>
+        <Separator style={styles.footerSeparator} />
+        <View style={styles.footerContainer}>
+          <Button
+            variant="secondary"
+            size="default"
+            onPress={handleViewArchived}
+          >
+            <View style={styles.archivedEntryLeft} variant="muted">
+              <IconSymbol
+                name="archive"
+                size={20}
+                style={styles.archivedIcon}
+              />
+              <Text style={styles.archivedText}>
+                View Archived {type.charAt(0).toUpperCase() + type.slice(1)}s (
+                {archivedCount})
+              </Text>
+            </View>
+          </Button>
+        </View>
       </>
     )
   }
@@ -170,6 +208,39 @@ const CategoryListInner = ({
       )
     }
 
+    // SMART EMPTY STATE HANDLER:
+    // If no active categories but archivedCount > 0, showScenario B
+    if (!includeArchived && archivedCount > 0) {
+      return (
+        <View style={styles.emptyWrapper}>
+          {renderHeader()}
+          <View style={styles.emptyContainer}>
+            <IconSymbol
+              name="tag"
+              size={40}
+              style={[styles.emptyIcon, { opacity: 0.3 }]}
+            />
+            <Text variant="h4" style={styles.emptyTitle}>
+              No active {type}s
+            </Text>
+            <Text variant="small" style={styles.emptyDescription}>
+              You have archived all your {type} categories.
+            </Text>
+            <Button
+              variant="default"
+              onPress={handleViewArchived}
+              style={styles.emptyButton}
+            >
+              <Text variant="default" style={styles.emptyButtonText}>
+                View Archived {type.charAt(0).toUpperCase() + type.slice(1)}s (
+                {archivedCount})
+              </Text>
+            </Button>
+          </View>
+        </View>
+      )
+    }
+
     return (
       <View style={styles.emptyWrapper}>
         {renderHeader()}
@@ -181,15 +252,6 @@ const CategoryListInner = ({
           <Text variant="small" style={styles.emptyDescription}>
             Create your first category to start organizing your transactions
           </Text>
-          {/* <Button
-            variant="default"
-            onPress={handleAddFromPresets}
-            style={styles.emptyButton}
-          >
-            <Text variant="default" style={styles.emptyButtonText}>
-              Add Recommended Categories
-            </Text>
-          </Button> */}
         </View>
       </View>
     )
@@ -204,6 +266,7 @@ const CategoryListInner = ({
       )}
       contentContainerStyle={styles.listContent}
       ListHeaderComponent={renderHeader()}
+      ListFooterComponent={renderFooter()}
     />
   )
 }
@@ -260,10 +323,32 @@ const styles = StyleSheet.create((theme) => ({
   },
   emptyButton: {
     minWidth: 200,
+    marginTop: 8,
   },
   emptyButtonText: {
     fontWeight: "600",
     color: theme.colors.onPrimary,
+  },
+  footerContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 40,
+  },
+  footerSeparator: {
+    marginVertical: 20,
+  },
+  archivedEntryLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  archivedIcon: {
+    color: theme.colors.onSecondary,
+  },
+  archivedText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: theme.colors.onSecondary,
   },
 }))
 
@@ -272,6 +357,7 @@ const styles = StyleSheet.create((theme) => ({
 export const CategoryList = withObservables(
   ["type", "includeArchived"],
   ({ type, includeArchived = false }: CategoryListProps) => ({
-    categoryModels: observeCategoriesByType(type, includeArchived),
+    categories: observeCategoriesByType(type, includeArchived),
+    archivedCount: observeArchivedCategoryCountByType(type),
   }),
 )(CategoryListInner)

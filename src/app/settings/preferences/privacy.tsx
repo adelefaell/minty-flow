@@ -22,16 +22,16 @@ export default function PrivacyScreen() {
   const [lockApp, setLockApp] = useState(false)
   const [lockAfterClosing, setLockAfterClosing] = useState(false)
 
-  const privacyMode = useMoneyFormattingStore((s) => s.privacyMode)
-  const setPrivacyMode = useMoneyFormattingStore((s) => s.setPrivacyMode)
+  const hideOnStartup = useMoneyFormattingStore((s) => s.hideOnStartup)
+  const setHideOnStartup = useMoneyFormattingStore((s) => s.setHideOnStartup)
 
   const settings: PrivacySetting[] = [
     {
       id: "mask-number",
       label: "Mask money (⁕) at startup",
       icon: "asterisk",
-      value: privacyMode,
-      onValueChange: setPrivacyMode,
+      value: hideOnStartup,
+      onValueChange: setHideOnStartup,
     },
     {
       id: "lock-app",

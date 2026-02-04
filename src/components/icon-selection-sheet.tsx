@@ -331,7 +331,7 @@ const styles = StyleSheet.create((theme) => ({
   flatListContent: {
     paddingHorizontal: 20,
     paddingTop: 8,
-    paddingBottom: 300,
+    paddingBottom: 400,
   },
   titleContainer: {
     marginBottom: 16,

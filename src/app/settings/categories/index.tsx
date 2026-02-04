@@ -4,7 +4,6 @@ import { StyleSheet } from "react-native-unistyles"
 
 import { SearchInput } from "~/components/search-input"
 import { Button } from "~/components/ui/button"
-import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import { type TransactionType, TransactionTypeEnum } from "~/types/transactions"
@@ -20,7 +19,6 @@ export default function CategoriesIndexScreen() {
   const [activeTab, setActiveTab] = useState<TransactionType>(
     TransactionTypeEnum.EXPENSE,
   )
-  const [showArchived, setShowArchived] = useState(false)
 
   const [searchQuery, setSearchQuery] = useState("")
 
@@ -65,14 +63,6 @@ export default function CategoriesIndexScreen() {
         ))}
       </View>
 
-      {/* Transfer category helper text */}
-      {/* {activeTab === "transfer" && (
-        <View style={styles.helperTextContainer}>
-          <Text variant="small" style={styles.helperText}>
-            Used for transfers between accounts
-          </Text>
-        </View>
-      )} */}
       {/* Search Bar */}
       <View style={styles.searchContainer}>
         <SearchInput
@@ -82,23 +72,6 @@ export default function CategoriesIndexScreen() {
           onClear={clearSearch}
         />
       </View>
-      {/* Show Archived Toggle */}
-      <View style={styles.toggleContainer}>
-        <Button
-          style={styles.toggleButton}
-          onPress={() => setShowArchived(!showArchived)}
-          variant="ghost"
-        >
-          <IconSymbol
-            name={showArchived ? "eye" : "eye-off"}
-            size={20}
-            style={styles.toggleIcon}
-          />
-          <Text variant="small" style={styles.toggleText}>
-            {showArchived ? "Hide Archived" : "Show Archived"}
-          </Text>
-        </Button>
-      </View>
 
       {/* Category List */}
       <CategoryList
@@ -106,7 +79,7 @@ export default function CategoriesIndexScreen() {
         createdCategory={params.createdCategory}
         updatedCategory={params.updatedCategory}
         deletedCategory={params.deletedCategory}
-        includeArchived={showArchived}
+        includeArchived={false}
         searchQuery={searchQuery}
       />
     </View>

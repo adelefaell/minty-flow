@@ -1,14 +1,17 @@
 import { Q } from "@nozbe/watermelondb"
 import type { Observable } from "@nozbe/watermelondb/utils/rx"
+import { filter, map } from "rxjs/operators"
 
 import type {
   AddCategoriesFormSchema,
   UpdateCategoriesFormSchema,
 } from "~/schemas/categories.schema"
+import type { Category } from "~/types/categories"
 import type { TransactionType } from "~/types/transactions"
 
 import { database } from "../index"
 import type CategoryModel from "../models/Category"
+import { modelToCategory } from "../utils/model-to-category"
 import { getTransactionModels } from "./transaction-service"
 
 /**
@@ -61,7 +64,7 @@ export const findCategory = async (
 export const observeCategoriesByType = (
   type: TransactionType,
   includeArchived = false,
-): Observable<CategoryModel[]> => {
+): Observable<Category[]> => {
   const categories = getCategoryCollection()
   let query = categories.query(Q.where("type", type), Q.sortBy("name", Q.asc))
 
@@ -71,14 +74,31 @@ export const observeCategoriesByType = (
 
   // Observe specific columns that can change when editing
   // This makes the query reactive to column changes, not just record additions/deletions
-  return query.observeWithColumns([
-    "name",
-    "icon",
-    "type",
-    "color_scheme_name",
-    "transaction_count",
-    "is_archived",
-  ])
+  return query
+    .observeWithColumns([
+      "name",
+      "icon",
+      "type",
+      "color_scheme_name",
+      "transaction_count",
+      "is_archived",
+    ])
+    .pipe(
+      map((results) => {
+        return results.map(modelToCategory) // convert to immutable plain object here
+      }),
+    )
+}
+
+/**
+ * Observe count of archived categories by type
+ */
+export const observeArchivedCategoryCountByType = (
+  type: TransactionType,
+): Observable<number> => {
+  return getCategoryCollection()
+    .query(Q.where("type", type), Q.where("is_archived", true))
+    .observeCount()
 }
 
 /**
@@ -92,9 +112,9 @@ export const observeCategoryById = (id: string): Observable<CategoryModel> => {
  * Observe a specific category by ID
  * Observes specific columns to ensure reactivity to field changes
  */
-export const observeCategoryByIdV2 = (
+export const observeCategoryDetailsById = (
   id: string,
-): Observable<CategoryModel[]> => {
+): Observable<Category> => {
   return getCategoryCollection()
     .query(Q.where("id", id))
     .observeWithColumns([
@@ -105,6 +125,13 @@ export const observeCategoryByIdV2 = (
       "transaction_count",
       "is_archived",
     ])
+    .pipe(
+      filter((results) => results.length > 0),
+      map((results) => {
+        const model = results[0]
+        return modelToCategory(model) // convert to immutable plain object here
+      }),
+    )
 }
 
 /**

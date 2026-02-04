@@ -33,6 +33,8 @@ export const VALID_ICON_NAMES = defineValidIcons([
   "close",
   "magnify",
   "swap-vertical",
+  "swap-horizontal",
+
   "eye",
   "eye-off",
   // Status & Alerts
@@ -110,6 +112,8 @@ export const VALID_ICON_NAMES = defineValidIcons([
   "archive-arrow-down",
   "star",
   "trending-up",
+  "trending-down",
+  "filter-variant",
   "account-details",
   "map",
   "account",

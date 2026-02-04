@@ -1,16 +1,11 @@
 import { createMMKV } from "react-native-mmkv"
 import { create } from "zustand"
 import { createJSONStorage, devtools, persist } from "zustand/middleware"
-/**
- * Single MMKV storage for all money-related UI preferences
- */
+
 export const moneyFormattingStorage = createMMKV({
   id: "money-formatting-storage",
 })
 
-/**
- * Currency display style
- */
 export const MoneyFormatEnum = {
   SYMBOL: "symbol",
   CODE: "code",
@@ -20,28 +15,24 @@ export const MoneyFormatEnum = {
 export type MoneyFormatType =
   (typeof MoneyFormatEnum)[keyof typeof MoneyFormatEnum]
 
-/**
- * Money formatting + currency preferences store
- *
- * UI-facing only. Domain & services should NOT import this.
- */
 interface MoneyFormattingStore {
-  /** Preferred ISO currency code (e.g. USD, EUR) */
   preferredCurrency: string
-
-  /** How currency is displayed */
   currencyLook: MoneyFormatType
 
-  /** Hide sensitive values in UI */
+  // 1. THIS IS THE UI STATE (The eye toggle)
   privacyMode: boolean
 
-  /* ───────── Actions ───────── */
+  // 2. THIS IS THE SAVED SETTING (The startup preference)
+  hideOnStartup: boolean
 
   setCurrency: (currency: string) => void
   setCurrencyLook: (value: MoneyFormatType) => void
 
-  setPrivacyMode: (value: boolean) => void
+  // Controls the eye toggle (Session only)
   togglePrivacyMode: () => void
+
+  // Controls the persistent setting
+  setHideOnStartup: (value: boolean) => void
 }
 
 export const useMoneyFormattingStore = create<MoneyFormattingStore>()(
@@ -50,16 +41,22 @@ export const useMoneyFormattingStore = create<MoneyFormattingStore>()(
       (set) => ({
         preferredCurrency: "USD",
         currencyLook: MoneyFormatEnum.SYMBOL,
+
+        // Default UI state
         privacyMode: false,
 
-        setCurrency: (currency) => set({ preferredCurrency: currency }),
+        // Default Startup preference
+        hideOnStartup: false,
 
+        setCurrency: (currency) => set({ preferredCurrency: currency }),
         setCurrencyLook: (currencyLook) => set({ currencyLook }),
 
-        setPrivacyMode: (privacyMode) => set({ privacyMode }),
-
+        // The "Eye" toggle action: Just flips the UI state
         togglePrivacyMode: () =>
           set((state) => ({ privacyMode: !state.privacyMode })),
+
+        // The "Settings" toggle action: Flips the preference
+        setHideOnStartup: (value) => set({ hideOnStartup: value }),
       }),
       {
         name: "money-formatting-store",
@@ -68,6 +65,24 @@ export const useMoneyFormattingStore = create<MoneyFormattingStore>()(
           setItem: (name, value) => moneyFormattingStorage.set(name, value),
           removeItem: (name) => moneyFormattingStorage.remove(name),
         })),
+
+        /* THE MAGIC PART: 
+           As soon as the store rehydrates (synchronously with MMKV), 
+           we force 'privacyMode' to match 'hideOnStartup'.
+        */
+        onRehydrateStorage: () => (state) => {
+          if (state) {
+            state.privacyMode = state.hideOnStartup
+          }
+        },
+
+        // Optimization: We don't need to save 'privacyMode' to MMKV
+        // since it's just a session-based UI toggle.
+        partialize: (state) => ({
+          preferredCurrency: state.preferredCurrency,
+          currencyLook: state.currencyLook,
+          hideOnStartup: state.hideOnStartup,
+        }),
       },
     ),
     { name: "money-formatting-store-dev" },

@@ -11,11 +11,10 @@ const addAccountsSchema = z.object({
   colorSchemeName: z.string().optional(),
   isPrimary: z.boolean().default(false),
   excludeFromBalance: z.boolean().default(false),
-})
-
-const updateAccountsSchema = addAccountsSchema.extend({
   isArchived: z.boolean().default(false),
 })
+
+const updateAccountsSchema = addAccountsSchema
 
 export { addAccountsSchema, updateAccountsSchema }
 export type AddAccountsFormSchema = z.infer<typeof addAccountsSchema>

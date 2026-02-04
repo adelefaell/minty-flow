@@ -8,20 +8,17 @@ import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import type CategoryModel from "~/database/models/Category"
-import { observeCategoryById } from "~/database/services/category-service"
-import { modelToCategory } from "~/database/utils/model-to-category"
+import { observeCategoryDetailsById } from "~/database/services/category-service"
 import { getThemeStrict } from "~/styles/theme/registry"
+import type { Category } from "~/types/categories"
 
 interface CategoryDetailsProps {
-  categoryModel: CategoryModel
+  category: Category
 }
 
-const CategoryDetailsScreenInner = ({
-  categoryModel,
-}: CategoryDetailsProps) => {
+const CategoryDetailsScreenInner = ({ category }: CategoryDetailsProps) => {
   // Convert models to domain types
-  const category = modelToCategory(categoryModel)
+  // const category = modelToCategory(categoryModel)
   const router = useRouter()
   const navigation = useNavigation()
 
@@ -149,7 +146,7 @@ const styles = StyleSheet.create((theme) => ({
 const EnhancedCategoryDetailsScreen = withObservables(
   ["categoryId"],
   ({ categoryId }) => ({
-    categoryModel: observeCategoryById(categoryId),
+    category: observeCategoryDetailsById(categoryId),
   }),
 )(CategoryDetailsScreenInner)
 

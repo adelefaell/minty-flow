@@ -39,28 +39,32 @@ export default function RootLayout() {
               {/* settings screens */}
               <Stack.Screen
                 name="settings/edit-profile"
-                options={{ presentation: "modal", title: "Edit Profile" }}
+                options={{ title: "Edit Profile" }}
+              />
+              <Stack.Screen name="settings/loans" options={{ title: "Loan" }} />
+              <Stack.Screen
+                name="settings/all-accounts"
+                options={{ title: "All Accounts" }}
               />
               <Stack.Screen
-                name="settings/loans"
-                options={{ presentation: "modal", title: "Loan" }}
+                name="settings/categories/index"
+                options={{ title: "Categories" }}
               />
               <Stack.Screen
-                name="settings/categories/categories-view"
-                options={{ presentation: "modal", title: "Categories" }}
+                name="settings/categories/archived"
+                options={{ title: "Archived Categories" }}
               />
 
               <Stack.Screen
                 name="settings/categories/[categoryId]/index"
                 options={{
-                  presentation: "modal",
                   title: "Category Details",
                 }}
               />
 
               <Stack.Screen
                 name="settings/categories/presets"
-                options={{ presentation: "modal", title: "Add from Presets" }}
+                options={{ title: "Add from Presets" }}
               />
               <Stack.Screen
                 name="settings/categories/[categoryId]/modify"
@@ -69,7 +73,6 @@ export default function RootLayout() {
                     | { categoryId?: string }
                     | undefined
                   return {
-                    presentation: "modal",
                     title:
                       params?.categoryId === NewEnum.NEW
                         ? "Create Category"
@@ -79,94 +82,89 @@ export default function RootLayout() {
               />
               <Stack.Screen
                 name="settings/tags/index"
-                options={{ presentation: "modal", title: "Tags" }}
+                options={{ title: "Tags" }}
               />
               <Stack.Screen
                 name="settings/trash"
-                options={{ presentation: "modal", title: "Trash" }}
+                options={{ title: "Trash" }}
               />
               <Stack.Screen
                 name="settings/preferences/index"
-                options={{ presentation: "modal", title: "Preferences" }}
+                options={{ title: "Preferences" }}
               />
               <Stack.Screen
                 name="settings/data-management"
-                options={{ presentation: "modal", title: "Data Management" }}
+                options={{ title: "Data Management" }}
               />
               <Stack.Screen
                 name="settings/budgets"
-                options={{ presentation: "modal", title: "Budgets" }}
+                options={{ title: "Budgets" }}
               />
               <Stack.Screen
                 name="settings/pending-transactions"
                 options={{
-                  presentation: "modal",
                   title: "Pending Transactions",
                 }}
               />
               <Stack.Screen
                 name="settings/bill-splitter"
-                options={{ presentation: "modal", title: "Bill Splitter" }}
+                options={{ title: "Bill Splitter" }}
               />
               <Stack.Screen
                 name="settings/goals"
-                options={{ presentation: "modal", title: "Goals" }}
+                options={{ title: "Goals" }}
               />
 
               {/* settings screens preferences */}
               <Stack.Screen
                 name="settings/preferences/theme"
-                options={{ presentation: "modal", title: "Theme" }}
+                options={{ title: "Theme" }}
               />
               <Stack.Screen
                 name="settings/preferences/toast-style"
                 options={{
-                  presentation: "modal",
                   title: "Toast Style",
                 }}
               />
               <Stack.Screen
                 name="settings/preferences/exchange-rates"
-                options={{ presentation: "modal", title: "Exchange Rates" }}
+                options={{ title: "Exchange Rates" }}
               />
               <Stack.Screen
                 name="settings/preferences/trash-bin"
-                options={{ presentation: "modal", title: "Trash bin" }}
+                options={{ title: "Trash bin" }}
               />
               <Stack.Screen
                 name="settings/preferences/reminder"
-                options={{ presentation: "modal", title: "Reminder" }}
+                options={{ title: "Reminder" }}
               />
               <Stack.Screen
                 name="settings/preferences/numpad"
-                options={{ presentation: "modal", title: "Numpad" }}
+                options={{ title: "Numpad" }}
               />
               <Stack.Screen
                 name="settings/preferences/pending-transactions"
                 options={{
-                  presentation: "modal",
                   title: "Pending transactions",
                 }}
               />
               <Stack.Screen
                 name="settings/preferences/privacy"
-                options={{ presentation: "modal", title: "Privacy" }}
+                options={{ title: "Privacy" }}
               />
               <Stack.Screen
                 name="settings/preferences/money-formatting"
-                options={{ presentation: "modal", title: "Money Formatting" }}
+                options={{ title: "Money Formatting" }}
               />
               <Stack.Screen
                 name="settings/preferences/transaction-location"
                 options={{
-                  presentation: "modal",
                   title: "Transaction Location",
                 }}
               />
               <Stack.Screen
                 name="accounts/[accountId]/index"
                 options={{
-                  presentation: "modal",
                   title: "Account Details",
                 }}
               />
@@ -177,7 +175,6 @@ export default function RootLayout() {
                     | { accountId?: string }
                     | undefined
                   return {
-                    presentation: "modal",
                     title:
                       params?.accountId === NewEnum.NEW
                         ? "Create Account"
@@ -186,18 +183,10 @@ export default function RootLayout() {
                 }}
               />
               <Stack.Screen
-                name="accounts/archived-accounts"
-                options={{
-                  presentation: "modal",
-                  title: "Archived Accounts",
-                }}
-              />
-              <Stack.Screen
                 name="settings/tags/[tagId]"
                 options={({ route }) => {
                   const params = route.params as { tagId?: string } | undefined
                   return {
-                    presentation: "modal",
                     title:
                       params?.tagId === NewEnum.NEW ? "Create Tag" : "Edit Tag",
                   }

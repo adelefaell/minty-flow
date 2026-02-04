@@ -9,18 +9,16 @@ import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Money } from "~/components/ui/money"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import type AccountModel from "~/database/models/Account"
-import { observeAccountById } from "~/database/services/account-service"
-import { modelToAccount } from "~/database/utils/model-to-account"
+import { observeAccountDetailsById } from "~/database/services/account-service"
 import { getThemeStrict } from "~/styles/theme/registry"
+import type { Account } from "~/types/accounts"
 
 interface AccountDetailsProps {
-  accountModel: AccountModel
+  account: Account
 }
 
-const AccountDetailsScreenInner = ({ accountModel }: AccountDetailsProps) => {
+const AccountDetailsScreenInner = ({ account }: AccountDetailsProps) => {
   // Convert models to domain types
-  const account = modelToAccount(accountModel)
 
   const router = useRouter()
   const navigation = useNavigation()
@@ -32,7 +30,7 @@ const AccountDetailsScreenInner = ({ accountModel }: AccountDetailsProps) => {
           variant="ghost"
           size="icon"
           onPress={() =>
-            router.replace({
+            router.push({
               pathname: "/accounts/[accountId]/modify",
               params: { accountId: account.id },
             })
@@ -75,7 +73,12 @@ const AccountDetailsScreenInner = ({ accountModel }: AccountDetailsProps) => {
         <Text variant="default" style={styles.accountType}>
           {account.type.toUpperCase()}
         </Text>
-        <Money value={account.balance} variant="h1" style={styles.balance} />
+        <Money
+          value={account.balance}
+          variant="h1"
+          style={styles.balance}
+          currency={account.currencyCode}
+        />
       </View>
 
       <View style={styles.content}>
@@ -150,7 +153,7 @@ const styles = StyleSheet.create((theme) => ({
 const EnhancedAccountDetailsScreen = withObservables(
   ["accountId"],
   ({ accountId }) => ({
-    accountModel: observeAccountById(accountId),
+    account: observeAccountDetailsById(accountId),
   }),
 )(AccountDetailsScreenInner)
 

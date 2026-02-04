@@ -10,26 +10,22 @@ import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import type TagModel from "~/database/models/Tag"
 import { observeTags } from "~/database/services/tag-service"
-import { modelToTag } from "~/database/utils/model-to-tag"
 import { NewEnum } from "~/types/new"
+import type { Tag } from "~/types/tags"
 
 interface TagsScreenInnerProps {
-  tagModels: TagModel[]
+  tags: Tag[]
 }
 
-const TagsScreenInner = ({ tagModels }: TagsScreenInnerProps) => {
+const TagsScreenInner = ({ tags }: TagsScreenInnerProps) => {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
 
-  const filteredModels = tagModels.filter((model) => {
+  const filteredModels = tags.filter((model) => {
     if (!searchQuery.trim()) return true
     return model.name.toLowerCase().includes(searchQuery.toLowerCase())
   })
-
-  // Convert models to domain types for the UI
-  const displayTags = filteredModels.map(modelToTag)
 
   const handleAddTag = () => {
     router.push({
@@ -61,7 +57,7 @@ const TagsScreenInner = ({ tagModels }: TagsScreenInnerProps) => {
           </Text>
         </Pressable>
 
-        {displayTags.length === 0 ? (
+        {filteredModels.length === 0 ? (
           <View style={styles.emptyState}>
             <Text variant="muted">
               {searchQuery.trim() ? "No tags found" : "No tags yet"}
@@ -69,7 +65,7 @@ const TagsScreenInner = ({ tagModels }: TagsScreenInnerProps) => {
           </View>
         ) : (
           <View style={styles.list}>
-            {displayTags.map((tag) => (
+            {filteredModels.map((tag) => (
               <TagCard key={tag.id} tag={tag} />
             ))}
           </View>
@@ -80,7 +76,7 @@ const TagsScreenInner = ({ tagModels }: TagsScreenInnerProps) => {
 }
 
 const enhance = withObservables([], () => ({
-  tagModels: observeTags(),
+  tags: observeTags(),
 }))
 
 export default enhance(TagsScreenInner)

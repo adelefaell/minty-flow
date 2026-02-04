@@ -1,7 +1,6 @@
 import { type FC, useMemo } from "react"
 import type { StyleProp, TextStyle } from "react-native"
-
-// import { StyleSheet } from "react-native-unistyles"
+import { StyleSheet } from "react-native-unistyles"
 
 import { Text, type TextVariant } from "~/components/ui/text"
 import { useMoneyFormattingStore } from "~/stores/money-formatting.store"
@@ -15,16 +14,13 @@ export interface MoneyProps {
   hideSign?: boolean
   showSign?: boolean
   hideSymbol?: boolean
-  // tone?: "auto" | "income" | "expense" | "neutral"
+  tone?: "auto" | "income" | "expense" | "neutral"
   style?: StyleProp<TextStyle>
   addParentheses?: boolean
   disablePrivacyMode?: boolean
   variant?: TextVariant
 }
 
-/**
- * React Native Money component
- */
 export const Money: FC<MoneyProps> = ({
   value,
   currency,
@@ -33,7 +29,7 @@ export const Money: FC<MoneyProps> = ({
   hideSign = false,
   showSign = false,
   hideSymbol = false,
-  // tone = "auto",
+  tone = "neutral",
   style,
   addParentheses = false,
   disablePrivacyMode = false,
@@ -41,11 +37,11 @@ export const Money: FC<MoneyProps> = ({
 }) => {
   const stringValue = typeof value === "number" ? value.toString() : value
 
-  // const num = Number.parseFloat(stringValue || "0")
-  const privacyMode = useMoneyFormattingStore((s) => s.privacyMode)
+  // 1. Get unified privacy state and look preference
+  const privacyModeActive = useMoneyFormattingStore((s) => s.privacyMode)
   const currencyLook = useMoneyFormattingStore((s) => s.currencyLook)
 
-  // Format the Money
+  // 2. Format the Money
   const formatted = useMemo(() => {
     try {
       return formatDisplayValue(stringValue || "0", {
@@ -57,8 +53,6 @@ export const Money: FC<MoneyProps> = ({
         showSign,
         hideSymbol,
         addParentheses,
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
       })
     } catch {
       return formatDisplayValue(stringValue || "0", {
@@ -66,8 +60,6 @@ export const Money: FC<MoneyProps> = ({
         compact,
         hideSign,
         showSign,
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
       })
     }
   }, [
@@ -82,41 +74,50 @@ export const Money: FC<MoneyProps> = ({
     addParentheses,
   ])
 
+  // 3. Create the mask
   const privacyMasked = useMemo(() => {
+    // Replaces only digits with ⁕, keeping symbols like $, €, or commas intact
     return formatted.replace(/\d/g, "⁕")
   }, [formatted])
 
-  // const resolvedTone =
-  //   tone === "auto"
-  //     ? num < 0
-  //       ? "expense"
-  //       : num > 0
-  //         ? "income"
-  //         : "neutral"
-  //     : tone
+  // 4. Final Logic: Use the unified boolean from our store
+  const shouldHide = !disablePrivacyMode && privacyModeActive
 
-  // const textColorStyle: TextStyle =
-  //   resolvedTone === "income"
-  //     ? { color: styles.income.color } // green
-  //     : resolvedTone === "expense"
-  //       ? { color: styles.expense.color } // red
-  //       : { color: styles.default.color } // default
+  const signedAmount =
+    typeof stringValue === "string" ? Number.parseFloat(stringValue || "0") : 0
+
+  // Handle tone coloring
+  const resolvedTone =
+    tone === "auto"
+      ? signedAmount < 0
+        ? "expense"
+        : signedAmount > 0
+          ? "income"
+          : "neutral"
+      : tone
+
+  const toneStyles =
+    resolvedTone === "income"
+      ? styles.income
+      : resolvedTone === "expense"
+        ? styles.expense
+        : styles.neutral
 
   return (
-    <Text variant={variant} style={style}>
-      {disablePrivacyMode ? formatted : privacyMode ? privacyMasked : formatted}
+    <Text variant={variant} style={[style, toneStyles, { fontWeight: "600" }]}>
+      {shouldHide ? privacyMasked : formatted}
     </Text>
   )
 }
 
-// const styles = StyleSheet.create((theme) => ({
-//   default: {
-//     color: theme.colors.onSurface,
-//   },
-//   income: {
-//     color: theme.colors.customColors.income,
-//   },
-//   expense: {
-//     color: theme.colors.customColors.expense,
-//   },
-// }))
+const styles = StyleSheet.create((theme) => ({
+  neutral: {
+    color: theme.colors.onSurface,
+  },
+  income: {
+    color: theme.colors.customColors.income,
+  },
+  expense: {
+    color: theme.colors.customColors.expense,
+  },
+}))

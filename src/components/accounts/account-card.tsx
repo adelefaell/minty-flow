@@ -30,8 +30,13 @@ export const AccountCard = ({ account, isReorderMode }: AccountCardProps) => {
       })
     }
   }
+
+  const isArchived = account.isArchived
   return (
-    <Pressable style={styles.card} onPress={handleViewAccount}>
+    <Pressable
+      style={[styles.card, isArchived && styles.archivedCard]}
+      onPress={handleViewAccount}
+    >
       <View variant="muted" style={styles.cardHeader}>
         <DynamicIcon
           icon={account.icon}
@@ -40,9 +45,18 @@ export const AccountCard = ({ account, isReorderMode }: AccountCardProps) => {
           colorScheme={account.colorScheme}
         />
         <View variant="muted" style={styles.accountInfo}>
-          <Text variant="h3" style={styles.accountName}>
-            {account.name}
-          </Text>
+          <View variant="muted" style={styles.accountNameRow}>
+            <Text variant="h3" style={styles.accountName}>
+              {account.name}
+            </Text>
+            {isArchived && (
+              <IconSymbol
+                name="archive"
+                size={16}
+                color={theme.colors.customColors.semi}
+              />
+            )}
+          </View>
           <Text variant="small" style={styles.accountType}>
             {account.type}{" "}
             {account.isPrimary && (
@@ -61,64 +75,66 @@ export const AccountCard = ({ account, isReorderMode }: AccountCardProps) => {
         />
       </View>
 
-      <View variant="muted" style={styles.monthlySummary}>
-        <Text variant="small" style={styles.summaryLabel}>
-          THIS MONTH
-        </Text>
-        <View variant="muted" style={styles.summaryRow}>
-          <View variant="muted" style={styles.summaryItem}>
-            <View variant="muted" style={styles.summaryItemHeader}>
-              <IconSymbol
-                name="arrow-down"
-                size={12}
-                color={theme.colors.customColors.income}
-              />
-              <Text style={styles.summaryItemLabel}>IN</Text>
-            </View>
+      {!isArchived && (
+        <View variant="muted" style={styles.monthlySummary}>
+          <Text variant="small" style={styles.summaryLabel}>
+            THIS MONTH
+          </Text>
+          <View variant="muted" style={styles.summaryRow}>
+            <View variant="muted" style={styles.summaryItem}>
+              <View variant="muted" style={styles.summaryItemHeader}>
+                <IconSymbol
+                  name="arrow-down"
+                  size={12}
+                  color={theme.colors.customColors.income}
+                />
+                <Text style={styles.summaryItemLabel}>IN</Text>
+              </View>
 
-            <Money
-              value={0}
-              variant="default"
-              style={[styles.summaryAmount, styles.incomeAmount]}
-              currency={account.currencyCode}
-            />
-          </View>
-          <View variant="muted" style={styles.summaryItem}>
-            <View variant="muted" style={styles.summaryItemHeader}>
-              <IconSymbol
-                name="arrow-up"
-                size={12}
-                color={theme.colors.customColors.expense}
+              <Money
+                value={0}
+                variant="default"
+                style={[styles.summaryAmount, styles.incomeAmount]}
+                currency={account.currencyCode}
               />
-              <Text style={styles.summaryItemLabel}>OUT</Text>
             </View>
+            <View variant="muted" style={styles.summaryItem}>
+              <View variant="muted" style={styles.summaryItemHeader}>
+                <IconSymbol
+                  name="arrow-up"
+                  size={12}
+                  color={theme.colors.customColors.expense}
+                />
+                <Text style={styles.summaryItemLabel}>OUT</Text>
+              </View>
 
-            <Money
-              value={0}
-              variant="default"
-              style={[styles.summaryAmount, styles.expenseAmount]}
-              currency={account.currencyCode}
-            />
-          </View>
-          <View variant="muted" style={styles.summaryItem}>
-            <View variant="muted" style={styles.summaryItemHeader}>
-              <IconSymbol
-                name="chart-timeline-variant"
-                size={12}
-                color={theme.colors.customColors.semi}
+              <Money
+                value={0}
+                variant="default"
+                style={[styles.summaryAmount, styles.expenseAmount]}
+                currency={account.currencyCode}
               />
-              <Text style={styles.summaryItemLabel}>NET</Text>
             </View>
+            <View variant="muted" style={styles.summaryItem}>
+              <View variant="muted" style={styles.summaryItemHeader}>
+                <IconSymbol
+                  name="chart-timeline-variant"
+                  size={12}
+                  color={theme.colors.customColors.semi}
+                />
+                <Text style={styles.summaryItemLabel}>NET</Text>
+              </View>
 
-            <Money
-              value={0}
-              variant="default"
-              style={styles.summaryAmount}
-              currency={account.currencyCode}
-            />
+              <Money
+                value={0}
+                variant="default"
+                style={styles.summaryAmount}
+                currency={account.currencyCode}
+              />
+            </View>
           </View>
         </View>
-      </View>
+      )}
     </Pressable>
   )
 }
@@ -132,6 +148,10 @@ const styles = StyleSheet.create((theme) => ({
     padding: 16,
     gap: 12,
   },
+  archivedCard: {
+    borderStyle: "dashed",
+    borderColor: theme.colors.customColors.semi,
+  },
   cardHeader: {
     flexDirection: "row",
     alignItems: "center",
@@ -140,6 +160,11 @@ const styles = StyleSheet.create((theme) => ({
   accountInfo: {
     flex: 1,
     gap: 2,
+  },
+  accountNameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
   accountName: {
     fontSize: 16,

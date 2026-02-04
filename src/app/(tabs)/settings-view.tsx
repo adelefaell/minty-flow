@@ -18,6 +18,13 @@ interface SettingsItem {
 
 const moneyManagementItems: SettingsItem[] = [
   {
+    id: "all-accounts",
+    title: "All Accounts",
+    description: "View all your accounts",
+    route: "/settings/all-accounts",
+    icon: "wallet-bifold",
+  },
+  {
     id: "loans",
     title: "Loans",
     description: "Track money lent and borrowed",
@@ -28,7 +35,7 @@ const moneyManagementItems: SettingsItem[] = [
     id: "categories",
     title: "Categories",
     description: "Manage your transaction categories",
-    route: "/settings/categories/categories-view",
+    route: "/settings/categories",
     icon: "shape",
   },
   {

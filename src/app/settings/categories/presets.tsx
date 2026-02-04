@@ -15,12 +15,10 @@ import {
   IncomePresets,
   TransferPresets,
 } from "~/constants/pre-sets-categories"
-import type CategoryModel from "~/database/models/Category"
 import {
   createCategory,
   observeCategoriesByType,
 } from "~/database/services/category-service"
-import { modelToCategory } from "~/database/utils/model-to-category"
 import type { Category } from "~/types/categories"
 import { type TransactionType, TransactionTypeEnum } from "~/types/transactions"
 import { logger } from "~/utils/logger"
@@ -36,18 +34,15 @@ const PRESETS_BY_TYPE: Record<
 }
 
 function alreadyAddedPresetIds(
-  categoryModels: Category[],
+  categories: Category[],
   presets: readonly (Category & { id: string })[],
 ): Set<string> {
   const added = new Set<string>()
   for (const preset of presets) {
-    const match = categoryModels.some(
+    const match = categories.some(
       (c) =>
-        c.name === preset.name &&
-        c.type === preset.type &&
-        (c.icon ?? undefined) === (preset.icon ?? undefined) &&
-        (c.colorSchemeName ?? undefined) ===
-          (preset.colorSchemeName ?? undefined),
+        c.name.trim().toLowerCase() === preset.name.trim().toLowerCase() &&
+        c.type === preset.type,
     )
     if (match) added.add(preset.id)
   }
@@ -56,16 +51,13 @@ function alreadyAddedPresetIds(
 
 interface CategoryPresetsScreenInnerProps {
   type: TransactionType
-  categoryModels: CategoryModel[]
+  categories: Category[]
 }
 
 const CategoryPresetsScreenInner = ({
   type,
-  categoryModels,
+  categories,
 }: CategoryPresetsScreenInnerProps) => {
-  // Convert models to domain types
-  const categories = categoryModels.map(modelToCategory)
-
   const router = useRouter()
   const [selectedPresets, setSelectedPresets] = useState<Set<string>>(new Set())
 
@@ -102,15 +94,11 @@ const CategoryPresetsScreenInner = ({
           type: preset.type,
           icon: preset.icon,
           colorSchemeName: preset.colorSchemeName,
+          isArchived: false,
         })
       }
 
       setSelectedPresets(new Set())
-
-      Toast.success({
-        title: "Categories created",
-        description: `Successfully created ${selected.length} categor${selected.length === 1 ? "y" : "ies"}`,
-      })
 
       // Navigate back
       router.back()
@@ -200,7 +188,7 @@ const CategoryPresetsScreenInner = ({
 const EnhancedCategoryPresetsScreen = withObservables(
   ["type"],
   ({ type }: { type: TransactionType }) => ({
-    categoryModels: observeCategoriesByType(type),
+    categories: observeCategoriesByType(type, true),
   }),
 )(CategoryPresetsScreenInner)
 

@@ -152,18 +152,11 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
     }
   }
 
-  const handleDeletePress = () => {
-    deleteTagSheet.present()
-  }
-
   const handleDelete = async () => {
     try {
       if (!tagModel) return
       await deleteTag(tagModel)
-      Toast.success({
-        title: "Tag deleted",
-        description: "The tag has been deleted",
-      })
+
       isNavigatingRef.current = true
       router.back()
     } catch (error) {
@@ -210,6 +203,16 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
 
   const currentColorScheme = getThemeStrict(formColorSchemeName)
 
+  if (!isAddMode && !tag) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text variant="default">Loading tag...</Text>
+        </View>
+      </View>
+    )
+  }
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -254,9 +257,9 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
             <Text variant="muted">Location tags are being developed.</Text>
           </View>
         ) : (
-          <View style={styles.form}>
-            {/* Large Icon Preview */}
-            <View style={styles.iconPreviewSection}>
+          <View style={styles.form} key={tag?.id || NewEnum.NEW}>
+            {/* Icon Selection */}
+            <View style={styles.iconSection}>
               <Pressable
                 style={[
                   styles.iconBox,
@@ -268,14 +271,14 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
               >
                 <DynamicIcon
                   icon={formIcon}
-                  size={64}
+                  size={96}
                   colorScheme={currentColorScheme}
                 />
               </Pressable>
             </View>
 
-            {/* Name Input */}
-            <View style={styles.field}>
+            {/* Name Section */}
+            <View style={styles.nameSection}>
               <Text variant="small" style={styles.label}>
                 {formType === "contact" ? "Contact name" : "Tag name"}
               </Text>
@@ -302,21 +305,22 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
               )}
             </View>
 
-            {/* Person Specific Info */}
-            {formType === "contact" && (
-              <View style={styles.field}>
+            {/* Settings List */}
+            <View style={styles.settingsList}>
+              {/* Person Specific Info */}
+              {formType === "contact" && (
                 <Pressable
-                  style={styles.contactPicker}
+                  style={styles.settingsRow}
                   onPress={handleContactPickerPress}
                   disabled={loadingContacts}
                 >
-                  <View style={styles.contactPickerLeft} variant="muted">
+                  <View style={styles.settingsLeft}>
                     {loadingContacts ? (
                       <ActivityIndicator size="small" />
                     ) : (
                       <IconSymbol name="account-details" size={24} />
                     )}
-                    <Text variant="muted">
+                    <Text variant="default" style={styles.settingsLabel}>
                       {loadingContacts
                         ? "Loading contacts..."
                         : "Select contact from phone"}
@@ -328,22 +332,20 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
                     style={styles.chevronIcon}
                   />
                 </Pressable>
-              </View>
-            )}
+              )}
 
-            {/* Color Selection */}
-            <View style={styles.field}>
+              {/* Color Selection */}
               <Pressable
-                style={styles.colorSelector}
+                style={styles.settingsRow}
                 onPress={() => colorVariantSheet.present()}
               >
-                <View style={styles.colorSelectorLeft} variant="muted">
+                <View style={styles.settingsLeft}>
                   <IconSymbol name="palette" size={24} />
-                  <Text variant="default" style={styles.colorLabel}>
+                  <Text variant="default" style={styles.settingsLabel}>
                     Change color
                   </Text>
                 </View>
-                <View style={styles.colorSelectorRight} variant="muted">
+                <View style={styles.settingsRight}>
                   {currentColorScheme ? (
                     <View
                       style={[
@@ -366,29 +368,29 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
                 </View>
               </Pressable>
             </View>
+
+            {/* Divider */}
+            {!isAddMode && <Separator />}
           </View>
         )}
 
-        {!isAddMode && (
-          <>
-            <Separator />
-            <View style={styles.deleteSection}>
-              <Button
-                variant="ghost"
-                onPress={handleDeletePress}
-                style={styles.deleteButton}
-              >
-                <IconSymbol
-                  name="trash-can"
-                  size={20}
-                  style={styles.deleteIcon}
-                />
-                <Text variant="default" style={styles.deleteText}>
-                  Delete Tag
-                </Text>
-              </Button>
-            </View>
-          </>
+        {!isAddMode && formType !== "location" && (
+          <View style={styles.deleteSection}>
+            <Button
+              variant="ghost"
+              onPress={() => deleteTagSheet.present()}
+              style={styles.actionButton}
+            >
+              <IconSymbol
+                name="trash-can"
+                size={20}
+                style={styles.deleteIcon}
+              />
+              <Text variant="default" style={styles.deleteText}>
+                Delete Tag
+              </Text>
+            </Button>
+          </View>
         )}
       </ScrollView>
 
@@ -399,7 +401,9 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
             onPress={() => router.back()}
             style={styles.button}
           >
-            <Text variant="default">Cancel</Text>
+            <Text variant="default" style={styles.cancelText}>
+              Cancel
+            </Text>
           </Button>
           <Button
             variant="default"
@@ -454,7 +458,9 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
         }}
       />
 
-      {tag && <DeleteTagSheet tag={tag} onConfirm={handleDelete} />}
+      {!isAddMode && tag && (
+        <DeleteTagSheet tag={tag} onConfirm={handleDelete} />
+      )}
 
       <UnsavedChangesSheet />
     </View>
@@ -466,7 +472,14 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
     backgroundColor: theme.colors.surface,
   },
-  scrollView: { flex: 1 },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  scrollView: {
+    flex: 1,
+  },
   scrollContent: {
     paddingBottom: 100,
   },
@@ -511,23 +524,20 @@ const styles = StyleSheet.create((theme) => ({
     marginHorizontal: 20,
   },
   form: {
-    gap: 24,
-    marginHorizontal: 20,
-    marginBottom: 40,
+    gap: 32,
   },
-  iconPreviewSection: {
+  iconSection: {
     alignItems: "center",
-    paddingVertical: 8,
+    paddingVertical: 12,
   },
   iconBox: {
-    width: 100,
-    height: 100,
+    width: 120,
+    height: 120,
     borderRadius: theme.colors.radius,
     backgroundColor: theme.colors.secondary,
     alignItems: "center",
     justifyContent: "center",
   },
-  field: { gap: 8 },
   label: {
     fontSize: 12,
     fontWeight: "600",
@@ -535,86 +545,91 @@ const styles = StyleSheet.create((theme) => ({
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
-  errorText: { color: theme.colors.error, fontSize: 12 },
-  contactPicker: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: theme.colors.secondary,
-    borderRadius: theme.colors.radius,
+  nameSection: {
+    gap: 8,
+    paddingHorizontal: 20,
   },
-  contactPickerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
+  settingsList: {
+    gap: 0,
   },
   settingsRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
   },
-  settingsLeft: { flexDirection: "row", alignItems: "center", gap: 12 },
-  settingsRight: { flexDirection: "row", alignItems: "center", gap: 8 },
-  colorSelector: {
+  settingsLeft: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: theme.colors.secondary,
-    borderRadius: theme.colors.radius,
-    // borderWidth: 1,
-    // borderColor: theme.colors.onSurface,
+    gap: 16,
   },
-  colorSelectorLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  colorSelectorRight: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  colorLabel: {
+  settingsLabel: {
     fontSize: 16,
     fontWeight: "500",
-    color: theme.colors.onSecondary,
+    color: theme.colors.onSurface,
   },
-  colorPreview: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderColor: theme.colors.onSecondary,
-  },
-  defaultColorText: {
-    fontSize: 14,
-    color: theme.colors.onSecondary,
-    opacity: 0.6,
+  settingsRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
   },
   chevronIcon: {
     color: theme.colors.onSecondary,
     opacity: 0.4,
   },
-  deleteSection: {
-    textAlign: "center",
-    margin: 40,
-    paddingHorizontal: 20,
+  colorPreview: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
   },
-  deleteButton: { width: "100%" },
-  deleteIcon: { color: theme.colors.error },
-  deleteText: { color: theme.colors.error, fontWeight: "600" },
+  defaultColorText: {
+    fontSize: 16,
+    color: theme.colors.onSecondary,
+    opacity: 0.6,
+  },
+  errorText: {
+    fontSize: 12,
+    color: theme.colors.error,
+    marginTop: 4,
+    textAlign: "center",
+  },
+  deleteSection: {
+    marginTop: 32,
+    marginHorizontal: 20,
+    gap: 12,
+  },
+  actionButton: {
+    width: "100%",
+  },
+  deleteIcon: {
+    color: theme.colors.error,
+  },
+  deleteText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: theme.colors.error,
+  },
   actions: {
     flexDirection: "row",
     gap: 12,
-    padding: 20,
     backgroundColor: theme.colors.surface,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
   },
-  button: { flex: 1 },
-  saveText: { color: theme.colors.onPrimary, fontWeight: "600" },
+  button: {
+    flex: 1,
+  },
+  cancelText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: theme.colors.onSurface,
+  },
+  saveText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: theme.colors.onPrimary,
+  },
 }))
 
 const EnhancedEditTagScreen = withObservables(

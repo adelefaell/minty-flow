@@ -8,7 +8,6 @@ import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
 import { AccountTypeSelectorSheet } from "~/components/accounts/account-type-selector-sheet"
-import { ArchiveAccountSheet } from "~/components/accounts/archive-account-sheet"
 import { DeleteAccountSheet } from "~/components/accounts/delete-account-sheet"
 import { useBottomSheet } from "~/components/bottom-sheet"
 import { CalculatorSheet } from "~/components/calculator-sheet"
@@ -62,21 +61,10 @@ const EditAccountScreenInner = ({
 }: EditAccountScreenProps) => {
   const router = useRouter()
   const isAddMode = accountId === NewEnum.NEW || !accountId
+
   const handleGoBack = useCallback(() => {
-    if (account?.id) {
-      router.replace({
-        pathname: "/accounts/[accountId]",
-        params: {
-          accountId: account?.id,
-        },
-      })
-    } else {
-      router.replace({
-        pathname: "/(tabs)",
-        params: { initialPage: 2 },
-      })
-    }
-  }, [account?.id, router.replace])
+    router.back()
+  }, [router.back])
 
   // Form state management with Zod validation
   const {
@@ -96,6 +84,7 @@ const EditAccountScreenInner = ({
       colorSchemeName: account?.colorSchemeName || undefined,
       isPrimary: account?.isPrimary || false,
       excludeFromBalance: account?.excludeFromBalance || false,
+      isArchived: account?.isArchived || false,
     },
   })
 
@@ -117,9 +106,6 @@ const EditAccountScreenInner = ({
   // Bottom sheet controls
   const deleteSheet = useBottomSheet(
     `delete-account-${accountId || NewEnum.NEW}`,
-  )
-  const archiveSheet = useBottomSheet(
-    `archive-account-${accountId || NewEnum.NEW}`,
   )
   const changeIconSheet = useBottomSheet(
     `change-icon-account-${accountId || NewEnum.NEW}`,
@@ -175,6 +161,7 @@ const EditAccountScreenInner = ({
           colorSchemeName: data.colorSchemeName,
           isPrimary: false, // Always false for new accounts
           excludeFromBalance: data.excludeFromBalance,
+          isArchived: data.isArchived,
         })
 
         isNavigatingRef.current = true
@@ -195,6 +182,7 @@ const EditAccountScreenInner = ({
           colorSchemeName: data.colorSchemeName,
           isPrimary: data.isPrimary,
           excludeFromBalance: data.excludeFromBalance,
+          isArchived: data.isArchived,
         })
 
         isNavigatingRef.current = true
@@ -218,74 +206,15 @@ const EditAccountScreenInner = ({
       if (!accountModel) return
 
       await deleteAccount(accountModel)
-      Toast.success({
-        title: "Account deleted",
-        description: "The account has been deleted",
-      })
 
       isNavigatingRef.current = true
-      router.replace({
-        pathname: "/accounts/archived-accounts",
-      })
+      router.dismissAll()
+      router.push("/settings/all-accounts")
     } catch (error) {
       logger.error("Error deleting account", { error })
       Toast.error({
         title: "Error",
         description: "Failed to delete account.",
-      })
-    }
-  }
-
-  const handleArchive = async () => {
-    try {
-      if (!accountModel) return
-
-      await updateAccount(accountModel, {
-        isArchived: true,
-      })
-
-      Toast.success({
-        title: "Account archived",
-        description: "The account has been archived",
-      })
-
-      isNavigatingRef.current = true
-      router.replace({
-        pathname: "/(tabs)",
-        params: { initialPage: 2 },
-      })
-    } catch (error) {
-      logger.error("Error archiving account", { error })
-      Toast.error({
-        title: "Error",
-        description: "Failed to archive account.",
-      })
-    }
-  }
-
-  const handleRestore = async () => {
-    try {
-      if (!accountModel) return
-
-      await updateAccount(accountModel, {
-        isArchived: false,
-      })
-
-      Toast.success({
-        title: "Account restored",
-        description: "The account has been restored",
-      })
-
-      isNavigatingRef.current = true
-      router.replace({
-        pathname: "/(tabs)",
-        params: { initialPage: 2 },
-      })
-    } catch (error) {
-      logger.error("Error restoring account", { error })
-      Toast.error({
-        title: "Error",
-        description: "Failed to restore account.",
       })
     }
   }
@@ -541,6 +470,33 @@ const EditAccountScreenInner = ({
                 )}
               />
             )}
+
+            {/* Archive Account */}
+            {!isAddMode && (
+              <Controller
+                control={control}
+                name="isArchived"
+                render={({ field: { value, onChange } }) => (
+                  <Pressable
+                    style={styles.switchRow}
+                    onPress={() => onChange(!value)}
+                    accessibilityRole="switch"
+                    accessibilityState={{ checked: value }}
+                  >
+                    <View style={styles.switchLeft}>
+                      <IconSymbol name="archive-arrow-down" size={24} />
+                      <Text variant="default" style={styles.switchLabel}>
+                        Archive account
+                      </Text>
+                    </View>
+
+                    <View pointerEvents="none">
+                      <Switch value={value} />
+                    </View>
+                  </Pressable>
+                )}
+              />
+            )}
           </View>
 
           {/* Divider */}
@@ -550,58 +506,25 @@ const EditAccountScreenInner = ({
         {!isAddMode && (
           <View style={styles.deleteSection}>
             {account?.isArchived ? (
-              <>
-                <Button
-                  variant="ghost"
-                  onPress={handleRestore}
-                  style={styles.actionButton}
-                >
-                  <IconSymbol
-                    name="archive-arrow-up"
-                    size={20}
-                    style={styles.restoreIcon}
-                  />
-                  <Text variant="default" style={styles.restoreText}>
-                    Restore Account
-                  </Text>
-                </Button>
-                <Button
-                  variant="ghost"
-                  onPress={() => deleteSheet.present()}
-                  style={styles.actionButton}
-                >
-                  <IconSymbol
-                    name="trash-can"
-                    size={20}
-                    style={styles.deleteIcon}
-                  />
-                  <Text variant="default" style={styles.deleteText}>
-                    Delete Account
-                  </Text>
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button
-                  variant="ghost"
-                  onPress={() => archiveSheet.present()}
-                  style={styles.actionButton}
-                >
-                  <IconSymbol
-                    name="archive-arrow-down"
-                    outline
-                    size={20}
-                    style={styles.archiveIcon}
-                  />
-                  <Text variant="default" style={styles.archiveText}>
-                    Archive Account
-                  </Text>
-                </Button>
-                <Text variant="small" style={styles.archiveWarning}>
-                  You can permanently delete the account with its transactions
-                  after you archive the account for safety measures.
+              <Button
+                variant="ghost"
+                onPress={() => deleteSheet.present()}
+                style={styles.actionButton}
+              >
+                <IconSymbol
+                  name="trash-can"
+                  size={20}
+                  style={styles.deleteIcon}
+                />
+                <Text variant="default" style={styles.deleteText}>
+                  Delete Account
                 </Text>
-              </>
+              </Button>
+            ) : (
+              <Text variant="small" style={styles.archiveWarning}>
+                You can permanently delete the account with its transactions
+                after you archive the account for safety measures.
+              </Text>
             )}
           </View>
         )}
@@ -638,10 +561,7 @@ const EditAccountScreenInner = ({
       </KeyboardStickyViewMinty>
 
       {!isAddMode && account && (
-        <>
-          <DeleteAccountSheet account={account} onConfirm={handleDelete} />
-          <ArchiveAccountSheet account={account} onConfirm={handleArchive} />
-        </>
+        <DeleteAccountSheet account={account} onConfirm={handleDelete} />
       )}
 
       <ChangeIconSheet

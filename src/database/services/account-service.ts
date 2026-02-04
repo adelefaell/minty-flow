@@ -1,13 +1,16 @@
 import { Q } from "@nozbe/watermelondb"
 import type { Observable } from "@nozbe/watermelondb/utils/rx"
+import { filter, map } from "rxjs/operators"
 
 import type {
   AddAccountsFormSchema,
   UpdateAccountsFormSchema,
 } from "~/schemas/accounts.schema"
+import type { Account } from "~/types/accounts"
 
 import { database } from "../index"
 import type AccountModel from "../models/Account"
+import { modelToAccount } from "../utils/model-to-account"
 
 /**
  * Account Service
@@ -60,7 +63,7 @@ export const findAccount = async (id: string): Promise<AccountModel | null> => {
 /**
  * Observe all accounts reactively
  */
-export const observeAccounts = (
+export const observeAccountModels = (
   includeArchived = false,
 ): Observable<AccountModel[]> => {
   const accounts = getAccountCollection()
@@ -85,12 +88,66 @@ export const observeAccounts = (
     "sort_order",
   ])
 }
+/**
+ * Observe all accounts reactively
+ */
+export const observeAccounts = (
+  includeArchived = false,
+): Observable<Account[]> => {
+  const accounts = getAccountCollection()
+  let query = accounts.query(Q.sortBy("sort_order", Q.asc))
+
+  if (!includeArchived) {
+    query = query.extend(Q.where("is_archived", false))
+  }
+
+  // Observe specific columns that can change when editing
+  // This makes the query reactive to column changes, not just record additions/deletions
+  return query
+    .observeWithColumns([
+      "name",
+      "type",
+      "balance",
+      "currency_code",
+      "icon",
+      "color_scheme_name",
+      "is_archived",
+      "is_primary",
+      "exclude_from_balance",
+      "sort_order",
+    ])
+    .pipe(map((accounts) => accounts.map((account) => modelToAccount(account))))
+}
 
 /**
  * Observe a specific account by ID
  */
 export const observeAccountById = (id: string): Observable<AccountModel> => {
   return getAccountCollection().findAndObserve(id)
+}
+
+/**
+ * Observe a specific account by ID
+ * Observes specific columns to ensure reactivity to field changes
+ */
+export const observeAccountDetailsById = (id: string): Observable<Account> => {
+  return getAccountCollection()
+    .query(Q.where("id", id))
+    .observeWithColumns([
+      "name",
+      "icon",
+      "type",
+      "color_scheme_name",
+      "transaction_count",
+      "is_archived",
+    ])
+    .pipe(
+      filter((results) => results.length > 0),
+      map((results) => {
+        const model = results[0]
+        return modelToAccount(model) // convert to immutable plain object here
+      }),
+    )
 }
 
 /**
