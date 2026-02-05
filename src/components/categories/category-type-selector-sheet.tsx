@@ -89,14 +89,13 @@ const styles = StyleSheet.create((theme) => ({
     fontWeight: "700",
   },
   optionsContainer: {
-    gap: 8,
+    gap: 10,
   },
   option: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    padding: 20,
     borderRadius: theme.colors.radius,
     backgroundColor: theme.colors.surface,
     borderWidth: 1,
@@ -113,7 +112,6 @@ const styles = StyleSheet.create((theme) => ({
   optionLeft: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 16,
   },
   optionText: {
     fontSize: 16,

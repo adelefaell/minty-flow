@@ -154,31 +154,19 @@ const styles = StyleSheet.create((theme) => ({
   container: {
     flex: 1,
     backgroundColor: theme.colors.surface,
-    marginBottom: 50,
-    paddingTop: 50,
+    marginTop: 40,
   },
   content: {
     paddingBottom: 100,
-  },
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 40,
-  },
-  headerTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    letterSpacing: 0.5,
-    color: theme.colors.onSecondary,
   },
   section: {
     marginBottom: 20,
   },
   sectionTitle: {
+    paddingHorizontal: 20,
     fontSize: 12,
     fontWeight: "600",
     letterSpacing: 0.5,
     color: theme.colors.onSecondary,
-    marginBottom: 12,
-    paddingHorizontal: 20,
   },
 }))

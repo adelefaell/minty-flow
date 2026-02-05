@@ -2,6 +2,7 @@ import { withObservables } from "@nozbe/watermelondb/react"
 import { useLocalSearchParams, useRouter } from "expo-router"
 import { useMemo, useState } from "react"
 import { FlatList } from "react-native"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { StyleSheet } from "react-native-unistyles"
 
 import { DynamicIcon } from "~/components/dynamic-icon"
@@ -58,6 +59,7 @@ const CategoryPresetsScreenInner = ({
   type,
   categories,
 }: CategoryPresetsScreenInnerProps) => {
+  const insets = useSafeAreaInsets()
   const router = useRouter()
   const [selectedPresets, setSelectedPresets] = useState<Set<string>>(new Set())
 
@@ -117,7 +119,7 @@ const CategoryPresetsScreenInner = ({
 
     return (
       <Pressable
-        style={[styles.presetItem, isAdded && styles.presetItemDisabled]}
+        style={styles.presetItem}
         onPress={() => {
           if (!isAdded) {
             togglePreset(item.id)
@@ -165,11 +167,14 @@ const CategoryPresetsScreenInner = ({
         data={presets}
         keyExtractor={(item) => item.id}
         renderItem={renderPresetItem}
-        contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.listContent}
+        style={styles.list}
       />
 
-      <View style={styles.buttonContainer}>
+      <View
+        style={[styles.buttonContainer, { paddingBottom: insets.bottom + 16 }]}
+      >
         <Button
           variant="default"
           onPress={handleAddSelected}
@@ -203,22 +208,20 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
     backgroundColor: theme.colors.surface,
   },
-  listContent: {
-    paddingBottom: 100,
-    gap: 0,
+  list: {
+    flex: 1,
   },
+
+  listContent: {},
+
   presetItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    gap: 16,
+    padding: 20,
+    gap: 10,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.secondary,
     borderBottomOpacity: 0.1,
-  },
-  presetItemDisabled: {
-    opacity: 0.8,
   },
   textContainer: {
     flex: 1,
@@ -248,8 +251,8 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: "center",
   },
   addedBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
     borderRadius: 16,
     backgroundColor: theme.colors.primary,
   },
@@ -259,17 +262,14 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.onPrimary,
   },
   buttonContainer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 20,
-    paddingBottom: 40,
+    paddingHorizontal: 20,
     backgroundColor: theme.colors.surface,
   },
+
   addButton: {
     width: "100%",
   },
+
   addButtonText: {
     fontSize: 16,
     fontWeight: "600",

@@ -71,7 +71,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   iconContainer: {
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 10,
   },
   icon: {
     color: theme.colors.error,
@@ -87,7 +87,7 @@ const styles = StyleSheet.create((theme) => ({
     lineHeight: 20,
   },
   buttonContainer: {
-    gap: 12,
+    gap: 10,
     marginBlock: 8,
   },
 }))

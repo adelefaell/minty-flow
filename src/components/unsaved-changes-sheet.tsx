@@ -6,7 +6,6 @@ import {
   useBottomSheet,
 } from "~/components/bottom-sheet"
 import { Button } from "~/components/ui/button"
-import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 
@@ -61,9 +60,9 @@ export const UnsavedChangesSheet = () => {
   return (
     <BottomSheetModalComponent id={UNSAVED_CHANGES_SHEET_ID}>
       <View style={styles.container}>
-        <View style={styles.iconContainer}>
+        {/* <View style={styles.iconContainer}>
           <IconSymbol name="alert" size={40} style={styles.icon} />
-        </View>
+        </View> */}
 
         <Text variant="h3" style={styles.title}>
           Close without saving?
@@ -111,13 +110,13 @@ const styles = StyleSheet.create((theme) => ({
     padding: 20,
     gap: 20,
   },
-  iconContainer: {
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  icon: {
-    color: theme.colors.customColors?.warning || theme.colors.primary,
-  },
+  // iconContainer: {
+  //   alignItems: "center",
+  //   marginBottom: 8,
+  // },
+  // icon: {
+  //   color: theme.colors.customColors?.warning || theme.colors.primary,
+  // },
   title: {
     textAlign: "center",
     fontWeight: "600",

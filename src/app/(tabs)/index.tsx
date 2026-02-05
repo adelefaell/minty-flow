@@ -1,11 +1,12 @@
 import { format } from "date-fns"
 import { useRouter } from "expo-router"
 import { useMemo } from "react"
-import { SectionList } from "react-native"
-import { StyleSheet } from "react-native-unistyles"
+import { Platform, SectionList } from "react-native"
+import Animated, { FadeIn, FadeInDown } from "react-native-reanimated"
+import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import { DynamicIcon } from "~/components/dynamic-icon"
-import { SummaryCard } from "~/components/summary-card"
+import { SummarySection } from "~/components/summary-card"
 import { TransactionItem } from "~/components/transaction-item"
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
@@ -15,6 +16,9 @@ import { View } from "~/components/ui/view"
 import { useMoneyFormattingStore } from "~/stores/money-formatting.store"
 import { useProfileStore } from "~/stores/profile.store"
 import type { Transaction } from "~/types/transactions"
+import { formatDisplayValue } from "~/utils/number-format"
+
+const AnimatedSectionList = Animated.createAnimatedComponent(SectionList)
 
 // Mock Data for UI verification
 const MOCK_TRANSACTIONS: Transaction[] = [
@@ -23,45 +27,59 @@ const MOCK_TRANSACTIONS: Transaction[] = [
     type: "income",
     transactionDate: new Date(),
     isDeleted: false,
-    amount: 600.0,
-    currency: "USD",
+    amount: 1000.0,
+    currency: "EUR",
     isPending: false,
     accountId: "1",
     categoryId: "1",
-    title: "Paycheck",
+    title: "Project Alpha Payment",
     createdAt: new Date(),
     updatedAt: new Date(),
   },
   {
     id: "2",
-    type: "expense",
-    transactionDate: new Date(Date.now() - 86400000 * 2), // 2 days ago
+    type: "income",
+    transactionDate: new Date(),
     isDeleted: false,
-    amount: -10.0,
+    amount: 1500.0,
     currency: "USD",
     isPending: false,
     accountId: "1",
-    categoryId: "2",
-    title: "Change dollars",
+    categoryId: "1",
+    title: "Project Beta Payment",
     createdAt: new Date(),
     updatedAt: new Date(),
   },
   {
     id: "3",
     type: "expense",
-    transactionDate: new Date(Date.now() - 86400000 * 2),
+    transactionDate: new Date(Date.now() - 86400000 * 2), // 2 days ago
     isDeleted: false,
-    amount: -1.0,
-    currency: "USD",
+    amount: -45.5,
+    currency: "EUR",
     isPending: false,
-    accountId: "2", // Cash
-    categoryId: "3", // Snacks
-    title: "2 energy drinks xxl",
+    accountId: "1",
+    categoryId: "2",
+    title: "Grocery Shopping",
     createdAt: new Date(),
     updatedAt: new Date(),
   },
   {
     id: "4",
+    type: "expense",
+    transactionDate: new Date(Date.now() - 86400000 * 2),
+    isDeleted: false,
+    amount: -80.0,
+    currency: "USD",
+    isPending: false,
+    accountId: "2",
+    categoryId: "3",
+    title: "Starbucks Coffee",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: "5",
     type: "transfer",
     transactionDate: new Date(Date.now() - 86400000 * 2),
     isDeleted: false,
@@ -70,119 +88,21 @@ const MOCK_TRANSACTIONS: Transaction[] = [
     isPending: false,
     accountId: "2",
     categoryId: null,
-    title: "From Savings to Cash",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "5",
-    type: "expense",
-    transactionDate: new Date(Date.now() - 86400000 * 2),
-    isDeleted: false,
-    amount: -19.0,
-    currency: "USD",
-    isPending: false,
-    accountId: "2",
-    categoryId: "4",
-    title: "hoz",
+    title: "Savings Transfer",
     createdAt: new Date(),
     updatedAt: new Date(),
   },
   {
     id: "6",
     type: "expense",
-    transactionDate: new Date(Date.now() - 86400000 * 2),
+    transactionDate: new Date(Date.now() - 86400000 * 3),
     isDeleted: false,
-    amount: -19.0,
+    amount: -120.0,
     currency: "USD",
     isPending: false,
     accountId: "2",
     categoryId: "4",
-    title: "hoz",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "7",
-    type: "expense",
-    transactionDate: new Date(Date.now() - 86400000 * 4),
-    isDeleted: false,
-    amount: -19.0,
-    currency: "USD",
-    isPending: false,
-    accountId: "2",
-    categoryId: "4",
-    title: "hoz",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "8",
-    type: "expense",
-    transactionDate: new Date(Date.now() - 86400000 * 2),
-    isDeleted: false,
-    amount: -19.0,
-    currency: "USD",
-    isPending: false,
-    accountId: "2",
-    categoryId: "4",
-    title: "hoz",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "8",
-    type: "expense",
-    transactionDate: new Date(Date.now() - 86400000 * 5),
-    isDeleted: false,
-    amount: -19.0,
-    currency: "USD",
-    isPending: false,
-    accountId: "2",
-    categoryId: "4",
-    title: "hoz",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "9",
-    type: "expense",
-    transactionDate: new Date(Date.now() - 86400000 * 2),
-    isDeleted: false,
-    amount: -19.0,
-    currency: "USD",
-    isPending: false,
-    accountId: "2",
-    categoryId: "4",
-    title: "hoz",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "10",
-    type: "expense",
-    transactionDate: new Date(Date.now() - 86400000 * 2),
-    isDeleted: false,
-    amount: -19.0,
-    currency: "USD",
-    isPending: false,
-    accountId: "2",
-    categoryId: "4",
-    title: "hoz",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "11",
-    type: "expense",
-    transactionDate: new Date(Date.now() - 86400000 * 2),
-    isDeleted: false,
-    amount: -19.0,
-    currency: "USD",
-    isPending: false,
-    accountId: "2",
-    categoryId: "4",
-    title: "hoz",
+    title: "Amazon Order",
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -190,43 +110,43 @@ const MOCK_TRANSACTIONS: Transaction[] = [
 
 export default function HomeScreen() {
   const router = useRouter()
+  const { theme } = useUnistyles()
   const profileName = useProfileStore((s) => s.name)
   const image = useProfileStore((s) => s.imageUri)
-  const togglePrivacy = useMoneyFormattingStore((s) => s.togglePrivacyMode)
+  const { privacyMode: privacyModeEnabled, togglePrivacyMode: togglePrivacy } =
+    useMoneyFormattingStore()
 
-  const privacyModeEnabled = useMoneyFormattingStore((s) => s.privacyMode)
-
-  // Group transactions by date
-  // TODO: Use a proper SectionList data processing utility in specific service/hook
   const sections = useMemo(() => {
     const grouped: Record<
       string,
-      { title: string; data: Transaction[]; total: number }
+      {
+        title: string
+        data: Transaction[]
+        totals: Record<string, number>
+      }
     > = {}
 
     MOCK_TRANSACTIONS.forEach((t) => {
-      // Simple day grouping
       const dateKey = format(t.transactionDate, "yyyy-MM-dd")
-
       let headerTitle = "Today"
       const today = format(new Date(), "yyyy-MM-dd")
       if (dateKey !== today) {
-        headerTitle = format(t.transactionDate, "EEEE") // e.g. "Monday"
+        headerTitle = format(t.transactionDate, "EEEE, MMM d")
       }
 
       if (!grouped[dateKey]) {
         grouped[dateKey] = {
           title: headerTitle,
           data: [],
-          total: 0,
+          totals: {},
         }
       }
       grouped[dateKey].data.push(t)
-      grouped[dateKey].total += t.amount
+      const currentTotal = grouped[dateKey].totals[t.currency] || 0
+      grouped[dateKey].totals[t.currency] = currentTotal + t.amount
     })
 
     return Object.values(grouped).sort((a, b) => {
-      // Sort by date descending (mock logic assumption)
       return (
         b.data[0].transactionDate.getTime() -
         a.data[0].transactionDate.getTime()
@@ -235,93 +155,93 @@ export default function HomeScreen() {
   }, [])
 
   const renderHeader = () => (
-    <View style={styles.summaryRow}>
-      <SummaryCard type="income" label="Income" amount={600.0} currency="USD" />
-      <SummaryCard
-        type="expense"
-        label="Expense"
-        amount={-88.08}
-        currency="USD"
-      />
-    </View>
+    <Animated.View entering={FadeIn.delay(50)} style={styles.summaryContainer}>
+      <SummarySection transactions={MOCK_TRANSACTIONS} />
+    </Animated.View>
   )
 
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.greetingRow}>
-          <Pressable
-            onPress={() => router.push("/settings/edit-profile")}
-            style={styles.avatarPlaceholder}
-          >
-            {image ? (
-              <DynamicIcon icon={image} variant="raw" size={48} />
-            ) : (
-              <IconSymbol name="account" size={24} />
-            )}
-          </Pressable>
-          <Text variant="h3" style={styles.greetingText}>
+      <Animated.View entering={FadeInDown.duration(300)} style={styles.header}>
+        <Pressable
+          onPress={() => router.push("/settings/edit-profile")}
+          style={styles.greetingRow}
+        >
+          {image ? (
+            <DynamicIcon icon={image} variant="raw" size={48} />
+          ) : (
+            <IconSymbol name="account" size={24} />
+          )}
+          <Text variant="large" style={styles.greetingText}>
             Hi, {profileName}!
           </Text>
-        </View>
-        <Button variant="ghost" onPress={togglePrivacy}>
-          <IconSymbol name={privacyModeEnabled ? "eye-off" : "eye"} size={24} />
-        </Button>
-      </View>
+        </Pressable>
 
-      {/* Filter / Search Row */}
-      <View style={styles.actionRow}>
-        <View style={styles.filterButton}>
+        <Button variant="ghost" onPress={togglePrivacy}>
+          <IconSymbol
+            name={privacyModeEnabled ? "eye-off" : "eye"}
+            size={24}
+            color={
+              privacyModeEnabled ? theme.colors.customColors.semi : undefined
+            }
+          />
+        </Button>
+      </Animated.View>
+
+      {/* Action Row - Refined with theme radius */}
+      <Animated.View entering={FadeInDown.delay(100)} style={styles.actionRow}>
+        <Pressable style={styles.pillButton}>
           <IconSymbol name="filter-variant" size={20} />
           <Text variant="default" style={{ marginLeft: 4 }}>
             0
           </Text>
-        </View>
-        <View style={styles.searchButton}>
+        </Pressable>
+        <Pressable style={[styles.pillButton, styles.searchButton]}>
           <IconSymbol name="magnify" size={20} style={{ marginRight: 8 }} />
           <Text style={styles.searchText}>Search</Text>
-        </View>
-        <View style={styles.timeFilterButton}>
-          <IconSymbol name="clock" size={20} style={{ marginRight: 8 }} />
+        </Pressable>
+        <Pressable style={styles.pillButton}>
+          <IconSymbol name="calendar" size={20} style={{ marginRight: 8 }} />
           <Text variant="default">This month</Text>
-        </View>
-      </View>
+        </Pressable>
+      </Animated.View>
 
-      {/* Summary Cards */}
-      {/* <View style={styles.summaryRow}>
-        <SummaryCard
-          type="income"
-          label="Income"
-          amount={600.0}
-          currency="USD"
-        />
-        <SummaryCard
-          type="expense"
-          label="Expense"
-          amount={-88.08}
-          currency="USD"
-        />
-      </View> */}
-
-      {/* Transactions List */}
-      <SectionList
+      {/* Transactions List with Staggered Entrance */}
+      <AnimatedSectionList
         sections={sections}
         ListHeaderComponent={renderHeader}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <TransactionItem transaction={item} />}
-        renderSectionHeader={({ section: { title, total, data } }) => (
-          <View style={styles.sectionHeader}>
-            <View>
-              <Text variant="h4" style={styles.sectionTitle}>
-                {title}
-              </Text>
-              <Text variant="small" style={styles.sectionSubtitle}>
-                {total.toFixed(2)} • {data.length} transactions
-              </Text>
-            </View>
-          </View>
+        keyExtractor={(item) => (item as Transaction).id}
+        renderItem={({ item, index }) => (
+          <TransactionItem transaction={item as Transaction} index={index} />
         )}
+        renderSectionHeader={({ section }) => {
+          const s = section as unknown as {
+            title: string
+            totals: Record<string, number>
+          }
+          return (
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionTitleRow}>
+                <Text variant="h4" style={styles.sectionTitle}>
+                  {s.title}
+                </Text>
+                <View style={styles.sectionDivider} />
+              </View>
+              <View style={styles.totalsContainer}>
+                {Object.entries(s.totals).map(([curr, total], idx) => (
+                  <Text key={curr} variant="small" style={styles.sectionTotal}>
+                    {idx > 0 && "| "}
+                    {formatDisplayValue(total, {
+                      currency: curr,
+                      showSign: true,
+                    })}
+                  </Text>
+                ))}
+              </View>
+            </View>
+          )
+        }}
         contentContainerStyle={styles.listContent}
         stickySectionHeadersEnabled={false}
         showsVerticalScrollIndicator={false}
@@ -333,93 +253,93 @@ export default function HomeScreen() {
 const styles = StyleSheet.create((theme) => ({
   container: {
     flex: 1,
-    paddingTop: 16, // Adjust based on SafeArea if needed, but simple View for now
     backgroundColor: theme.colors.surface,
-    marginTop: 20,
   },
   header: {
-    paddingHorizontal: 20,
+    marginHorizontal: 20,
+    marginVertical: 10,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 20,
-    marginTop: 4,
+    paddingTop: Platform.OS === "ios" ? 20 : 20, // Reverted to simpler padding
   },
   greetingRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-  },
-  avatarPlaceholder: {
     borderRadius: theme.colors.radius,
-    backgroundColor: theme.colors.surface,
-    alignItems: "center",
-    justifyContent: "center",
+    padding: 10,
   },
   greetingText: {
     fontWeight: "bold",
   },
   actionRow: {
-    paddingHorizontal: 20,
-
+    marginHorizontal: 20,
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 10,
     marginBottom: 20,
   },
-  filterButton: {
+  pillButton: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 12,
     paddingVertical: 10,
-    borderRadius: 12,
+    borderRadius: theme.colors.radius,
     borderWidth: 1,
     borderColor: theme.colors.customColors.semi,
-    //   backgroundColor: theme.colors.surface,
   },
   searchButton: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: theme.colors.customColors.semi,
-    //   backgroundColor: theme.colors.surface,
   },
   searchText: {
     color: theme.colors.onSecondary,
   },
-  timeFilterButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: theme.colors.customColors.semi,
-    //   backgroundColor: theme.colors.surface,
+  summaryContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 24,
   },
   summaryRow: {
     flexDirection: "row",
     gap: 12,
-    marginBottom: 24,
-    paddingHorizontal: 20,
   },
   listContent: {
-    paddingBottom: 100, // Space for Bottom Tab
+    paddingBottom: 120,
   },
   sectionHeader: {
-    marginTop: 16,
+    marginTop: 12,
     paddingHorizontal: 20,
-
-    marginBottom: 8,
+    marginBottom: 16,
+  },
+  sectionTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
   },
   sectionTitle: {
-    marginBottom: 2,
+    fontWeight: "bold",
+    fontSize: 18,
+    letterSpacing: -0.3,
   },
-  sectionSubtitle: {
+  sectionDivider: {
+    flex: 1,
+    height: 1,
+    backgroundColor: theme.colors.secondary,
+    opacity: 0.5,
+  },
+  totalsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 4,
+  },
+  sectionTotal: {
+    fontWeight: "700",
     color: theme.colors.onSecondary,
+    opacity: 0.8,
   },
 }))

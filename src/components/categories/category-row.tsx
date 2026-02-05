@@ -62,10 +62,9 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingRight: 16,
+    paddingRight: 20,
     backgroundColor: theme.colors.secondary,
     borderRadius: theme.colors.radius,
-    minHeight: 60,
     marginHorizontal: 20,
   },
   rowContent: {
@@ -73,13 +72,11 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
-    gap: 12,
+    gap: 10,
   },
   nameContainer: {
     backgroundColor: theme.colors.secondary,
-
     flex: 1,
-    gap: 4,
   },
   name: {
     fontSize: 16,

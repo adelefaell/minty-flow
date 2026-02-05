@@ -106,6 +106,7 @@ export const VALID_ICON_NAMES = defineValidIcons([
   "trash-can",
   "target",
   "clock",
+  "calendar",
   "anchor",
   "archive",
   "archive-arrow-up",

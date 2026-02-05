@@ -102,7 +102,7 @@ const numberFormatter = (
   const sign = base.startsWith("-") || base.startsWith("+") ? base[0] : ""
   const number = base.replace(/^[+-]/, "")
 
-  return `${sign}${label} ${number}`
+  return `${sign}${label}${number}`
 }
 
 // ------------------------

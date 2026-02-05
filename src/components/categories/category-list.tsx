@@ -196,7 +196,7 @@ const CategoryListInner = ({
       return (
         <View style={styles.emptyWrapper}>
           <View style={styles.emptyContainer}>
-            <IconSymbol name="tag" size={40} style={styles.emptyIcon} />
+            <IconSymbol name="shape" size={40} style={styles.emptyIcon} />
             <Text variant="h4" style={styles.emptyTitle}>
               No archived {type} categories
             </Text>
@@ -216,7 +216,7 @@ const CategoryListInner = ({
           {renderHeader()}
           <View style={styles.emptyContainer}>
             <IconSymbol
-              name="tag"
+              name="shape"
               size={40}
               style={[styles.emptyIcon, { opacity: 0.3 }]}
             />
@@ -245,7 +245,7 @@ const CategoryListInner = ({
       <View style={styles.emptyWrapper}>
         {renderHeader()}
         <View style={styles.emptyContainer}>
-          <IconSymbol name="tag" size={40} style={styles.emptyIcon} />
+          <IconSymbol name="shape" size={40} style={styles.emptyIcon} />
           <Text variant="h4" style={styles.emptyTitle}>
             No {type} categories yet
           </Text>
@@ -274,19 +274,18 @@ const CategoryListInner = ({
 const styles = StyleSheet.create((theme) => ({
   listContent: {
     paddingBottom: 100,
-    gap: 8,
+    gap: 10,
   },
   headerContainer: {
     paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 8,
-    gap: 12,
+    paddingVertical: 10,
+    gap: 10,
   },
   headerButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
+    gap: 10,
     width: "100%",
   },
   headerButtonText: {
@@ -305,25 +304,25 @@ const styles = StyleSheet.create((theme) => ({
   },
   emptyIcon: {
     opacity: 0.5,
-    marginBottom: 16,
+    marginBottom: 20,
   },
   emptyTitle: {
     fontSize: 20,
     fontWeight: "600",
     color: theme.colors.onSurface,
-    marginBottom: 8,
+    marginBottom: 10,
     textAlign: "center",
   },
   emptyDescription: {
     fontSize: 14,
     color: theme.colors.onSecondary,
     textAlign: "center",
-    marginBottom: 24,
+    marginBottom: 20,
     lineHeight: 20,
   },
   emptyButton: {
     minWidth: 200,
-    marginTop: 8,
+    marginTop: 10,
   },
   emptyButtonText: {
     fontWeight: "600",
@@ -331,7 +330,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   footerContainer: {
     paddingHorizontal: 20,
-    paddingTop: 8,
+    paddingTop: 10,
     paddingBottom: 40,
   },
   footerSeparator: {
@@ -340,7 +339,7 @@ const styles = StyleSheet.create((theme) => ({
   archivedEntryLeft: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 10,
   },
   archivedIcon: {
     color: theme.colors.onSecondary,

@@ -9,7 +9,6 @@ import { SearchInput } from "~/components/search-input"
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Money } from "~/components/ui/money"
-import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import type AccountModel from "~/database/models/Account"
@@ -180,15 +179,10 @@ const AccountsScreenInner = ({ accountModels }: AccountsScreenInnerProps) => {
         ListFooterComponent={
           !isReorderMode ? (
             <View style={styles.footer}>
-              <Pressable
-                style={styles.newAccountButton}
-                onPress={handleAddAccount}
-              >
+              <Button onPress={handleAddAccount} variant="secondary">
                 <IconSymbol name="plus" size={24} />
-                <Text variant="default" style={styles.newAccountText}>
-                  New Account
-                </Text>
-              </Pressable>
+                <Text variant="default">New Account</Text>
+              </Button>
             </View>
           ) : null
         }
@@ -209,24 +203,25 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
     backgroundColor: theme.colors.surface,
     paddingHorizontal: 20,
+    marginTop: 40,
   },
   scrollView: { flex: 1 },
   scrollContent: {
-    paddingTop: 5,
     paddingBottom: 100,
-    gap: 20,
+    gap: 10,
   },
   titleContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginTop: 40,
   },
   actionButtons: {
     flexDirection: "row",
-    gap: 8,
+    gap: 10,
   },
-  header: { marginTop: 20 },
+  header: {
+    marginVertical: 20,
+  },
   balanceContainer: { gap: 5 },
   sectionLabel: {
     fontSize: 10,
@@ -241,12 +236,10 @@ const styles = StyleSheet.create((theme) => ({
   },
   currencyLabel: {
     fontSize: 14,
-    color: theme.colors.onSurface,
   },
   balanceAmount: {
     fontSize: 24,
     fontWeight: "600",
-    color: theme.colors.onSurface,
   },
   accountsCountContainer: {
     flexDirection: "row",
@@ -254,40 +247,14 @@ const styles = StyleSheet.create((theme) => ({
     paddingBlock: 10,
   },
   accountsCount: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "600",
-  },
-  newAccountButton: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 8,
-    paddingVertical: 20,
-    backgroundColor: theme.colors.secondary,
-    borderRadius: theme.colors.radius,
-  },
-  newAccountText: {
-    fontSize: 16,
-    fontWeight: "600",
+    color: theme.colors.customColors.semi,
   },
   searchContainer: {
-    marginTop: 16,
-    marginBottom: 8,
+    marginBottom: 10,
   },
   footer: {
     marginBottom: 40,
-    gap: 15,
-  },
-  archivedButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingVertical: 20,
-    borderRadius: theme.colors.radius,
-  },
-  archivedText: {
-    fontSize: 14,
-    color: theme.colors.customColors.semi,
-    fontWeight: "500",
   },
 }))

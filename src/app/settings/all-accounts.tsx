@@ -71,26 +71,21 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.surface,
     paddingHorizontal: 20,
   },
-  header: {
-    marginTop: 20,
-    marginBottom: 20,
-  },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 40,
-    gap: 16,
+    paddingBottom: 100,
+    gap: 10,
   },
   newAccountButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 12,
-    paddingVertical: 24,
+    paddingVertical: 20,
     backgroundColor: theme.colors.secondary,
     borderRadius: theme.colors.radius,
-    marginBottom: 8,
   },
   newAccountText: {
     fontSize: 16,

@@ -12,10 +12,11 @@ import { ChangeIconSheet } from "~/components/change-icon-sheet"
 import { ColorVariantSheet } from "~/components/color-variant-sheet"
 import { DynamicIcon } from "~/components/dynamic-icon"
 import { KeyboardStickyViewMinty } from "~/components/keyboard-sticky-view-minty"
+import { TabsMinty } from "~/components/tabs-minty"
 import { ContactSelectorSheet } from "~/components/tags/contact-selector-sheet"
 import { DeleteTagSheet } from "~/components/tags/delete-tag-sheet"
 import { Button } from "~/components/ui/button"
-import { IconSymbol, type IconSymbolName } from "~/components/ui/icon-symbol"
+import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Input } from "~/components/ui/input"
 import { Pressable } from "~/components/ui/pressable"
 import { Separator } from "~/components/ui/separator"
@@ -195,12 +196,6 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
     }
   }, [contactSelectorSheet])
 
-  const types: { kind: TagKindType; label: string; icon: IconSymbolName }[] = [
-    { kind: TagKindEnum.GENERIC, label: "Generic", icon: "tag" },
-    { kind: TagKindEnum.LOCATION, label: "Location", icon: "map" },
-    { kind: TagKindEnum.CONTACT, label: "Person", icon: "account" },
-  ]
-
   const currentColorScheme = getThemeStrict(formColorSchemeName)
 
   if (!isAddMode && !tag) {
@@ -220,36 +215,23 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
         contentContainerStyle={styles.scrollContent}
       >
         {/* Type selector (Tabs) */}
-        <View style={styles.tabs}>
-          {types.map((t) => (
-            <Pressable
-              key={t.kind}
-              style={[styles.tab, formType === t.kind && styles.activeTab]}
-              onPress={() => {
-                setValue("type", t.kind, { shouldDirty: true })
-                setValue("icon", iconBasedType(t.kind), { shouldDirty: true })
-              }}
-            >
-              <IconSymbol
-                name={t.icon}
-                size={18}
-                style={[
-                  styles.tabIcon,
-                  formType === t.kind && styles.activeTabLabel,
-                ]}
-              />
-              <Text
-                variant="default"
-                style={[
-                  styles.tabLabel,
-                  formType === t.kind && styles.activeTabLabel,
-                ]}
-              >
-                {t.label}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+        <TabsMinty<TagKindType>
+          items={[
+            { value: TagKindEnum.GENERIC, label: "Generic", icon: "tag" },
+            { value: TagKindEnum.LOCATION, label: "Location", icon: "map" },
+            {
+              value: TagKindEnum.CONTACT,
+              label: "Person",
+              icon: "account",
+            },
+          ]}
+          activeValue={formType}
+          onValueChange={(value) => {
+            setValue("type", value, { shouldDirty: true })
+            setValue("icon", iconBasedType(value), { shouldDirty: true })
+          }}
+          variant="segmented"
+        />
 
         {formType === "location" ? (
           <View style={styles.comingSoon}>
@@ -261,17 +243,12 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
             {/* Icon Selection */}
             <View style={styles.iconSection}>
               <Pressable
-                style={[
-                  styles.iconBox,
-                  currentColorScheme?.secondary && {
-                    backgroundColor: currentColorScheme.secondary,
-                  },
-                ]}
+                style={styles.iconBox}
                 onPress={() => changeIconSheet.present()}
               >
                 <DynamicIcon
                   icon={formIcon}
-                  size={96}
+                  size={64}
                   colorScheme={currentColorScheme}
                 />
               </Pressable>
@@ -483,58 +460,22 @@ const styles = StyleSheet.create((theme) => ({
   scrollContent: {
     paddingBottom: 100,
   },
-  tabs: {
-    flexDirection: "row",
-    backgroundColor: theme.colors.secondary,
-    borderRadius: theme.colors.radius,
-    padding: 4,
-    gap: 4,
-    margin: 20,
-    marginBottom: 24,
-  },
-  tab: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 10,
-    borderRadius: theme.colors.radius,
-    gap: 6,
-  },
-  activeTab: {
-    backgroundColor: theme.colors.primary,
-  },
-  tabIcon: {
-    color: theme.colors.onSurface,
-  },
-  tabLabel: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: theme.colors.onSurface,
-  },
-  activeTabLabel: {
-    color: theme.colors.onPrimary,
-  },
   comingSoon: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 60,
-    gap: 12,
+    gap: 10,
     marginHorizontal: 20,
   },
   form: {
-    gap: 32,
+    gap: 30,
   },
   iconSection: {
     alignItems: "center",
-    paddingVertical: 12,
+    paddingVertical: 10,
   },
   iconBox: {
-    width: 120,
-    height: 120,
-    borderRadius: theme.colors.radius,
-    backgroundColor: theme.colors.secondary,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -546,7 +487,7 @@ const styles = StyleSheet.create((theme) => ({
     letterSpacing: 0.5,
   },
   nameSection: {
-    gap: 8,
+    gap: 10,
     paddingHorizontal: 20,
   },
   settingsList: {
@@ -556,13 +497,13 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 16,
+    paddingVertical: 20,
     paddingHorizontal: 20,
   },
   settingsLeft: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 16,
+    gap: 10,
   },
   settingsLabel: {
     fontSize: 16,
@@ -572,7 +513,6 @@ const styles = StyleSheet.create((theme) => ({
   settingsRight: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
   },
   chevronIcon: {
     color: theme.colors.onSecondary,
@@ -581,7 +521,7 @@ const styles = StyleSheet.create((theme) => ({
   colorPreview: {
     width: 24,
     height: 24,
-    borderRadius: 12,
+    borderRadius: 16,
   },
   defaultColorText: {
     fontSize: 16,
@@ -595,9 +535,9 @@ const styles = StyleSheet.create((theme) => ({
     textAlign: "center",
   },
   deleteSection: {
-    marginTop: 32,
+    marginTop: 30,
     marginHorizontal: 20,
-    gap: 12,
+    gap: 10,
   },
   actionButton: {
     width: "100%",
@@ -612,7 +552,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   actions: {
     flexDirection: "row",
-    gap: 12,
+    gap: 10,
     backgroundColor: theme.colors.surface,
     paddingHorizontal: 20,
     paddingVertical: 20,

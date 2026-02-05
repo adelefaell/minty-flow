@@ -562,7 +562,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   iconSection: {
     alignItems: "center",
-    paddingVertical: 12,
+    paddingVertical: 20,
   },
   iconBox: {
     width: 120,
@@ -580,23 +580,21 @@ const styles = StyleSheet.create((theme) => ({
     letterSpacing: 0.5,
   },
   nameSection: {
-    gap: 8,
+    gap: 10,
     paddingHorizontal: 20,
   },
-  settingsList: {
-    gap: 0,
-  },
+  settingsList: {},
   settingsRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 16,
+    paddingVertical: 20,
     paddingHorizontal: 20,
   },
   settingsLeft: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 16,
+    gap: 10,
   },
   settingsLabel: {
     fontSize: 16,
@@ -606,7 +604,7 @@ const styles = StyleSheet.create((theme) => ({
   settingsRight: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 10,
   },
   settingsValue: {
     fontSize: 16,
@@ -627,14 +625,12 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.onSecondary,
     opacity: 0.6,
   },
-  switchesSection: {
-    gap: 0,
-  },
+  switchesSection: {},
   switchRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 16,
+    paddingVertical: 20,
     paddingHorizontal: 20,
   },
   switchLeft: {
@@ -656,7 +652,7 @@ const styles = StyleSheet.create((theme) => ({
   deleteSection: {
     marginTop: 32,
     marginHorizontal: 20,
-    gap: 12,
+    gap: 10,
   },
   actionButton: {
     width: "100%",
@@ -677,7 +673,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   actions: {
     flexDirection: "row",
-    gap: 12,
+    gap: 10,
     backgroundColor: theme.colors.surface,
     paddingHorizontal: 20,
     paddingVertical: 20,

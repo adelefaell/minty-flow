@@ -53,20 +53,15 @@ const AccountDetailsScreenInner = ({ account }: AccountDetailsProps) => {
   }
 
   const colorScheme = getThemeStrict(account.colorSchemeName)
-  // Fallback if theme lookup fails, use account.color or default
-  const iconColor = colorScheme?.primary || account.colorSchemeName
-  const iconBgColor = colorScheme?.secondary || `${iconColor}20`
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View style={[styles.iconContainer, { backgroundColor: iconBgColor }]}>
-          <DynamicIcon
-            icon={account.icon || "wallet-bifold-outline"}
-            size={40}
-            color={iconColor}
-          />
-        </View>
+        <DynamicIcon
+          icon={account.icon || "wallet-bifold-outline"}
+          size={40}
+          colorScheme={colorScheme}
+        />
         <Text variant="h3" style={styles.accountName}>
           {account.name}
         </Text>
@@ -105,18 +100,10 @@ const styles = StyleSheet.create((theme) => ({
   },
   header: {
     alignItems: "center",
-    paddingVertical: 32,
-    gap: 8,
+    paddingVertical: 30,
+    gap: 10,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.onSurface,
-  },
-  iconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 8,
   },
   accountName: {
     fontSize: 20,
@@ -132,7 +119,7 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 32,
     fontWeight: "700",
     color: theme.colors.onSurface,
-    marginTop: 8,
+    marginTop: 10,
   },
   content: {
     flex: 1,
@@ -143,7 +130,7 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: "center",
     justifyContent: "center",
     opacity: 0.5,
-    gap: 12,
+    gap: 10,
   },
   placeholderText: {
     color: theme.colors.onSurface,

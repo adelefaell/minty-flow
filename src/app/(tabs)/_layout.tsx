@@ -1,5 +1,4 @@
-import { useLocalSearchParams } from "expo-router"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import PagerView, { usePagerView } from "react-native-pager-view"
 import Animated, {
   Easing,
@@ -19,8 +18,8 @@ import { View } from "~/components/ui/view"
 import { logger } from "~/utils/logger"
 
 import AccountsScreen from "../accounts"
+import SettingsScreen from "../settings"
 import HomeScreen from "."
-import SettingsScreen from "./settings-view"
 import StatsScreen from "./stats-view"
 
 type TabConfig = {
@@ -118,7 +117,7 @@ const AnimatedFABOption = ({
 const TabLayout = () => {
   const insets = useSafeAreaInsets()
   const { theme } = useUnistyles()
-  const { initialPage } = useLocalSearchParams()
+  // const { initialPage } = useLocalSearchParams()
   const { ref: pagerRef, activePage, setPage } = usePagerView()
   const [fabExpanded, setFabExpanded] = useState(false)
 
@@ -129,11 +128,15 @@ const TabLayout = () => {
   const isActiveTab = (index: number) =>
     activePage === index ? { opacity: 1 } : { opacity: 0.8 }
 
-  useEffect(() => {
-    if (initialPage != null && Number(initialPage) !== activePage) {
-      setPage(Number(initialPage))
-    }
-  }, [initialPage, activePage, setPage])
+  /**
+   * this and useLocalSearchParams cAa be used to navigate to a specific tab from a
+   * deep nested stack
+   */
+  // useEffect(() => {
+  //   if (initialPage != null && Number(initialPage) !== activePage) {
+  //     setPage(Number(initialPage))
+  //   }
+  // }, [initialPage, activePage, setPage])
 
   const toggleFab = () => {
     const newState = !fabExpanded

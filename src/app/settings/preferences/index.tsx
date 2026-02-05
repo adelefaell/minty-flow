@@ -1,10 +1,10 @@
 import { type Href, useRouter } from "expo-router"
-import { ScrollView } from "react-native"
+import { Alert, Linking, Platform, ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
 import { ActionItem } from "~/components/action-item"
 import { ToggleItem } from "~/components/toggle-item"
-import type { IconSymbolName } from "~/components/ui/icon-symbol"
+import { IconSymbol, type IconSymbolName } from "~/components/ui/icon-symbol"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import { useAndroidSoundStore } from "~/stores/android-sound.store"
@@ -134,19 +134,37 @@ export default function PreferencesScreen() {
       </View>
 
       {/* Feedback Section */}
-      <View style={styles.section}>
-        <Text variant="h4" style={styles.sectionTitle}>
-          Button Feedback
-        </Text>
-        <View style={styles.itemsList}>
-          <ToggleItem
-            icon={disableSound ? "vibrate-off" : "vibrate"}
-            title="Sound/Hapttic feedback upon click"
-            value={!disableSound}
-            onValueChange={(enabled) => setSoundEnabled(enabled)}
-          />
+      {Platform.OS === "android" && (
+        <View style={styles.section}>
+          <Text variant="h4" style={styles.sectionTitle}>
+            Button Feedback
+          </Text>
+
+          <View style={styles.itemsList}>
+            <ToggleItem
+              icon={disableSound ? "vibrate-off" : "vibrate"}
+              title="Sound / haptic feedback upon click"
+              value={!disableSound}
+              onValueChange={(enabled) => setSoundEnabled(enabled)}
+            />
+
+            {!disableSound && (
+              <View style={styles.infoContainer}>
+                <IconSymbol
+                  name="information"
+                  size={16}
+                  color={styles.infoText.color}
+                />
+
+                <Text style={styles.infoText}>
+                  This depends on your phone&apos;s system settings. Make sure
+                  &quot;Touch interactions&quot; is enabled in Sound settings.
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
-      </View>
+      )}
     </ScrollView>
   )
 }
@@ -216,5 +234,16 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: "center",
     justifyContent: "center",
     marginLeft: 8,
+  },
+  infoContainer: {
+    flexDirection: "row",
+    paddingHorizontal: 20,
+    marginTop: 10,
+    gap: 5,
+  },
+  infoText: {
+    fontSize: 13,
+    color: theme.colors.customColors.semi,
+    lineHeight: 18,
   },
 }))

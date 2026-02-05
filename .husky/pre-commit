@@ -139,14 +139,14 @@ echo -e "Let's hope you are not ${red}DUMB${clear}!"; echo
 # -----------------------------
 types_log="$(mktemp -t types_output.XXXXXX)"
 lint_log="$(mktemp -t lint_output.XXXXXX)"
-map_log="$(mktemp -t map_output.XXXXXX)"
-cleanup() { rm -f "$types_log" "$lint_log" "$map_log" >/dev/null 2>&1 || true; }
+structure_log="$(mktemp -t structure_output.XXXXXX)"
+cleanup() { rm -f "$types_log" "$lint_log" "$structure_log" >/dev/null 2>&1 || true; }
 trap cleanup EXIT INT TERM
 
 # -----------------------------
-# ORDER: 1) Map  2) Lint (fix)  3) Stage changes  4) Types
+# ORDER: 1) Structure  2) Lint (fix)  3) Stage changes  4) Types
 # -----------------------------
-run_task "Generating project map" "$PACKAGE_MANAGER run map" "$map_log"
+run_task "Generating project structure map" "$PACKAGE_MANAGER run structure" "$structure_log"
 
 run_task "Running linting (fix)"   "$PACKAGE_MANAGER run lint:fix" "$lint_log"
 

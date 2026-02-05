@@ -263,17 +263,12 @@ const EditAccountScreenInner = ({
           {/* Icon Selection */}
           <View style={styles.iconSection}>
             <Pressable
-              style={[
-                styles.iconBox,
-                currentColorScheme?.secondary && {
-                  backgroundColor: currentColorScheme.secondary,
-                },
-              ]}
+              style={styles.iconBox}
               onPress={() => changeIconSheet.present()}
             >
               <DynamicIcon
                 icon={formIcon}
-                size={96}
+                size={64}
                 colorScheme={currentColorScheme}
               />
             </Pressable>
@@ -521,10 +516,18 @@ const EditAccountScreenInner = ({
                 </Text>
               </Button>
             ) : (
-              <Text variant="small" style={styles.archiveWarning}>
-                You can permanently delete the account with its transactions
-                after you archive the account for safety measures.
-              </Text>
+              <View style={styles.archiveContainer}>
+                <IconSymbol
+                  name="information"
+                  style={styles.archiveWarningIcon}
+                  size={14}
+                />
+
+                <Text variant="small" style={styles.archiveWarning}>
+                  You can permanently delete the account with its transactions
+                  after you archive the account for safety measures.
+                </Text>
+              </View>
             )}
           </View>
         )}
@@ -660,13 +663,9 @@ const styles = StyleSheet.create((theme) => ({
   },
   iconSection: {
     alignItems: "center",
-    paddingVertical: 12,
+    paddingVertical: 20,
   },
   iconBox: {
-    width: 120,
-    height: 120,
-    borderRadius: theme.colors.radius,
-    backgroundColor: theme.colors.secondary,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -678,7 +677,7 @@ const styles = StyleSheet.create((theme) => ({
     letterSpacing: 0.5,
   },
   nameSection: {
-    gap: 8,
+    gap: 10,
     paddingHorizontal: 20,
   },
   balanceSection: {
@@ -707,7 +706,6 @@ const styles = StyleSheet.create((theme) => ({
     fontWeight: "500",
     color: theme.colors.onSecondary,
     opacity: 0.7,
-    marginTop: 4, // Use margin to create the gap instead of 'gap' on the container
   },
   settingsList: {
     gap: 0,
@@ -716,13 +714,13 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 16,
+    paddingVertical: 20,
     paddingHorizontal: 20,
   },
   settingsLeft: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 16,
+    gap: 10,
   },
   settingsLabel: {
     fontSize: 16,
@@ -732,7 +730,7 @@ const styles = StyleSheet.create((theme) => ({
   settingsRight: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 10,
   },
   settingsValue: {
     fontSize: 16,
@@ -746,7 +744,7 @@ const styles = StyleSheet.create((theme) => ({
   colorPreview: {
     width: 24,
     height: 24,
-    borderRadius: 12,
+    borderRadius: 16,
   },
   defaultColorText: {
     fontSize: 16,
@@ -760,13 +758,12 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 16,
+    paddingVertical: 20,
     paddingHorizontal: 20,
   },
   switchLeft: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 16,
   },
   switchLabel: {
     fontSize: 16,
@@ -780,9 +777,9 @@ const styles = StyleSheet.create((theme) => ({
     textAlign: "center",
   },
   deleteSection: {
-    marginTop: 32,
+    marginTop: 30,
     marginHorizontal: 20,
-    gap: 12,
+    gap: 10,
   },
   actionButton: {
     width: "100%",
@@ -831,11 +828,18 @@ const styles = StyleSheet.create((theme) => ({
     fontWeight: "600",
     color: theme.colors.onPrimary,
   },
+  archiveContainer: {
+    flexDirection: "row",
+    gap: 5,
+  },
+  archiveWarningIcon: {
+    color: theme.colors.customColors.semi,
+  },
   archiveWarning: {
     fontSize: 12,
-    color: theme.colors.onSecondary,
+    color: theme.colors.customColors.semi,
     opacity: 0.7,
     fontStyle: "italic",
-    paddingHorizontal: 8,
+    // paddingHorizontal: 8,
   },
 }))

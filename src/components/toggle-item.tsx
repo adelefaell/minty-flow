@@ -59,7 +59,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   toggleItemTitle: {
     fontSize: 16,
-    fontWeight: "400",
+    fontWeight: "600",
     color: theme.colors.onSurface,
   },
   toggleItemDescription: {
