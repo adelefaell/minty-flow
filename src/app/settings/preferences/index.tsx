@@ -1,5 +1,5 @@
 import { type Href, useRouter } from "expo-router"
-import { Alert, Linking, Platform, ScrollView } from "react-native"
+import { Platform, ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
 import { ActionItem } from "~/components/action-item"

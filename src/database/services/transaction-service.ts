@@ -275,6 +275,9 @@ export const updateTransactionModel = async (
       if (updates.subtype !== undefined) {
         t.subtype = updates.subtype
       }
+      if (updates.location !== undefined) {
+        t.location = updates.location
+      }
     })
 
     // Update category transaction counts if category changed

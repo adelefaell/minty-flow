@@ -10,7 +10,6 @@ import { useLocalSearchParams } from "expo-router"
 import { useState } from "react"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
-import { TransactionFormV2 } from "~/components/transaction/transaction-form-v2"
 import { TransactionFormV3 } from "~/components/transaction/transaction-form-v3"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"

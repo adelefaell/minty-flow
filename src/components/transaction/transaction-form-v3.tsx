@@ -248,7 +248,7 @@ export function TransactionFormV3({
   const [accountSearchQuery, setAccountSearchQuery] = useState("")
 
   const [recurringFrequency, setRecurringFrequency] =
-    useState<RecurringFrequency>(null)
+    useState<RecurringFrequency>("daily")
   const [recurringEnabled, setRecurringEnabled] = useState(false)
   const [recurringStartDate, setRecurringStartDate] = useState<Date>(
     () => new Date(),
@@ -307,6 +307,25 @@ export function TransactionFormV3({
         : "never"
 
   const ENDS_ON_OCCURRENCE_PRESETS = [2, 4, 6, 8, 10, 12, 14]
+
+  const handleRecurringToggle = useCallback(
+    (next: boolean) => {
+      setRecurringEnabled(next)
+      logger.info("Recurring toggled (Coming soon)", {
+        enabled: next,
+        frequency: recurringFrequency,
+        startDate: recurringStartDate,
+        endDate: recurringEndDate,
+        endAfterOccurrences: recurringEndAfterOccurrences,
+      })
+    },
+    [
+      recurringFrequency,
+      recurringStartDate,
+      recurringEndDate,
+      recurringEndAfterOccurrences,
+    ],
+  )
 
   const selectedAccount = accounts.find((a) => a.id === accountId)
   const selectedTags = tags.filter((t) => (tagIds ?? []).includes(t.id))
@@ -388,6 +407,16 @@ export function TransactionFormV3({
     if (isSaving) return
     setIsSaving(true)
     try {
+      // Build extra: on edit merge with existing so we don't wipe other keys
+      const builtExtra: Record<string, string> = isNew
+        ? {}
+        : { ...(transaction?.extra ?? {}) }
+      if (attachments.length > 0) {
+        builtExtra.attachments = JSON.stringify(attachments)
+      } else {
+        delete builtExtra.attachments
+      }
+
       const payload = {
         amount: data.amount,
         currency: selectedAccount?.currencyCode ?? "USD",
@@ -395,16 +424,13 @@ export function TransactionFormV3({
         date: data.date,
         categoryId: data.categoryId ?? null,
         accountId: data.accountId,
-        title: data.title,
-        description: data.description,
+        title: data.title?.trim() ?? undefined,
+        description: data.description?.trim() ?? undefined,
         isPending: data.isPending ?? false,
         tags: data.tags ?? [],
-        location: "",
-        extra:
-          attachments.length > 0
-            ? { attachments: JSON.stringify(attachments) }
-            : ({} as Record<string, string>),
-        subtype: "",
+        location: undefined as string | undefined,
+        extra: Object.keys(builtExtra).length > 0 ? builtExtra : undefined,
+        subtype: transaction?.subtype ?? undefined,
       }
       if (isNew) {
         await createTransactionModel(payload)
@@ -1057,25 +1083,9 @@ export function TransactionFormV3({
             )}
           />
 
-          {/* Recurring */}
+          {/* Recurring — full UI kept for later; toggle works but only logs (Coming soon) */}
           <View style={styles.fieldBlock}>
-            <Pressable
-              style={styles.recurringSwitchRow}
-              onPress={() => {
-                const next = !recurringEnabled
-                setRecurringEnabled(next)
-                if (next) {
-                  setRecurringStartDate(new Date())
-                  setRecurringFrequency("daily")
-                } else {
-                  setRecurringFrequency(null)
-                  setRecurringStartDate(new Date())
-                  setRecurringEndDate(null)
-                }
-              }}
-              accessibilityRole="switch"
-              accessibilityState={{ checked: recurringEnabled }}
-            >
+            <View style={styles.recurringSwitchRow}>
               <View style={styles.switchLeft}>
                 <DynamicIcon
                   icon="swap-horizontal"
@@ -1087,26 +1097,22 @@ export function TransactionFormV3({
                   Recurring transaction
                 </Text>
               </View>
-              <View pointerEvents="none">
+              <View style={styles.recurringRightWithBadge}>
+                <View style={styles.comingSoonBadge}>
+                  <Text style={styles.comingSoonBadgeText}>Coming soon</Text>
+                </View>
                 <Switch
                   value={recurringEnabled}
-                  onValueChange={(next) => {
-                    setRecurringEnabled(next)
-                    if (next) {
-                      setRecurringStartDate(new Date())
-                      setRecurringFrequency("daily")
-                    } else {
-                      setRecurringFrequency(null)
-                      setRecurringStartDate(new Date())
-                      setRecurringEndDate(null)
-                    }
-                  }}
+                  onValueChange={handleRecurringToggle}
                 />
               </View>
-            </Pressable>
+            </View>
 
             {recurringEnabled && (
-              <>
+              <View
+                style={styles.recurringDisabledOverlay}
+                pointerEvents="none"
+              >
                 <View style={styles.recurringSubSection}>
                   <Text variant="small" style={styles.recurringSubLabel}>
                     RECURRENCE
@@ -1306,8 +1312,28 @@ export function TransactionFormV3({
                     </View>
                   )}
                 </View>
-              </>
+              </View>
             )}
+          </View>
+
+          {/* Location — coming soon */}
+          <View style={styles.fieldBlock}>
+            <View style={styles.comingSoonRow}>
+              <View style={styles.switchLeft}>
+                <DynamicIcon
+                  icon="map-marker"
+                  size={20}
+                  color={theme.colors.primary}
+                  variant="badge"
+                />
+                <Text variant="default" style={styles.switchLabel}>
+                  Location
+                </Text>
+              </View>
+              <View style={styles.comingSoonBadge}>
+                <Text style={styles.comingSoonBadgeText}>Coming soon</Text>
+              </View>
+            </View>
           </View>
 
           {/* Notes: expandable text area */}
@@ -2049,6 +2075,32 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 16,
     fontWeight: "500",
     color: theme.colors.onSurface,
+  },
+  comingSoonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: ROW_PADDING_V,
+    paddingHorizontal: H_PAD,
+  },
+  comingSoonBadge: {
+    backgroundColor: theme.colors.secondary,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: theme.colors.radius ?? 12,
+  },
+  comingSoonBadgeText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: theme.colors.onSecondary,
+  },
+  recurringRightWithBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  recurringDisabledOverlay: {
+    opacity: 0.7,
   },
   recurringSwitchRow: {
     flexDirection: "row",

@@ -966,7 +966,7 @@ export const TransactionFormV2 = ({
                       styles.notesTextArea,
                       {
                         color: theme.colors.onSurface,
-                        borderColor: theme.colors.customColors.semi + "40",
+                        borderColor: `${theme.colors.customColors.semi}40`,
                       },
                     ]}
                   />
@@ -1043,7 +1043,7 @@ export const TransactionFormV2 = ({
             <View
               style={[
                 styles.datePickerHeader,
-                { borderBottomColor: theme.colors.customColors.semi + "20" },
+                { borderBottomColor: `${theme.colors.customColors.semi}20` },
               ]}
             >
               <Pressable
@@ -1329,7 +1329,7 @@ const styles = StyleSheet.create((theme) => ({
     marginTop: 8,
     borderRadius: 8,
     borderTopWidth: 1,
-    borderTopColor: theme.colors.customColors.semi + "30",
+    borderTopColor: `${theme.colors.customColors.semi}30`,
   },
   createTagRowIcon: {
     color: theme.colors.primary,
@@ -1517,7 +1517,7 @@ const styles = StyleSheet.create((theme) => ({
     paddingBottom: 16,
     gap: 12,
     borderTopWidth: 1,
-    borderTopColor: theme.colors.customColors.semi + "20",
+    borderTopColor: `${theme.colors.customColors.semi}20`,
   },
   footerButton: {
     flex: 1,
