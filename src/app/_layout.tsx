@@ -1,6 +1,7 @@
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet"
 import { Stack } from "expo-router"
 import { StatusBar } from "expo-status-bar"
+import { SystemBars } from "react-native-edge-to-edge"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { KeyboardProvider } from "react-native-keyboard-controller"
 import { useUnistyles } from "react-native-unistyles"
@@ -195,6 +196,8 @@ export default function RootLayout() {
             </Stack>
 
             <StatusBar style={theme.isDark ? "light" : "dark"} animated />
+
+            <SystemBars style={theme.isDark ? "light" : "dark"} />
 
             <ToastManager />
           </BottomSheetModalProvider>
