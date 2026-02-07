@@ -1,0 +1,2329 @@
+/**
+ * Transaction form v3 — Minimal page: account & category same pattern as tags.
+ * - Amount: tap opens calculator sheet
+ * - Account: dashed trigger → inline list with search; select closes
+ * - Category: dashed trigger → inline list with search; select closes
+ * - Tags: chips + inline dropdown with search (unchanged)
+ * - Notes: expandable text area
+ * Account/category each keep their own styles (card/cell), not chips.
+ */
+
+import { zodResolver } from "@hookform/resolvers/zod"
+import DateTimePicker, {
+  DateTimePickerAndroid,
+  type DateTimePickerEvent,
+} from "@react-native-community/datetimepicker"
+import { format } from "date-fns"
+import * as DocumentPicker from "expo-document-picker"
+import { Image } from "expo-image"
+import * as ImagePicker from "expo-image-picker"
+import { useLocalSearchParams, useRouter } from "expo-router"
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
+import { Controller, type Resolver, useForm } from "react-hook-form"
+import {
+  ActivityIndicator,
+  Dimensions,
+  Modal,
+  Platform,
+  TextInput as RNTextInput,
+  View as RNView,
+  ScrollView,
+} from "react-native"
+import { StyleSheet, useUnistyles } from "react-native-unistyles"
+
+import { useBottomSheet } from "~/components/bottom-sheet"
+import { CalculatorSheet } from "~/components/calculator-sheet"
+import { DynamicIcon } from "~/components/dynamic-icon"
+import { KeyboardStickyViewMinty } from "~/components/keyboard-sticky-view-minty"
+import {
+  DELETE_FILE_SHEET_ID,
+  DeleteFileConfirmSheet,
+} from "~/components/transaction/delete-file-confirm-sheet"
+import {
+  OPEN_FILE_SHEET_ID,
+  OpenFileConfirmSheet,
+} from "~/components/transaction/open-file-confirm-sheet"
+import { TransactionTypeSelector } from "~/components/transaction/transaction-type-selector"
+import { Button } from "~/components/ui/button"
+import { IconSymbol } from "~/components/ui/icon-symbol"
+import { Input } from "~/components/ui/input"
+import { Money } from "~/components/ui/money"
+import { Pressable } from "~/components/ui/pressable"
+import { Switch } from "~/components/ui/switch"
+import { Text } from "~/components/ui/text"
+import { View } from "~/components/ui/view"
+import type TransactionModel from "~/database/models/Transaction"
+import {
+  createTransactionModel,
+  updateTransactionModel,
+} from "~/database/services/transaction-service"
+import { transactionSchema } from "~/schemas/transactions.schema"
+import { getThemeStrict } from "~/styles/theme/registry"
+import type { Account } from "~/types/accounts"
+import type { Category } from "~/types/categories"
+import { NewEnum } from "~/types/new"
+import type { Tag } from "~/types/tags"
+import type {
+  RecurringEndType,
+  RecurringFrequency,
+  TransactionAttachment,
+  TransactionType,
+} from "~/types/transactions"
+import {
+  getFileExtension,
+  getFileIconForExtension,
+  isImageExtension,
+} from "~/utils/file-icon"
+import { logger } from "~/utils/logger"
+import { Toast } from "~/utils/toast"
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KiB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MiB`
+}
+
+const CALCULATOR_SHEET_ID = "transaction-v3-ui-amount"
+
+const RECURRING_OPTIONS: { id: RecurringFrequency; label: string }[] = [
+  { id: "daily", label: "Daily" },
+  { id: "weekly", label: "Weekly" },
+  { id: "biweekly", label: "Biweekly" },
+  { id: "monthly", label: "Monthly" },
+  { id: "yearly", label: "Yearly" },
+]
+
+type DatePickerTarget = "transaction" | "recurringStart" | "recurringEnd"
+
+function getRecurrenceDisplayLabel(
+  frequency: RecurringFrequency,
+  startDate: Date,
+): string {
+  if (frequency === null) return "None"
+  switch (frequency) {
+    case "daily":
+      return "Every day"
+    case "weekly":
+      return `Every week, ${format(startDate, "EEEE")}`
+    case "biweekly":
+      return `Every 2 weeks, ${format(startDate, "EEEE")}`
+    case "monthly":
+      return `Every month, ${format(startDate, "do")}`
+    case "yearly":
+      return `Every year, ${format(startDate, "MMMM d")}`
+    default:
+      return "None"
+  }
+}
+
+type TransactionFormInput = {
+  amount: number
+  type: TransactionType
+  date: Date
+  accountId: string
+  categoryId?: string | null
+  title?: string
+  description?: string
+  isPending?: boolean
+  tags?: string[]
+}
+
+function getDefaultValues(
+  transaction: TransactionModel | null,
+  accounts: Account[],
+  transactionType: TransactionType,
+  initialTagIds: string[] = [],
+): TransactionFormInput {
+  const defaultAccountId =
+    accounts.find((a) => a.isPrimary)?.id ?? accounts[0]?.id ?? ""
+  if (!transaction) {
+    return {
+      amount: 0,
+      type: transactionType,
+      date: new Date(),
+      accountId: defaultAccountId,
+      categoryId: null,
+      title: "",
+      description: "",
+      isPending: false,
+      tags: [],
+    }
+  }
+  return {
+    amount: transaction.amount,
+    type: (transaction.type as TransactionType) ?? transactionType,
+    date: transaction.transactionDate,
+    accountId: transaction.accountId,
+    categoryId: transaction.categoryId,
+    title: transaction.title ?? "",
+    description: transaction.description ?? "",
+    isPending: transaction.isPending,
+    tags: initialTagIds,
+  }
+}
+
+function getFieldError(
+  field: keyof TransactionFormInput,
+  message: string | undefined,
+): string | undefined {
+  if (!message) return undefined
+  if (field === "accountId")
+    return "Please choose an account to save this transaction."
+  if (field === "amount") return "Enter an amount greater than 0."
+  return message
+}
+
+interface TransactionFormV3Props {
+  transaction: TransactionModel | null
+  accounts: Account[]
+  categories: Category[]
+  tags: Tag[]
+  transactionType: TransactionType
+  onTransactionTypeChange: (type: TransactionType) => void
+  initialTagIds?: string[]
+}
+
+export function TransactionFormV3({
+  transaction,
+  accounts,
+  categories,
+  tags,
+  transactionType,
+  onTransactionTypeChange,
+  initialTagIds = [],
+}: TransactionFormV3Props) {
+  const router = useRouter()
+  const { theme } = useUnistyles()
+  const { id } = useLocalSearchParams<{ id: string }>()
+  const isNew = id === NewEnum.NEW
+
+  const calculatorSheet = useBottomSheet(CALCULATOR_SHEET_ID)
+  const openFileSheet = useBottomSheet(OPEN_FILE_SHEET_ID)
+  const deleteFileSheet = useBottomSheet(DELETE_FILE_SHEET_ID)
+
+  const defaultValues = useMemo(
+    () =>
+      getDefaultValues(transaction, accounts, transactionType, initialTagIds),
+    [transaction?.id, transaction, accounts, transactionType, initialTagIds],
+  )
+
+  const {
+    control,
+    handleSubmit,
+    watch,
+    setValue,
+    reset,
+    formState: { errors },
+  } = useForm<TransactionFormInput>({
+    resolver: zodResolver(transactionSchema) as Resolver<TransactionFormInput>,
+    defaultValues,
+  })
+
+  useLayoutEffect(() => {
+    reset(defaultValues)
+  }, [defaultValues, reset])
+
+  const amount = watch("amount")
+  const accountId = watch("accountId")
+  const categoryId = watch("categoryId")
+  const date = watch("date")
+  const description = watch("description")
+  const tagIds = watch("tags")
+
+  const [isSaving, setIsSaving] = useState(false)
+  const [notesExpanded, setNotesExpanded] = useState(false)
+  const [datePickerVisible, setDatePickerVisible] = useState(false)
+  const [datePickerMode, setDatePickerMode] = useState<"date" | "time">("date")
+  const [tempDate, setTempDate] = useState(date)
+  const [tagPickerOpen, setTagPickerOpen] = useState(false)
+  const [tagSearchQuery, setTagSearchQuery] = useState("")
+  const [accountPickerOpen, setAccountPickerOpen] = useState(false)
+  const [accountSearchQuery, setAccountSearchQuery] = useState("")
+
+  const [recurringFrequency, setRecurringFrequency] =
+    useState<RecurringFrequency>(null)
+  const [recurringEnabled, setRecurringEnabled] = useState(false)
+  const [recurringStartDate, setRecurringStartDate] = useState<Date>(
+    () => new Date(),
+  )
+  const [recurringEndDate, setRecurringEndDate] = useState<Date | null>(null)
+  const [recurringEndAfterOccurrences, setRecurringEndAfterOccurrences] =
+    useState<number | null>(null)
+  const [endsOnPickerExpanded, setEndsOnPickerExpanded] = useState(false)
+  const [addFilesExpanded, setAddFilesExpanded] = useState(false)
+  const [previewAttachment, setPreviewAttachment] =
+    useState<TransactionAttachment | null>(null)
+  const [fileToOpen, setFileToOpen] = useState<TransactionAttachment | null>(
+    null,
+  )
+  const [attachmentToRemove, setAttachmentToRemove] =
+    useState<TransactionAttachment | null>(null)
+  const [attachments, setAttachments] = useState<TransactionAttachment[]>(
+    () => {
+      if (!transaction?.extra?.attachments) return []
+      try {
+        const parsed = JSON.parse(transaction.extra.attachments) as unknown
+        if (!Array.isArray(parsed)) return []
+        return parsed.map(
+          (a: {
+            uri: string
+            name: string
+            size: number
+            addedAt: string
+            ext: string
+          }) => ({
+            ...a,
+            addedAt: new Date(a.addedAt),
+          }),
+        )
+      } catch {
+        return []
+      }
+    },
+  )
+
+  useEffect(() => {
+    if (fileToOpen) openFileSheet.present()
+  }, [fileToOpen, openFileSheet])
+
+  useEffect(() => {
+    if (attachmentToRemove) deleteFileSheet.present()
+  }, [attachmentToRemove, deleteFileSheet])
+
+  const datePickerTargetRef = useRef<DatePickerTarget>("transaction")
+
+  const endsOnType: RecurringEndType =
+    recurringEndAfterOccurrences !== null
+      ? "occurrences"
+      : recurringEndDate !== null
+        ? "date"
+        : "never"
+
+  const ENDS_ON_OCCURRENCE_PRESETS = [2, 4, 6, 8, 10, 12, 14]
+
+  const selectedAccount = accounts.find((a) => a.id === accountId)
+  const selectedTags = tags.filter((t) => (tagIds ?? []).includes(t.id))
+  const signedAmount =
+    transactionType === "expense" ? -(amount || 0) : amount || 0
+
+  const filteredTagsForPicker = useMemo(() => {
+    if (!tagSearchQuery.trim()) return tags
+    const lower = tagSearchQuery.toLowerCase()
+    return tags.filter((t) => t.name.toLowerCase().includes(lower))
+  }, [tags, tagSearchQuery])
+
+  const filteredAccountsForPicker = useMemo(() => {
+    if (!accountSearchQuery.trim()) return accounts
+    const lower = accountSearchQuery.toLowerCase()
+    return accounts.filter((a) => a.name.toLowerCase().includes(lower))
+  }, [accounts, accountSearchQuery])
+
+  const openDatePicker = useCallback(
+    (target: DatePickerTarget = "transaction") => {
+      datePickerTargetRef.current = target
+      const current =
+        target === "recurringStart"
+          ? recurringStartDate
+          : target === "recurringEnd"
+            ? (recurringEndDate ?? new Date())
+            : watch("date")
+      setTempDate(current)
+      if (Platform.OS === "android") {
+        DateTimePickerAndroid.open({
+          value: current,
+          mode: "date",
+          onChange: (_evt, selectedDate) => {
+            if (selectedDate && _evt.type === "set") {
+              setTempDate(selectedDate)
+              DateTimePickerAndroid.open({
+                value: selectedDate,
+                mode: "time",
+                onChange: (evt, timeDate) => {
+                  if (timeDate && evt.type === "set") {
+                    const t = datePickerTargetRef.current
+                    if (t === "recurringStart") setRecurringStartDate(timeDate)
+                    else if (t === "recurringEnd") setRecurringEndDate(timeDate)
+                    else setValue("date", timeDate)
+                  }
+                },
+              })
+            }
+          },
+        })
+      } else {
+        setDatePickerMode("date")
+        setDatePickerVisible(true)
+      }
+    },
+    [watch, setValue, recurringStartDate, recurringEndDate],
+  )
+
+  const handleIosDateChange = useCallback(
+    (_evt: DateTimePickerEvent, selectedDate?: Date) => {
+      if (selectedDate) setTempDate(selectedDate)
+    },
+    [],
+  )
+
+  const confirmIosDate = useCallback(() => {
+    if (datePickerMode === "time") {
+      const t = datePickerTargetRef.current
+      if (t === "recurringStart") setRecurringStartDate(tempDate)
+      else if (t === "recurringEnd") setRecurringEndDate(tempDate)
+      else setValue("date", tempDate)
+      setDatePickerVisible(false)
+    } else {
+      setDatePickerMode("time")
+    }
+  }, [datePickerMode, tempDate, setValue])
+
+  const onSubmit = async (data: TransactionFormInput) => {
+    if (isSaving) return
+    setIsSaving(true)
+    try {
+      const payload = {
+        amount: data.amount,
+        currency: selectedAccount?.currencyCode ?? "USD",
+        type: data.type,
+        date: data.date,
+        categoryId: data.categoryId ?? null,
+        accountId: data.accountId,
+        title: data.title,
+        description: data.description,
+        isPending: data.isPending ?? false,
+        tags: data.tags ?? [],
+        location: "",
+        extra:
+          attachments.length > 0
+            ? { attachments: JSON.stringify(attachments) }
+            : ({} as Record<string, string>),
+        subtype: "",
+      }
+      if (isNew) {
+        await createTransactionModel(payload)
+        Toast.success({ title: "Transaction created" })
+      } else if (transaction) {
+        await updateTransactionModel(transaction, payload)
+        Toast.success({ title: "Transaction updated" })
+      }
+      router.back()
+    } catch (error) {
+      logger.error("Failed to save transaction", { error })
+      Toast.error({ title: "Failed to save transaction" })
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const addTag = useCallback(
+    (tagId: string) => {
+      const current = tagIds ?? []
+      if (current.includes(tagId)) return
+      setValue("tags", [...current, tagId], { shouldDirty: true })
+    },
+    [tagIds, setValue],
+  )
+
+  const removeTag = useCallback(
+    (tagId: string) => {
+      setValue(
+        "tags",
+        (tagIds ?? []).filter((id) => id !== tagId),
+        { shouldDirty: true },
+      )
+    },
+    [tagIds, setValue],
+  )
+
+  const addAttachment = useCallback((a: TransactionAttachment) => {
+    setAttachments((prev) => [...prev, a])
+  }, [])
+
+  const removeAttachment = useCallback((uri: string) => {
+    setAttachments((prev) => prev.filter((x) => x.uri !== uri))
+  }, [])
+
+  const handleSelectFromFiles = useCallback(async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "*/*",
+        copyToCacheDirectory: true,
+      })
+      if (result.canceled) return
+      const file = result.assets[0]
+      const ext = getFileExtension(file.name)
+      addAttachment({
+        uri: file.uri,
+        name: file.name,
+        size: file.size ?? 0,
+        addedAt: new Date(),
+        ext,
+      })
+    } catch (e) {
+      logger.error("Document picker error", { e })
+      Toast.error({ title: "Could not select file" })
+    }
+  }, [addAttachment])
+
+  const handleTakePhoto = useCallback(async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync()
+    if (status !== "granted") {
+      Toast.error({
+        title: "Permission required",
+        description: "Camera access is needed to take a photo.",
+      })
+      return
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ["images"],
+      quality: 0.8,
+    })
+    if (result.canceled || !result.assets[0]) return
+    const asset = result.assets[0]
+    const name = asset.fileName ?? `photo-${Date.now()}.jpg`
+    const ext = getFileExtension(name)
+    addAttachment({
+      uri: asset.uri,
+      name,
+      size: asset.fileSize ?? 0,
+      addedAt: new Date(),
+      ext,
+    })
+  }, [addAttachment])
+
+  const handleSelectMultipleMedia = useCallback(async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
+    if (status !== "granted") {
+      Toast.error({
+        title: "Permission required",
+        description: "Photo library access is needed.",
+      })
+      return
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images", "videos"],
+      allowsMultipleSelection: true,
+      quality: 0.8,
+    })
+    if (result.canceled || result.assets.length === 0) return
+    for (const asset of result.assets) {
+      const name =
+        asset.fileName ??
+        `media-${Date.now()}.${asset.type === "video" ? "mp4" : "jpg"}`
+      const ext = getFileExtension(name)
+      addAttachment({
+        uri: asset.uri,
+        name,
+        size: asset.fileSize ?? 0,
+        addedAt: new Date(),
+        ext,
+      })
+    }
+  }, [addAttachment])
+
+  const handleSelectSinglePhoto = useCallback(async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
+    if (status !== "granted") {
+      Toast.error({
+        title: "Permission required",
+        description: "Photo library access is needed.",
+      })
+      return
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsMultipleSelection: false,
+      quality: 0.8,
+    })
+    if (result.canceled || !result.assets[0]) return
+    const asset = result.assets[0]
+    const name = asset.fileName ?? `photo-${Date.now()}.jpg`
+    const ext = getFileExtension(name)
+    addAttachment({
+      uri: asset.uri,
+      name,
+      size: asset.fileSize ?? 0,
+      addedAt: new Date(),
+      ext,
+    })
+  }, [addAttachment])
+
+  const amountError = getFieldError("amount", errors.amount?.message)
+  const accountError = getFieldError("accountId", errors.accountId?.message)
+  const titleError = errors.title?.message
+  const descriptionError = errors.description?.message
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <TransactionTypeSelector
+          value={transactionType}
+          onChange={(type) => {
+            onTransactionTypeChange(type)
+            setValue("type", type, { shouldDirty: true })
+          }}
+        />
+      </View>
+
+      <ScrollView
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.form}>
+          <View style={styles.nameSection}>
+            <Controller
+              control={control}
+              name="title"
+              render={({ field: { value, onChange } }) => (
+                <Input
+                  value={value}
+                  onChangeText={onChange}
+                  placeholder="Untitled transaction"
+                  placeholderTextColor={theme.colors.customColors.semi}
+                />
+              )}
+            />
+            {titleError ? (
+              <Text style={styles.fieldError}>{titleError}</Text>
+            ) : null}
+          </View>
+
+          {/* Amount: tap opens calculator sheet (unchanged) */}
+          <View style={styles.balanceSection}>
+            <Pressable
+              style={styles.balanceContainer}
+              onPress={() => calculatorSheet.present()}
+              accessibilityLabel="Set amount"
+              accessibilityHint="Opens calculator to enter amount"
+            >
+              <Money
+                value={signedAmount}
+                currency={selectedAccount?.currencyCode}
+                tone="auto"
+                style={styles.balanceValue}
+              />
+              <Text variant="muted" style={styles.updateBalanceLabel}>
+                Tap to set amount
+              </Text>
+            </Pressable>
+            {amountError ? (
+              <Text style={styles.fieldError}>{amountError}</Text>
+            ) : null}
+          </View>
+
+          {/* Account: dashed trigger → inline list with search (same pattern as tags) */}
+          <View style={styles.fieldBlock}>
+            <View style={styles.sectionLabelRow}>
+              <Text variant="small" style={styles.sectionLabelInRow}>
+                Account
+              </Text>
+              <Pressable
+                onPress={() =>
+                  accountId && setValue("accountId", "", { shouldDirty: true })
+                }
+                style={[
+                  styles.clearButton,
+                  !accountId && styles.clearButtonDisabled,
+                ]}
+                pointerEvents={accountId ? "auto" : "none"}
+                accessibilityLabel="Clear account"
+                accessibilityState={{ disabled: !accountId }}
+              >
+                <Text variant="small" style={styles.clearButtonText}>
+                  Clear
+                </Text>
+              </Pressable>
+            </View>
+            <Pressable
+              style={[
+                styles.accountTrigger,
+                selectedAccount && styles.accountTriggerSelected,
+                accountError && selectedAccount && styles.accountTriggerError,
+              ]}
+              onPress={() => {
+                setAccountPickerOpen((o) => !o)
+                if (!accountPickerOpen) setAccountSearchQuery("")
+              }}
+              accessibilityLabel={
+                accountPickerOpen ? "Cancel" : "Select account"
+              }
+            >
+              {selectedAccount ? (
+                <>
+                  <DynamicIcon
+                    icon={selectedAccount.icon || "wallet-bifold"}
+                    size={24}
+                    colorScheme={getThemeStrict(
+                      selectedAccount.colorSchemeName,
+                    )}
+                    variant="badge"
+                  />
+                  <View style={styles.accountTriggerContent}>
+                    <Text
+                      variant="default"
+                      style={styles.accountTriggerName}
+                      numberOfLines={1}
+                    >
+                      {selectedAccount.name}
+                    </Text>
+                    <Money
+                      value={selectedAccount.balance}
+                      currency={selectedAccount.currencyCode}
+                      style={styles.accountTriggerBalance}
+                    />
+                  </View>
+                  <IconSymbol
+                    name={accountPickerOpen ? "chevron-up" : "chevron-right"}
+                    size={20}
+                    style={styles.chevronIcon}
+                  />
+                </>
+              ) : (
+                <>
+                  <DynamicIcon
+                    icon="wallet-bifold"
+                    size={24}
+                    color={theme.colors.primary}
+                    variant="badge"
+                  />
+                  <Text
+                    variant="default"
+                    style={styles.accountTriggerPlaceholder}
+                    numberOfLines={1}
+                  >
+                    Select account
+                  </Text>
+                  <IconSymbol
+                    name={accountPickerOpen ? "close" : "chevron-down"}
+                    size={20}
+                    style={styles.chevronIcon}
+                  />
+                </>
+              )}
+            </Pressable>
+            {accountPickerOpen && (
+              <View style={styles.inlineAccountPicker}>
+                <Input
+                  placeholder="Search accounts..."
+                  value={accountSearchQuery}
+                  onChangeText={setAccountSearchQuery}
+                  placeholderTextColor={theme.colors.customColors.semi}
+                  style={styles.pickerSearchInput}
+                />
+                <ScrollView
+                  style={styles.pickerList}
+                  contentContainerStyle={styles.pickerListContent}
+                  keyboardShouldPersistTaps="handled"
+                  nestedScrollEnabled
+                  showsVerticalScrollIndicator
+                >
+                  {filteredAccountsForPicker.map((account) => (
+                    <Pressable
+                      key={account.id}
+                      style={[
+                        styles.accountPickerRow,
+                        account.id === accountId &&
+                          styles.inlinePickerRowSelected,
+                      ]}
+                      onPress={() => {
+                        setValue("accountId", account.id, { shouldDirty: true })
+                        setAccountPickerOpen(false)
+                      }}
+                    >
+                      <DynamicIcon
+                        icon={account.icon || "wallet-bifold"}
+                        size={24}
+                        colorScheme={getThemeStrict(account.colorSchemeName)}
+                        variant="badge"
+                      />
+                      <View style={styles.accountPickerRowContent} native>
+                        <Text
+                          variant="default"
+                          style={styles.accountPickerRowName}
+                          numberOfLines={1}
+                        >
+                          {account.name}
+                        </Text>
+                        <Money
+                          value={account.balance}
+                          currency={account.currencyCode}
+                          style={styles.accountPickerRowBalance}
+                        />
+                      </View>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+            {accountError ? (
+              <Text style={styles.fieldError}>{accountError}</Text>
+            ) : null}
+          </View>
+
+          {/* Category: horizontal scroll with 2-row grid (same as v2) + Clear */}
+          <View style={styles.fieldBlock}>
+            <View style={styles.sectionLabelRow}>
+              <Text variant="small" style={styles.sectionLabelInRow}>
+                Category
+              </Text>
+              <Pressable
+                onPress={() =>
+                  categoryId &&
+                  setValue("categoryId", null, { shouldDirty: true })
+                }
+                style={[
+                  styles.clearButton,
+                  !categoryId && styles.clearButtonDisabled,
+                ]}
+                pointerEvents={categoryId ? "auto" : "none"}
+                accessibilityLabel="Clear category"
+                accessibilityState={{ disabled: !categoryId }}
+              >
+                <Text variant="small" style={styles.clearButtonText}>
+                  Clear
+                </Text>
+              </Pressable>
+            </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.categoryScrollContent}
+            >
+              <View
+                style={[
+                  styles.categoryGrid,
+                  {
+                    width: Math.max(
+                      Dimensions.get("window").width - H_PAD * 2,
+                      Math.ceil(categories.length / 2) *
+                        (CATEGORY_CELL_SIZE + CATEGORY_GAP) -
+                        CATEGORY_GAP,
+                    ),
+                  },
+                ]}
+              >
+                {categories.map((category) => {
+                  const isSelected = category.id === categoryId
+                  return (
+                    <Pressable
+                      key={category.id}
+                      style={[
+                        styles.categoryCell,
+                        isSelected && styles.categoryCellSelected,
+                      ]}
+                      onPress={() =>
+                        setValue("categoryId", category.id, {
+                          shouldDirty: true,
+                        })
+                      }
+                      accessible
+                      accessibilityRole="button"
+                      accessibilityLabel={`Select ${category.name} category`}
+                      accessibilityState={{ selected: isSelected }}
+                    >
+                      <DynamicIcon
+                        icon={category.icon || "shape"}
+                        size={32}
+                        colorScheme={getThemeStrict(category.colorSchemeName)}
+                        variant="badge"
+                      />
+                      <Text
+                        variant="small"
+                        style={styles.categoryCellLabel}
+                        numberOfLines={1}
+                      >
+                        {category.name}
+                      </Text>
+                    </Pressable>
+                  )
+                })}
+              </View>
+            </ScrollView>
+          </View>
+
+          {/* Tags: chips + inline dropdown */}
+          <View style={styles.fieldBlock}>
+            <View style={styles.sectionLabelRow}>
+              <Text variant="small" style={styles.sectionLabelInRow}>
+                Tags
+              </Text>
+              <Pressable
+                onPress={() =>
+                  (tagIds ?? []).length > 0 &&
+                  setValue("tags", [], { shouldDirty: true })
+                }
+                style={[
+                  styles.clearButton,
+                  (tagIds ?? []).length === 0 && styles.clearButtonDisabled,
+                ]}
+                pointerEvents={(tagIds ?? []).length > 0 ? "auto" : "none"}
+                accessibilityLabel="Clear all tags"
+                accessibilityState={{
+                  disabled: (tagIds ?? []).length === 0,
+                }}
+              >
+                <Text variant="small" style={styles.clearButtonText}>
+                  Clear
+                </Text>
+              </Pressable>
+            </View>
+            <View style={styles.tagsWrapGrid}>
+              <Pressable
+                style={[
+                  styles.tagChipBase,
+                  styles.tagChipAdd,
+                  tagPickerOpen && styles.tagChipCancel,
+                ]}
+                onPress={() => {
+                  setTagPickerOpen((o) => !o)
+                  if (!tagPickerOpen) setTagSearchQuery("")
+                }}
+                accessible
+                accessibilityRole="button"
+                accessibilityLabel={tagPickerOpen ? "Cancel" : "Add tag"}
+              >
+                <Text
+                  variant="default"
+                  style={[
+                    styles.tagChipAddText,
+                    tagPickerOpen && { color: theme.colors.customColors.semi },
+                  ]}
+                >
+                  {tagPickerOpen ? "Cancel" : "Add tag"}
+                </Text>
+                <IconSymbol
+                  name={tagPickerOpen ? "close" : "plus"}
+                  size={16}
+                  style={[
+                    tagPickerOpen && { color: theme.colors.customColors.semi },
+                  ]}
+                />
+              </Pressable>
+              {selectedTags.map((tag) => (
+                <Pressable
+                  key={tag.id}
+                  style={[styles.tagChipBase, styles.tagChip]}
+                  onPress={() => removeTag(tag.id)}
+                  accessible
+                  accessibilityRole="button"
+                  accessibilityLabel={`Remove ${tag.name} tag`}
+                >
+                  <DynamicIcon
+                    icon={tag.icon || "tag"}
+                    size={16}
+                    colorScheme={getThemeStrict(tag.colorSchemeName)}
+                    variant="badge"
+                  />
+                  <Text
+                    variant="default"
+                    style={styles.tagChipText}
+                    numberOfLines={1}
+                  >
+                    {tag.name}
+                  </Text>
+                  <IconSymbol
+                    name="close"
+                    size={14}
+                    style={styles.tagChipRemoveIcon}
+                  />
+                </Pressable>
+              ))}
+            </View>
+
+            {tagPickerOpen && (
+              <View style={styles.inlineTagPicker}>
+                <Input
+                  placeholder="Search tags..."
+                  value={tagSearchQuery}
+                  onChangeText={setTagSearchQuery}
+                  placeholderTextColor={theme.colors.customColors.semi}
+                  style={styles.tagSearchInput}
+                />
+                <ScrollView
+                  style={styles.tagPickerList}
+                  contentContainerStyle={styles.pickerListContent}
+                  keyboardShouldPersistTaps="handled"
+                  nestedScrollEnabled
+                  showsVerticalScrollIndicator={true}
+                >
+                  {filteredTagsForPicker.map((tag) => {
+                    const isSelected = (tagIds ?? []).includes(tag.id)
+                    return (
+                      <Pressable
+                        key={tag.id}
+                        style={[
+                          styles.tagPickerRow,
+                          isSelected && styles.inlinePickerRowSelected,
+                        ]}
+                        onPress={() => {
+                          if (isSelected) removeTag(tag.id)
+                          else addTag(tag.id)
+                        }}
+                      >
+                        <DynamicIcon
+                          icon={tag.icon || "tag"}
+                          size={20}
+                          colorScheme={getThemeStrict(tag.colorSchemeName)}
+                          variant="badge"
+                        />
+                        <Text
+                          variant="default"
+                          style={styles.tagPickerRowText}
+                          numberOfLines={1}
+                        >
+                          {tag.name}
+                        </Text>
+                      </Pressable>
+                    )
+                  })}
+                </ScrollView>
+                <Pressable
+                  style={styles.createTagRow}
+                  onPress={() => {
+                    setTagPickerOpen(false)
+                    router.push({
+                      pathname: "/settings/tags/[tagId]",
+                      params: { tagId: NewEnum.NEW },
+                    })
+                  }}
+                >
+                  <IconSymbol name="tag-plus" size={20} />
+                  <Text variant="default" style={styles.createTagRowText}>
+                    Create new tag
+                  </Text>
+                </Pressable>
+              </View>
+            )}
+          </View>
+
+          {/* Date & time inline */}
+          <View style={styles.fieldBlock}>
+            <Text variant="small" style={styles.sectionLabel}>
+              Transaction date & time
+            </Text>
+            <Pressable
+              style={styles.inlineDateRow}
+              onPress={() => openDatePicker("transaction")}
+            >
+              <DynamicIcon
+                icon="calendar"
+                size={20}
+                color={theme.colors.primary}
+                variant="badge"
+              />
+              <Text variant="default" style={styles.inlineDateText}>
+                {format(date, "MMM d, yyyy")}
+              </Text>
+              <Text variant="muted" style={styles.inlineTimeText}>
+                {format(date, "h:mm a")}
+              </Text>
+            </Pressable>
+          </View>
+
+          {/* Pending switch */}
+          <Controller
+            control={control}
+            name="isPending"
+            render={({ field: { value, onChange } }) => (
+              <Pressable
+                style={styles.switchRow}
+                onPress={() => onChange(!(value ?? false))}
+                accessibilityRole="switch"
+                accessibilityState={{ checked: value ?? false }}
+              >
+                <View style={styles.switchLeft}>
+                  <DynamicIcon
+                    icon="clock"
+                    size={20}
+                    color={theme.colors.primary}
+                    variant="badge"
+                  />
+                  <Text variant="default" style={styles.switchLabel}>
+                    Pending
+                  </Text>
+                </View>
+                <View pointerEvents="none">
+                  <Switch value={value ?? false} onValueChange={onChange} />
+                </View>
+              </Pressable>
+            )}
+          />
+
+          {/* Recurring */}
+          <View style={styles.fieldBlock}>
+            <Pressable
+              style={styles.recurringSwitchRow}
+              onPress={() => {
+                const next = !recurringEnabled
+                setRecurringEnabled(next)
+                if (next) {
+                  setRecurringStartDate(new Date())
+                  setRecurringFrequency("daily")
+                } else {
+                  setRecurringFrequency(null)
+                  setRecurringStartDate(new Date())
+                  setRecurringEndDate(null)
+                }
+              }}
+              accessibilityRole="switch"
+              accessibilityState={{ checked: recurringEnabled }}
+            >
+              <View style={styles.switchLeft}>
+                <DynamicIcon
+                  icon="swap-horizontal"
+                  size={20}
+                  color={theme.colors.primary}
+                  variant="badge"
+                />
+                <Text variant="default" style={styles.switchLabel}>
+                  Recurring transaction
+                </Text>
+              </View>
+              <View pointerEvents="none">
+                <Switch
+                  value={recurringEnabled}
+                  onValueChange={(next) => {
+                    setRecurringEnabled(next)
+                    if (next) {
+                      setRecurringStartDate(new Date())
+                      setRecurringFrequency("daily")
+                    } else {
+                      setRecurringFrequency(null)
+                      setRecurringStartDate(new Date())
+                      setRecurringEndDate(null)
+                    }
+                  }}
+                />
+              </View>
+            </Pressable>
+
+            {recurringEnabled && (
+              <>
+                <View style={styles.recurringSubSection}>
+                  <Text variant="small" style={styles.recurringSubLabel}>
+                    RECURRENCE
+                  </Text>
+                  <View style={styles.recurringToggleRow}>
+                    {RECURRING_OPTIONS.map((option) => {
+                      const isSelected = recurringFrequency === option.id
+                      const displayLabel = getRecurrenceDisplayLabel(
+                        option.id,
+                        recurringStartDate,
+                      )
+                      return (
+                        <Pressable
+                          key={option.label}
+                          style={[
+                            styles.recurringToggleButton,
+                            isSelected && styles.recurringToggleButtonSelected,
+                          ]}
+                          onPress={() => setRecurringFrequency(option.id)}
+                          accessibilityRole="button"
+                          accessibilityState={{ selected: isSelected }}
+                          accessibilityLabel={`${displayLabel}${isSelected ? ", selected" : ""}`}
+                        >
+                          <Text
+                            variant="default"
+                            style={[
+                              styles.recurringToggleLabel,
+                              isSelected && styles.recurringToggleLabelSelected,
+                            ]}
+                            numberOfLines={1}
+                          >
+                            {displayLabel}
+                          </Text>
+                        </Pressable>
+                      )
+                    })}
+                  </View>
+                </View>
+
+                <View style={styles.recurringSubSection}>
+                  <Text variant="small" style={styles.recurringSubLabel}>
+                    STARTS ON
+                  </Text>
+                  <Pressable
+                    style={styles.recurringDateRow}
+                    onPress={() => openDatePicker("recurringStart")}
+                  >
+                    <DynamicIcon
+                      icon="calendar"
+                      size={20}
+                      color={theme.colors.primary}
+                      variant="badge"
+                    />
+                    <Text variant="default" style={styles.inlineDateText}>
+                      {format(recurringStartDate, "MMM d, yyyy h:mm a")}
+                    </Text>
+                    <IconSymbol
+                      name="chevron-right"
+                      size={20}
+                      style={styles.chevronIcon}
+                    />
+                  </Pressable>
+                </View>
+
+                <View style={styles.recurringSubSection}>
+                  <Text variant="small" style={styles.recurringSubLabel}>
+                    ENDS ON
+                  </Text>
+                  <Pressable
+                    style={styles.recurringDateRow}
+                    onPress={() => setEndsOnPickerExpanded((e) => !e)}
+                  >
+                    <DynamicIcon
+                      icon="calendar"
+                      size={20}
+                      color={theme.colors.primary}
+                      variant="badge"
+                    />
+                    <Text
+                      variant="default"
+                      style={[
+                        styles.inlineDateText,
+                        endsOnType === "never" && styles.fieldPlaceholder,
+                      ]}
+                    >
+                      {endsOnType === "never"
+                        ? "Never"
+                        : endsOnType === "date" && recurringEndDate
+                          ? format(recurringEndDate, "MMM d, yyyy h:mm a")
+                          : endsOnType === "occurrences" &&
+                              recurringEndAfterOccurrences !== null
+                            ? `${recurringEndAfterOccurrences} times`
+                            : "Never"}
+                    </Text>
+                    <IconSymbol
+                      name={
+                        endsOnPickerExpanded ? "chevron-up" : "chevron-right"
+                      }
+                      size={20}
+                      style={styles.chevronIcon}
+                    />
+                  </Pressable>
+                  {endsOnPickerExpanded && (
+                    <View style={styles.endsOnPickerContainer}>
+                      <Pressable
+                        style={styles.endsOnOptionRow}
+                        onPress={() => {
+                          setRecurringEndDate(null)
+                          setRecurringEndAfterOccurrences(null)
+                          setEndsOnPickerExpanded(false)
+                        }}
+                      >
+                        <Text
+                          variant="default"
+                          style={styles.endsOnOptionLabel}
+                        >
+                          Never
+                        </Text>
+                        <IconSymbol
+                          name="chevron-right"
+                          size={20}
+                          style={styles.chevronIcon}
+                        />
+                      </Pressable>
+                      <Pressable
+                        style={styles.endsOnOptionRow}
+                        onPress={() => {
+                          setRecurringEndAfterOccurrences(null)
+                          setEndsOnPickerExpanded(false)
+                          openDatePicker("recurringEnd")
+                        }}
+                      >
+                        <Text
+                          variant="default"
+                          style={styles.endsOnOptionLabel}
+                        >
+                          On a date
+                        </Text>
+                        <IconSymbol
+                          name="chevron-right"
+                          size={20}
+                          style={styles.chevronIcon}
+                        />
+                      </Pressable>
+                      <Pressable
+                        style={[
+                          styles.endsOnOptionRow,
+                          styles.endsOnOptionRowLast,
+                        ]}
+                        onPress={() => {
+                          setRecurringEndDate(null)
+                          setRecurringEndAfterOccurrences(
+                            recurringEndAfterOccurrences ?? 4,
+                          )
+                        }}
+                      >
+                        <Text
+                          variant="default"
+                          style={styles.endsOnOptionLabel}
+                        >
+                          Occurrences
+                        </Text>
+                        <IconSymbol
+                          name="chevron-right"
+                          size={20}
+                          style={styles.chevronIcon}
+                        />
+                      </Pressable>
+                      {recurringEndAfterOccurrences !== null && (
+                        <View style={styles.occurrencePresetsRow}>
+                          {ENDS_ON_OCCURRENCE_PRESETS.map((n) => (
+                            <Pressable
+                              key={n}
+                              style={[
+                                styles.occurrencePresetButton,
+                                recurringEndAfterOccurrences === n &&
+                                  styles.recurringToggleButtonSelected,
+                              ]}
+                              onPress={() => {
+                                setRecurringEndAfterOccurrences(n)
+                              }}
+                            >
+                              <Text
+                                variant="default"
+                                style={[
+                                  styles.recurringToggleLabel,
+                                  recurringEndAfterOccurrences === n &&
+                                    styles.recurringToggleLabelSelected,
+                                ]}
+                              >
+                                {n} times
+                              </Text>
+                            </Pressable>
+                          ))}
+                        </View>
+                      )}
+                    </View>
+                  )}
+                </View>
+              </>
+            )}
+          </View>
+
+          {/* Notes: expandable text area */}
+          <View style={styles.fieldBlock}>
+            <Text variant="small" style={styles.sectionLabel}>
+              Notes
+            </Text>
+            <Pressable
+              style={styles.notesHeader}
+              onPress={() => setNotesExpanded((e) => !e)}
+              accessibilityLabel="Notes"
+              accessibilityHint={
+                notesExpanded ? "Collapse notes" : "Expand to add notes"
+              }
+            >
+              <DynamicIcon
+                icon="clipboard"
+                size={20}
+                color={theme.colors.primary}
+                variant="badge"
+              />
+              <Text
+                variant="default"
+                style={
+                  description ? styles.fieldValue : styles.fieldPlaceholder
+                }
+                numberOfLines={1}
+              >
+                {description || "Add notes..."}
+              </Text>
+              <IconSymbol
+                name={notesExpanded ? "chevron-up" : "chevron-down"}
+                size={20}
+                style={styles.chevronIcon}
+              />
+            </Pressable>
+            {notesExpanded && (
+              <Controller
+                control={control}
+                name="description"
+                render={({ field: { value, onChange } }) => (
+                  <RNTextInput
+                    value={value ?? ""}
+                    onChangeText={onChange}
+                    placeholder="Add notes about this transaction..."
+                    placeholderTextColor={theme.colors.customColors.semi}
+                    multiline
+                    numberOfLines={4}
+                    style={[
+                      styles.notesTextArea,
+                      {
+                        color: theme.colors.onSurface,
+                        borderColor: `${theme.colors.customColors.semi}40`,
+                      },
+                    ]}
+                  />
+                )}
+              />
+            )}
+            {descriptionError ? (
+              <Text style={styles.fieldError}>{descriptionError}</Text>
+            ) : null}
+          </View>
+
+          {/* File attachments (extra) */}
+          <View style={styles.fieldBlock}>
+            <Text variant="small" style={styles.sectionLabel}>
+              File attachments
+            </Text>
+
+            {attachments.length > 0 && (
+              <View style={styles.attachmentsList}>
+                {attachments.map((a) => (
+                  <View key={a.uri} style={styles.attachmentRow}>
+                    <Pressable
+                      style={styles.attachmentRowMain}
+                      onPress={() => {
+                        if (isImageExtension(a.ext)) {
+                          setPreviewAttachment(a)
+                        } else {
+                          setFileToOpen(a)
+                        }
+                      }}
+                    >
+                      <DynamicIcon
+                        icon={getFileIconForExtension(a.ext)}
+                        size={24}
+                        color={theme.colors.primary}
+                        variant="badge"
+                      />
+                      <View style={styles.attachmentInfo}>
+                        <Text
+                          variant="default"
+                          style={styles.attachmentName}
+                          numberOfLines={1}
+                        >
+                          {a.name}
+                        </Text>
+                        <Text variant="muted" style={styles.attachmentMeta}>
+                          {format(a.addedAt, "MMM d yyyy h:mm a")} •{" "}
+                          {formatFileSize(a.size)}
+                        </Text>
+                      </View>
+                    </Pressable>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      style={styles.attachmentRemoveBtn}
+                      onPress={() => setAttachmentToRemove(a)}
+                      accessibilityLabel="Remove attachment"
+                      hitSlop={8}
+                    >
+                      <IconSymbol name="close" size={20} />
+                    </Button>
+                  </View>
+                ))}
+              </View>
+            )}
+            <Pressable
+              style={styles.notesHeader}
+              onPress={() => setAddFilesExpanded((e) => !e)}
+              accessibilityLabel="Add files"
+              accessibilityHint={
+                addFilesExpanded ? "Collapse options" : "Expand to add files"
+              }
+            >
+              <IconSymbol
+                name="plus"
+                size={20}
+                color={theme.colors.customColors.semi}
+              />
+              <Text variant="default" style={styles.addFilesLabel}>
+                Add files
+              </Text>
+              <IconSymbol
+                name={addFilesExpanded ? "chevron-up" : "chevron-down"}
+                size={20}
+                style={styles.chevronIcon}
+              />
+            </Pressable>
+            {addFilesExpanded && (
+              <View style={styles.addFilesOptionsContainer}>
+                <Pressable
+                  style={styles.addFilesOptionRow}
+                  onPress={handleSelectFromFiles}
+                >
+                  <DynamicIcon
+                    icon="file-document"
+                    size={20}
+                    color={theme.colors.primary}
+                    variant="badge"
+                  />
+                  <Text variant="default" style={styles.addFilesOptionLabel}>
+                    Select from files
+                  </Text>
+                  <IconSymbol
+                    name="chevron-right"
+                    size={20}
+                    style={styles.chevronIcon}
+                  />
+                </Pressable>
+                <Pressable
+                  style={styles.addFilesOptionRow}
+                  onPress={handleTakePhoto}
+                >
+                  <DynamicIcon
+                    icon="camera"
+                    size={20}
+                    color={theme.colors.primary}
+                    variant="badge"
+                  />
+                  <Text variant="default" style={styles.addFilesOptionLabel}>
+                    Take a photo
+                  </Text>
+                  <IconSymbol
+                    name="chevron-right"
+                    size={20}
+                    style={styles.chevronIcon}
+                  />
+                </Pressable>
+                <Pressable
+                  style={styles.addFilesOptionRow}
+                  onPress={handleSelectMultipleMedia}
+                >
+                  <DynamicIcon
+                    icon="image-multiple"
+                    size={20}
+                    color={theme.colors.primary}
+                    variant="badge"
+                  />
+                  <Text variant="default" style={styles.addFilesOptionLabel}>
+                    Select multiple media
+                  </Text>
+                  <IconSymbol
+                    name="chevron-right"
+                    size={20}
+                    style={styles.chevronIcon}
+                  />
+                </Pressable>
+                <Pressable
+                  style={[
+                    styles.addFilesOptionRow,
+                    styles.addFilesOptionRowLast,
+                  ]}
+                  onPress={handleSelectSinglePhoto}
+                >
+                  <DynamicIcon
+                    icon="image"
+                    size={20}
+                    color={theme.colors.primary}
+                    variant="badge"
+                  />
+                  <Text variant="default" style={styles.addFilesOptionLabel}>
+                    Select a photo
+                  </Text>
+                  <IconSymbol
+                    name="chevron-right"
+                    size={20}
+                    style={styles.chevronIcon}
+                  />
+                </Pressable>
+              </View>
+            )}
+          </View>
+        </View>
+      </ScrollView>
+
+      <KeyboardStickyViewMinty>
+        <View style={styles.footer}>
+          <Button
+            variant="secondary"
+            size="lg"
+            onPress={() => router.back()}
+            style={styles.footerButton}
+            disabled={isSaving}
+          >
+            <Text style={styles.cancelText}>Cancel</Text>
+          </Button>
+          <Button
+            variant="default"
+            size="lg"
+            onPress={handleSubmit(onSubmit)}
+            style={styles.footerButton}
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <ActivityIndicator
+                size="small"
+                color={theme.colors.onPrimary}
+                style={styles.saveSpinner}
+              />
+            ) : (
+              <Text style={styles.saveText}>{isNew ? "Create" : "Save"}</Text>
+            )}
+          </Button>
+        </View>
+      </KeyboardStickyViewMinty>
+
+      {/* Calculator remains a sheet per requirement */}
+      <CalculatorSheet
+        id={CALCULATOR_SHEET_ID}
+        initialValue={amount}
+        onSubmit={(value) => {
+          setValue("amount", value, { shouldDirty: true })
+          calculatorSheet.dismiss()
+        }}
+        currencyCode={selectedAccount?.currencyCode}
+      />
+
+      {Platform.OS === "ios" && datePickerVisible && (
+        <Modal
+          visible
+          transparent
+          animationType="slide"
+          onRequestClose={() => setDatePickerVisible(false)}
+          accessibilityViewIsModal
+        >
+          <Pressable
+            style={styles.datePickerOverlay}
+            onPress={() => setDatePickerVisible(false)}
+          />
+          <View
+            style={[
+              styles.datePickerModal,
+              { backgroundColor: theme.colors.surface },
+            ]}
+          >
+            <View
+              style={[
+                styles.datePickerHeader,
+                { borderBottomColor: `${theme.colors.customColors.semi}20` },
+              ]}
+            >
+              <Pressable
+                onPress={() => setDatePickerVisible(false)}
+                style={styles.datePickerCancel}
+              >
+                <Text
+                  style={[
+                    styles.datePickerCancelText,
+                    { color: theme.colors.onSurface },
+                  ]}
+                >
+                  Cancel
+                </Text>
+              </Pressable>
+              <Pressable onPress={confirmIosDate} style={styles.datePickerDone}>
+                <Text
+                  style={[
+                    styles.datePickerDoneText,
+                    { color: theme.colors.primary },
+                  ]}
+                >
+                  {datePickerMode === "date" ? "Next" : "Done"}
+                </Text>
+              </Pressable>
+            </View>
+            <View style={styles.datePickerBody}>
+              <DateTimePicker
+                value={tempDate}
+                mode={datePickerMode}
+                display="spinner"
+                onChange={handleIosDateChange}
+                textColor={theme.colors.onSurface}
+              />
+            </View>
+          </View>
+        </Modal>
+      )}
+
+      {/* Image preview modal */}
+      <Modal
+        visible={previewAttachment !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPreviewAttachment(null)}
+        statusBarTranslucent
+      >
+        <RNView style={styles.previewOverlay}>
+          <Pressable
+            style={styles.previewCloseBtn}
+            onPress={() => setPreviewAttachment(null)}
+            accessibilityLabel="Close preview"
+          >
+            <IconSymbol name="close" size={28} color="#fff" />
+          </Pressable>
+          {previewAttachment && (
+            <Image
+              source={{ uri: previewAttachment.uri }}
+              style={styles.previewImage}
+              contentFit="contain"
+            />
+          )}
+        </RNView>
+      </Modal>
+
+      <OpenFileConfirmSheet
+        id={OPEN_FILE_SHEET_ID}
+        fileToOpen={fileToOpen}
+        onDismiss={() => {
+          openFileSheet.dismiss()
+          setFileToOpen(null)
+        }}
+        onConfirm={() => {
+          openFileSheet.dismiss()
+          setFileToOpen(null)
+        }}
+      />
+
+      <DeleteFileConfirmSheet
+        id={DELETE_FILE_SHEET_ID}
+        onDismiss={() => {
+          deleteFileSheet.dismiss()
+          setAttachmentToRemove(null)
+        }}
+        onConfirm={() => {
+          if (attachmentToRemove) {
+            removeAttachment(attachmentToRemove.uri)
+            deleteFileSheet.dismiss()
+            setAttachmentToRemove(null)
+          }
+        }}
+      />
+    </View>
+  )
+}
+
+const H_PAD = 20
+const FORM_GAP = 15
+const ROW_PADDING_V = 10
+const ROW_GAP = 10
+const CATEGORY_CELL_SIZE = 74
+const CATEGORY_GAP = 10
+
+const styles = StyleSheet.create((theme) => ({
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.surface,
+  },
+  header: {
+    alignItems: "center",
+    paddingHorizontal: H_PAD,
+    paddingBottom: FORM_GAP,
+  },
+  content: {
+    paddingBottom: 100,
+  },
+  form: {
+    gap: FORM_GAP,
+  },
+  nameSection: {
+    paddingHorizontal: H_PAD,
+  },
+  balanceSection: {
+    paddingHorizontal: H_PAD,
+  },
+  balanceContainer: {
+    paddingVertical: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: theme.colors.radius ?? 16,
+    backgroundColor: theme.colors.secondary,
+  },
+  balanceValue: {
+    fontSize: 32,
+    fontWeight: "600",
+    lineHeight: 48,
+    padding: 0,
+    textAlign: "center",
+    textAlignVertical: "center",
+    ...(Platform.OS === "android" && { includeFontPadding: false }),
+  },
+  updateBalanceLabel: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: theme.colors.customColors.semi,
+    marginTop: 4,
+  },
+  fieldError: {
+    fontSize: 13,
+    color: theme.colors.error,
+    marginTop: 4,
+    paddingHorizontal: H_PAD,
+  },
+  fieldBlock: {
+    marginBottom: FORM_GAP,
+  },
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: theme.colors.customColors.semi,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginBottom: 8,
+    marginHorizontal: H_PAD,
+  },
+  sectionLabelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: H_PAD,
+    marginBottom: 8,
+  },
+  sectionLabelInRow: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: theme.colors.customColors.semi,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  clearButton: {
+    borderRadius: theme.colors.radius,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  clearButtonDisabled: {
+    opacity: 0.4,
+  },
+  clearButtonText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: theme.colors.primary,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  accountTrigger: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 6,
+    borderRadius: theme.colors.radius,
+    marginHorizontal: H_PAD,
+    borderWidth: 2,
+    borderColor: theme.colors.secondary,
+    borderStyle: "dashed",
+  },
+  accountTriggerSelected: {
+    borderStyle: "solid",
+    borderColor: theme.colors.primary,
+  },
+  accountTriggerError: {
+    borderColor: theme.colors.error,
+  },
+  accountTriggerContent: {
+    flex: 1,
+    minWidth: 0,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 8,
+  },
+  accountTriggerName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: theme.colors.onSurface,
+    flex: 1,
+    minWidth: 0,
+  },
+  accountTriggerBalance: {
+    fontSize: 13,
+    color: theme.colors.customColors.semi,
+  },
+  accountTriggerPlaceholder: {
+    flex: 1,
+    fontSize: 16,
+    color: theme.colors.customColors.semi,
+  },
+  inlineAccountPicker: {
+    marginTop: 8,
+    marginHorizontal: H_PAD,
+    padding: 12,
+    borderRadius: theme.colors.radius,
+    backgroundColor: theme.colors.secondary,
+    maxHeight: 280,
+  },
+  inlinePickerRowSelected: {
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+  },
+  accountPickerRow: {
+    marginTop: 8,
+
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 6,
+    borderRadius: theme.colors.radius,
+  },
+  accountPickerRowContent: {
+    flex: 1,
+    minWidth: 0,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 8,
+  },
+  accountPickerRowName: {
+    fontSize: 15,
+    fontWeight: "500",
+    flex: 1,
+    minWidth: 0,
+  },
+  accountPickerRowBalance: {
+    fontSize: 13,
+  },
+  pickerSearchInput: {
+    marginBottom: 8,
+  },
+  pickerList: {
+    height: 180,
+  },
+  pickerListContent: {
+    paddingRight: 12,
+  },
+  categoryScrollContent: {
+    paddingHorizontal: H_PAD,
+    paddingVertical: 4,
+  },
+  categoryGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: CATEGORY_GAP,
+  },
+  categoryCell: {
+    width: CATEGORY_CELL_SIZE,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 6,
+    borderRadius: 12,
+    // backgroundColor: theme.colors.secondary,
+    borderWidth: 2,
+    borderStyle: "dashed",
+    borderColor: theme.colors.secondary,
+  },
+  categoryCellSelected: {
+    borderStyle: "solid",
+
+    borderColor: theme.colors.primary,
+  },
+  categoryCellLabel: {
+    fontSize: 11,
+    color: theme.colors.onSurface,
+    marginTop: 4,
+    textAlign: "center",
+  },
+  tagsWrapGrid: {
+    marginHorizontal: H_PAD,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 4,
+  },
+  tagChipBase: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 6,
+    borderRadius: theme.colors.radius,
+    borderWidth: 2,
+  },
+  tagChip: {
+    backgroundColor: theme.colors.secondary,
+    borderColor: theme.colors.primary,
+  },
+  tagChipText: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: theme.colors.onSurface,
+  },
+  tagChipRemoveIcon: {
+    color: theme.colors.customColors.semi,
+  },
+  tagChipAdd: {
+    borderStyle: "dashed",
+    borderColor: theme.colors.primary,
+  },
+  tagChipCancel: {
+    borderColor: theme.colors.customColors.semi,
+  },
+  tagChipAddText: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: theme.colors.primary,
+  },
+  inlineTagPicker: {
+    marginTop: 8,
+    padding: 12,
+    marginHorizontal: H_PAD,
+
+    borderRadius: 12,
+    backgroundColor: theme.colors.secondary,
+    maxHeight: 400,
+    gap: 6,
+  },
+  tagSearchInput: {
+    marginBottom: 8,
+  },
+  tagPickerList: {
+    height: 180,
+  },
+  tagPickerRow: {
+    gap: 6,
+    marginTop: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 6,
+    paddingHorizontal: 6,
+    borderRadius: theme.colors.radius,
+    backgroundColor: theme.colors.secondary,
+    borderWidth: 2,
+    borderColor: theme.colors.secondary,
+  },
+  tagPickerRowText: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: theme.colors.onSurface,
+    flex: 1,
+    minWidth: 0,
+  },
+  createTagRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    marginTop: 8,
+    borderRadius: theme.colors.radius,
+  },
+  createTagRowText: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: theme.colors.primary,
+  },
+  inlineDateRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: ROW_GAP,
+    paddingVertical: ROW_PADDING_V,
+    paddingHorizontal: H_PAD,
+  },
+  recurringDateRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: ROW_GAP,
+    paddingVertical: ROW_PADDING_V,
+    paddingHorizontal: H_PAD,
+  },
+  inlineDateText: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: theme.colors.onSurface,
+    flex: 1,
+  },
+  inlineTimeText: {
+    fontSize: 14,
+    color: theme.colors.customColors.semi,
+  },
+  switchRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: ROW_PADDING_V,
+    paddingHorizontal: H_PAD,
+    marginBottom: 12,
+  },
+  switchLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+  },
+  switchLabel: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: theme.colors.onSurface,
+  },
+  recurringSwitchRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: ROW_PADDING_V,
+    paddingHorizontal: H_PAD,
+  },
+  recurringSubSection: {
+    marginTop: 16,
+  },
+  recurringSubLabel: {
+    marginHorizontal: H_PAD,
+
+    fontSize: 12,
+    fontWeight: "600",
+    color: theme.colors.customColors.semi,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  recurringToggleRow: {
+    marginHorizontal: H_PAD,
+
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  recurringToggleButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: theme.colors.radius ?? 12,
+    backgroundColor: theme.colors.secondary,
+    borderWidth: 2,
+    borderColor: "transparent",
+  },
+  recurringToggleButtonSelected: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
+  recurringToggleLabel: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: theme.colors.onSurface,
+  },
+  recurringToggleLabelSelected: {
+    color: theme.colors.onPrimary,
+  },
+  endsOnNeverButton: {
+    paddingVertical: 8,
+    marginTop: 6,
+    alignSelf: "flex-start",
+  },
+  endsOnNeverButtonText: {
+    fontSize: 14,
+    color: theme.colors.customColors.semi,
+  },
+  endsOnPickerContainer: {
+    marginTop: 8,
+    backgroundColor: theme.colors.secondary,
+    borderRadius: theme.colors.radius,
+    overflow: "hidden",
+    marginHorizontal: H_PAD,
+  },
+  endsOnOptionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 12,
+    paddingHorizontal: H_PAD,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.customColors.semi,
+  },
+  endsOnOptionRowLast: {
+    borderBottomWidth: 0,
+  },
+  endsOnOptionLabel: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: theme.colors.onSurface,
+  },
+  occurrencePresetsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    padding: H_PAD,
+    paddingTop: 0,
+  },
+  occurrencePresetButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: theme.colors.radius ?? 12,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 2,
+    borderColor: "transparent",
+  },
+  settingsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  fieldValue: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: theme.colors.onSurface,
+    flex: 1,
+    minWidth: 0,
+  },
+  fieldPlaceholder: {
+    fontSize: 16,
+    color: theme.colors.customColors.semi,
+    flex: 1,
+    minWidth: 0,
+  },
+  chevronIcon: {
+    color: theme.colors.customColors.semi,
+    opacity: 0.7,
+    alignSelf: "center",
+  },
+  notesHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: ROW_GAP,
+    paddingVertical: ROW_PADDING_V,
+    paddingHorizontal: H_PAD,
+  },
+  addFilesLabel: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: "500",
+    color: theme.colors.customColors.semi,
+  },
+  addFilesOptionsContainer: {
+    marginTop: 8,
+    marginHorizontal: H_PAD,
+    backgroundColor: theme.colors.secondary,
+    borderRadius: theme.colors.radius,
+    overflow: "hidden",
+  },
+  addFilesOptionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: ROW_GAP,
+    paddingVertical: 12,
+    paddingHorizontal: H_PAD,
+    borderBottomWidth: 1,
+    borderBottomColor: `${theme.colors.customColors.semi}20`,
+  },
+  addFilesOptionRowLast: {
+    borderBottomWidth: 0,
+  },
+  addFilesOptionLabel: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: "500",
+    color: theme.colors.onSurface,
+  },
+  attachmentsList: {
+    marginTop: 12,
+    gap: 8,
+  },
+  attachmentRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: ROW_GAP,
+  },
+  attachmentRowMain: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: ROW_GAP,
+    minWidth: 0,
+    paddingVertical: ROW_PADDING_V,
+    paddingHorizontal: H_PAD,
+  },
+  attachmentInfo: {
+    flex: 1,
+    minWidth: 0,
+    // backgroundColor: theme.colors.secondary,
+  },
+  attachmentName: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: theme.colors.onSecondary,
+  },
+  attachmentMeta: {
+    fontSize: 13,
+    marginTop: 2,
+    color: theme.colors.customColors.semi,
+  },
+  attachmentRemoveBtn: {
+    marginRight: 20,
+  },
+  notesTextArea: {
+    marginHorizontal: H_PAD,
+    marginTop: 4,
+    padding: 12,
+    borderRadius: theme.colors.radius,
+    borderWidth: 1,
+    minHeight: 96,
+    textAlignVertical: "top",
+    fontSize: 16,
+  },
+  datePickerOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+  },
+  datePickerModal: {
+    borderTopLeftRadius: theme.colors.radius,
+    borderTopRightRadius: theme.colors.radius,
+    paddingBottom: 34,
+  },
+  datePickerBody: {
+    paddingVertical: 8,
+  },
+  datePickerHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+  },
+  datePickerCancel: {
+    minWidth: 70,
+  },
+  datePickerDone: {
+    minWidth: 70,
+    alignItems: "flex-end",
+  },
+  datePickerCancelText: {
+    fontSize: 17,
+  },
+  datePickerDoneText: {
+    fontSize: 17,
+    fontWeight: "600",
+  },
+  footer: {
+    flexDirection: "row",
+    paddingHorizontal: H_PAD,
+    paddingTop: 16,
+    paddingBottom: 16,
+    gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: `${theme.colors.customColors.semi}20`,
+  },
+  footerButton: {
+    flex: 1,
+  },
+  cancelText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: theme.colors.onSurface,
+  },
+  saveText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: theme.colors.onPrimary,
+  },
+  saveSpinner: {
+    marginVertical: 2,
+  },
+  previewOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.9)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  previewCloseBtn: {
+    position: "absolute",
+    top: 50,
+    left: H_PAD,
+    zIndex: 10,
+    padding: 8,
+  },
+  previewImage: {
+    width: "100%",
+    flex: 1,
+  },
+}))

@@ -63,14 +63,8 @@ const EditCategoryScreenInner = ({
   const isAddMode = categoryModifyId === NewEnum.NEW || !categoryModifyId
 
   const handleGoBack = useCallback(() => {
-    if (category?.id) {
-      router.back()
-    } else {
-      router.replace({
-        pathname: "/settings/categories",
-      })
-    }
-  }, [category?.id, router.replace, router.back])
+    router.back()
+  }, [router.back])
 
   const TransactionType = isAddMode
     ? initialType || category?.type || TransactionTypeEnum.EXPENSE

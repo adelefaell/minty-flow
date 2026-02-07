@@ -1,6 +1,8 @@
+import { useRouter } from "expo-router"
 import { useState } from "react"
 import PagerView, { usePagerView } from "react-native-pager-view"
 import Animated, {
+  createAnimatedComponent,
   Easing,
   useAnimatedStyle,
   useSharedValue,
@@ -13,9 +15,12 @@ import { StyleSheet, useUnistyles } from "react-native-unistyles"
 import { Button } from "~/components/ui/button"
 import { IconSymbol, type IconSymbolName } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
+
+const AnimatedPressable = createAnimatedComponent(Pressable)
+
 import { Tooltip } from "~/components/ui/tooltip"
 import { View } from "~/components/ui/view"
-import { logger } from "~/utils/logger"
+import { NewEnum } from "~/types/new"
 
 import AccountsScreen from "../accounts"
 import SettingsScreen from "../settings"
@@ -41,30 +46,17 @@ const tabs: TabConfig[] = [
   { key: "settings", component: SettingsScreen },
 ]
 
-const INSTANT_SPRING = {
-  damping: 15,
-  stiffness: 500,
-  mass: 0.5,
-}
-
 const INSTANT_TIMING = {
   duration: 80,
   easing: Easing.out(Easing.quad),
 }
 
-const POSITIONS = {
-  TOP: {
-    y: -80,
-  },
-  TOP_RIGHT: {
-    x: 80,
-    y: -40,
-  },
-  TOP_LEFT: {
-    x: -80,
-    y: -40,
-  },
-}
+// Static positions for each FAB option (no translate; same layout as before)
+const FAB_OPTION_POSITIONS = [
+  { left: 2, top: -78 }, // Top
+  { left: 82, top: -38 }, // Top Right
+  { left: -78, top: -38 }, // Top Left
+]
 
 const AnimatedFABOption = ({
   option,
@@ -75,42 +67,24 @@ const AnimatedFABOption = ({
   index: number
   isExpanded: boolean
 }) => {
-  const animatedStyle = useAnimatedStyle(() => {
-    const animation = isExpanded ? withSpring : withTiming
-    const config = isExpanded ? INSTANT_SPRING : INSTANT_TIMING
-
-    let translateX = 0
-    let translateY = 0
-
-    // Adjusted distances for snappier feel
-    if (index === 0) {
-      // Top
-      translateY = animation(isExpanded ? POSITIONS.TOP.y : 0, config)
-    } else if (index === 1) {
-      // Top Right
-      translateX = animation(isExpanded ? POSITIONS.TOP_RIGHT.x : 0, config)
-      translateY = animation(isExpanded ? POSITIONS.TOP_RIGHT.y : 0, config)
-    } else if (index === 2) {
-      // Top Left
-      translateX = animation(isExpanded ? POSITIONS.TOP_LEFT.x : 0, config)
-      translateY = animation(isExpanded ? POSITIONS.TOP_LEFT.y : 0, config)
-    }
-
-    return {
-      transform: [{ translateX }, { translateY }],
-      opacity: withTiming(isExpanded ? 1 : 0, INSTANT_TIMING),
-    }
-  })
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: withTiming(isExpanded ? 1 : 0, INSTANT_TIMING),
+  }))
 
   return (
-    <Animated.View style={[styles.fabOptionWrapper, animatedStyle]}>
-      <Pressable
-        onPress={option.onPress}
-        style={[styles.fabOption, { backgroundColor: option.color }]}
-      >
-        <IconSymbol name={option.icon} size={24} color="#FFFFFF" />
-      </Pressable>
-    </Animated.View>
+    <AnimatedPressable
+      onPress={option.onPress}
+      pointerEvents={isExpanded ? "auto" : "none"}
+      style={[
+        styles.fabOptionWrapper,
+        FAB_OPTION_POSITIONS[index],
+        styles.fabOption,
+        { backgroundColor: option.color },
+        animatedStyle,
+      ]}
+    >
+      <IconSymbol name={option.icon} size={24} color="#FFFFFF" />
+    </AnimatedPressable>
   )
 }
 
@@ -154,13 +128,15 @@ const TabLayout = () => {
     })
   }
 
+  const router = useRouter()
+
   const fabOptions: FABOption[] = [
     {
       icon: "arrow-down",
       color: "#A8D5BA",
       label: "Income",
       onPress: () => {
-        logger.info("Add income")
+        router.push(`/transaction/${NewEnum.NEW}?type=income`)
         toggleFab()
       },
     },
@@ -169,7 +145,7 @@ const TabLayout = () => {
       color: "#F8A5A5",
       label: "Expense",
       onPress: () => {
-        logger.info("Add expense")
+        router.push(`/transaction/${NewEnum.NEW}?type=expense`)
         toggleFab()
       },
     },
@@ -178,7 +154,7 @@ const TabLayout = () => {
       color: "#B8B5E8",
       label: "Transfer",
       onPress: () => {
-        logger.info("Add transfer")
+        router.push(`/transaction/${NewEnum.NEW}?type=transfer`)
         toggleFab()
       },
     },
@@ -191,7 +167,6 @@ const TabLayout = () => {
 
   const overlayStyle = useAnimatedStyle(() => ({
     opacity: overlayOpacity.value,
-    pointerEvents: overlayOpacity.value > 0 ? "auto" : "none",
   }))
 
   const tabBarBottom = insets.bottom + 8
@@ -266,7 +241,10 @@ const TabLayout = () => {
       </View>
 
       {/* Overlay */}
-      <Animated.View style={[styles.overlay, overlayStyle]}>
+      <Animated.View
+        style={[styles.overlay, overlayStyle]}
+        pointerEvents={fabExpanded ? "auto" : "none"}
+      >
         <Pressable
           native
           disableRipple
@@ -276,11 +254,15 @@ const TabLayout = () => {
       </Animated.View>
 
       {/* FAB Options & Center Button - Higher Z-Index */}
-      <View style={[styles.tabBarContainer, { zIndex: 30 }]}>
-        {/* FAB Options */}
+      <View
+        style={[styles.tabBarContainer, { zIndex: 30 }]}
+        pointerEvents="box-none"
+      >
+        {/* FAB Options - disable entire area when collapsed so invisible options don't receive touches */}
         <View
-          native
           style={[styles.fabOptionsContainer, { bottom: fabContainerBottom }]}
+          pointerEvents={fabExpanded ? "box-none" : "none"}
+          native
         >
           {fabOptions.map((option, index) => (
             <AnimatedFABOption
@@ -298,6 +280,7 @@ const TabLayout = () => {
             styles.tabBar(insets.bottom),
             { backgroundColor: "transparent" },
           ]}
+          pointerEvents="box-none"
         >
           {/* Side placeholders to ensure center button is centered exactly as before */}
           <View style={{ flex: 1 }} />

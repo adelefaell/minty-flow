@@ -6,6 +6,8 @@
  * The WatermelonDB model implements these types, not the other way around.
  */
 
+import type { MintyColorScheme } from "~/styles/theme"
+
 /**
  * Tag domain type for UI/API usage.
  *
@@ -32,6 +34,7 @@ export interface Tag {
   name: string
   type: TagKindType
   colorSchemeName?: string
+  colorScheme?: MintyColorScheme // Computed from colorSchemeName via registry
   icon?: string
   transactionCount: number
   createdAt: Date

@@ -1,6 +1,6 @@
 import { format } from "date-fns"
 import { useRouter } from "expo-router"
-import { useMemo } from "react"
+import { Fragment, useMemo } from "react"
 import { Platform, SectionList } from "react-native"
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
@@ -10,13 +10,13 @@ import { SummarySection } from "~/components/summary-card"
 import { TransactionItem } from "~/components/transaction-item"
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
+import { Money } from "~/components/ui/money"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import { useMoneyFormattingStore } from "~/stores/money-formatting.store"
 import { useProfileStore } from "~/stores/profile.store"
 import type { Transaction } from "~/types/transactions"
-import { formatDisplayValue } from "~/utils/number-format"
 
 const AnimatedSectionList = Animated.createAnimatedComponent(SectionList)
 
@@ -230,13 +230,17 @@ export default function HomeScreen() {
               </View>
               <View style={styles.totalsContainer}>
                 {Object.entries(s.totals).map(([curr, total], idx) => (
-                  <Text key={curr} variant="small" style={styles.sectionTotal}>
-                    {idx > 0 && "| "}
-                    {formatDisplayValue(total, {
-                      currency: curr,
-                      showSign: true,
-                    })}
-                  </Text>
+                  <Fragment key={curr + idx.toString()}>
+                    <Text variant="small" style={styles.sectionTotal}>
+                      {idx > 0 && "| "}
+                    </Text>
+                    <Money
+                      variant="small"
+                      style={styles.sectionTotal}
+                      value={total}
+                      currency={curr}
+                    />
+                  </Fragment>
                 ))}
               </View>
             </View>

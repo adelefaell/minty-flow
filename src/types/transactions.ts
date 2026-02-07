@@ -1,3 +1,23 @@
+export type RecurringFrequency =
+  | "daily"
+  | "weekly"
+  | "biweekly"
+  | "monthly"
+  | "yearly"
+  | null
+
+/** How a recurring transaction ends: never, on a specific date, or after N occurrences */
+export type RecurringEndType = "never" | "date" | "occurrences"
+
+/** Attachment metadata for transaction extra (e.g. file attachments) */
+export interface TransactionAttachment {
+  uri: string
+  name: string
+  size: number
+  addedAt: Date
+  ext: string
+}
+
 /**
  * Transaction type definitions
  *

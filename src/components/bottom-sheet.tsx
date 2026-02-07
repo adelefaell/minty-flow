@@ -15,7 +15,7 @@ import {
   useRef,
   useState,
 } from "react"
-import { InteractionManager, Keyboard } from "react-native"
+import { InteractionManager, Keyboard, View } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { StyleSheet as UnistylesSheet } from "react-native-unistyles"
 import { create } from "zustand"
@@ -341,7 +341,14 @@ export function BottomSheetModalComponent({
       footerComponent={renderFooter}
     >
       {skipBottomSheetView ? (
-        children
+        <View
+          style={[
+            sheetStyles.contentContainer,
+            { paddingBottom: bottomPadding },
+          ]}
+        >
+          {children}
+        </View>
       ) : (
         <BottomSheetView
           style={[

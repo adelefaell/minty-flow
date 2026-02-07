@@ -1,9 +1,12 @@
 # Project Structure
 
-Generated on: 2026-02-05T17:34:28.783Z
+Generated on: 2026-02-07T21:21:27.249Z
 
 ```
 ./
+├── 📁 .cursor/
+│   └── 📁 rules/
+│       └── 📄 expo-react-native.mdc
 ├── 📁 .github/
 │   └── 📄 CODEOWNERS
 ├── 📁 .husky/
@@ -84,6 +87,8 @@ Generated on: 2026-02-05T17:34:28.783Z
 │   │   │   ├── 📄 loans.tsx
 │   │   │   ├── 📄 pending-transactions.tsx
 │   │   │   └── 📄 trash.tsx
+│   │   ├── 📁 transaction/
+│   │   │   └── 📄 [id].tsx
 │   │   ├── 📄 _layout.tsx
 │   │   └── 📄 +html.tsx
 │   ├── 📁 assets/
@@ -115,6 +120,17 @@ Generated on: 2026-02-05T17:34:28.783Z
 │   │   │   ├── 📄 contact-selector-sheet.tsx
 │   │   │   ├── 📄 delete-tag-sheet.tsx
 │   │   │   └── 📄 tag-card.tsx
+│   │   ├── 📁 transaction/
+│   │   │   ├── 📄 account-sheet.tsx
+│   │   │   ├── 📄 category-sheet.tsx
+│   │   │   ├── 📄 delete-file-confirm-sheet.tsx
+│   │   │   ├── 📄 notes-modal.tsx
+│   │   │   ├── 📄 open-file-confirm-sheet.tsx
+│   │   │   ├── 📄 tag-sheet.tsx
+│   │   │   ├── 📄 transaction-form-v2.tsx
+│   │   │   ├── 📄 transaction-form-v3.tsx
+│   │   │   ├── 📄 transaction-form.tsx
+│   │   │   └── 📄 transaction-type-selector.tsx
 │   │   ├── 📁 ui/
 │   │   │   ├── 📄 button.tsx
 │   │   │   ├── 📄 collapsible.tsx
@@ -147,6 +163,7 @@ Generated on: 2026-02-05T17:34:28.783Z
 │   │   ├── 📄 reorderable-list-v2.tsx
 │   │   ├── 📄 screen-shared-header.tsx
 │   │   ├── 📄 search-input.tsx
+│   │   ├── 📄 selection-sheet.tsx
 │   │   ├── 📄 summary-card.tsx
 │   │   ├── 📄 tabs-minty.tsx
 │   │   ├── 📄 toggle-item.tsx
@@ -191,7 +208,8 @@ Generated on: 2026-02-05T17:34:28.783Z
 │   ├── 📁 schemas/
 │   │   ├── 📄 accounts.schema.ts
 │   │   ├── 📄 categories.schema.ts
-│   │   └── 📄 tags.schema.ts
+│   │   ├── 📄 tags.schema.ts
+│   │   └── 📄 transactions.schema.ts
 │   ├── 📁 services/
 │   │   ├── 📄 currency-registry.ts
 │   │   ├── 📄 exchange-rates.ts
@@ -240,6 +258,7 @@ Generated on: 2026-02-05T17:34:28.783Z
 │   └── 📁 utils/
 │       ├── 📄 account-types-list.ts
 │       ├── 📄 calculate-operations.ts
+│       ├── 📄 file-icon.ts
 │       ├── 📄 icon-helpers.ts
 │       ├── 📄 is-image-url.ts
 │       ├── 📄 is-single-emoji-or-letter.ts
@@ -247,12 +266,14 @@ Generated on: 2026-02-05T17:34:28.783Z
 │       ├── 📄 logger.ts
 │       ├── 📄 number-format.ts
 │       ├── 📄 numpad-utils.ts
+│       ├── 📄 open-file.ts
 │       ├── 📄 string-utils.ts
 │       └── 📄 toast.ts
 ├── 📄 .gitignore
 ├── 📄 app.json
 ├── 📄 babel.config.js
 ├── 📄 biome.json
+├── 📄 eas.json
 ├── 📄 expo-env.d.ts
 ├── 📄 index.ts
 ├── 📄 package.json

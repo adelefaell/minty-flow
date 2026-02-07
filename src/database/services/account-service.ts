@@ -135,11 +135,15 @@ export const observeAccountDetailsById = (id: string): Observable<Account> => {
     .query(Q.where("id", id))
     .observeWithColumns([
       "name",
-      "icon",
       "type",
+      "balance",
+      "currency_code",
+      "icon",
       "color_scheme_name",
-      "transaction_count",
       "is_archived",
+      "is_primary",
+      "exclude_from_balance",
+      "sort_order",
     ])
     .pipe(
       filter((results) => results.length > 0),

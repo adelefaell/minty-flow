@@ -8,6 +8,7 @@ import GoalModel from "./models/Goal"
 import LoanModel from "./models/Loan"
 import TagModel from "./models/Tag"
 import TransactionModel from "./models/Transaction"
+import TransactionTagModel from "./models/TransactionTag"
 import { schema } from "./schema"
 
 /**
@@ -46,6 +47,7 @@ export const database = new Database({
     LoanModel,
     TagModel,
     TransactionModel,
+    TransactionTagModel,
   ],
 })
 
@@ -56,3 +58,4 @@ export type { default as GoalModel } from "./models/Goal"
 export type { default as LoanModel } from "./models/Loan"
 export type { default as TagModel } from "./models/Tag"
 export type { default as TransactionModel } from "./models/Transaction"
+export type { default as TransactionTagModel } from "./models/TransactionTag"
