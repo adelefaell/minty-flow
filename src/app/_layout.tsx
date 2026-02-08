@@ -1,7 +1,6 @@
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet"
 import { Stack } from "expo-router"
 import { StatusBar } from "expo-status-bar"
-import { SystemBars } from "react-native-edge-to-edge"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { KeyboardProvider } from "react-native-keyboard-controller"
 import { UnistylesRuntime, useUnistyles } from "react-native-unistyles"
@@ -10,12 +9,19 @@ import { ToastManager } from "~/components/ui/toast"
 import { TooltipProvider } from "~/components/ui/tooltip"
 import "react-native-reanimated"
 
+import { setStyle } from "expo-navigation-bar"
+import { Platform } from "react-native"
+
 import { NewEnum } from "~/types/new"
 
 export default function RootLayout() {
   const { theme } = useUnistyles()
 
   UnistylesRuntime.setRootViewBackgroundColor(theme.colors.surface)
+
+  if (Platform.OS === "android") {
+    setStyle(theme.isDark ? "dark" : "light")
+  }
 
   return (
     <KeyboardProvider>
@@ -214,7 +220,11 @@ export default function RootLayout() {
             </Stack>
             <StatusBar style={theme.isDark ? "light" : "dark"} animated />
 
-            <SystemBars style={theme.isDark ? "light" : "dark"} />
+            {/* <SystemBars style={{
+              navigationBar: "dark",
+              statusBar: "dark",
+
+            }} /> */}
 
             <ToastManager />
           </BottomSheetModalProvider>

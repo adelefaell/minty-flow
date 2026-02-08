@@ -9,7 +9,6 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import { Button } from "~/components/ui/button"
@@ -89,7 +88,6 @@ const AnimatedFABOption = ({
 }
 
 const TabLayout = () => {
-  const insets = useSafeAreaInsets()
   const { theme } = useUnistyles()
   // const { initialPage } = useLocalSearchParams()
   const { ref: pagerRef, activePage, setPage } = usePagerView()
@@ -169,7 +167,7 @@ const TabLayout = () => {
     opacity: overlayOpacity.value,
   }))
 
-  const tabBarBottom = insets.bottom + 8
+  const tabBarBottom = 8
   const tabBarHeight = 54
   const fabContainerBottom = tabBarBottom + tabBarHeight / 2
 
@@ -186,10 +184,7 @@ const TabLayout = () => {
       {/* Tab Bar Background & Icons - Lower Z-Index */}
       <View style={[styles.tabBarContainer, { zIndex: 10 }]}>
         <View
-          style={[
-            styles.tabBar(insets.bottom),
-            { backgroundColor: theme.colors.secondary },
-          ]}
+          style={[styles.tabBar, { backgroundColor: theme.colors.secondary }]}
         >
           <Tooltip text="Home">
             <Button
@@ -276,10 +271,7 @@ const TabLayout = () => {
 
         {/* Center Button Wrapper - Overlay style positioning to match exactly */}
         <View
-          style={[
-            styles.tabBar(insets.bottom),
-            { backgroundColor: "transparent" },
-          ]}
+          style={[styles.tabBar, { backgroundColor: "transparent" }]}
           pointerEvents="box-none"
         >
           {/* Side placeholders to ensure center button is centered exactly as before */}
@@ -376,18 +368,17 @@ const styles = StyleSheet.create((t) => ({
   },
 
   // Tab bar
-  tabBar: (bottomInsets: number) => ({
+  tabBar: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-evenly",
     height: 54,
     width: "90%",
     borderRadius: t.colors.radius,
-    // marginBottom: bottomInsets + 8,
     marginBottom: 8,
     pointerEvents: "auto",
     overflow: "visible",
-  }),
+  },
 
   tabButton: {
     alignItems: "center",

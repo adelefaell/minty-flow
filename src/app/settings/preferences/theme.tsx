@@ -1,20 +1,25 @@
 import { useState } from "react"
 import { ScrollView } from "react-native"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { StyleSheet } from "react-native-unistyles"
 
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import { type ThemeMode, useThemeStore } from "~/stores/theme.store"
+import {
+  type ThemeMode,
+  themeStorage,
+  useThemeStore,
+} from "~/stores/theme.store"
 import { STANDALONE_THEMES, THEME_GROUPS } from "~/styles/theme/registry"
 import type { MintyColorScheme } from "~/styles/theme/types"
 
 type ThemeVariant = "Light" | "Dark" | "OLED"
 
+const THEME_PERSIST_KEY = "theme-preferences"
+const DEFAULT_THEME: ThemeMode = "electricLavender"
+
 export default function ThemeSettingsScreen() {
   const { themeMode, setThemeMode } = useThemeStore()
-  const insets = useSafeAreaInsets()
 
   const getCategoryForTheme = (themeName: string): string => {
     for (const [category, groups] of Object.entries(THEME_GROUPS)) {
@@ -58,6 +63,13 @@ export default function ThemeSettingsScreen() {
   const [selectedVariant, setSelectedVariant] = useState<ThemeVariant>(
     getVariantForTheme(themeMode),
   )
+
+  const clearSavedTheme = () => {
+    themeStorage.remove(THEME_PERSIST_KEY)
+    setThemeMode(DEFAULT_THEME)
+    setSelectedCategory(getCategoryForTheme(DEFAULT_THEME))
+    setSelectedVariant(getVariantForTheme(DEFAULT_THEME))
+  }
 
   const handleThemeChange = (mode: ThemeMode) => {
     setThemeMode(mode)
@@ -181,10 +193,7 @@ export default function ThemeSettingsScreen() {
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={[
-        styles.content,
-        { paddingBottom: insets.bottom + 16 },
-      ]}
+      contentContainerStyle={[styles.content, { paddingBottom: 16 }]}
       showsVerticalScrollIndicator={false}
     >
       {/* Compact Header with Current Theme */}
@@ -304,6 +313,11 @@ export default function ThemeSettingsScreen() {
           </View>
         </View>
       )}
+
+      {/* Test: clear saved theme */}
+      <Pressable style={styles.clearButton} onPress={clearSavedTheme}>
+        <Text style={styles.clearButtonText}>Clear saved theme (test)</Text>
+      </Pressable>
     </ScrollView>
   )
 }
@@ -422,5 +436,19 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.onSurface,
     opacity: 0.7,
     textAlign: "center",
+  },
+  clearButton: {
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: theme.colors.secondary,
+    alignItems: "center",
+  },
+  clearButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: theme.colors.onSurface,
+    opacity: 0.8,
   },
 }))

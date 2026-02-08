@@ -2,7 +2,6 @@ import { withObservables } from "@nozbe/watermelondb/react"
 import { useLocalSearchParams, useRouter } from "expo-router"
 import { useMemo, useState } from "react"
 import { FlatList } from "react-native"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { StyleSheet } from "react-native-unistyles"
 
 import { DynamicIcon } from "~/components/dynamic-icon"
@@ -59,7 +58,6 @@ const CategoryPresetsScreenInner = ({
   type,
   categories,
 }: CategoryPresetsScreenInnerProps) => {
-  const insets = useSafeAreaInsets()
   const router = useRouter()
   const [selectedPresets, setSelectedPresets] = useState<Set<string>>(new Set())
 
@@ -172,9 +170,7 @@ const CategoryPresetsScreenInner = ({
         style={styles.list}
       />
 
-      <View
-        style={[styles.buttonContainer, { paddingBottom: insets.bottom + 16 }]}
-      >
+      <View style={[styles.buttonContainer, { paddingBottom: 16 }]}>
         <Button
           variant="default"
           onPress={handleAddSelected}
