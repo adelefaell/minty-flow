@@ -1,9 +1,10 @@
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet"
 import { Stack } from "expo-router"
 import { StatusBar } from "expo-status-bar"
+import { SystemBars } from "react-native-edge-to-edge"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { KeyboardProvider } from "react-native-keyboard-controller"
-import { useUnistyles } from "react-native-unistyles"
+import { UnistylesRuntime, useUnistyles } from "react-native-unistyles"
 
 import { ToastManager } from "~/components/ui/toast"
 import { TooltipProvider } from "~/components/ui/tooltip"
@@ -14,9 +15,13 @@ import { NewEnum } from "~/types/new"
 export default function RootLayout() {
   const { theme } = useUnistyles()
 
+  UnistylesRuntime.setRootViewBackgroundColor(theme.colors.surface)
+
   return (
     <KeyboardProvider>
-      <GestureHandlerRootView style={{ flex: 1 }}>
+      <GestureHandlerRootView
+        style={{ flex: 1, paddingBottom: UnistylesRuntime.insets.bottom }}
+      >
         <TooltipProvider>
           <BottomSheetModalProvider>
             <Stack
@@ -208,6 +213,8 @@ export default function RootLayout() {
               />
             </Stack>
             <StatusBar style={theme.isDark ? "light" : "dark"} animated />
+
+            <SystemBars style={theme.isDark ? "light" : "dark"} />
 
             <ToastManager />
           </BottomSheetModalProvider>
