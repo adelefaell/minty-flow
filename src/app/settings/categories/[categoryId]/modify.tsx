@@ -63,14 +63,8 @@ const EditCategoryScreenInner = ({
   const isAddMode = categoryModifyId === NewEnum.NEW || !categoryModifyId
 
   const handleGoBack = useCallback(() => {
-    if (category?.id) {
-      router.back()
-    } else {
-      router.replace({
-        pathname: "/settings/categories",
-      })
-    }
-  }, [category?.id, router.replace, router.back])
+    router.back()
+  }, [router.back])
 
   const TransactionType = isAddMode
     ? initialType || category?.type || TransactionTypeEnum.EXPENSE
@@ -414,20 +408,9 @@ const EditCategoryScreenInner = ({
               <IconSymbol
                 name="trash-can"
                 size={20}
-                style={[
-                  styles.deleteIcon,
-                  (category?.transactionCount ?? 0) > 0 &&
-                    styles.deleteIconDisabled,
-                ]}
+                style={styles.deleteIcon}
               />
-              <Text
-                variant="default"
-                style={[
-                  styles.deleteText,
-                  (category?.transactionCount ?? 0) > 0 &&
-                    styles.deleteTextDisabled,
-                ]}
-              >
+              <Text variant="default" style={styles.deleteText}>
                 Delete Category
               </Text>
             </Button>
@@ -664,12 +647,6 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 16,
     fontWeight: "600",
     color: theme.colors.error,
-  },
-  deleteIconDisabled: {
-    opacity: 0.4,
-  },
-  deleteTextDisabled: {
-    opacity: 0.4,
   },
   actions: {
     flexDirection: "row",

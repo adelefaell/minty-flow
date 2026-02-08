@@ -35,6 +35,7 @@ import {
   observeAccountById,
   updateAccount,
 } from "~/database/services/account-service"
+import { observeTransactionCountByAccountId } from "~/database/services/transaction-service"
 import { modelToAccount } from "~/database/utils/model-to-account"
 import {
   type AddAccountsFormSchema,
@@ -52,12 +53,14 @@ interface EditAccountScreenProps {
   accountId: string
   accountModel?: AccountModel
   account?: Account
+  transactionCount?: number
 }
 
 const EditAccountScreenInner = ({
   accountId,
   accountModel,
   account,
+  transactionCount = 0,
 }: EditAccountScreenProps) => {
   const router = useRouter()
   const isAddMode = accountId === NewEnum.NEW || !accountId
@@ -564,7 +567,11 @@ const EditAccountScreenInner = ({
       </KeyboardStickyViewMinty>
 
       {!isAddMode && account && (
-        <DeleteAccountSheet account={account} onConfirm={handleDelete} />
+        <DeleteAccountSheet
+          account={account}
+          transactionCount={transactionCount}
+          onConfirm={handleDelete}
+        />
       )}
 
       <ChangeIconSheet
@@ -609,13 +616,16 @@ const EditAccountScreenInner = ({
 
 const EnhancedEditScreen = withObservables(["accountId"], ({ accountId }) => ({
   accountModel: observeAccountById(accountId),
+  transactionCount: observeTransactionCountByAccountId(accountId),
 }))(
   ({
     accountId,
     accountModel,
+    transactionCount = 0,
   }: {
     accountId: string
     accountModel: AccountModel
+    transactionCount?: number
   }) => {
     const account = accountModel ? modelToAccount(accountModel) : undefined
 
@@ -625,6 +635,7 @@ const EnhancedEditScreen = withObservables(["accountId"], ({ accountId }) => ({
         accountId={accountId}
         accountModel={accountModel}
         account={account}
+        transactionCount={transactionCount}
       />
     )
   },
@@ -783,22 +794,6 @@ const styles = StyleSheet.create((theme) => ({
   },
   actionButton: {
     width: "100%",
-  },
-  archiveIcon: {
-    color: theme.colors.primary,
-  },
-  archiveText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: theme.colors.primary,
-  },
-  restoreIcon: {
-    color: theme.colors.customColors.success,
-  },
-  restoreText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: theme.colors.customColors.success,
   },
   deleteIcon: {
     color: theme.colors.error,

@@ -1,8 +1,4 @@
----
-name: mobile-frontend-design
-description: Create distinctive, production-grade mobile interfaces with high design quality. Use this skill when the user asks to build React Native components, screens, or applications. Generates creative, polished code that avoids generic mobile UI aesthetics.
-license: Complete terms in LICENSE.txt
----
+
 
 This skill guides creation of distinctive, production-grade **mobile frontend interfaces** that avoid generic "AI slop" design. Implement real working code with exceptional attention to aesthetic details and creative choices, optimized for touch, gestures, and small screens.
 

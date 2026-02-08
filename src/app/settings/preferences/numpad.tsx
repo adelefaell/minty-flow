@@ -174,31 +174,6 @@ const styles = StyleSheet.create((theme) => ({
     padding: 20,
     paddingBottom: 40,
   },
-  previewSection: {
-    backgroundColor: theme.colors.secondary,
-    borderRadius: theme.colors.radius,
-    padding: 20,
-    marginBottom: 24,
-    alignItems: "center",
-  },
-  previewLabel: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: theme.colors.onSecondary,
-    marginBottom: 8,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  previewValue: {
-    fontSize: 32,
-    fontWeight: "700",
-    color: theme.colors.onSurface,
-    marginBottom: 4,
-  },
-  previewDescription: {
-    fontSize: 13,
-    color: theme.colors.onSecondary,
-  },
   section: {
     marginBottom: 24,
   },
@@ -301,10 +276,6 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: "center",
     margin: "1%",
     flexBasis: "23%",
-  },
-  wideButton: {
-    maxWidth: "42%",
-    flexBasis: "48%",
   },
   buttonText: {
     color: theme.colors.onSurface,

@@ -197,8 +197,21 @@ export default function RootLayout() {
                   }
                 }}
               />
-            </Stack>
 
+              <Stack.Screen
+                name="transaction/[id]"
+                options={({ route }) => {
+                  const params = route.params as { id?: string } | undefined
+                  return {
+                    title:
+                      params?.id === NewEnum.NEW
+                        ? "Create Transaction"
+                        : "Edit Transaction",
+                    presentation: "fullScreenModal",
+                  }
+                }}
+              />
+            </Stack>
             <StatusBar style={theme.isDark ? "light" : "dark"} animated />
 
             <SystemBars style={theme.isDark ? "light" : "dark"} />

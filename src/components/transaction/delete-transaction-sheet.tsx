@@ -1,63 +1,57 @@
 import { StyleSheet } from "react-native-unistyles"
 
-import {
-  BottomSheetModalComponent,
-  useBottomSheet,
-} from "~/components/bottom-sheet"
+import { BottomSheetModalComponent } from "~/components/bottom-sheet"
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import type { Account } from "~/types/accounts"
 
-interface DeleteAccountSheetProps {
-  account: Account
-  transactionCount?: number
+export const DELETE_TRANSACTION_SHEET_ID = "delete-transaction"
+
+interface DeleteTransactionSheetProps {
+  id: string
+  onDismiss: () => void
   onConfirm: () => void
 }
 
-export function DeleteAccountSheet({
-  account,
-  transactionCount = 0,
+export function DeleteTransactionSheet({
+  id,
+  onDismiss,
   onConfirm,
-}: DeleteAccountSheetProps) {
-  const sheet = useBottomSheet(`delete-account-${account.id}`)
-
+}: DeleteTransactionSheetProps) {
   const handleConfirm = () => {
     onConfirm()
-    sheet.dismiss()
+    onDismiss()
   }
-
-  const handleCancel = () => {
-    sheet.dismiss()
-  }
-
-  const description =
-    transactionCount > 0
-      ? `This account has ${transactionCount} transaction${transactionCount !== 1 ? "s" : ""}. Deleting the account will also delete ${transactionCount === 1 ? "it" : "them"}. This action cannot be undone.`
-      : "Deleting this account cannot be undone. This action is irreversible!"
 
   return (
-    <BottomSheetModalComponent id={`delete-account-${account.id}`}>
+    <BottomSheetModalComponent
+      id={id}
+      enableDynamicSizing
+      enablePanDownToClose
+      onDismiss={onDismiss}
+    >
       <View style={styles.container}>
         <View style={styles.iconContainer}>
           <IconSymbol name="trash-can" size={40} style={styles.icon} />
         </View>
-
         <Text variant="h3" style={styles.title}>
-          Confirm deleting {account.name}?
+          Move to trash?
         </Text>
-
         <Text variant="p" style={styles.description}>
-          {description}
+          This transaction will be moved to trash. You can restore it later from
+          the trash.
         </Text>
-
         <View style={styles.buttonContainer}>
-          <Button variant="outline" onPress={handleCancel}>
+          <Button variant="outline" onPress={onDismiss} style={styles.button}>
             <Text variant="default">Cancel</Text>
           </Button>
-          <Button variant="destructive" onPress={handleConfirm}>
-            <Text variant="default">Delete</Text>
+          <Button
+            variant="destructive"
+            onPress={handleConfirm}
+            style={styles.button}
+          >
+            <Text variant="default">Move to trash</Text>
           </Button>
         </View>
       </View>
@@ -72,7 +66,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   iconContainer: {
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 4,
   },
   icon: {
     color: theme.colors.error,
@@ -88,7 +82,11 @@ const styles = StyleSheet.create((theme) => ({
     lineHeight: 20,
   },
   buttonContainer: {
+    flexDirection: "row",
     gap: 12,
-    marginBlock: 8,
+    marginTop: 8,
+  },
+  button: {
+    flex: 1,
   },
 }))

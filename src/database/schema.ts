@@ -7,7 +7,7 @@ import { appSchema, tableSchema } from "@nozbe/watermelondb"
  * Each table represents a collection of models that can be queried and manipulated.
  */
 export const schema = appSchema({
-  version: 5,
+  version: 6,
   tables: [
     // Categories table - stores transaction categories
     tableSchema({
@@ -53,11 +53,9 @@ export const schema = appSchema({
         { name: "title", type: "string", isOptional: true },
         { name: "description", type: "string", isOptional: true },
         { name: "amount", type: "number" },
-        { name: "currency", type: "string" },
         { name: "is_pending", type: "boolean" },
-
-        // CLEAR PURPOSE:
-        { name: "type", type: "string" }, // ADD THIS: "expense" | "income" | "transfer"
+        // Currency comes from account (account_id); type explains meaning.
+        { name: "type", type: "string" }, // "expense" | "income" | "transfer"
         { name: "subtype", type: "string", isOptional: true }, // "recurring" | "one-time" | "subscription" etc.
         { name: "extra", type: "string", isOptional: true }, // JSON for custom metadata
         // REMOVE extra_tags - use transaction_tags join table instead

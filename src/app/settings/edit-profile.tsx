@@ -199,20 +199,6 @@ const styles = StyleSheet.create((theme) => ({
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
-  input: {
-    backgroundColor: theme.colors.surface,
-    borderWidth: 1,
-    borderColor: theme.colors.onSurface,
-    borderRadius: theme.colors.radius,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: theme.colors.onSurface,
-    minHeight: 48,
-  },
-  placeholderColor: {
-    color: theme.colors.onSecondary,
-  },
   buttonContainer: {
     paddingHorizontal: 20,
     paddingVertical: 16,

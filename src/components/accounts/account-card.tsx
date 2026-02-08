@@ -3,6 +3,7 @@ import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import type { Account } from "~/types/accounts"
+import { TransactionTypeEnum } from "~/types/transactions"
 
 import { DynamicIcon } from "../dynamic-icon"
 import { Money } from "../ui/money"
@@ -10,12 +11,21 @@ import { Pressable } from "../ui/pressable"
 import { Text } from "../ui/text"
 import { View } from "../ui/view"
 
-interface AccountCardProps {
+export interface AccountCardProps {
   account: Account
+  monthIn?: number
+  monthOut?: number
+  monthNet?: number
   isReorderMode: boolean
 }
 
-export const AccountCard = ({ account, isReorderMode }: AccountCardProps) => {
+export const AccountCard = ({
+  account,
+  monthIn = 0,
+  monthOut = 0,
+  monthNet = 0,
+  isReorderMode,
+}: AccountCardProps) => {
   const router = useRouter()
 
   const { theme } = useUnistyles()
@@ -92,10 +102,11 @@ export const AccountCard = ({ account, isReorderMode }: AccountCardProps) => {
               </View>
 
               <Money
-                value={0}
+                value={monthIn}
                 variant="default"
                 style={[styles.summaryAmount, styles.incomeAmount]}
                 currency={account.currencyCode}
+                tone={TransactionTypeEnum.INCOME}
               />
             </View>
             <View variant="muted" style={styles.summaryItem}>
@@ -109,10 +120,12 @@ export const AccountCard = ({ account, isReorderMode }: AccountCardProps) => {
               </View>
 
               <Money
-                value={0}
+                value={monthOut}
                 variant="default"
                 style={[styles.summaryAmount, styles.expenseAmount]}
                 currency={account.currencyCode}
+                // tone={TransactionTypeEnum.EXPENSE}
+                showSign
               />
             </View>
             <View variant="muted" style={styles.summaryItem}>
@@ -126,7 +139,7 @@ export const AccountCard = ({ account, isReorderMode }: AccountCardProps) => {
               </View>
 
               <Money
-                value={0}
+                value={monthNet}
                 variant="default"
                 style={styles.summaryAmount}
                 currency={account.currencyCode}

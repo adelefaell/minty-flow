@@ -6,6 +6,7 @@ import type { Tag, TagKindType } from "../../types/tags"
 import { database } from "../index"
 import type TagModel from "../models/Tag"
 import { modelToTag } from "../utils/model-to-tag"
+import { unlinkTagFromAllTransactions } from "./transaction-service"
 
 /**
  * Tag Service
@@ -130,36 +131,31 @@ export const updateTagById = async (
     transactionCount: number
   }>,
 ): Promise<TagModel> => {
-  const tag = await findTag(id)
-  if (!tag) {
-    throw new Error(`Tag with id ${id} not found`)
-  }
+  const tag = await findTag(id).then((tag) => {
+    if (!tag) {
+      throw new Error(`Tag with id ${id} not found`)
+    }
+    return tag
+  })
   return await updateTag(tag, updates)
 }
 
 /**
- * Increment tag transaction count
- */
-export const incrementTagUsage = async (tag: TagModel): Promise<TagModel> => {
-  return await updateTag(tag, {
-    transactionCount: tag.transactionCount + 1,
-  })
-}
-
-/**
- * Delete tag
+ * Delete tag permanently.
+ * Unlinks this tag from all transactions first, then permanently destroys the tag.
  */
 export const deleteTag = async (tag: TagModel): Promise<void> => {
-  await database.write(async () => {
-    await tag.markAsDeleted()
+  await unlinkTagFromAllTransactions(tag.id).then(() => {
+    return database.write(async () => {
+      await tag.destroyPermanently()
+    })
   })
 }
 
 /**
- * Permanently destroy tag
+ * Permanently destroy tag (same as deleteTag).
+ * Unlinks this tag from all transactions first, then permanently destroys the tag.
  */
 export const destroyTag = async (tag: TagModel): Promise<void> => {
-  await database.write(async () => {
-    await tag.destroyPermanently()
-  })
+  await deleteTag(tag)
 }

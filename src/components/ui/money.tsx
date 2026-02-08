@@ -4,6 +4,7 @@ import { StyleSheet } from "react-native-unistyles"
 
 import { Text, type TextVariant } from "~/components/ui/text"
 import { useMoneyFormattingStore } from "~/stores/money-formatting.store"
+import { type TransactionType, TransactionTypeEnum } from "~/types/transactions"
 import { formatDisplayValue } from "~/utils/number-format"
 
 export interface MoneyProps {
@@ -14,11 +15,15 @@ export interface MoneyProps {
   hideSign?: boolean
   showSign?: boolean
   hideSymbol?: boolean
-  tone?: "auto" | "income" | "expense" | "neutral"
+  /** Controls sign behavior (+, -, or no sign). Used for signedValue and hideSign/showSign. */
+  tone?: "auto" | TransactionType
+  /** Controls color only. When "auto" or omitted, follows tone. Use when sign and color should differ (e.g. expense amount shown in neutral). */
+  visualTone?: "auto" | TransactionType
   style?: StyleProp<TextStyle>
   addParentheses?: boolean
   disablePrivacyMode?: boolean
   variant?: TextVariant
+  native?: boolean
 }
 
 export const Money: FC<MoneyProps> = ({
@@ -29,33 +34,74 @@ export const Money: FC<MoneyProps> = ({
   hideSign = false,
   showSign = false,
   hideSymbol = false,
-  tone = "neutral",
+  tone = TransactionTypeEnum.TRANSFER,
+  visualTone,
   style,
   addParentheses = false,
   disablePrivacyMode = false,
   variant = "p",
+  native = false,
 }) => {
   const stringValue = typeof value === "number" ? value.toString() : value
 
-  // 1. Get unified privacy state and look preference
+  // Preferences
   const privacyModeActive = useMoneyFormattingStore((s) => s.privacyMode)
   const currencyLook = useMoneyFormattingStore((s) => s.currencyLook)
 
-  // 2. Format the Money
+  // Numeric value (used only for inference)
+  const numericValue =
+    typeof value === "number" ? value : Number.parseFloat(stringValue || "0")
+
+  // Sign behavior: tone controls + / - / no sign
+  const resolvedSignTone: TransactionType =
+    tone !== "auto"
+      ? tone
+      : numericValue < 0
+        ? TransactionTypeEnum.EXPENSE
+        : numericValue > 0
+          ? TransactionTypeEnum.INCOME
+          : TransactionTypeEnum.TRANSFER
+
+  // Visual tone: color only; defaults to sign tone when "auto" or omitted
+  const resolvedVisualTone: TransactionType =
+    visualTone === "auto" || visualTone == null ? resolvedSignTone : visualTone
+
+  /**
+   * Enforce sign by tone:
+   * - income   → +
+   * - expense  → -
+   * - transfer → no sign
+   */
+  const signedValue = useMemo(() => {
+    const abs = Math.abs(numericValue)
+
+    if (resolvedSignTone === TransactionTypeEnum.EXPENSE) {
+      return -abs
+    }
+
+    if (resolvedSignTone === TransactionTypeEnum.INCOME) {
+      return abs
+    }
+
+    // TRANSFER → no sign
+    return abs
+  }, [numericValue, resolvedSignTone])
+
+  // Format
   const formatted = useMemo(() => {
     try {
-      return formatDisplayValue(stringValue || "0", {
+      return formatDisplayValue(signedValue.toString(), {
         currency,
         currencyDisplay: currencyLook,
         locale,
         compact,
-        hideSign,
-        showSign,
+        hideSign: resolvedSignTone === TransactionTypeEnum.TRANSFER || hideSign,
+        showSign: resolvedSignTone !== TransactionTypeEnum.TRANSFER && showSign,
         hideSymbol,
         addParentheses,
       })
     } catch {
-      return formatDisplayValue(stringValue || "0", {
+      return formatDisplayValue(signedValue.toString(), {
         locale,
         compact,
         hideSign,
@@ -63,55 +109,46 @@ export const Money: FC<MoneyProps> = ({
       })
     }
   }, [
-    stringValue,
+    signedValue,
     currency,
+    currencyLook,
+    locale,
     compact,
     hideSign,
     showSign,
     hideSymbol,
-    currencyLook,
-    locale,
     addParentheses,
+    resolvedSignTone,
   ])
 
-  // 3. Create the mask
-  const privacyMasked = useMemo(() => {
-    // Replaces only digits with ⁕, keeping symbols like $, €, or commas intact
-    return formatted.replace(/\d/g, "⁕")
-  }, [formatted])
+  // Privacy masking
+  const privacyMasked = useMemo(
+    () => formatted.replace(/\d/g, "⁕"),
+    [formatted],
+  )
 
-  // 4. Final Logic: Use the unified boolean from our store
   const shouldHide = !disablePrivacyMode && privacyModeActive
 
-  const signedAmount =
-    typeof stringValue === "string" ? Number.parseFloat(stringValue || "0") : 0
-
-  // Handle tone coloring
-  const resolvedTone =
-    tone === "auto"
-      ? signedAmount < 0
-        ? "expense"
-        : signedAmount > 0
-          ? "income"
-          : "neutral"
-      : tone
-
   const toneStyles =
-    resolvedTone === "income"
+    resolvedVisualTone === TransactionTypeEnum.INCOME
       ? styles.income
-      : resolvedTone === "expense"
+      : resolvedVisualTone === TransactionTypeEnum.EXPENSE
         ? styles.expense
-        : styles.neutral
+        : styles.transfer
 
   return (
-    <Text variant={variant} style={[style, toneStyles, { fontWeight: "600" }]}>
+    <Text
+      variant={variant}
+      style={[style, toneStyles, { fontWeight: "600" }]}
+      native={native}
+    >
       {shouldHide ? privacyMasked : formatted}
     </Text>
   )
 }
 
 const styles = StyleSheet.create((theme) => ({
-  neutral: {
+  transfer: {
     color: theme.colors.onSurface,
   },
   income: {

@@ -3,7 +3,10 @@ import { useRouter } from "expo-router"
 import { useState } from "react"
 import { StyleSheet } from "react-native-unistyles"
 
-import { AccountCard } from "~/components/accounts/account-card"
+import {
+  AccountCard,
+  type AccountCardProps,
+} from "~/components/accounts/account-card"
 import { ReorderableListV2 } from "~/components/reorderable-list-v2"
 import { SearchInput } from "~/components/search-input"
 import { Button } from "~/components/ui/button"
@@ -12,8 +15,10 @@ import { Money } from "~/components/ui/money"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import type AccountModel from "~/database/models/Account"
+import type { AccountWithMonthTotals } from "~/database/services/account-service"
 import {
   observeAccountModels,
+  observeAccountsWithMonthTotals,
   updateAccountsOrder,
 } from "~/database/services/account-service"
 import { modelToAccount } from "~/database/utils/model-to-account"
@@ -22,16 +27,20 @@ import { logger } from "~/utils/logger"
 
 interface AccountsScreenInnerProps {
   accountModels: AccountModel[]
+  accountsWithMonthTotals: AccountWithMonthTotals[]
 }
 
-const AccountsScreenInner = ({ accountModels }: AccountsScreenInnerProps) => {
+const AccountsScreenInner = ({
+  accountModels,
+  accountsWithMonthTotals,
+}: AccountsScreenInnerProps) => {
   const router = useRouter()
 
   const [searchQuery, setSearchQuery] = useState("")
   const [isReorderMode, setIsReorderMode] = useState(false)
   const [reorderedModels, setReorderedModels] = useState<AccountModel[]>([])
 
-  // Filter on models (source of truth)
+  // Filter on models (source of truth for order/search)
   const filteredModels = accountModels.filter((model) => {
     if (!searchQuery.trim()) return true
     return model.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -39,8 +48,18 @@ const AccountsScreenInner = ({ accountModels }: AccountsScreenInnerProps) => {
 
   const displayModels = isReorderMode ? reorderedModels : filteredModels
 
-  // Map only for UI
-  const displayAccounts = displayModels.map(modelToAccount)
+  // Accounts with month totals for display (match by id to preserve order)
+  const displayAccounts = displayModels.map((model) => {
+    const withTotals = accountsWithMonthTotals.find((a) => a.id === model.id)
+    return (
+      withTotals ?? {
+        ...modelToAccount(model),
+        monthIn: 0,
+        monthOut: 0,
+        monthNet: 0,
+      }
+    )
+  })
 
   // Balance calculation (domain only)
   const balancesByCurrency = displayAccounts.reduce(
@@ -167,12 +186,19 @@ const AccountsScreenInner = ({ accountModels }: AccountsScreenInnerProps) => {
         data={displayModels}
         onReorder={handleReorder}
         showButtons={isReorderMode}
-        renderItem={({ item }) => (
-          <AccountCard
-            account={modelToAccount(item)}
-            isReorderMode={isReorderMode}
-          />
-        )}
+        renderItem={({ item }) => {
+          const accountWithTotals = displayAccounts.find(
+            (a) => a.id === item.id,
+          )
+          const cardProps: AccountCardProps = {
+            account: accountWithTotals ?? modelToAccount(item),
+            monthIn: accountWithTotals?.monthIn ?? 0,
+            monthOut: accountWithTotals?.monthOut ?? 0,
+            monthNet: accountWithTotals?.monthNet ?? 0,
+            isReorderMode,
+          }
+          return <AccountCard {...cardProps} />
+        }}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -191,9 +217,10 @@ const AccountsScreenInner = ({ accountModels }: AccountsScreenInnerProps) => {
   )
 }
 
-// Watermelon binding (models only)
+// Watermelon binding: models for order/search, with month totals for cards
 const enhance = withObservables([], () => ({
   accountModels: observeAccountModels(false),
+  accountsWithMonthTotals: observeAccountsWithMonthTotals(false),
 }))
 
 export default enhance(AccountsScreenInner)

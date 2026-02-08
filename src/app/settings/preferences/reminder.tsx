@@ -282,18 +282,6 @@ const styles = StyleSheet.create((theme) => ({
   content: {
     paddingBottom: 40,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: theme.colors.onSurface,
-    marginBottom: 12,
-  },
-  description: {
-    fontSize: 15,
-    color: theme.colors.onSecondary,
-    lineHeight: 22,
-    marginBottom: 24,
-  },
   section: {
     paddingVertical: 10,
     paddingHorizontal: 20,
@@ -323,12 +311,6 @@ const styles = StyleSheet.create((theme) => ({
     paddingVertical: 10,
     paddingHorizontal: 20,
     gap: 16,
-  },
-  iconContainer: {
-    width: 32,
-    height: 32,
-    alignItems: "center",
-    justifyContent: "center",
   },
   labelContainer: {
     flex: 1,

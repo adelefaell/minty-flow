@@ -29,8 +29,12 @@ export const VALID_ICON_NAMES = defineValidIcons([
   "arrow-down",
   "arrow-left",
   "arrow-up",
+  "chevron-down",
+  "chevron-up",
+  "chevron-left",
   "chevron-right",
   "close",
+  "close-circle",
   "magnify",
   "swap-vertical",
   "swap-horizontal",
@@ -58,6 +62,14 @@ export const VALID_ICON_NAMES = defineValidIcons([
   "camera",
   "image",
   "image-multiple",
+  // File types
+  "file",
+  "file-document",
+  "file-image",
+  "file-video",
+  "file-chart",
+  "file-pdf-box",
+  "file-presentation-box",
   "palette",
   "palette-swatch",
   // Text & Editing
@@ -66,6 +78,7 @@ export const VALID_ICON_NAMES = defineValidIcons([
   "eraser",
   "puzzle-edit",
   // Math & Calculator
+  "calculator",
   "plus",
   "minus",
   "percent",
@@ -123,6 +136,8 @@ export const VALID_ICON_NAMES = defineValidIcons([
   "shield-alert",
   "vibrate",
   "vibrate-off",
+  "tag-plus",
+  "adjust",
 ] as const)
 
 /**

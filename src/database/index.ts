@@ -1,6 +1,7 @@
 import { Database } from "@nozbe/watermelondb"
 import SQLiteAdapter from "@nozbe/watermelondb/adapters/sqlite"
 
+import migrations from "./migrations"
 import AccountModel from "./models/Account"
 import BudgetModel from "./models/Budget"
 import CategoryModel from "./models/Category"
@@ -8,6 +9,7 @@ import GoalModel from "./models/Goal"
 import LoanModel from "./models/Loan"
 import TagModel from "./models/Tag"
 import TransactionModel from "./models/Transaction"
+import TransactionTagModel from "./models/TransactionTag"
 import { schema } from "./schema"
 
 /**
@@ -18,7 +20,7 @@ import { schema } from "./schema"
  */
 const adapter = new SQLiteAdapter({
   schema,
-  // migrations,
+  migrations,
   dbName: "minty_flow_db",
   jsi: true, // Use JSI for better performance (React Native only)
   // onSetUpError: (error) => {
@@ -46,6 +48,7 @@ export const database = new Database({
     LoanModel,
     TagModel,
     TransactionModel,
+    TransactionTagModel,
   ],
 })
 
@@ -56,3 +59,4 @@ export type { default as GoalModel } from "./models/Goal"
 export type { default as LoanModel } from "./models/Loan"
 export type { default as TagModel } from "./models/Tag"
 export type { default as TransactionModel } from "./models/Transaction"
+export type { default as TransactionTagModel } from "./models/TransactionTag"

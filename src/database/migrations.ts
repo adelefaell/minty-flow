@@ -12,5 +12,15 @@ import { schemaMigrations } from "@nozbe/watermelondb/Schema/migrations"
  * 3. Bump schema version last
  */
 export default schemaMigrations({
-  migrations: [],
+  migrations: [
+    {
+      toVersion: 6,
+      steps: [
+        {
+          type: "sql",
+          sql: "ALTER TABLE transactions DROP COLUMN currency;",
+        },
+      ],
+    },
+  ],
 })

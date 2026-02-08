@@ -94,7 +94,21 @@ export const DynamicIcon: FC<DynamicIconProps> = ({
 
   // ---------- Fallback ----------
   if (!icon) {
-    return <IconSymbol name="shape" size={size} color={color} />
+    if (isRaw) {
+      return <IconSymbol name="adjust" size={size} color={color} />
+    }
+
+    return (
+      <View
+        style={[
+          styles.iconContainer,
+          { width: containerSize, height: containerSize },
+          bgColor && { backgroundColor: bgColor },
+        ]}
+      >
+        <IconSymbol name="adjust" size={size} color={color} />
+      </View>
+    )
   }
 
   // ---------- IconSymbol ----------

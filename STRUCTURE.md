@@ -1,9 +1,12 @@
 # Project Structure
 
-Generated on: 2026-02-07T20:28:34.304Z
+Generated on: 2026-02-08T23:15:43.896Z
 
 ```
 ./
+├── 📁 .cursor/
+│   └── 📁 rules/
+│       └── 📄 expo-react-native.mdc
 ├── 📁 .github/
 │   └── 📄 CODEOWNERS
 ├── 📁 .husky/
@@ -38,6 +41,7 @@ Generated on: 2026-02-07T20:28:34.304Z
 │   ├── 📄 README.md
 │   └── 📄 withWatermelonDBJSI.js
 ├── 📁 scripts/
+│   ├── 📄 find-unused-styles.mjs
 │   ├── 📄 generate-structure.mjs
 │   └── 📄 run-android-usb.mjs
 ├── 📁 src/
@@ -84,6 +88,8 @@ Generated on: 2026-02-07T20:28:34.304Z
 │   │   │   ├── 📄 loans.tsx
 │   │   │   ├── 📄 pending-transactions.tsx
 │   │   │   └── 📄 trash.tsx
+│   │   ├── 📁 transaction/
+│   │   │   └── 📄 [id].tsx
 │   │   ├── 📄 _layout.tsx
 │   │   └── 📄 +html.tsx
 │   ├── 📁 assets/
@@ -115,6 +121,16 @@ Generated on: 2026-02-07T20:28:34.304Z
 │   │   │   ├── 📄 contact-selector-sheet.tsx
 │   │   │   ├── 📄 delete-tag-sheet.tsx
 │   │   │   └── 📄 tag-card.tsx
+│   │   ├── 📁 transaction/
+│   │   │   ├── 📄 account-sheet.tsx
+│   │   │   ├── 📄 category-sheet.tsx
+│   │   │   ├── 📄 delete-file-confirm-sheet.tsx
+│   │   │   ├── 📄 delete-transaction-sheet.tsx
+│   │   │   ├── 📄 notes-modal.tsx
+│   │   │   ├── 📄 open-file-confirm-sheet.tsx
+│   │   │   ├── 📄 tag-sheet.tsx
+│   │   │   ├── 📄 transaction-form-v3.tsx
+│   │   │   └── 📄 transaction-type-selector.tsx
 │   │   ├── 📁 ui/
 │   │   │   ├── 📄 button.tsx
 │   │   │   ├── 📄 collapsible.tsx
@@ -191,7 +207,8 @@ Generated on: 2026-02-07T20:28:34.304Z
 │   ├── 📁 schemas/
 │   │   ├── 📄 accounts.schema.ts
 │   │   ├── 📄 categories.schema.ts
-│   │   └── 📄 tags.schema.ts
+│   │   ├── 📄 tags.schema.ts
+│   │   └── 📄 transactions.schema.ts
 │   ├── 📁 services/
 │   │   ├── 📄 currency-registry.ts
 │   │   ├── 📄 exchange-rates.ts
@@ -240,6 +257,7 @@ Generated on: 2026-02-07T20:28:34.304Z
 │   └── 📁 utils/
 │       ├── 📄 account-types-list.ts
 │       ├── 📄 calculate-operations.ts
+│       ├── 📄 file-icon.ts
 │       ├── 📄 icon-helpers.ts
 │       ├── 📄 is-image-url.ts
 │       ├── 📄 is-single-emoji-or-letter.ts
@@ -247,12 +265,14 @@ Generated on: 2026-02-07T20:28:34.304Z
 │       ├── 📄 logger.ts
 │       ├── 📄 number-format.ts
 │       ├── 📄 numpad-utils.ts
+│       ├── 📄 open-file.ts
 │       ├── 📄 string-utils.ts
 │       └── 📄 toast.ts
 ├── 📄 .gitignore
 ├── 📄 app.json
 ├── 📄 babel.config.js
 ├── 📄 biome.json
+├── 📄 eas.json
 ├── 📄 expo-env.d.ts
 ├── 📄 index.ts
 ├── 📄 package.json

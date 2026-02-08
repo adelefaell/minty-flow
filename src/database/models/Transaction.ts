@@ -21,7 +21,6 @@ export default class TransactionModel extends Model implements Transaction {
   @field("title") title?: string
   @field("description") description?: string
   @field("amount") amount!: number
-  @field("currency") currency!: string
   @field("is_pending") isPending!: boolean
 
   // Additional fields

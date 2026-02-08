@@ -33,7 +33,7 @@ export function DeleteCategorySheet({
   const transactionCount = category.transactionCount ?? 0
   const description =
     transactionCount > 0
-      ? `Deleting this category will leave ${transactionCount} transaction${transactionCount !== 1 ? "s" : ""} with no category. This action is irreversible!`
+      ? `This category is used by ${transactionCount} transaction${transactionCount !== 1 ? "s" : ""}. Deleting it will unlink ${transactionCount === 1 ? "it" : "them"} (they will have no category). This action cannot be undone.`
       : "Deleting this category cannot be undone. This action is irreversible!"
 
   return (

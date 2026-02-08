@@ -48,9 +48,15 @@ const ARIA_LEVEL: Partial<Record<TextVariant, number>> = {
 
 export interface TextProps extends RNTextProps {
   variant?: TextVariant
+  native?: boolean
 }
 
-export const Text = ({ variant = "default", style, ...props }: TextProps) => {
+export const Text = ({
+  variant = "default",
+  style,
+  native = false,
+  ...props
+}: TextProps) => {
   const buttonContext = useButtonTextContext()
 
   // If inside a button, use button text styles
@@ -61,6 +67,10 @@ export const Text = ({ variant = "default", style, ...props }: TextProps) => {
         buttonContext.size && buttonTextSizeStyles[buttonContext.size],
       ]
     : [textStyles[variant]]
+
+  if (native) {
+    return <RNText style={style} {...props} />
+  }
 
   return (
     <RNText

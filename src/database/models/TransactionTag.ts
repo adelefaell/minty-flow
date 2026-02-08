@@ -1,13 +1,6 @@
 import { Model } from "@nozbe/watermelondb"
-import { date, field, relation } from "@nozbe/watermelondb/decorators"
+import { field, relation } from "@nozbe/watermelondb/decorators"
 
-import type {
-  Transaction,
-  TransactionLocation,
-  TransactionType,
-} from "../../types/transactions"
-import type AccountModel from "./Account"
-import type CategoryModel from "./Category"
 import type TagModel from "./Tag"
 import type TransactionModel from "./Transaction"
 

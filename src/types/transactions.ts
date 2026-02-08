@@ -1,3 +1,23 @@
+export type RecurringFrequency =
+  | "daily"
+  | "weekly"
+  | "biweekly"
+  | "monthly"
+  | "yearly"
+  | null
+
+/** How a recurring transaction ends: never, on a specific date, or after N occurrences */
+export type RecurringEndType = "never" | "date" | "occurrences"
+
+/** Attachment metadata for transaction extra (e.g. file attachments) */
+export interface TransactionAttachment {
+  uri: string
+  name: string
+  size: number
+  addedAt: Date
+  ext: string
+}
+
 /**
  * Transaction type definitions
  *
@@ -27,6 +47,10 @@ export interface TransactionLocation {
  * The WatermelonDB model implements this interface, ensuring
  * the persistence layer conforms to the domain model.
  */
+/**
+ * Transaction domain type. Currency is not stored here; it is always derived
+ * from the account (accountId). Type explains meaning; amount is the numeric value.
+ */
 export interface Transaction {
   id: string
   type: TransactionType // "expense" | "income" | "transfer"
@@ -36,7 +60,6 @@ export interface Transaction {
   title?: string
   description?: string
   amount: number
-  currency: string
   isPending: boolean
 
   subtype?: string // More specific classification
@@ -47,4 +70,40 @@ export interface Transaction {
   location?: string
   createdAt: Date
   updatedAt: Date
+}
+
+/**
+ * Filters for transaction list queries (service layer).
+ * Dates are Unix timestamps for WatermelonDB Q.gte / Q.lte.
+ */
+export interface TransactionListFilters {
+  accountId?: string
+  categoryId?: string
+  type?: TransactionType
+  isPending?: boolean
+  includeDeleted?: boolean
+  /** Start of range (inclusive), Unix timestamp. */
+  fromDate?: number
+  /** End of range (inclusive), Unix timestamp. */
+  toDate?: number
+}
+
+/**
+ * Display shape for a transaction row when account and category are resolved.
+ * Use this for list item props when you have hydrated data (e.g. TransactionWithRelations).
+ */
+/** Display row: transaction + resolved account/category. Currency from account. */
+export interface TransactionDisplayRow {
+  id: string
+  type: TransactionType
+  transactionDate: Date
+  title?: string
+  amount: number
+  isPending: boolean
+  accountName: string
+  accountIcon?: string
+  accountColorSchemeName?: string
+  categoryName: string | null
+  categoryIcon?: string | null
+  categoryColorSchemeName?: string | null
 }

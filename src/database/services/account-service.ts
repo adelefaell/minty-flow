@@ -1,5 +1,7 @@
 import { Q } from "@nozbe/watermelondb"
 import type { Observable } from "@nozbe/watermelondb/utils/rx"
+import { endOfMonth, startOfMonth } from "date-fns"
+import { combineLatest } from "rxjs"
 import { filter, map } from "rxjs/operators"
 
 import type {
@@ -11,6 +13,13 @@ import type { Account } from "~/types/accounts"
 import { database } from "../index"
 import type AccountModel from "../models/Account"
 import { modelToAccount } from "../utils/model-to-account"
+import {
+  createTransactionModel,
+  deleteTransactionModel,
+  destroyTransactionModel,
+  getTransactionModels,
+  observeTransactionModels,
+} from "./transaction-service"
 
 /**
  * Account Service
@@ -135,11 +144,15 @@ export const observeAccountDetailsById = (id: string): Observable<Account> => {
     .query(Q.where("id", id))
     .observeWithColumns([
       "name",
-      "icon",
       "type",
+      "balance",
+      "currency_code",
+      "icon",
       "color_scheme_name",
-      "transaction_count",
       "is_archived",
+      "is_primary",
+      "exclude_from_balance",
+      "sort_order",
     ])
     .pipe(
       filter((results) => results.length > 0),
@@ -148,6 +161,78 @@ export const observeAccountDetailsById = (id: string): Observable<Account> => {
         return modelToAccount(model) // convert to immutable plain object here
       }),
     )
+}
+
+/** Current calendar month as Unix timestamps (start 00:00:00, end 23:59:59.999) */
+export const getCurrentMonthRange = (): {
+  fromDate: number
+  toDate: number
+} => {
+  const now = new Date()
+  return {
+    fromDate: startOfMonth(now).getTime(),
+    toDate: endOfMonth(now).getTime(),
+  }
+}
+
+/** Account plus current-month transaction totals (in, out, net) */
+export interface AccountWithMonthTotals extends Account {
+  monthIn: number
+  monthOut: number
+  monthNet: number
+}
+
+/**
+ * Observe accounts with their transaction totals for the current month.
+ * IN = sum of income transactions, OUT = sum of expense transactions, NET = IN - OUT.
+ */
+export const observeAccountsWithMonthTotals = (
+  includeArchived = false,
+): Observable<AccountWithMonthTotals[]> => {
+  const { fromDate, toDate } = getCurrentMonthRange()
+  const accounts$ = observeAccountModels(includeArchived)
+  const transactions$ = observeTransactionModels({
+    fromDate,
+    toDate,
+    includeDeleted: false,
+  })
+
+  return combineLatest([accounts$, transactions$]).pipe(
+    map(([accounts, transactions]) => {
+      const totalsByAccount = new Map<
+        string,
+        { in: number; out: number; net: number }
+      >()
+      for (const t of transactions) {
+        const cur = totalsByAccount.get(t.accountId) ?? {
+          in: 0,
+          out: 0,
+          net: 0,
+        }
+        if (t.type === "income") {
+          cur.in += t.amount
+        } else if (t.type === "expense") {
+          cur.out += t.amount
+        }
+        cur.net = cur.in - cur.out
+        totalsByAccount.set(t.accountId, cur)
+      }
+      return accounts.map((model) => {
+        const account = modelToAccount(model)
+        const totals = totalsByAccount.get(model.id) ?? {
+          in: 0,
+          out: 0,
+          net: 0,
+        }
+        return {
+          ...account,
+          monthIn: totals.in,
+          monthOut: totals.out,
+          monthNet: totals.net,
+        }
+      })
+    }),
+  )
 }
 
 /**
@@ -179,29 +264,68 @@ export const createAccount = async (
 }
 
 /**
- * Update account
+ * Update account.
+ * When only balance is changed (or balance is part of the update), the new
+ * balance is applied via an adjustment transaction (income or expense) so
+ * the balance is always driven by transactions.
  */
 export const updateAccount = async (
   account: AccountModel,
   updates: Partial<UpdateAccountsFormSchema>,
 ): Promise<AccountModel> => {
-  return await database.write(async () => {
+  const balanceInUpdate = updates.balance
+  const oldBalance = account.balance
+  const updatesWithoutBalance = {
+    ...updates,
+    balance: undefined,
+  } as Partial<UpdateAccountsFormSchema>
+
+  const updated = await database.write(async () => {
     return await account.update((a) => {
-      if (updates.name !== undefined) a.name = updates.name
-      if (updates.type !== undefined) a.type = updates.type
-      if (updates.balance !== undefined) a.balance = updates.balance
-      if (updates.currencyCode !== undefined)
-        a.currencyCode = updates.currencyCode
-      if (updates.icon !== undefined) a.icon = updates.icon
-      if (updates.colorSchemeName !== undefined)
-        a.colorSchemeName = updates.colorSchemeName
-      if (updates.isArchived !== undefined) a.isArchived = updates.isArchived
-      if (updates.isPrimary !== undefined) a.isPrimary = updates.isPrimary
-      if (updates.excludeFromBalance !== undefined)
-        a.excludeFromBalance = updates.excludeFromBalance
+      if (updatesWithoutBalance.name !== undefined)
+        a.name = updatesWithoutBalance.name
+      if (updatesWithoutBalance.type !== undefined)
+        a.type = updatesWithoutBalance.type
+      if (updatesWithoutBalance.currencyCode !== undefined)
+        a.currencyCode = updatesWithoutBalance.currencyCode
+      if (updatesWithoutBalance.icon !== undefined)
+        a.icon = updatesWithoutBalance.icon
+      if (updatesWithoutBalance.colorSchemeName !== undefined)
+        a.colorSchemeName = updatesWithoutBalance.colorSchemeName
+      if (updatesWithoutBalance.isArchived !== undefined)
+        a.isArchived = updatesWithoutBalance.isArchived
+      if (updatesWithoutBalance.isPrimary !== undefined)
+        a.isPrimary = updatesWithoutBalance.isPrimary
+      if (updatesWithoutBalance.excludeFromBalance !== undefined)
+        a.excludeFromBalance = updatesWithoutBalance.excludeFromBalance
       a.updatedAt = new Date()
     })
   })
+
+  if (
+    balanceInUpdate !== undefined &&
+    typeof balanceInUpdate === "number" &&
+    balanceInUpdate !== oldBalance
+  ) {
+    const delta = balanceInUpdate - oldBalance
+    const amount = Math.abs(delta)
+    if (amount > 0) {
+      await createTransactionModel({
+        amount,
+        type: delta > 0 ? "income" : "expense",
+        date: new Date(),
+        accountId: account.id,
+        categoryId: null,
+        title: "Balance adjustment",
+        description: "",
+        isPending: false,
+        tags: [],
+      })
+      return (await findAccount(account.id)) ?? updated
+    }
+  }
+
+  return updated
 }
 
 /**
@@ -219,18 +343,34 @@ export const updateAccountById = async (
 }
 
 /**
- * Delete account (mark as deleted for sync)
+ * Delete account (mark as deleted for sync).
+ * Also deletes (marks as deleted) all transactions belonging to this account.
  */
 export const deleteAccount = async (account: AccountModel): Promise<void> => {
+  const transactions = await getTransactionModels({
+    accountId: account.id,
+    includeDeleted: false,
+  })
+  for (const t of transactions) {
+    await deleteTransactionModel(t)
+  }
   await database.write(async () => {
     await account.markAsDeleted()
   })
 }
 
 /**
- * Permanently destroy account
+ * Permanently destroy account.
+ * Also permanently destroys all transactions belonging to this account.
  */
 export const destroyAccount = async (account: AccountModel): Promise<void> => {
+  const transactions = await getTransactionModels({
+    accountId: account.id,
+    includeDeleted: true,
+  })
+  for (const t of transactions) {
+    await destroyTransactionModel(t)
+  }
   await database.write(async () => {
     await account.destroyPermanently()
   })

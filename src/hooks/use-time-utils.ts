@@ -137,6 +137,42 @@ export const useTimeUtils = () => {
   }
 
   /**
+   * Formats a date as "yyyy-MM-dd" for stable grouping/sorting keys.
+   *
+   * @param date - Date to format
+   * @returns Formatted date string or empty string if invalid
+   */
+  const formatDateKey = useCallback(
+    (date: Date | string | undefined | null): string => {
+      if (!date) return ""
+      const dateObj = date instanceof Date ? date : new Date(date)
+      if (!isValid(dateObj)) return ""
+      return format(dateObj, "yyyy-MM-dd")
+    },
+    [],
+  )
+
+  /**
+   * Section header title for a transaction date: "Today", "Yesterday", "This Wednesday", or "EEEE, MMM d".
+   *
+   * @param date - Date to format
+   * @returns Friendly section title or "Unknown" if invalid
+   */
+  const formatSectionDateTitle = useCallback(
+    (date: Date | string | undefined | null): string => {
+      if (!date) return "Unknown"
+      const dateObj = date instanceof Date ? date : new Date(date)
+      if (!isValid(dateObj)) return "Unknown"
+      const today = new Date()
+      const dateKey = format(dateObj, "yyyy-MM-dd")
+      const todayKey = format(today, "yyyy-MM-dd")
+      if (dateKey === todayKey) return "Today"
+      return format(dateObj, "EEEE, MMM d")
+    },
+    [],
+  )
+
+  /**
    * Formats a creation date with time (e.g., "Nov 7 2025 09:10 AM").
    *
    * @param date - Date to format
@@ -223,6 +259,8 @@ export const useTimeUtils = () => {
     formatReadableTime,
     formatFriendlyDate,
     formatDate,
+    formatDateKey,
+    formatSectionDateTitle,
     formatCreatedAt,
     formatLoanDate,
     calculateDaysUntilDue,
