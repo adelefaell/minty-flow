@@ -13,11 +13,12 @@ import DateTimePicker, {
   DateTimePickerAndroid,
   type DateTimePickerEvent,
 } from "@react-native-community/datetimepicker"
+import type { EventArg } from "@react-navigation/native"
 import { format } from "date-fns"
 import * as DocumentPicker from "expo-document-picker"
 import { Image } from "expo-image"
 import * as ImagePicker from "expo-image-picker"
-import { useLocalSearchParams, useRouter } from "expo-router"
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router"
 import {
   useCallback,
   useEffect,
@@ -59,9 +60,14 @@ import { Pressable } from "~/components/ui/pressable"
 import { Switch } from "~/components/ui/switch"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
+import {
+  UnsavedChangesSheet,
+  useUnsavedChangesWarning,
+} from "~/components/unsaved-changes-sheet"
 import type TransactionModel from "~/database/models/Transaction"
 import {
   createTransactionModel,
+  deleteTransactionModel,
   updateTransactionModel,
 } from "~/database/services/transaction-service"
 import { transactionSchema } from "~/schemas/transactions.schema"
@@ -200,9 +206,13 @@ export function TransactionFormV3({
   initialTagIds = [],
 }: TransactionFormV3Props) {
   const router = useRouter()
+  const navigation = useNavigation()
   const { theme } = useUnistyles()
   const { id } = useLocalSearchParams<{ id: string }>()
   const isNew = id === NewEnum.NEW
+
+  const unsavedChangesWarning = useUnsavedChangesWarning()
+  const isNavigatingRef = useRef(false)
 
   const calculatorSheet = useBottomSheet(CALCULATOR_SHEET_ID)
   const openFileSheet = useBottomSheet(OPEN_FILE_SHEET_ID)
@@ -220,7 +230,7 @@ export function TransactionFormV3({
     watch,
     setValue,
     reset,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<TransactionFormInput>({
     resolver: zodResolver(transactionSchema) as Resolver<TransactionFormInput>,
     defaultValues,
@@ -229,6 +239,10 @@ export function TransactionFormV3({
   useLayoutEffect(() => {
     reset(defaultValues)
   }, [defaultValues, reset])
+
+  const handleGoBack = useCallback(() => {
+    router.back()
+  }, [router])
 
   const amount = watch("amount")
   const accountId = watch("accountId")
@@ -288,6 +302,26 @@ export function TransactionFormV3({
       }
     },
   )
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener(
+      "beforeRemove",
+      (e: EventArg<"beforeRemove", true, { action: unknown }>) => {
+        if (isSaving || isNavigatingRef.current || !isDirty) {
+          return
+        }
+        e.preventDefault()
+        unsavedChangesWarning.show(
+          () => {
+            isNavigatingRef.current = true
+            handleGoBack()
+          },
+          () => {},
+        )
+      },
+    )
+    return unsubscribe
+  }, [navigation, isDirty, isSaving, unsavedChangesWarning, handleGoBack])
 
   useEffect(() => {
     if (fileToOpen) openFileSheet.present()
@@ -424,7 +458,7 @@ export function TransactionFormV3({
         date: data.date,
         categoryId: data.categoryId ?? null,
         accountId: data.accountId,
-        title: data.title?.trim() ?? undefined,
+        title: data.title?.trim() || "Untitled Transaction",
         description: data.description?.trim() ?? undefined,
         isPending: data.isPending ?? false,
         tags: data.tags ?? [],
@@ -439,14 +473,44 @@ export function TransactionFormV3({
         await updateTransactionModel(transaction, payload)
         Toast.success({ title: "Transaction updated" })
       }
+      isNavigatingRef.current = true
       router.back()
     } catch (error) {
-      logger.error("Failed to save transaction", { error })
+      logger.error("Failed to save transaction", {
+        message: error instanceof Error ? error.message : String(error),
+      })
       Toast.error({ title: "Failed to save transaction" })
     } finally {
       setIsSaving(false)
     }
   }
+
+  const handleCancelPress = useCallback(() => {
+    if (isDirty) {
+      unsavedChangesWarning.show(
+        () => {
+          isNavigatingRef.current = true
+          handleGoBack()
+        },
+        () => {},
+      )
+    } else {
+      handleGoBack()
+    }
+  }, [isDirty, unsavedChangesWarning, handleGoBack])
+
+  const handleDeleteConfirm = useCallback(async () => {
+    if (!transaction) return
+    try {
+      await deleteTransactionModel(transaction)
+      Toast.success({ title: "Moved to trash" })
+      isNavigatingRef.current = true
+      router.back()
+    } catch (error) {
+      logger.error("Failed to move transaction to trash", { error })
+      Toast.error({ title: "Failed to move to trash" })
+    }
+  }, [transaction, router])
 
   const addTag = useCallback(
     (tagId: string) => {
@@ -1558,6 +1622,28 @@ export function TransactionFormV3({
               </View>
             )}
           </View>
+
+          {!isNew && transaction && (
+            <View style={styles.deleteButtonBlock}>
+              <Button
+                variant="ghost"
+                style={styles.deleteButton}
+                onPress={handleDeleteConfirm}
+                disabled={isSaving}
+                accessibilityLabel="Move to trash"
+                accessibilityRole="button"
+              >
+                <IconSymbol
+                  name="trash-can"
+                  size={20}
+                  style={styles.deleteButtonColor}
+                />
+                <Text variant="default" style={styles.deleteButtonColor}>
+                  Move to trash
+                </Text>
+              </Button>
+            </View>
+          )}
         </View>
       </ScrollView>
 
@@ -1566,7 +1652,7 @@ export function TransactionFormV3({
           <Button
             variant="secondary"
             size="lg"
-            onPress={() => router.back()}
+            onPress={handleCancelPress}
             style={styles.footerButton}
             disabled={isSaving}
           >
@@ -1717,6 +1803,7 @@ export function TransactionFormV3({
           }
         }}
       />
+      <UnsavedChangesSheet />
     </View>
   )
 }
@@ -2149,15 +2236,6 @@ const styles = StyleSheet.create((theme) => ({
   recurringToggleLabelSelected: {
     color: theme.colors.onPrimary,
   },
-  endsOnNeverButton: {
-    paddingVertical: 8,
-    marginTop: 6,
-    alignSelf: "flex-start",
-  },
-  endsOnNeverButtonText: {
-    fontSize: 14,
-    color: theme.colors.customColors.semi,
-  },
   endsOnPickerContainer: {
     marginTop: 8,
     backgroundColor: theme.colors.secondary,
@@ -2196,10 +2274,6 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.surface,
     borderWidth: 2,
     borderColor: "transparent",
-  },
-  settingsRow: {
-    flexDirection: "row",
-    alignItems: "center",
   },
   fieldValue: {
     fontSize: 16,
@@ -2347,6 +2421,19 @@ const styles = StyleSheet.create((theme) => ({
   },
   footerButton: {
     flex: 1,
+  },
+  deleteButtonBlock: {
+    marginTop: FORM_GAP,
+    marginBottom: FORM_GAP,
+    marginHorizontal: H_PAD,
+  },
+  deleteButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  deleteButtonColor: {
+    color: theme.colors.error,
   },
   cancelText: {
     fontSize: 16,

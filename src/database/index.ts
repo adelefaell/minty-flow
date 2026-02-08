@@ -1,6 +1,7 @@
 import { Database } from "@nozbe/watermelondb"
 import SQLiteAdapter from "@nozbe/watermelondb/adapters/sqlite"
 
+import migrations from "./migrations"
 import AccountModel from "./models/Account"
 import BudgetModel from "./models/Budget"
 import CategoryModel from "./models/Category"
@@ -19,7 +20,7 @@ import { schema } from "./schema"
  */
 const adapter = new SQLiteAdapter({
   schema,
-  // migrations,
+  migrations,
   dbName: "minty_flow_db",
   jsi: true, // Use JSI for better performance (React Native only)
   // onSetUpError: (error) => {

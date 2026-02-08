@@ -30,7 +30,7 @@ export function DeleteTagSheet({ tag, onConfirm }: DeleteTagSheetProps) {
   const transactionCount = tag.transactionCount ?? 0
   const description =
     transactionCount > 0
-      ? `Deleting this tag will detach ${transactionCount} transactions' tag. This action is irreversible!`
+      ? `This tag is used by ${transactionCount} transaction${transactionCount !== 1 ? "s" : ""}. Deleting the tag will unlink it from all of them. This action cannot be undone.`
       : "Deleting this tag cannot be undone. This action is irreversible!"
 
   return (

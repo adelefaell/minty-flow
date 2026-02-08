@@ -225,9 +225,6 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: "center",
     justifyContent: "center",
   },
-  icon: {
-    color: theme.colors.onPrimary,
-  },
   buttonDisabled: {
     opacity: 0.3,
   },

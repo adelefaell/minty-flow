@@ -333,12 +333,6 @@ const styles = StyleSheet.create((theme) => ({
     paddingTop: 8,
     paddingBottom: 400,
   },
-  titleContainer: {
-    marginBottom: 16,
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 16,
-  },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",

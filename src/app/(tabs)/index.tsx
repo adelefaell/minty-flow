@@ -1,9 +1,11 @@
-import { format } from "date-fns"
+import { withObservables } from "@nozbe/watermelondb/react"
+import { endOfMonth, startOfMonth } from "date-fns"
 import { useRouter } from "expo-router"
-import { Fragment, useMemo } from "react"
+import { Fragment, useCallback, useMemo, useRef } from "react"
 import { Platform, SectionList } from "react-native"
-import Animated, { FadeIn, FadeInDown } from "react-native-reanimated"
+import type { SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
+import { startWith } from "rxjs"
 
 import { DynamicIcon } from "~/components/dynamic-icon"
 import { SummarySection } from "~/components/summary-card"
@@ -14,125 +16,97 @@ import { Money } from "~/components/ui/money"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
+import { observeAccountModels } from "~/database/services/account-service"
+import { observeCategoriesByType } from "~/database/services/category-service"
+import type { TransactionWithRelations } from "~/database/services/transaction-service"
+import {
+  deleteTransactionModel,
+  observeTransactionModelsFull,
+} from "~/database/services/transaction-service"
+import { useTimeUtils } from "~/hooks/use-time-utils"
 import { useMoneyFormattingStore } from "~/stores/money-formatting.store"
 import { useProfileStore } from "~/stores/profile.store"
-import type { Transaction } from "~/types/transactions"
+import type { TransactionType } from "~/types/transactions"
+import { TransactionTypeEnum } from "~/types/transactions"
+import { Toast } from "~/utils/toast"
 
-const AnimatedSectionList = Animated.createAnimatedComponent(SectionList)
+/** Signed contribution for aggregation: income adds, expense subtracts, transfer is neutral. */
+function transactionContribution(
+  type: TransactionType,
+  amount: number,
+): number {
+  if (type === TransactionTypeEnum.INCOME) return amount
+  if (type === TransactionTypeEnum.EXPENSE) return -amount
+  return 0
+}
 
-// Mock Data for UI verification
-const MOCK_TRANSACTIONS: Transaction[] = [
-  {
-    id: "1",
-    type: "income",
-    transactionDate: new Date(),
-    isDeleted: false,
-    amount: 1000.0,
-    currency: "EUR",
-    isPending: false,
-    accountId: "1",
-    categoryId: "1",
-    title: "Project Alpha Payment",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "2",
-    type: "income",
-    transactionDate: new Date(),
-    isDeleted: false,
-    amount: 1500.0,
-    currency: "USD",
-    isPending: false,
-    accountId: "1",
-    categoryId: "1",
-    title: "Project Beta Payment",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "3",
-    type: "expense",
-    transactionDate: new Date(Date.now() - 86400000 * 2), // 2 days ago
-    isDeleted: false,
-    amount: -45.5,
-    currency: "EUR",
-    isPending: false,
-    accountId: "1",
-    categoryId: "2",
-    title: "Grocery Shopping",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "4",
-    type: "expense",
-    transactionDate: new Date(Date.now() - 86400000 * 2),
-    isDeleted: false,
-    amount: -80.0,
-    currency: "USD",
-    isPending: false,
-    accountId: "2",
-    categoryId: "3",
-    title: "Starbucks Coffee",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "5",
-    type: "transfer",
-    transactionDate: new Date(Date.now() - 86400000 * 2),
-    isDeleted: false,
-    amount: 100.0,
-    currency: "USD",
-    isPending: false,
-    accountId: "2",
-    categoryId: null,
-    title: "Savings Transfer",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "6",
-    type: "expense",
-    transactionDate: new Date(Date.now() - 86400000 * 3),
-    isDeleted: false,
-    amount: -120.0,
-    currency: "USD",
-    isPending: false,
-    accountId: "2",
-    categoryId: "4",
-    title: "Amazon Order",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-]
+/** Current month filter: start and end of this month as timestamps. */
+function getCurrentMonthFilter() {
+  const now = new Date()
+  return {
+    fromDate: startOfMonth(now).getTime(),
+    toDate: endOfMonth(now).getTime(),
+  }
+}
 
-export default function HomeScreen() {
+interface HomeScreenProps {
+  transactionsFull?: TransactionWithRelations[] | null
+}
+
+function HomeScreenInner({ transactionsFull = [] }: HomeScreenProps) {
+  const list = transactionsFull ?? []
   const router = useRouter()
   const { theme } = useUnistyles()
+  const { formatDateKey, formatSectionDateTitle } = useTimeUtils()
   const profileName = useProfileStore((s) => s.name)
   const image = useProfileStore((s) => s.imageUri)
   const { privacyMode: privacyModeEnabled, togglePrivacyMode: togglePrivacy } =
     useMoneyFormattingStore()
 
+  const openSwipeableRef = useRef<SwipeableMethods | null>(null)
+
   const sections = useMemo(() => {
+    if (list.length === 0) {
+      return [
+        {
+          title: "",
+          data: [] as TransactionWithRelations[],
+          totals: {} as Record<string, number>,
+        },
+      ]
+    }
+
+    // Newest first: sort by transaction date desc, then by createdAt for same day
+    const sortedList = [...list].sort((a, b) => {
+      const tA = a.transaction.transactionDate
+      const tB = b.transaction.transactionDate
+      const timeA = tA instanceof Date ? tA.getTime() : tA
+      const timeB = tB instanceof Date ? tB.getTime() : tB
+      if (timeB !== timeA) return timeB - timeA
+      const createdA =
+        a.transaction.createdAt instanceof Date
+          ? a.transaction.createdAt.getTime()
+          : a.transaction.createdAt
+      const createdB =
+        b.transaction.createdAt instanceof Date
+          ? b.transaction.createdAt.getTime()
+          : b.transaction.createdAt
+      return (createdB ?? 0) - (createdA ?? 0)
+    })
+
     const grouped: Record<
       string,
       {
         title: string
-        data: Transaction[]
+        data: TransactionWithRelations[]
         totals: Record<string, number>
       }
     > = {}
 
-    MOCK_TRANSACTIONS.forEach((t) => {
-      const dateKey = format(t.transactionDate, "yyyy-MM-dd")
-      let headerTitle = "Today"
-      const today = format(new Date(), "yyyy-MM-dd")
-      if (dateKey !== today) {
-        headerTitle = format(t.transactionDate, "EEEE, MMM d")
-      }
+    sortedList.forEach((row) => {
+      const t = row.transaction
+      const dateKey = formatDateKey(t.transactionDate)
+      const headerTitle = formatSectionDateTitle(t.transactionDate)
 
       if (!grouped[dateKey]) {
         grouped[dateKey] = {
@@ -141,29 +115,65 @@ export default function HomeScreen() {
           totals: {},
         }
       }
-      grouped[dateKey].data.push(t)
-      const currentTotal = grouped[dateKey].totals[t.currency] || 0
-      grouped[dateKey].totals[t.currency] = currentTotal + t.amount
+
+      grouped[dateKey].data.push(row)
+      const currency = row.account.currencyCode
+      const contribution = transactionContribution(t.type, t.amount)
+      grouped[dateKey].totals[currency] =
+        (grouped[dateKey].totals[currency] || 0) + contribution
     })
 
-    return Object.values(grouped).sort((a, b) => {
-      return (
-        b.data[0].transactionDate.getTime() -
-        a.data[0].transactionDate.getTime()
-      )
-    })
-  }, [])
+    return Object.values(grouped).sort(
+      (a, b) =>
+        b.data[0].transaction.transactionDate.getTime() -
+        a.data[0].transaction.transactionDate.getTime(),
+    )
+  }, [list, formatDateKey, formatSectionDateTitle])
+
+  const handleOnTransactionPress = useCallback(
+    (transactionId: string) => {
+      router.push({
+        pathname: "/transaction/[id]",
+        params: { id: transactionId },
+      })
+    },
+    [router],
+  )
+
+  const handleDeleteTransaction = useCallback(
+    async (transactionWithRelations: TransactionWithRelations) => {
+      try {
+        await deleteTransactionModel(transactionWithRelations.transaction)
+        Toast.success({ title: "Moved to trash" })
+      } catch {
+        Toast.error({ title: "Failed to move to trash" })
+      }
+    },
+    [],
+  )
 
   const renderHeader = () => (
-    <Animated.View entering={FadeIn.delay(50)} style={styles.summaryContainer}>
-      <SummarySection transactions={MOCK_TRANSACTIONS} />
-    </Animated.View>
+    <View style={styles.summaryContainer}>
+      <SummarySection transactionsWithRelations={list} />
+    </View>
+  )
+
+  const renderEmptyList = () => (
+    <View style={styles.emptyState}>
+      <IconSymbol name="wallet" size={48} style={styles.emptyIcon} />
+      <Text variant="default" style={styles.emptyTitle}>
+        No transactions yet
+      </Text>
+      <Text variant="small" style={styles.emptySubtitle}>
+        Transactions for this month will appear here
+      </Text>
+    </View>
   )
 
   return (
     <View style={styles.container}>
       {/* Header */}
-      <Animated.View entering={FadeInDown.duration(300)} style={styles.header}>
+      <View style={styles.header}>
         <Pressable
           onPress={() => router.push("/settings/edit-profile")}
           style={styles.greetingRow}
@@ -187,10 +197,10 @@ export default function HomeScreen() {
             }
           />
         </Button>
-      </Animated.View>
+      </View>
 
       {/* Action Row - Refined with theme radius */}
-      <Animated.View entering={FadeInDown.delay(100)} style={styles.actionRow}>
+      <View style={styles.actionRow}>
         <Pressable style={styles.pillButton}>
           <IconSymbol name="filter-variant" size={20} />
           <Text variant="default" style={{ marginLeft: 4 }}>
@@ -205,21 +215,36 @@ export default function HomeScreen() {
           <IconSymbol name="calendar" size={20} style={{ marginRight: 8 }} />
           <Text variant="default">This month</Text>
         </Pressable>
-      </Animated.View>
+      </View>
 
-      {/* Transactions List with Staggered Entrance */}
-      <AnimatedSectionList
+      {/* Transactions List */}
+      <SectionList
         sections={sections}
         ListHeaderComponent={renderHeader}
-        keyExtractor={(item) => (item as Transaction).id}
-        renderItem={({ item, index }) => (
-          <TransactionItem transaction={item as Transaction} index={index} />
+        ListEmptyComponent={renderEmptyList}
+        keyExtractor={(item) =>
+          (item as TransactionWithRelations).transaction.id
+        }
+        renderItem={({ item }) => (
+          <TransactionItem
+            transactionWithRelations={item as TransactionWithRelations}
+            onPress={() => handleOnTransactionPress(item.transaction.id)}
+            onDelete={() =>
+              handleDeleteTransaction(item as TransactionWithRelations)
+            }
+            onWillOpen={(methods) => {
+              openSwipeableRef.current?.close()
+              openSwipeableRef.current = methods
+            }}
+          />
         )}
         renderSectionHeader={({ section }) => {
           const s = section as unknown as {
             title: string
+            data: TransactionWithRelations[]
             totals: Record<string, number>
           }
+          if (!s.title && s.data.length === 0) return null
           return (
             <View style={styles.sectionHeader}>
               <View style={styles.sectionTitleRow}>
@@ -228,20 +253,29 @@ export default function HomeScreen() {
                 </Text>
                 <View style={styles.sectionDivider} />
               </View>
-              <View style={styles.totalsContainer}>
-                {Object.entries(s.totals).map(([curr, total], idx) => (
-                  <Fragment key={curr + idx.toString()}>
-                    <Text variant="small" style={styles.sectionTotal}>
-                      {idx > 0 && "| "}
-                    </Text>
-                    <Money
-                      variant="small"
-                      style={styles.sectionTotal}
-                      value={total}
-                      currency={curr}
-                    />
-                  </Fragment>
-                ))}
+              <View style={styles.sectionTotalsContainer}>
+                <View style={styles.totalsContainer}>
+                  {Object.entries(s.totals).map(([curr, total], idx) => (
+                    <Fragment key={curr + idx.toString()}>
+                      <Text variant="small" style={styles.sectionTotal}>
+                        {idx > 0 && "|"}
+                      </Text>
+                      <Money
+                        variant="small"
+                        style={styles.sectionTotal}
+                        value={total}
+                        currency={curr}
+                        tone="auto"
+                        visualTone="transfer"
+                        showSign
+                      />
+                    </Fragment>
+                  ))}
+                </View>
+
+                <Text variant="small" style={styles.sectionTotal}>
+                  • {s.data.length} transactions
+                </Text>
               </View>
             </View>
           )
@@ -253,6 +287,17 @@ export default function HomeScreen() {
     </View>
   )
 }
+
+const EnhancedHomeScreen = withObservables([], () => ({
+  transactionsFull: observeTransactionModelsFull(getCurrentMonthFilter(), [
+    observeAccountModels(false),
+    observeCategoriesByType(TransactionTypeEnum.EXPENSE),
+    observeCategoriesByType(TransactionTypeEnum.INCOME),
+    observeCategoriesByType(TransactionTypeEnum.TRANSFER),
+  ]).pipe(startWith([] as TransactionWithRelations[])),
+}))(HomeScreenInner)
+
+export default EnhancedHomeScreen
 
 const styles = StyleSheet.create((theme) => ({
   container: {
@@ -305,12 +350,27 @@ const styles = StyleSheet.create((theme) => ({
     paddingHorizontal: 20,
     marginBottom: 24,
   },
-  summaryRow: {
-    flexDirection: "row",
-    gap: 12,
-  },
   listContent: {
     paddingBottom: 120,
+    flexGrow: 1,
+  },
+  emptyState: {
+    paddingVertical: 48,
+    paddingHorizontal: 24,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emptyIcon: {
+    opacity: 0.5,
+    marginBottom: 16,
+  },
+  emptyTitle: {
+    fontWeight: "600",
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    color: theme.colors.onSecondary,
+    textAlign: "center",
   },
   sectionHeader: {
     marginTop: 12,
@@ -333,6 +393,13 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.secondary,
     opacity: 0.5,
   },
+  sectionTotalsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: 4,
+    marginTop: 4,
+  },
   totalsContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -344,6 +411,6 @@ const styles = StyleSheet.create((theme) => ({
   sectionTotal: {
     fontWeight: "700",
     color: theme.colors.onSecondary,
-    opacity: 0.8,
+    fontSize: 12,
   },
 }))

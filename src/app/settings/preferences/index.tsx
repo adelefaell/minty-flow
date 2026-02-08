@@ -189,52 +189,6 @@ const styles = StyleSheet.create((theme) => ({
   itemsList: {
     gap: 0,
   },
-  item: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    minHeight: 56,
-    _web: {
-      cursor: "pointer",
-      transitionProperty: "all",
-      transitionDuration: "150ms",
-      _hover: {
-        backgroundColor: theme.colors.secondary,
-      },
-    },
-  },
-  itemPressed: {
-    backgroundColor: theme.colors.secondary,
-    opacity: 0.8,
-  },
-  itemIcon: {
-    width: 32,
-    height: 32,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-  },
-  itemContent: {
-    flex: 1,
-    gap: 2,
-  },
-  itemTitle: {
-    fontSize: 16,
-    fontWeight: "400",
-    color: theme.colors.onSurface,
-  },
-  itemDescription: {
-    fontSize: 13,
-    color: theme.colors.onSecondary,
-    lineHeight: 18,
-  },
-  itemChevron: {
-    width: 24,
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: 8,
-  },
   infoContainer: {
     flexDirection: "row",
     paddingHorizontal: 20,

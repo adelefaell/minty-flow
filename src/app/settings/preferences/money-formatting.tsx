@@ -134,12 +134,6 @@ const styles = StyleSheet.create((theme) => ({
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
-  previewValue: {
-    fontSize: 32,
-    fontWeight: "700",
-    color: theme.colors.onSurface,
-    marginBottom: 4,
-  },
   previewDescription: {
     fontSize: 13,
     color: theme.colors.onSecondary,

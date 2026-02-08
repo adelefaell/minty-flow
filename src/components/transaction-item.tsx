@@ -1,106 +1,199 @@
-import { format } from "date-fns"
+import { useRef } from "react"
+import Swipeable, {
+  type SwipeableMethods,
+} from "react-native-gesture-handler/ReanimatedSwipeable"
 import Animated, {
-  FadeInDown,
+  interpolate,
+  type SharedValue,
   useAnimatedStyle,
-  useSharedValue,
-  withSpring,
 } from "react-native-reanimated"
-import { StyleSheet } from "react-native-unistyles"
+import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
+import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Money } from "~/components/ui/money"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import type { Transaction } from "~/types/transactions"
+import type { TransactionWithRelations } from "~/database/services/transaction-service"
+import { useTimeUtils } from "~/hooks/use-time-utils"
 
 import { DynamicIcon } from "./dynamic-icon"
 
+/**
+ * The only caveat (edge case)
+ * If TRASH_ACTION_WIDTH ever becomes dynamic:
+ * const TRASH_ACTION_WIDTH = Dimensions.get("window").width * 0.3
+ */
+const TRASH_ACTION_WIDTH = 100
+
 interface TransactionItemProps {
-  transaction: Transaction
+  transactionWithRelations: TransactionWithRelations
   onPress?: () => void
-  index?: number // For staggered animations
+  onDelete?: () => void
+  /** Called before this row opens; use to close the previously open row (single-open coordination). */
+  onWillOpen?: (methods: SwipeableMethods) => void
 }
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
+function RightAction({
+  progress,
+  onTrashPress,
+}: {
+  progress: SharedValue<number>
+  translation: SharedValue<number>
+  onTrashPress: () => void
+}) {
+  // Animate the icon scale and opacity only (no container translate — keeps icon visible and tappable)
+  const iconStyle = useAnimatedStyle(() => {
+    const scale = interpolate(progress.value, [0, 1], [0.5, 1], "clamp")
+
+    const opacity = interpolate(
+      progress.value,
+      [0, 0.5, 1],
+      [0, 0.5, 1],
+      "clamp",
+    )
+
+    return {
+      transform: [{ scale }],
+      opacity,
+    }
+  })
+
+  return (
+    <View style={rightActionStyles.container}>
+      <Pressable
+        style={rightActionStyles.pressable}
+        onPress={onTrashPress}
+        accessibilityLabel="Move to trash"
+      >
+        <Animated.View style={iconStyle}>
+          <IconSymbol
+            name="trash-can"
+            size={24}
+            color={rightActionStyles.trashIcon.color}
+          />
+        </Animated.View>
+      </Pressable>
+    </View>
+  )
+}
+
+const rightActionStyles = StyleSheet.create((theme) => ({
+  container: {
+    width: TRASH_ACTION_WIDTH,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: theme.colors.error,
+  },
+  pressable: {
+    flex: 1,
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  trashIcon: {
+    color: theme.colors.onError,
+  },
+}))
 
 export const TransactionItem = ({
-  transaction,
+  transactionWithRelations,
   onPress,
-  index = 0,
+  onDelete,
+  onWillOpen,
 }: TransactionItemProps) => {
-  // Shared value for press animation
-  const scale = useSharedValue(1)
+  const swipeableRef = useRef<SwipeableMethods | null>(null)
+  const { formatReadableTime } = useTimeUtils()
+  const { theme } = useUnistyles()
+  const { transaction, account, category } = transactionWithRelations
+  const icon = category?.icon
+  const colorScheme = category?.colorScheme ?? account.colorScheme
 
-  // Animated style for press feedback
-  const animatedContainerStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }))
+  const renderRightActions = (
+    progress: SharedValue<number>,
+    translation: SharedValue<number>,
+    swipeableMethods: { close: () => void },
+  ) => (
+    <RightAction
+      progress={progress}
+      translation={translation}
+      onTrashPress={() => {
+        onDelete?.()
+        swipeableMethods.close()
+      }}
+    />
+  )
 
-  const handlePressIn = () => {
-    scale.value = withSpring(0.98, {
-      damping: 15,
-      stiffness: 400,
-    })
-  }
+  const content = (
+    <Pressable style={styles.container} onPress={onPress}>
+      <View style={styles.leftSection}>
+        <DynamicIcon
+          icon={icon}
+          size={20}
+          colorScheme={colorScheme}
+          variant="badge"
+        />
 
-  const handlePressOut = () => {
-    scale.value = withSpring(1, {
-      damping: 15,
-      stiffness: 400,
-    })
+        <View style={styles.details}>
+          <Text variant="small" style={styles.title} numberOfLines={1}>
+            {transaction.title}
+          </Text>
+          <Text style={styles.subtitle} numberOfLines={1}>
+            {account.name} {category?.name ? `• ${category.name} ` : null}
+            {`• ${formatReadableTime(transaction.transactionDate)}`}
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.rightSection}>
+        <Money
+          value={transaction.amount}
+          currency={account.currencyCode}
+          tone={transaction.type}
+          native
+        />
+        {transaction.isPending && (
+          <Text style={styles.pendingBadge}>Pending</Text>
+        )}
+      </View>
+    </Pressable>
+  )
+
+  if (onDelete == null) {
+    return content
   }
 
   return (
-    <Animated.View
-      entering={FadeInDown.delay(index * 20)
-        .springify()
-        .damping(18)
-        .stiffness(120)}
+    <Swipeable
+      ref={swipeableRef}
+      friction={1}
+      rightThreshold={TRASH_ACTION_WIDTH / 2}
+      overshootRight={false}
+      containerStyle={[
+        styles.swipeableContainer,
+        { backgroundColor: theme.colors.error },
+      ]}
+      renderRightActions={renderRightActions}
+      onSwipeableWillOpen={() => {
+        const methods = swipeableRef.current
+        if (methods) onWillOpen?.(methods)
+      }}
     >
-      <AnimatedPressable
-        style={[styles.container, animatedContainerStyle]}
-        onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-      >
-        <View style={styles.leftSection}>
-          {/* TODO: Use proper color from the account or the category relation */}
-          <DynamicIcon icon={"shopping"} size={20} />
-
-          <View style={styles.details}>
-            <Text variant="default" style={styles.title} numberOfLines={1}>
-              {transaction.title || "Untitled Transaction"}
-            </Text>
-            <Text variant="small" style={styles.subtitle} numberOfLines={1}>
-              {/* Creating a subtitle string: Account check • Time */}
-              {transaction.accountId ? "Wallet" : "Cash"} •{" "}
-              {format(new Date(transaction.transactionDate), "h:mm a")}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.rightSection}>
-          <Money
-            value={transaction.amount}
-            currency={transaction.currency}
-            tone="auto"
-          />
-          {transaction.isPending && (
-            <Text style={styles.pendingBadge}>Pending</Text>
-          )}
-        </View>
-      </AnimatedPressable>
-    </Animated.View>
+      {content}
+    </Swipeable>
   )
 }
 
 const styles = StyleSheet.create((theme) => ({
+  swipeableContainer: {
+    overflow: "hidden",
+  },
   container: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
     paddingVertical: 10,
     paddingHorizontal: 20,
+    backgroundColor: theme.colors.surface, // Slides over the red background
   },
   leftSection: {
     flexDirection: "row",
@@ -117,6 +210,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   subtitle: {
     color: theme.colors.onSecondary,
+    fontSize: 12,
   },
   rightSection: {
     alignItems: "flex-end",

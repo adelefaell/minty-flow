@@ -137,6 +137,7 @@ export const VALID_ICON_NAMES = defineValidIcons([
   "vibrate",
   "vibrate-off",
   "tag-plus",
+  "adjust",
 ] as const)
 
 /**

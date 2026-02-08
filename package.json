@@ -14,7 +14,8 @@
     "lint:fix": "biome check --write",
     "lint:fix-unsafe": "biome check --write --unsafe",
     "android:usb": "node ./scripts/run-android-usb.mjs",
-    "structure": "node ./scripts/generate-structure.mjs"
+    "structure": "node ./scripts/generate-structure.mjs",
+    "unused-styles": "node ./scripts/find-unused-styles.mjs"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

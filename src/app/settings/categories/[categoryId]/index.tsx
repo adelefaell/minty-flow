@@ -109,12 +109,6 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.customColors.semi,
     letterSpacing: 1,
   },
-  balance: {
-    fontSize: 32,
-    fontWeight: "700",
-    color: theme.colors.onSurface,
-    marginTop: 10,
-  },
   content: {
     flex: 1,
     padding: 20,

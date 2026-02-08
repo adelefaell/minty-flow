@@ -1,67 +1,72 @@
 import { useMemo } from "react"
-import Animated, { FadeInLeft, FadeInRight } from "react-native-reanimated"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import { IconSymbol, type IconSymbolName } from "~/components/ui/icon-symbol"
 import { Money } from "~/components/ui/money"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import type { Transaction } from "~/types/transactions"
+import type { TransactionWithRelations } from "~/database/services/transaction-service"
+import type { TransactionType } from "~/types/transactions"
+import { TransactionTypeEnum } from "~/types/transactions"
 
 interface SummarySectionProps {
-  transactions: Transaction[]
+  transactionsWithRelations: TransactionWithRelations[]
 }
 
 /**
  * SummarySection component provides a unified view for transaction totals.
- * It filters transactions internally for both Income and Expense types and
- * displays them side-by-side in summary cards.
+ * Currency is derived from each transaction's account; type explains meaning.
  */
-export const SummarySection = ({ transactions }: SummarySectionProps) => {
-  const incomeTransactions = useMemo(
-    () => transactions.filter((t) => t.type === "income"),
-    [transactions],
+export const SummarySection = ({
+  transactionsWithRelations,
+}: SummarySectionProps) => {
+  const incomeRows = useMemo(
+    () =>
+      transactionsWithRelations.filter(
+        (row) => row.transaction.type === TransactionTypeEnum.INCOME,
+      ),
+    [transactionsWithRelations],
   )
-  const expenseTransactions = useMemo(
-    () => transactions.filter((t) => t.type === "expense"),
-    [transactions],
+  const expenseRows = useMemo(
+    () =>
+      transactionsWithRelations.filter(
+        (row) => row.transaction.type === TransactionTypeEnum.EXPENSE,
+      ),
+    [transactionsWithRelations],
   )
 
   return (
     <View style={styles.sectionContainer}>
-      <Card type="income" label="Income" transactions={incomeTransactions} />
-      <Card type="expense" label="Expense" transactions={expenseTransactions} />
+      <Card type="income" label="Income" rows={incomeRows} />
+      <Card type="expense" label="Expense" rows={expenseRows} />
     </View>
   )
 }
 
 interface CardProps {
-  type: "income" | "expense"
-  transactions: Transaction[]
+  type: TransactionType
+  rows: TransactionWithRelations[]
   label: string
 }
 
-const Card = ({ type, transactions, label }: CardProps) => {
+const Card = ({ type, rows, label }: CardProps) => {
   const { theme } = useUnistyles()
-  const isIncome = type === "income"
+  const isIncome = type === TransactionTypeEnum.INCOME
   const icon: IconSymbolName = isIncome ? "arrow-down" : "arrow-up"
   const colorStyle = isIncome ? styles.incomeText : styles.expenseText
-  const EnteringAnimation = isIncome ? FadeInLeft : FadeInRight
 
-  // Sum transactions by currency
+  // Sum by currency (from account)
   const currencyTotals = useMemo(() => {
     const totals: Record<string, number> = {}
-    transactions.forEach((t) => {
-      totals[t.currency] = (totals[t.currency] || 0) + (t.amount || 0)
+    rows.forEach((row) => {
+      const currency = row.account.currencyCode
+      totals[currency] = (totals[currency] || 0) + (row.transaction.amount || 0)
     })
     return Object.entries(totals).sort(([a], [b]) => a.localeCompare(b))
-  }, [transactions])
+  }, [rows])
 
   return (
-    <Animated.View
-      entering={EnteringAnimation.delay(50).springify().damping(15)}
-      style={styles.card}
-    >
+    <View style={styles.card}>
       <View style={styles.cardContent}>
         <View style={styles.header}>
           <View
@@ -97,6 +102,7 @@ const Card = ({ type, transactions, label }: CardProps) => {
                   currency={currency}
                   style={colorStyle}
                   variant="small"
+                  tone={type}
                 />
               </View>
             ))
@@ -118,7 +124,7 @@ const Card = ({ type, transactions, label }: CardProps) => {
           ]}
         />
       </View>
-    </Animated.View>
+    </View>
   )
 }
 

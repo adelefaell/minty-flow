@@ -191,12 +191,6 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.onSurface,
     textAlign: "center",
   },
-  searchWrap: {
-    borderWidth: 1,
-    borderColor: theme.colors.customColors.semi,
-    borderRadius: theme.colors.radius,
-    overflow: "hidden",
-  },
   newTagButton: {
     flexDirection: "row",
     alignItems: "center",

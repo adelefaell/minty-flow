@@ -36,7 +36,7 @@ StyleSheet.configure({
           }
         }
       }
-      return "electricLavender"
+      return "frostedMintHills"
     },
   },
   themes: unistylesThemes,

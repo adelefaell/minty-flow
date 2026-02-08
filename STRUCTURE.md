@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-02-07T21:56:16.781Z
+Generated on: 2026-02-08T23:15:43.896Z
 
 ```
 ./
@@ -41,6 +41,7 @@ Generated on: 2026-02-07T21:56:16.781Z
 │   ├── 📄 README.md
 │   └── 📄 withWatermelonDBJSI.js
 ├── 📁 scripts/
+│   ├── 📄 find-unused-styles.mjs
 │   ├── 📄 generate-structure.mjs
 │   └── 📄 run-android-usb.mjs
 ├── 📁 src/
@@ -124,12 +125,11 @@ Generated on: 2026-02-07T21:56:16.781Z
 │   │   │   ├── 📄 account-sheet.tsx
 │   │   │   ├── 📄 category-sheet.tsx
 │   │   │   ├── 📄 delete-file-confirm-sheet.tsx
+│   │   │   ├── 📄 delete-transaction-sheet.tsx
 │   │   │   ├── 📄 notes-modal.tsx
 │   │   │   ├── 📄 open-file-confirm-sheet.tsx
 │   │   │   ├── 📄 tag-sheet.tsx
-│   │   │   ├── 📄 transaction-form-v2.tsx
 │   │   │   ├── 📄 transaction-form-v3.tsx
-│   │   │   ├── 📄 transaction-form.tsx
 │   │   │   └── 📄 transaction-type-selector.tsx
 │   │   ├── 📁 ui/
 │   │   │   ├── 📄 button.tsx

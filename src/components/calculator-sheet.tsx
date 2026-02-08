@@ -521,10 +521,6 @@ const calculatorStyles = StyleSheet.create((theme) => ({
     justifyContent: "center",
     alignItems: "center",
   },
-  keypadButtonPlaceholder: {
-    flex: 1,
-    aspectRatio: 1,
-  },
   keypadButtonSpanTwoRows: {
     flex: 1,
     alignSelf: "stretch",
@@ -573,12 +569,5 @@ const calculatorStyles = StyleSheet.create((theme) => ({
   },
   hasActiveOperation: {
     backgroundColor: theme.colors.primary,
-  },
-  actionsContainer: {
-    marginTop: 16,
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 6,
-    justifyContent: "center",
   },
 }))
