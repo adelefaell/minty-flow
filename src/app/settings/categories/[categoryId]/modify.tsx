@@ -8,10 +8,10 @@ import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
 import { useBottomSheet } from "~/components/bottom-sheet"
-import { CategoryTypeSelectorSheet } from "~/components/categories/category-type-selector-sheet"
-import { DeleteCategorySheet } from "~/components/categories/delete-category-sheet"
+import { CategoryTypeInline } from "~/components/categories/category-type-inline"
 import { ChangeIconSheet } from "~/components/change-icon-sheet"
-import { ColorVariantSheet } from "~/components/color-variant-sheet"
+import { ColorVariantInline } from "~/components/color-variant-inline"
+import { ConfirmModal } from "~/components/confirm-modal"
 import { DynamicIcon } from "~/components/dynamic-icon"
 import { KeyboardStickyViewMinty } from "~/components/keyboard-sticky-view-minty"
 import { Button } from "~/components/ui/button"
@@ -22,10 +22,6 @@ import { Separator } from "~/components/ui/separator"
 import { Switch } from "~/components/ui/switch"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import {
-  UnsavedChangesSheet,
-  useUnsavedChangesWarning,
-} from "~/components/unsaved-changes-sheet"
 import type CategoryModel from "~/database/models/Category"
 import {
   createCategory,
@@ -64,7 +60,7 @@ const EditCategoryScreenInner = ({
 
   const handleGoBack = useCallback(() => {
     router.back()
-  }, [router.back])
+  }, [router])
 
   const TransactionType = isAddMode
     ? initialType || category?.type || TransactionTypeEnum.EXPENSE
@@ -97,26 +93,20 @@ const EditCategoryScreenInner = ({
   // Loading state
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Navigation and unsaved changes handling
+  // Navigation and unsaved changes handling (ConfirmModal instead of sheet)
   const navigation = useNavigation()
-  const unsavedChangesWarning = useUnsavedChangesWarning()
   const isNavigatingRef = useRef(false)
+  const pendingLeaveRef = useRef<(() => void) | null>(null)
+  const [unsavedModalVisible, setUnsavedModalVisible] = useState(false)
 
-  // Bottom sheet controls
-  const deleteSheet = useBottomSheet(
-    `delete-category-${categoryModifyId || NewEnum.NEW}`,
-  )
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false)
+
+  // Bottom sheet controls (icon + color only)
   const changeIconSheet = useBottomSheet(
     `change-icon-category-${categoryModifyId || NewEnum.NEW}`,
   )
-  const colorVariantSheet = useBottomSheet(
-    `color-variant-category-${categoryModifyId || NewEnum.NEW}`,
-  )
-  const categoryTypeSheet = useBottomSheet(
-    `category-type-${categoryModifyId || NewEnum.NEW}`,
-  )
 
-  // Handle navigation with unsaved changes warning
+  // Handle navigation with unsaved changes: show ConfirmModal
   useEffect(() => {
     const unsubscribe = navigation.addListener(
       "beforeRemove",
@@ -127,18 +117,16 @@ const EditCategoryScreenInner = ({
 
         e.preventDefault()
 
-        unsavedChangesWarning.show(
-          () => {
-            isNavigatingRef.current = true
-            handleGoBack()
-          },
-          () => {},
-        )
+        pendingLeaveRef.current = () => {
+          isNavigatingRef.current = true
+          handleGoBack()
+        }
+        setUnsavedModalVisible(true)
       },
     )
 
     return unsubscribe
-  }, [navigation, isDirty, isSubmitting, unsavedChangesWarning, handleGoBack])
+  }, [navigation, isDirty, isSubmitting, handleGoBack])
 
   const onSubmit = async (data: AddCategoriesFormSchema) => {
     const trimmedName = data.name.trim()
@@ -301,64 +289,21 @@ const EditCategoryScreenInner = ({
 
           {/* Settings List */}
           <View style={styles.settingsList}>
-            {/* Type Selection */}
-            <Pressable
-              style={styles.settingsRow}
-              onPress={() => isAddMode && categoryTypeSheet.present()}
-            >
-              <View style={styles.settingsLeft}>
-                <IconSymbol name="shape" size={24} />
-                <Text variant="default" style={styles.settingsLabel}>
-                  Type
-                </Text>
-              </View>
-              <View style={styles.settingsRight}>
-                <Text variant="default" style={styles.settingsValue}>
-                  {formType.charAt(0).toUpperCase() + formType.slice(1)}
-                </Text>
-                {isAddMode && (
-                  <IconSymbol
-                    name="chevron-right"
-                    size={20}
-                    style={styles.chevronIcon}
-                  />
-                )}
-              </View>
-            </Pressable>
+            {/* Type Selection – inline panel (trigger + content in reusable component) */}
+            <CategoryTypeInline
+              selectedType={formType}
+              onTypeSelected={(type) =>
+                setValue("type", type, { shouldDirty: true })
+              }
+              editable={isAddMode}
+            />
 
-            {/* Color Selection */}
-            <Pressable
-              style={styles.settingsRow}
-              onPress={() => colorVariantSheet.present()}
-            >
-              <View style={styles.settingsLeft}>
-                <IconSymbol name="palette" size={24} />
-                <Text variant="default" style={styles.settingsLabel}>
-                  Change color
-                </Text>
-              </View>
-              <View style={styles.settingsRight}>
-                {currentColorScheme ? (
-                  <View
-                    style={[
-                      styles.colorPreview,
-                      {
-                        backgroundColor: currentColorScheme.primary,
-                      },
-                    ]}
-                  />
-                ) : (
-                  <Text variant="default" style={styles.defaultColorText}>
-                    Default color
-                  </Text>
-                )}
-                <IconSymbol
-                  name="chevron-right"
-                  size={20}
-                  style={styles.chevronIcon}
-                />
-              </View>
-            </Pressable>
+            {/* Color Selection – inline panel (trigger + content in reusable component) */}
+            <ColorVariantInline
+              selectedSchemeName={formColorSchemeName || undefined}
+              onColorSelected={handleColorSelected}
+              onClearSelection={handleColorCleared}
+            />
           </View>
 
           {/* Divider */}
@@ -402,7 +347,7 @@ const EditCategoryScreenInner = ({
           <View style={styles.deleteSection}>
             <Button
               variant="ghost"
-              onPress={() => deleteSheet.present()}
+              onPress={() => setDeleteModalVisible(true)}
               style={styles.actionButton}
             >
               <IconSymbol
@@ -448,10 +393,6 @@ const EditCategoryScreenInner = ({
         </View>
       </KeyboardStickyViewMinty>
 
-      {!isAddMode && category && (
-        <DeleteCategorySheet category={category} onConfirm={handleDelete} />
-      )}
-
       <ChangeIconSheet
         id={`change-icon-category-${categoryModifyId || NewEnum.NEW}`}
         currentIcon={formIcon}
@@ -459,21 +400,37 @@ const EditCategoryScreenInner = ({
         colorScheme={currentColorScheme}
       />
 
-      <ColorVariantSheet
-        id={`color-variant-category-${categoryModifyId || NewEnum.NEW}`}
-        selectedSchemeName={formColorSchemeName || undefined}
-        onColorSelected={handleColorSelected}
-        onClearSelection={handleColorCleared}
-        onDismiss={() => colorVariantSheet.dismiss()}
-      />
+      {!isAddMode && category && (
+        <ConfirmModal
+          visible={deleteModalVisible}
+          onRequestClose={() => setDeleteModalVisible(false)}
+          onConfirm={handleDelete}
+          title={`Delete ${category.name}?`}
+          description={
+            category.transactionCount > 0
+              ? `This category is used by ${category.transactionCount} transaction${category.transactionCount !== 1 ? "s" : ""}. Deleting will unlink ${category.transactionCount === 1 ? "it" : "them"}. This cannot be undone.`
+              : "Deleting this category cannot be undone."
+          }
+          confirmLabel="Delete"
+          cancelLabel="Cancel"
+          variant="destructive"
+          icon="trash-can"
+        />
+      )}
 
-      <CategoryTypeSelectorSheet
-        id={`category-type-${categoryModifyId || NewEnum.NEW}`}
-        selectedType={formType}
-        onTypeSelected={(type) => setValue("type", type, { shouldDirty: true })}
+      <ConfirmModal
+        visible={unsavedModalVisible}
+        onRequestClose={() => setUnsavedModalVisible(false)}
+        onConfirm={() => {
+          pendingLeaveRef.current?.()
+          pendingLeaveRef.current = null
+        }}
+        title="Close without saving?"
+        description="All changes will be lost."
+        confirmLabel="Discard"
+        cancelLabel="Cancel"
+        variant="default"
       />
-
-      <UnsavedChangesSheet />
     </View>
   )
 }
@@ -567,47 +524,6 @@ const styles = StyleSheet.create((theme) => ({
     paddingHorizontal: 20,
   },
   settingsList: {},
-  settingsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 20,
-    paddingHorizontal: 20,
-  },
-  settingsLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  settingsLabel: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: theme.colors.onSurface,
-  },
-  settingsRight: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  settingsValue: {
-    fontSize: 16,
-    color: theme.colors.onSecondary,
-    opacity: 0.7,
-  },
-  chevronIcon: {
-    color: theme.colors.onSecondary,
-    opacity: 0.4,
-  },
-  colorPreview: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-  },
-  defaultColorText: {
-    fontSize: 16,
-    color: theme.colors.onSecondary,
-    opacity: 0.6,
-  },
   switchesSection: {},
   switchRow: {
     flexDirection: "row",

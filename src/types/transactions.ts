@@ -78,6 +78,8 @@ export interface Transaction {
  */
 export interface TransactionListFilters {
   accountId?: string
+  /** When set and non-empty, filter to these account IDs only. */
+  accountIds?: string[]
   categoryId?: string
   type?: TransactionType
   isPending?: boolean

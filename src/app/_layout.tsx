@@ -26,7 +26,11 @@ export default function RootLayout() {
   return (
     <KeyboardProvider>
       <GestureHandlerRootView
-        style={{ flex: 1, paddingBottom: UnistylesRuntime.insets.bottom }}
+        style={{
+          flex: 1,
+          // paddingTop: UnistylesRuntime.insets.top,
+          paddingBottom: UnistylesRuntime.insets.bottom,
+        }}
       >
         <TooltipProvider>
           <BottomSheetModalProvider>

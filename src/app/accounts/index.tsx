@@ -7,11 +7,11 @@ import {
   AccountCard,
   type AccountCardProps,
 } from "~/components/accounts/account-card"
+import { Money } from "~/components/money"
 import { ReorderableListV2 } from "~/components/reorderable-list-v2"
 import { SearchInput } from "~/components/search-input"
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
-import { Money } from "~/components/ui/money"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import type AccountModel from "~/database/models/Account"

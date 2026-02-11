@@ -24,7 +24,11 @@ import {
 import { NewEnum } from "~/types/new"
 import { type TransactionType, TransactionTypeEnum } from "~/types/transactions"
 
-const VALID_TYPES: TransactionType[] = ["expense", "income", "transfer"]
+const VALID_TYPES: TransactionType[] = [
+  TransactionTypeEnum.EXPENSE,
+  TransactionTypeEnum.INCOME,
+  TransactionTypeEnum.TRANSFER,
+]
 
 function parseTransactionType(type: string | undefined): TransactionType {
   if (type && VALID_TYPES.includes(type as TransactionType)) {

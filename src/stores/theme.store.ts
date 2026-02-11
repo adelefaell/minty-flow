@@ -5,6 +5,10 @@ import { createJSONStorage, devtools, persist } from "zustand/middleware"
 
 import type { ThemeKey } from "~/styles/unistyles"
 
+export const DEFAULT_THEME = "frostedMintHills"
+export const THEME_PERSIST_STORE_KEY = "theme-preferences"
+export const THEME_PERSIST_MMKV_KEY = "theme-preferences-storage"
+
 /**
  * MMKV storage instance for theme preferences.
  *
@@ -14,7 +18,7 @@ import type { ThemeKey } from "~/styles/unistyles"
  * @see https://github.com/mrousavy/react-native-mmkv
  */
 export const themeStorage = createMMKV({
-  id: "theme-preferences-storage",
+  id: THEME_PERSIST_MMKV_KEY,
 })
 
 /**
@@ -62,30 +66,33 @@ export const useThemeStore = create<ThemeStore>()(
     persist(
       (set) => ({
         // Default to first dark theme (electricLavender)
-        themeMode: "electricLavender",
+        themeMode: DEFAULT_THEME,
 
         // Actions
         setThemeMode: (mode) => {
           set({ themeMode: mode })
 
-          // Update UnistylesRuntime directly when theme mode changes
+          // Update UnistylesRuntime and native chrome when theme mode changes
           UnistylesRuntime.setTheme(mode)
         },
       }),
       {
-        name: "theme-preferences",
+        name: THEME_PERSIST_STORE_KEY,
         storage: createJSONStorage(() => ({
           getItem: (name) => themeStorage.getString(name) ?? null,
           setItem: (name, value) => themeStorage.set(name, value),
           removeItem: (name) => themeStorage.remove(name),
         })),
         onRehydrateStorage: () => (state) => {
-          // Sync UnistylesRuntime when store hydrates on app start
+          // Sync UnistylesRuntime and native chrome when store hydrates on app start
           if (state?.themeMode) {
             UnistylesRuntime.setTheme(state.themeMode)
           }
         },
       },
     ),
+    {
+      name: "theme-preferences-store-dev",
+    },
   ),
 )

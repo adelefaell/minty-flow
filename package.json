@@ -59,6 +59,7 @@
     "react-native-animated-rolling-numbers": "^2.0.0",
     "react-native-gesture-handler": "~2.28.0",
     "react-native-keyboard-controller": "1.18.5",
+    "react-native-markdown-display": "^7.0.2",
     "react-native-mmkv": "^4.1.2",
     "react-native-nitro-modules": "^0.33.2",
     "react-native-pager-view": "6.9.1",
@@ -72,9 +73,9 @@
     "zustand": "^5.0.9"
   },
   "devDependencies": {
-    "@nozbe/simdjson": "^3.9.4",
     "@babel/plugin-proposal-decorators": "^7.28.6",
-    "@biomejs/biome": "^2.3.10",
+    "@biomejs/biome": "^2.3.14",
+    "@nozbe/simdjson": "^3.9.4",
     "@react-native-community/cli": "latest",
     "@types/react": "~19.1.0",
     "husky": "^9.1.7",

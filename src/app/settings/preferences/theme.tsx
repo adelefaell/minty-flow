@@ -2,10 +2,13 @@ import { useState } from "react"
 import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
+import { Button } from "~/components/ui/button"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import {
+  DEFAULT_THEME,
+  THEME_PERSIST_STORE_KEY,
   type ThemeMode,
   themeStorage,
   useThemeStore,
@@ -15,11 +18,9 @@ import type { MintyColorScheme } from "~/styles/theme/types"
 
 type ThemeVariant = "Light" | "Dark" | "OLED"
 
-const THEME_PERSIST_KEY = "theme-preferences"
-const DEFAULT_THEME: ThemeMode = "electricLavender"
-
 export default function ThemeSettingsScreen() {
-  const { themeMode, setThemeMode } = useThemeStore()
+  const setThemeMode = useThemeStore((state) => state.setThemeMode)
+  const themeMode = useThemeStore((state) => state.themeMode)
 
   const getCategoryForTheme = (themeName: string): string => {
     for (const [category, groups] of Object.entries(THEME_GROUPS)) {
@@ -65,7 +66,7 @@ export default function ThemeSettingsScreen() {
   )
 
   const clearSavedTheme = () => {
-    themeStorage.remove(THEME_PERSIST_KEY)
+    themeStorage.remove(THEME_PERSIST_STORE_KEY)
     setThemeMode(DEFAULT_THEME)
     setSelectedCategory(getCategoryForTheme(DEFAULT_THEME))
     setSelectedVariant(getVariantForTheme(DEFAULT_THEME))
@@ -314,10 +315,10 @@ export default function ThemeSettingsScreen() {
         </View>
       )}
 
-      {/* Test: clear saved theme */}
-      <Pressable style={styles.clearButton} onPress={clearSavedTheme}>
-        <Text style={styles.clearButtonText}>Clear saved theme (test)</Text>
-      </Pressable>
+      {/* TODO: remove later is for testing: clear saved theme */}
+      <Button variant="destructive" onPress={clearSavedTheme}>
+        <Text>Clear saved theme (testing)</Text>
+      </Button>
     </ScrollView>
   )
 }
@@ -436,19 +437,5 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.onSurface,
     opacity: 0.7,
     textAlign: "center",
-  },
-  clearButton: {
-    marginTop: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    backgroundColor: theme.colors.secondary,
-    alignItems: "center",
-  },
-  clearButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: theme.colors.onSurface,
-    opacity: 0.8,
   },
 }))

@@ -3,9 +3,10 @@ import type { Observable } from "rxjs"
 import { combineLatest, from, map, of, startWith, switchMap } from "rxjs"
 
 import type { TransactionFormValues } from "~/schemas/transactions.schema"
-import type {
-  TransactionListFilters,
-  TransactionType,
+import {
+  type TransactionListFilters,
+  type TransactionType,
+  TransactionTypeEnum,
 } from "~/types/transactions"
 
 import { database } from "../index"
@@ -69,7 +70,7 @@ const hydrateTransaction = async (
  * Balance delta for the account: expense/transfer = -amount, income = +amount.
  */
 const getBalanceDelta = (amount: number, type: TransactionType): number => {
-  if (type === "income") return amount
+  if (type === TransactionTypeEnum.INCOME) return amount
   return -amount // expense or transfer (money out of account)
 }
 
@@ -96,7 +97,9 @@ const loadTransactionTags = async (
 const buildTransactionQuery = (filters?: TransactionListFilters) => {
   let query = transactionsCollection().query()
 
-  if (filters?.accountId) {
+  if (filters?.accountIds?.length) {
+    query = query.extend(Q.where("account_id", Q.oneOf(filters.accountIds)))
+  } else if (filters?.accountId) {
     query = query.extend(Q.where("account_id", filters.accountId))
   }
   if (filters?.categoryId) {
@@ -328,7 +331,7 @@ export const createTransactionModel = async (
     const transaction = await transactions.create((t) => {
       t.amount = data.amount
       t.type = data.type
-      t.transactionDate = data.date
+      t.transactionDate = data.transactionDate
       t.accountId = data.accountId
       t.categoryId = data.categoryId ?? null
       t.title = data.title ?? ""
@@ -402,7 +405,8 @@ export const updateTransactionModel = async (
     const updatedTransaction = await transaction.update((t) => {
       if (updates.amount !== undefined) t.amount = updates.amount
       if (updates.type !== undefined) t.type = updates.type
-      if (updates.date !== undefined) t.transactionDate = updates.date
+      if (updates.transactionDate !== undefined)
+        t.transactionDate = updates.transactionDate
       if (updates.title !== undefined) t.title = updates.title
       if (updates.description !== undefined) t.description = updates.description
       if (updates.isPending !== undefined) t.isPending = updates.isPending

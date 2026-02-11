@@ -1,7 +1,7 @@
 import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
-import { Money } from "~/components/ui/money"
+import { Money } from "~/components/money"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"

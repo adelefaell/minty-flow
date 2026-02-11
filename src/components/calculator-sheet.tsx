@@ -43,6 +43,7 @@ export const CalculatorSheet = ({
   title = "Expense",
   currencyCode,
   onDismiss,
+  onChange,
   ...bottomSheetProps
 }: CalculatorSheetProps) => {
   const {
@@ -133,9 +134,9 @@ export const CalculatorSheet = ({
         }
         setIsFullCalculator(false)
       }
-      bottomSheetProps.onChange?.(index)
+      onChange?.(index)
     },
-    [initialValue, reset, bottomSheetProps.onChange],
+    [initialValue, reset, onChange],
   )
 
   const code = "USD"

@@ -9,6 +9,7 @@ import type {
   UpdateAccountsFormSchema,
 } from "~/schemas/accounts.schema"
 import type { Account } from "~/types/accounts"
+import { TransactionTypeEnum } from "~/types/transactions"
 
 import { database } from "../index"
 import type AccountModel from "../models/Account"
@@ -209,9 +210,9 @@ export const observeAccountsWithMonthTotals = (
           out: 0,
           net: 0,
         }
-        if (t.type === "income") {
+        if (t.type === TransactionTypeEnum.INCOME) {
           cur.in += t.amount
-        } else if (t.type === "expense") {
+        } else if (t.type === TransactionTypeEnum.EXPENSE) {
           cur.out += t.amount
         }
         cur.net = cur.in - cur.out
@@ -264,16 +265,79 @@ export const createAccount = async (
 }
 
 /**
+ * Enforce "exactly one primary account" invariant.
+ * Unsets isPrimary on all accounts except the one with the given id.
+ * Must be called from within a database.write.
+ */
+const ensureSinglePrimary = async (primaryAccountId: string): Promise<void> => {
+  const primaryAccounts = await getAccountCollection()
+    .query(Q.where("is_primary", true))
+    .fetch()
+  const others = primaryAccounts.filter((a) => a.id !== primaryAccountId)
+  for (const other of others) {
+    await other.update((a) => {
+      a.isPrimary = false
+      a.updatedAt = new Date()
+    })
+  }
+}
+
+/**
+ * Apply non-balance field updates to an account record.
+ * Mutates the record in place; call from within model.update().
+ */
+const applyAccountUpdates = (
+  a: AccountModel,
+  updates: Partial<UpdateAccountsFormSchema>,
+): void => {
+  if (updates.name !== undefined) a.name = updates.name
+  if (updates.type !== undefined) a.type = updates.type
+  if (updates.currencyCode !== undefined) a.currencyCode = updates.currencyCode
+  if (updates.icon !== undefined) a.icon = updates.icon
+  if (updates.colorSchemeName !== undefined)
+    a.colorSchemeName = updates.colorSchemeName
+  if (updates.isArchived !== undefined) a.isArchived = updates.isArchived
+  if (updates.isPrimary !== undefined) a.isPrimary = updates.isPrimary
+  if (updates.excludeFromBalance !== undefined)
+    a.excludeFromBalance = updates.excludeFromBalance
+  a.updatedAt = new Date()
+}
+
+/**
+ * Reconcile account balance via an adjustment transaction.
+ * Balance is always derived from transactions; this creates the compensating tx.
+ */
+const applyBalanceAdjustment = async (
+  account: AccountModel,
+  oldBalance: number,
+  newBalance: number,
+): Promise<AccountModel | null> => {
+  const delta = newBalance - oldBalance
+  const amount = Math.abs(delta)
+  if (amount <= 0) return null
+
+  await createTransactionModel({
+    amount,
+    type: delta > 0 ? TransactionTypeEnum.INCOME : TransactionTypeEnum.EXPENSE,
+    transactionDate: new Date(),
+    accountId: account.id,
+    categoryId: null,
+    title: "Balance adjustment",
+    description: "",
+    isPending: false,
+    tags: [],
+  })
+  return findAccount(account.id)
+}
+
+/**
  * Update account.
- * When only balance is changed (or balance is part of the update), the new
- * balance is applied via an adjustment transaction (income or expense) so
- * the balance is always driven by transactions.
+ * Enforces system invariants: balance from transactions, exactly one primary.
  */
 export const updateAccount = async (
   account: AccountModel,
   updates: Partial<UpdateAccountsFormSchema>,
 ): Promise<AccountModel> => {
-  const balanceInUpdate = updates.balance
   const oldBalance = account.balance
   const updatesWithoutBalance = {
     ...updates,
@@ -281,48 +345,26 @@ export const updateAccount = async (
   } as Partial<UpdateAccountsFormSchema>
 
   const updated = await database.write(async () => {
-    return await account.update((a) => {
-      if (updatesWithoutBalance.name !== undefined)
-        a.name = updatesWithoutBalance.name
-      if (updatesWithoutBalance.type !== undefined)
-        a.type = updatesWithoutBalance.type
-      if (updatesWithoutBalance.currencyCode !== undefined)
-        a.currencyCode = updatesWithoutBalance.currencyCode
-      if (updatesWithoutBalance.icon !== undefined)
-        a.icon = updatesWithoutBalance.icon
-      if (updatesWithoutBalance.colorSchemeName !== undefined)
-        a.colorSchemeName = updatesWithoutBalance.colorSchemeName
-      if (updatesWithoutBalance.isArchived !== undefined)
-        a.isArchived = updatesWithoutBalance.isArchived
-      if (updatesWithoutBalance.isPrimary !== undefined)
-        a.isPrimary = updatesWithoutBalance.isPrimary
-      if (updatesWithoutBalance.excludeFromBalance !== undefined)
-        a.excludeFromBalance = updatesWithoutBalance.excludeFromBalance
-      a.updatedAt = new Date()
-    })
+    if (updatesWithoutBalance.isPrimary === true) {
+      await ensureSinglePrimary(account.id)
+    }
+    return await account.update((a) =>
+      applyAccountUpdates(a, updatesWithoutBalance),
+    )
   })
 
+  const newBalance = updates.balance
   if (
-    balanceInUpdate !== undefined &&
-    typeof balanceInUpdate === "number" &&
-    balanceInUpdate !== oldBalance
+    newBalance !== undefined &&
+    typeof newBalance === "number" &&
+    newBalance !== oldBalance
   ) {
-    const delta = balanceInUpdate - oldBalance
-    const amount = Math.abs(delta)
-    if (amount > 0) {
-      await createTransactionModel({
-        amount,
-        type: delta > 0 ? "income" : "expense",
-        date: new Date(),
-        accountId: account.id,
-        categoryId: null,
-        title: "Balance adjustment",
-        description: "",
-        isPending: false,
-        tags: [],
-      })
-      return (await findAccount(account.id)) ?? updated
-    }
+    const refreshed = await applyBalanceAdjustment(
+      account,
+      oldBalance,
+      newBalance,
+    )
+    return refreshed ?? updated
   }
 
   return updated

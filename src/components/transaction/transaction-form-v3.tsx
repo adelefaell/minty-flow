@@ -16,7 +16,6 @@ import DateTimePicker, {
 import type { EventArg } from "@react-navigation/native"
 import { format } from "date-fns"
 import * as DocumentPicker from "expo-document-picker"
-import { Image } from "expo-image"
 import * as ImagePicker from "expo-image-picker"
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router"
 import {
@@ -33,44 +32,37 @@ import {
   Dimensions,
   Modal,
   Platform,
-  TextInput as RNTextInput,
-  View as RNView,
   ScrollView,
 } from "react-native"
+import Markdown from "react-native-markdown-display"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import { useBottomSheet } from "~/components/bottom-sheet"
 import { CalculatorSheet } from "~/components/calculator-sheet"
+import { ConfirmModal } from "~/components/confirm-modal"
 import { DynamicIcon } from "~/components/dynamic-icon"
 import { KeyboardStickyViewMinty } from "~/components/keyboard-sticky-view-minty"
-import {
-  DELETE_FILE_SHEET_ID,
-  DeleteFileConfirmSheet,
-} from "~/components/transaction/delete-file-confirm-sheet"
-import {
-  OPEN_FILE_SHEET_ID,
-  OpenFileConfirmSheet,
-} from "~/components/transaction/open-file-confirm-sheet"
+import { Money } from "~/components/money"
+import { AttachmentPreviewModal } from "~/components/transaction/attachment-preview-modal"
+import { MarkdownEditorModal } from "~/components/transaction/markdown-editor-modal"
 import { TransactionTypeSelector } from "~/components/transaction/transaction-type-selector"
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Input } from "~/components/ui/input"
-import { Money } from "~/components/ui/money"
 import { Pressable } from "~/components/ui/pressable"
 import { Switch } from "~/components/ui/switch"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import {
-  UnsavedChangesSheet,
-  useUnsavedChangesWarning,
-} from "~/components/unsaved-changes-sheet"
 import type TransactionModel from "~/database/models/Transaction"
 import {
   createTransactionModel,
   deleteTransactionModel,
   updateTransactionModel,
 } from "~/database/services/transaction-service"
-import { transactionSchema } from "~/schemas/transactions.schema"
+import {
+  type TransactionFormValues,
+  transactionSchema,
+} from "~/schemas/transactions.schema"
 import { getThemeStrict } from "~/styles/theme/registry"
 import type { Account } from "~/types/accounts"
 import type { Category } from "~/types/categories"
@@ -88,6 +80,7 @@ import {
   isImageExtension,
 } from "~/utils/file-icon"
 import { logger } from "~/utils/logger"
+import { openFileInExternalApp } from "~/utils/open-file"
 import { Toast } from "~/utils/toast"
 
 function formatFileSize(bytes: number): string {
@@ -129,31 +122,20 @@ function getRecurrenceDisplayLabel(
   }
 }
 
-type TransactionFormInput = {
-  amount: number
-  type: TransactionType
-  date: Date
-  accountId: string
-  categoryId?: string | null
-  title?: string
-  description?: string
-  isPending?: boolean
-  tags?: string[]
-}
-
 function getDefaultValues(
   transaction: TransactionModel | null,
   accounts: Account[],
   transactionType: TransactionType,
   initialTagIds: string[] = [],
-): TransactionFormInput {
+): TransactionFormValues {
   const defaultAccountId =
-    accounts.find((a) => a.isPrimary)?.id ?? accounts[0]?.id ?? ""
+    accounts.find((a) => a.isPrimary && !a.isArchived)?.id ?? ""
+
   if (!transaction) {
     return {
       amount: 0,
       type: transactionType,
-      date: new Date(),
+      transactionDate: new Date(),
       accountId: defaultAccountId,
       categoryId: null,
       title: "",
@@ -165,7 +147,7 @@ function getDefaultValues(
   return {
     amount: transaction.amount,
     type: (transaction.type as TransactionType) ?? transactionType,
-    date: transaction.transactionDate,
+    transactionDate: transaction.transactionDate,
     accountId: transaction.accountId,
     categoryId: transaction.categoryId,
     title: transaction.title ?? "",
@@ -176,7 +158,7 @@ function getDefaultValues(
 }
 
 function getFieldError(
-  field: keyof TransactionFormInput,
+  field: keyof TransactionFormValues,
   message: string | undefined,
 ): string | undefined {
   if (!message) return undefined
@@ -184,6 +166,19 @@ function getFieldError(
     return "Please choose an account to save this transaction."
   if (field === "amount") return "Enter an amount greater than 0."
   return message
+}
+
+function notesMarkdownStyles(theme: { colors: { onSurface: string } }) {
+  const fg = theme.colors.onSurface
+  return {
+    body: { color: fg, fontSize: 15 },
+    paragraph: { marginVertical: 4 },
+    bullet_list: { marginVertical: 4 },
+    ordered_list: { marginVertical: 4 },
+    list_item: { marginVertical: 2 },
+    strong: { fontWeight: "700" as const },
+    em: { fontStyle: "italic" as const },
+  }
 }
 
 interface TransactionFormV3Props {
@@ -211,12 +206,11 @@ export function TransactionFormV3({
   const { id } = useLocalSearchParams<{ id: string }>()
   const isNew = id === NewEnum.NEW
 
-  const unsavedChangesWarning = useUnsavedChangesWarning()
   const isNavigatingRef = useRef(false)
+  const pendingLeaveRef = useRef<(() => void) | null>(null)
+  const [unsavedModalVisible, setUnsavedModalVisible] = useState(false)
 
   const calculatorSheet = useBottomSheet(CALCULATOR_SHEET_ID)
-  const openFileSheet = useBottomSheet(OPEN_FILE_SHEET_ID)
-  const deleteFileSheet = useBottomSheet(DELETE_FILE_SHEET_ID)
 
   const defaultValues = useMemo(
     () =>
@@ -231,8 +225,8 @@ export function TransactionFormV3({
     setValue,
     reset,
     formState: { errors, isDirty },
-  } = useForm<TransactionFormInput>({
-    resolver: zodResolver(transactionSchema) as Resolver<TransactionFormInput>,
+  } = useForm<TransactionFormValues>({
+    resolver: zodResolver(transactionSchema) as Resolver<TransactionFormValues>,
     defaultValues,
   })
 
@@ -247,12 +241,12 @@ export function TransactionFormV3({
   const amount = watch("amount")
   const accountId = watch("accountId")
   const categoryId = watch("categoryId")
-  const date = watch("date")
+  const date = watch("transactionDate")
   const description = watch("description")
   const tagIds = watch("tags")
 
   const [isSaving, setIsSaving] = useState(false)
-  const [notesExpanded, setNotesExpanded] = useState(false)
+  const [notesModalVisible, setNotesModalVisible] = useState(false)
   const [datePickerVisible, setDatePickerVisible] = useState(false)
   const [datePickerMode, setDatePickerMode] = useState<"date" | "time">("date")
   const [tempDate, setTempDate] = useState(date)
@@ -311,25 +305,15 @@ export function TransactionFormV3({
           return
         }
         e.preventDefault()
-        unsavedChangesWarning.show(
-          () => {
-            isNavigatingRef.current = true
-            handleGoBack()
-          },
-          () => {},
-        )
+        pendingLeaveRef.current = () => {
+          isNavigatingRef.current = true
+          handleGoBack()
+        }
+        setUnsavedModalVisible(true)
       },
     )
     return unsubscribe
-  }, [navigation, isDirty, isSaving, unsavedChangesWarning, handleGoBack])
-
-  useEffect(() => {
-    if (fileToOpen) openFileSheet.present()
-  }, [fileToOpen, openFileSheet])
-
-  useEffect(() => {
-    if (attachmentToRemove) deleteFileSheet.present()
-  }, [attachmentToRemove, deleteFileSheet])
+  }, [navigation, isDirty, isSaving, handleGoBack])
 
   const datePickerTargetRef = useRef<DatePickerTarget>("transaction")
 
@@ -386,24 +370,26 @@ export function TransactionFormV3({
           ? recurringStartDate
           : target === "recurringEnd"
             ? (recurringEndDate ?? new Date())
-            : watch("date")
+            : watch("transactionDate")
       setTempDate(current)
       if (Platform.OS === "android") {
         DateTimePickerAndroid.open({
           value: current,
           mode: "date",
+          display: "calendar",
           onChange: (_evt, selectedDate) => {
             if (selectedDate && _evt.type === "set") {
               setTempDate(selectedDate)
               DateTimePickerAndroid.open({
                 value: selectedDate,
                 mode: "time",
+                display: "spinner",
                 onChange: (evt, timeDate) => {
                   if (timeDate && evt.type === "set") {
                     const t = datePickerTargetRef.current
                     if (t === "recurringStart") setRecurringStartDate(timeDate)
                     else if (t === "recurringEnd") setRecurringEndDate(timeDate)
-                    else setValue("date", timeDate)
+                    else setValue("transactionDate", timeDate)
                   }
                 },
               })
@@ -430,14 +416,14 @@ export function TransactionFormV3({
       const t = datePickerTargetRef.current
       if (t === "recurringStart") setRecurringStartDate(tempDate)
       else if (t === "recurringEnd") setRecurringEndDate(tempDate)
-      else setValue("date", tempDate)
+      else setValue("transactionDate", tempDate)
       setDatePickerVisible(false)
     } else {
       setDatePickerMode("time")
     }
   }, [datePickerMode, tempDate, setValue])
 
-  const onSubmit = async (data: TransactionFormInput) => {
+  const onSubmit = async (data: TransactionFormValues) => {
     if (isSaving) return
     setIsSaving(true)
     try {
@@ -455,7 +441,7 @@ export function TransactionFormV3({
         amount: data.amount,
         currency: selectedAccount?.currencyCode ?? "USD",
         type: data.type,
-        date: data.date,
+        transactionDate: data.transactionDate,
         categoryId: data.categoryId ?? null,
         accountId: data.accountId,
         title: data.title?.trim() || "Untitled Transaction",
@@ -487,17 +473,15 @@ export function TransactionFormV3({
 
   const handleCancelPress = useCallback(() => {
     if (isDirty) {
-      unsavedChangesWarning.show(
-        () => {
-          isNavigatingRef.current = true
-          handleGoBack()
-        },
-        () => {},
-      )
+      pendingLeaveRef.current = () => {
+        isNavigatingRef.current = true
+        handleGoBack()
+      }
+      setUnsavedModalVisible(true)
     } else {
       handleGoBack()
     }
-  }, [isDirty, unsavedChangesWarning, handleGoBack])
+  }, [isDirty, handleGoBack])
 
   const handleDeleteConfirm = useCallback(async () => {
     if (!transaction) return
@@ -1097,7 +1081,7 @@ export function TransactionFormV3({
           {/* Date & time inline */}
           <View style={styles.fieldBlock}>
             <Text variant="small" style={styles.sectionLabel}>
-              Transaction date & time
+              Transaction date
             </Text>
             <Pressable
               style={styles.inlineDateRow}
@@ -1110,11 +1094,13 @@ export function TransactionFormV3({
                 variant="badge"
               />
               <Text variant="default" style={styles.inlineDateText}>
-                {format(date, "MMM d, yyyy")}
+                {format(date, "MMM d yyyy h:mm a")}
               </Text>
-              <Text variant="muted" style={styles.inlineTimeText}>
-                {format(date, "h:mm a")}
-              </Text>
+              <IconSymbol
+                name="chevron-right"
+                size={20}
+                style={[styles.chevronIcon, { color: theme.colors.primary }]}
+              />
             </Pressable>
           </View>
 
@@ -1146,6 +1132,225 @@ export function TransactionFormV3({
               </Pressable>
             )}
           />
+
+          {/* Notes: pressable opens modal; formatted preview inside the same pressable */}
+          <View style={styles.fieldBlock}>
+            <Text variant="small" style={styles.sectionLabel}>
+              Notes
+            </Text>
+            <Pressable
+              style={styles.notesPressable}
+              onPress={() => setNotesModalVisible(true)}
+              accessibilityLabel="Notes"
+              accessibilityHint="Open notes editor"
+            >
+              <View style={styles.notesHeaderRow}>
+                <DynamicIcon
+                  icon="clipboard"
+                  size={20}
+                  color={theme.colors.primary}
+                  variant="badge"
+                />
+                <Text
+                  variant="default"
+                  style={
+                    description?.trim()
+                      ? styles.fieldValue
+                      : styles.fieldPlaceholder
+                  }
+                  numberOfLines={1}
+                >
+                  {description?.trim() ? "Tap to edit notes" : "Add notes..."}
+                </Text>
+                <IconSymbol
+                  name="chevron-right"
+                  size={20}
+                  style={styles.chevronIcon}
+                />
+              </View>
+              {description?.trim() ? (
+                <View style={styles.notesFullPreviewWrap} pointerEvents="none">
+                  <Markdown style={notesMarkdownStyles(theme)}>
+                    {description}
+                  </Markdown>
+                </View>
+              ) : null}
+            </Pressable>
+            {descriptionError ? (
+              <Text style={styles.fieldError}>{descriptionError}</Text>
+            ) : null}
+          </View>
+
+          <MarkdownEditorModal
+            visible={notesModalVisible}
+            value={description ?? ""}
+            onSave={(markdown) => {
+              setValue("description", markdown, { shouldDirty: true })
+              setNotesModalVisible(false)
+            }}
+            onRequestClose={() => setNotesModalVisible(false)}
+          />
+
+          {/* File attachments (extra) */}
+          <View style={styles.fieldBlock}>
+            <Text variant="small" style={styles.sectionLabel}>
+              File attachments
+            </Text>
+
+            {attachments.length > 0 && (
+              <View style={styles.attachmentsList}>
+                {attachments.map((a) => (
+                  <View key={a.uri} style={styles.attachmentRow}>
+                    <Pressable
+                      style={styles.attachmentRowMain}
+                      onPress={() => {
+                        if (isImageExtension(a.ext)) {
+                          setPreviewAttachment(a)
+                        } else {
+                          setFileToOpen(a)
+                        }
+                      }}
+                    >
+                      <DynamicIcon
+                        icon={getFileIconForExtension(a.ext)}
+                        size={24}
+                        color={theme.colors.primary}
+                        variant="badge"
+                      />
+                      <View style={styles.attachmentInfo}>
+                        <Text
+                          variant="default"
+                          style={styles.attachmentName}
+                          numberOfLines={1}
+                        >
+                          {a.name}
+                        </Text>
+                        <Text variant="muted" style={styles.attachmentMeta}>
+                          {format(a.addedAt, "MMM d yyyy h:mm a")} •{" "}
+                          {formatFileSize(a.size)}
+                        </Text>
+                      </View>
+                    </Pressable>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      style={styles.attachmentRemoveBtn}
+                      onPress={() => setAttachmentToRemove(a)}
+                      accessibilityLabel="Remove attachment"
+                      hitSlop={8}
+                    >
+                      <IconSymbol name="close" size={20} />
+                    </Button>
+                  </View>
+                ))}
+              </View>
+            )}
+            <Pressable
+              style={styles.notesHeader}
+              onPress={() => setAddFilesExpanded((e) => !e)}
+              accessibilityLabel="Add files"
+              accessibilityHint={
+                addFilesExpanded ? "Collapse options" : "Expand to add files"
+              }
+            >
+              <IconSymbol
+                name="plus"
+                size={20}
+                color={theme.colors.customColors.semi}
+              />
+              <Text variant="default" style={styles.addFilesLabel}>
+                Add files
+              </Text>
+              <IconSymbol
+                name={addFilesExpanded ? "chevron-up" : "chevron-down"}
+                size={20}
+                style={styles.chevronIcon}
+              />
+            </Pressable>
+            {addFilesExpanded && (
+              <View style={styles.addFilesOptionsContainer}>
+                <Pressable
+                  style={styles.addFilesOptionRow}
+                  onPress={handleSelectFromFiles}
+                >
+                  <DynamicIcon
+                    icon="file-document"
+                    size={20}
+                    color={theme.colors.primary}
+                    variant="badge"
+                  />
+                  <Text variant="default" style={styles.addFilesOptionLabel}>
+                    Select from files
+                  </Text>
+                  <IconSymbol
+                    name="chevron-right"
+                    size={20}
+                    style={styles.chevronIcon}
+                  />
+                </Pressable>
+                <Pressable
+                  style={styles.addFilesOptionRow}
+                  onPress={handleTakePhoto}
+                >
+                  <DynamicIcon
+                    icon="camera"
+                    size={20}
+                    color={theme.colors.primary}
+                    variant="badge"
+                  />
+                  <Text variant="default" style={styles.addFilesOptionLabel}>
+                    Take a photo
+                  </Text>
+                  <IconSymbol
+                    name="chevron-right"
+                    size={20}
+                    style={styles.chevronIcon}
+                  />
+                </Pressable>
+                <Pressable
+                  style={styles.addFilesOptionRow}
+                  onPress={handleSelectMultipleMedia}
+                >
+                  <DynamicIcon
+                    icon="image-multiple"
+                    size={20}
+                    color={theme.colors.primary}
+                    variant="badge"
+                  />
+                  <Text variant="default" style={styles.addFilesOptionLabel}>
+                    Select multiple media
+                  </Text>
+                  <IconSymbol
+                    name="chevron-right"
+                    size={20}
+                    style={styles.chevronIcon}
+                  />
+                </Pressable>
+                <Pressable
+                  style={[
+                    styles.addFilesOptionRow,
+                    styles.addFilesOptionRowLast,
+                  ]}
+                  onPress={handleSelectSinglePhoto}
+                >
+                  <DynamicIcon
+                    icon="image"
+                    size={20}
+                    color={theme.colors.primary}
+                    variant="badge"
+                  />
+                  <Text variant="default" style={styles.addFilesOptionLabel}>
+                    Select a photo
+                  </Text>
+                  <IconSymbol
+                    name="chevron-right"
+                    size={20}
+                    style={styles.chevronIcon}
+                  />
+                </Pressable>
+              </View>
+            )}
+          </View>
 
           {/* Recurring — full UI kept for later; toggle works but only logs (Coming soon) */}
           <View style={styles.fieldBlock}>
@@ -1400,229 +1605,6 @@ export function TransactionFormV3({
             </View>
           </View>
 
-          {/* Notes: expandable text area */}
-          <View style={styles.fieldBlock}>
-            <Text variant="small" style={styles.sectionLabel}>
-              Notes
-            </Text>
-            <Pressable
-              style={styles.notesHeader}
-              onPress={() => setNotesExpanded((e) => !e)}
-              accessibilityLabel="Notes"
-              accessibilityHint={
-                notesExpanded ? "Collapse notes" : "Expand to add notes"
-              }
-            >
-              <DynamicIcon
-                icon="clipboard"
-                size={20}
-                color={theme.colors.primary}
-                variant="badge"
-              />
-              <Text
-                variant="default"
-                style={
-                  description ? styles.fieldValue : styles.fieldPlaceholder
-                }
-                numberOfLines={1}
-              >
-                {description || "Add notes..."}
-              </Text>
-              <IconSymbol
-                name={notesExpanded ? "chevron-up" : "chevron-down"}
-                size={20}
-                style={styles.chevronIcon}
-              />
-            </Pressable>
-            {notesExpanded && (
-              <Controller
-                control={control}
-                name="description"
-                render={({ field: { value, onChange } }) => (
-                  <RNTextInput
-                    value={value ?? ""}
-                    onChangeText={onChange}
-                    placeholder="Add notes about this transaction..."
-                    placeholderTextColor={theme.colors.customColors.semi}
-                    multiline
-                    numberOfLines={4}
-                    style={[
-                      styles.notesTextArea,
-                      {
-                        color: theme.colors.onSurface,
-                        borderColor: `${theme.colors.customColors.semi}40`,
-                      },
-                    ]}
-                  />
-                )}
-              />
-            )}
-            {descriptionError ? (
-              <Text style={styles.fieldError}>{descriptionError}</Text>
-            ) : null}
-          </View>
-
-          {/* File attachments (extra) */}
-          <View style={styles.fieldBlock}>
-            <Text variant="small" style={styles.sectionLabel}>
-              File attachments
-            </Text>
-
-            {attachments.length > 0 && (
-              <View style={styles.attachmentsList}>
-                {attachments.map((a) => (
-                  <View key={a.uri} style={styles.attachmentRow}>
-                    <Pressable
-                      style={styles.attachmentRowMain}
-                      onPress={() => {
-                        if (isImageExtension(a.ext)) {
-                          setPreviewAttachment(a)
-                        } else {
-                          setFileToOpen(a)
-                        }
-                      }}
-                    >
-                      <DynamicIcon
-                        icon={getFileIconForExtension(a.ext)}
-                        size={24}
-                        color={theme.colors.primary}
-                        variant="badge"
-                      />
-                      <View style={styles.attachmentInfo}>
-                        <Text
-                          variant="default"
-                          style={styles.attachmentName}
-                          numberOfLines={1}
-                        >
-                          {a.name}
-                        </Text>
-                        <Text variant="muted" style={styles.attachmentMeta}>
-                          {format(a.addedAt, "MMM d yyyy h:mm a")} •{" "}
-                          {formatFileSize(a.size)}
-                        </Text>
-                      </View>
-                    </Pressable>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      style={styles.attachmentRemoveBtn}
-                      onPress={() => setAttachmentToRemove(a)}
-                      accessibilityLabel="Remove attachment"
-                      hitSlop={8}
-                    >
-                      <IconSymbol name="close" size={20} />
-                    </Button>
-                  </View>
-                ))}
-              </View>
-            )}
-            <Pressable
-              style={styles.notesHeader}
-              onPress={() => setAddFilesExpanded((e) => !e)}
-              accessibilityLabel="Add files"
-              accessibilityHint={
-                addFilesExpanded ? "Collapse options" : "Expand to add files"
-              }
-            >
-              <IconSymbol
-                name="plus"
-                size={20}
-                color={theme.colors.customColors.semi}
-              />
-              <Text variant="default" style={styles.addFilesLabel}>
-                Add files
-              </Text>
-              <IconSymbol
-                name={addFilesExpanded ? "chevron-up" : "chevron-down"}
-                size={20}
-                style={styles.chevronIcon}
-              />
-            </Pressable>
-            {addFilesExpanded && (
-              <View style={styles.addFilesOptionsContainer}>
-                <Pressable
-                  style={styles.addFilesOptionRow}
-                  onPress={handleSelectFromFiles}
-                >
-                  <DynamicIcon
-                    icon="file-document"
-                    size={20}
-                    color={theme.colors.primary}
-                    variant="badge"
-                  />
-                  <Text variant="default" style={styles.addFilesOptionLabel}>
-                    Select from files
-                  </Text>
-                  <IconSymbol
-                    name="chevron-right"
-                    size={20}
-                    style={styles.chevronIcon}
-                  />
-                </Pressable>
-                <Pressable
-                  style={styles.addFilesOptionRow}
-                  onPress={handleTakePhoto}
-                >
-                  <DynamicIcon
-                    icon="camera"
-                    size={20}
-                    color={theme.colors.primary}
-                    variant="badge"
-                  />
-                  <Text variant="default" style={styles.addFilesOptionLabel}>
-                    Take a photo
-                  </Text>
-                  <IconSymbol
-                    name="chevron-right"
-                    size={20}
-                    style={styles.chevronIcon}
-                  />
-                </Pressable>
-                <Pressable
-                  style={styles.addFilesOptionRow}
-                  onPress={handleSelectMultipleMedia}
-                >
-                  <DynamicIcon
-                    icon="image-multiple"
-                    size={20}
-                    color={theme.colors.primary}
-                    variant="badge"
-                  />
-                  <Text variant="default" style={styles.addFilesOptionLabel}>
-                    Select multiple media
-                  </Text>
-                  <IconSymbol
-                    name="chevron-right"
-                    size={20}
-                    style={styles.chevronIcon}
-                  />
-                </Pressable>
-                <Pressable
-                  style={[
-                    styles.addFilesOptionRow,
-                    styles.addFilesOptionRowLast,
-                  ]}
-                  onPress={handleSelectSinglePhoto}
-                >
-                  <DynamicIcon
-                    icon="image"
-                    size={20}
-                    color={theme.colors.primary}
-                    variant="badge"
-                  />
-                  <Text variant="default" style={styles.addFilesOptionLabel}>
-                    Select a photo
-                  </Text>
-                  <IconSymbol
-                    name="chevron-right"
-                    size={20}
-                    style={styles.chevronIcon}
-                  />
-                </Pressable>
-              </View>
-            )}
-          </View>
-
           {!isNew && transaction && (
             <View style={styles.deleteButtonBlock}>
               <Button
@@ -1750,60 +1732,57 @@ export function TransactionFormV3({
         </Modal>
       )}
 
-      {/* Image preview modal */}
-      <Modal
-        visible={previewAttachment !== null}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setPreviewAttachment(null)}
-        statusBarTranslucent
-      >
-        <RNView style={styles.previewOverlay}>
-          <Pressable
-            style={styles.previewCloseBtn}
-            onPress={() => setPreviewAttachment(null)}
-            accessibilityLabel="Close preview"
-          >
-            <IconSymbol name="close" size={28} color="#fff" />
-          </Pressable>
-          {previewAttachment && (
-            <Image
-              source={{ uri: previewAttachment.uri }}
-              style={styles.previewImage}
-              contentFit="contain"
-            />
-          )}
-        </RNView>
-      </Modal>
-
-      <OpenFileConfirmSheet
-        id={OPEN_FILE_SHEET_ID}
-        fileToOpen={fileToOpen}
-        onDismiss={() => {
-          openFileSheet.dismiss()
-          setFileToOpen(null)
-        }}
-        onConfirm={() => {
-          openFileSheet.dismiss()
-          setFileToOpen(null)
-        }}
+      <AttachmentPreviewModal
+        attachment={previewAttachment}
+        onClose={() => setPreviewAttachment(null)}
       />
 
-      <DeleteFileConfirmSheet
-        id={DELETE_FILE_SHEET_ID}
-        onDismiss={() => {
-          deleteFileSheet.dismiss()
-          setAttachmentToRemove(null)
+      <ConfirmModal
+        visible={!!fileToOpen}
+        onRequestClose={() => setFileToOpen(null)}
+        onConfirm={async () => {
+          if (fileToOpen) {
+            try {
+              await openFileInExternalApp(fileToOpen.uri, fileToOpen.ext)
+            } finally {
+              setFileToOpen(null)
+            }
+          }
         }}
+        title={`Open ${fileToOpen?.name ?? "file"}?`}
+        description="Are you sure you want to open this file?"
+        confirmLabel="Confirm"
+        cancelLabel="Cancel"
+      />
+
+      <ConfirmModal
+        visible={!!attachmentToRemove}
+        onRequestClose={() => setAttachmentToRemove(null)}
         onConfirm={() => {
           if (attachmentToRemove) {
             removeAttachment(attachmentToRemove.uri)
-            deleteFileSheet.dismiss()
             setAttachmentToRemove(null)
           }
         }}
+        title="Delete file"
+        description="Are you sure you want to remove this attachment?"
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        variant="destructive"
       />
-      <UnsavedChangesSheet />
+      <ConfirmModal
+        visible={unsavedModalVisible}
+        onRequestClose={() => setUnsavedModalVisible(false)}
+        onConfirm={() => {
+          pendingLeaveRef.current?.()
+          pendingLeaveRef.current = null
+        }}
+        title="Close without saving?"
+        description="All changes will be lost."
+        confirmLabel="Discard"
+        cancelLabel="Cancel"
+        variant="default"
+      />
     </View>
   )
 }
@@ -1872,7 +1851,7 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 12,
     fontWeight: "600",
     color: theme.colors.customColors.semi,
-    textTransform: "uppercase",
+    textTransform: "capitalize",
     letterSpacing: 0.5,
     marginBottom: 8,
     marginHorizontal: H_PAD,
@@ -1888,7 +1867,7 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 12,
     fontWeight: "600",
     color: theme.colors.customColors.semi,
-    textTransform: "uppercase",
+    textTransform: "capitalize",
     letterSpacing: 0.5,
   },
   clearButton: {
@@ -1903,7 +1882,7 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 12,
     fontWeight: "600",
     color: theme.colors.primary,
-    textTransform: "uppercase",
+    textTransform: "capitalize",
     letterSpacing: 0.5,
   },
   accountTrigger: {
@@ -2127,6 +2106,7 @@ const styles = StyleSheet.create((theme) => ({
     gap: ROW_GAP,
     paddingVertical: ROW_PADDING_V,
     paddingHorizontal: H_PAD,
+    justifyContent: "space-between",
   },
   recurringDateRow: {
     flexDirection: "row",
@@ -2140,6 +2120,7 @@ const styles = StyleSheet.create((theme) => ({
     fontWeight: "500",
     color: theme.colors.onSurface,
     flex: 1,
+    minWidth: 0,
   },
   inlineTimeText: {
     fontSize: 14,
@@ -2293,12 +2274,29 @@ const styles = StyleSheet.create((theme) => ({
     opacity: 0.7,
     alignSelf: "center",
   },
+  notesPressable: {
+    paddingVertical: ROW_PADDING_V,
+    paddingHorizontal: H_PAD,
+  },
+  notesHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: ROW_GAP,
+  },
   notesHeader: {
     flexDirection: "row",
     alignItems: "center",
     gap: ROW_GAP,
     paddingVertical: ROW_PADDING_V,
     paddingHorizontal: H_PAD,
+  },
+  notesFullPreviewWrap: {
+    marginTop: 8,
+    minWidth: 0,
+    padding: 12,
+    borderRadius: theme.colors.radius,
+    overflow: "hidden",
+    backgroundColor: theme.colors.secondary,
   },
   addFilesLabel: {
     flex: 1,
@@ -2447,22 +2445,5 @@ const styles = StyleSheet.create((theme) => ({
   },
   saveSpinner: {
     marginVertical: 2,
-  },
-  previewOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.9)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  previewCloseBtn: {
-    position: "absolute",
-    top: 50,
-    left: H_PAD,
-    zIndex: 10,
-    padding: 8,
-  },
-  previewImage: {
-    width: "100%",
-    flex: 1,
   },
 }))

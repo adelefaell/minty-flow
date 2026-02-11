@@ -9,15 +9,15 @@ import Animated, {
 } from "react-native-reanimated"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
+import { Money } from "~/components/money"
 import { IconSymbol } from "~/components/ui/icon-symbol"
-import { Money } from "~/components/ui/money"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import type { TransactionWithRelations } from "~/database/services/transaction-service"
 import { useTimeUtils } from "~/hooks/use-time-utils"
 
-import { DynamicIcon } from "./dynamic-icon"
+import { DynamicIcon } from "../dynamic-icon"
 
 /**
  * The only caveat (edge case)

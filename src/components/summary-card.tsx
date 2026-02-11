@@ -1,8 +1,8 @@
 import { useMemo } from "react"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
+import { Money } from "~/components/money"
 import { IconSymbol, type IconSymbolName } from "~/components/ui/icon-symbol"
-import { Money } from "~/components/ui/money"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import type { TransactionWithRelations } from "~/database/services/transaction-service"
@@ -37,8 +37,16 @@ export const SummarySection = ({
 
   return (
     <View style={styles.sectionContainer}>
-      <Card type="income" label="Income" rows={incomeRows} />
-      <Card type="expense" label="Expense" rows={expenseRows} />
+      <Card
+        type={TransactionTypeEnum.INCOME}
+        label="Income"
+        rows={incomeRows}
+      />
+      <Card
+        type={TransactionTypeEnum.EXPENSE}
+        label="Expense"
+        rows={expenseRows}
+      />
     </View>
   )
 }

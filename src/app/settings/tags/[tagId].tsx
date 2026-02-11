@@ -1,20 +1,19 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { withObservables } from "@nozbe/watermelondb/react"
-import * as Contacts from "expo-contacts"
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
-import { ActivityIndicator, ScrollView } from "react-native"
+import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
 import { useBottomSheet } from "~/components/bottom-sheet"
 import { ChangeIconSheet } from "~/components/change-icon-sheet"
-import { ColorVariantSheet } from "~/components/color-variant-sheet"
+import { ColorVariantInline } from "~/components/color-variant-inline"
+import { ConfirmModal } from "~/components/confirm-modal"
 import { DynamicIcon } from "~/components/dynamic-icon"
 import { KeyboardStickyViewMinty } from "~/components/keyboard-sticky-view-minty"
 import { TabsMinty } from "~/components/tabs-minty"
-import { ContactSelectorSheet } from "~/components/tags/contact-selector-sheet"
-import { DeleteTagSheet } from "~/components/tags/delete-tag-sheet"
+import { ContactSelectorInline } from "~/components/tags/contact-selector-inline"
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Input } from "~/components/ui/input"
@@ -22,10 +21,6 @@ import { Pressable } from "~/components/ui/pressable"
 import { Separator } from "~/components/ui/separator"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import {
-  UnsavedChangesSheet,
-  useUnsavedChangesWarning,
-} from "~/components/unsaved-changes-sheet"
 import type TagModel from "~/database/models/Tag"
 import {
   createTag,
@@ -81,42 +76,30 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
 
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Contacts picker state
-  const [contacts, setContacts] = useState<Contacts.Contact[]>([])
-  const [loadingContacts, setLoadingContacts] = useState(false)
-  const [hasContactsPermission, setHasContactsPermission] = useState(false)
-
-  // Navigation and unsaved changes
+  // Navigation and unsaved changes (ConfirmModal)
   const navigation = useNavigation()
-  const unsavedChangesWarning = useUnsavedChangesWarning()
   const isNavigatingRef = useRef(false)
+  const pendingLeaveRef = useRef<(() => void) | null>(null)
+  const [unsavedModalVisible, setUnsavedModalVisible] = useState(false)
 
   // Sheets
   const changeIconSheet = useBottomSheet(
     `change-icon-tag-${tagId || NewEnum.NEW}`,
   )
-  const colorVariantSheet = useBottomSheet(
-    `color-variant-tag-${tagId || NewEnum.NEW}`,
-  )
-  const contactSelectorSheet = useBottomSheet(
-    `contact-selector-tag-${tagId || NewEnum.NEW}`,
-  )
-  const deleteTagSheet = useBottomSheet(`delete-tag-${tagId || NewEnum.NEW}`)
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false)
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("beforeRemove", (e) => {
       if (isSubmitting || isNavigatingRef.current || !isDirty) return
       e.preventDefault()
-      unsavedChangesWarning.show(
-        () => {
-          isNavigatingRef.current = true
-          router.back()
-        },
-        () => {},
-      )
+      pendingLeaveRef.current = () => {
+        isNavigatingRef.current = true
+        router.back()
+      }
+      setUnsavedModalVisible(true)
     })
     return unsubscribe
-  }, [navigation, isDirty, isSubmitting, router, unsavedChangesWarning])
+  }, [navigation, isDirty, isSubmitting, router])
 
   const onSubmit = async (data: AddTagsFormSchema) => {
     setIsSubmitting(true)
@@ -165,36 +148,6 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
       Toast.error({ title: "Error", description: "Failed to delete tag." })
     }
   }
-
-  const handleContactPickerPress = useCallback(async () => {
-    setLoadingContacts(true)
-    try {
-      const { status } = await Contacts.requestPermissionsAsync()
-
-      if (status === "granted") {
-        setHasContactsPermission(status === "granted")
-        const { data } = await Contacts.getContactsAsync({
-          fields: [Contacts.Fields.PhoneNumbers, Contacts.Fields.Emails],
-          sort: Contacts.SortTypes.FirstName,
-        })
-        setContacts(data)
-        contactSelectorSheet.present()
-      } else {
-        Toast.warn({
-          title: "Permission denied",
-          description:
-            "We need contacts permission to select a contact from your phone.",
-        })
-        logger.warn("Contacts permission denied")
-      }
-    } catch (error) {
-      logger.error("Error loading contacts", {
-        error: error instanceof Error ? error.message : String(error),
-      })
-    } finally {
-      setLoadingContacts(false)
-    }
-  }, [contactSelectorSheet])
 
   const currentColorScheme = getThemeStrict(formColorSchemeName)
 
@@ -284,66 +237,35 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
 
             {/* Settings List */}
             <View style={styles.settingsList}>
-              {/* Person Specific Info */}
+              {/* Person: contact selector – inline with search and scroll */}
               {formType === "contact" && (
-                <Pressable
-                  style={styles.settingsRow}
-                  onPress={handleContactPickerPress}
-                  disabled={loadingContacts}
-                >
-                  <View style={styles.settingsLeft}>
-                    {loadingContacts ? (
-                      <ActivityIndicator size="small" />
-                    ) : (
-                      <IconSymbol name="account-details" size={24} />
-                    )}
-                    <Text variant="default" style={styles.settingsLabel}>
-                      {loadingContacts
-                        ? "Loading contacts..."
-                        : "Select contact from phone"}
-                    </Text>
-                  </View>
-                  <IconSymbol
-                    name="chevron-right"
-                    size={20}
-                    style={styles.chevronIcon}
-                  />
-                </Pressable>
+                <ContactSelectorInline
+                  onContactSelected={(contact) => {
+                    if (contact.name) {
+                      setValue("name", contact.name, { shouldDirty: true })
+                    }
+                  }}
+                  onPermissionDenied={() => {
+                    Toast.warn({
+                      title: "Permission denied",
+                      description:
+                        "We need contacts permission to select a contact from your phone.",
+                    })
+                    logger.warn("Contacts permission denied")
+                  }}
+                />
               )}
 
-              {/* Color Selection */}
-              <Pressable
-                style={styles.settingsRow}
-                onPress={() => colorVariantSheet.present()}
-              >
-                <View style={styles.settingsLeft}>
-                  <IconSymbol name="palette" size={24} />
-                  <Text variant="default" style={styles.settingsLabel}>
-                    Change color
-                  </Text>
-                </View>
-                <View style={styles.settingsRight}>
-                  {currentColorScheme ? (
-                    <View
-                      style={[
-                        styles.colorPreview,
-                        {
-                          backgroundColor: currentColorScheme.primary,
-                        },
-                      ]}
-                    />
-                  ) : (
-                    <Text variant="default" style={styles.defaultColorText}>
-                      Default color
-                    </Text>
-                  )}
-                  <IconSymbol
-                    name="chevron-right"
-                    size={20}
-                    style={styles.chevronIcon}
-                  />
-                </View>
-              </Pressable>
+              {/* Color Selection – inline panel */}
+              <ColorVariantInline
+                selectedSchemeName={formColorSchemeName || undefined}
+                onColorSelected={(scheme) => {
+                  setValue("colorSchemeName", scheme, { shouldDirty: true })
+                }}
+                onClearSelection={() =>
+                  setValue("colorSchemeName", undefined, { shouldDirty: true })
+                }
+              />
             </View>
 
             {/* Divider */}
@@ -355,7 +277,7 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
           <View style={styles.deleteSection}>
             <Button
               variant="ghost"
-              onPress={() => deleteTagSheet.present()}
+              onPress={() => setDeleteModalVisible(true)}
               style={styles.actionButton}
             >
               <IconSymbol
@@ -411,35 +333,37 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
         colorScheme={currentColorScheme}
       />
 
-      <ColorVariantSheet
-        id={`color-variant-tag-${tagId || NewEnum.NEW}`}
-        selectedSchemeName={formColorSchemeName}
-        onColorSelected={(scheme) => {
-          setValue("colorSchemeName", scheme, { shouldDirty: true })
-        }}
-        onClearSelection={() =>
-          setValue("colorSchemeName", undefined, { shouldDirty: true })
-        }
-        onDismiss={() => colorVariantSheet.dismiss()}
-      />
-
-      <ContactSelectorSheet
-        id={`contact-selector-tag-${tagId || NewEnum.NEW}`}
-        contacts={contacts}
-        loading={loadingContacts}
-        hasPermission={hasContactsPermission}
-        onContactSelected={(contact) => {
-          if (contact.name) {
-            setValue("name", contact.name, { shouldDirty: true })
-          }
-        }}
-      />
-
       {!isAddMode && tag && (
-        <DeleteTagSheet tag={tag} onConfirm={handleDelete} />
+        <ConfirmModal
+          visible={deleteModalVisible}
+          onRequestClose={() => setDeleteModalVisible(false)}
+          onConfirm={handleDelete}
+          title={`Delete ${tag.name}?`}
+          description={
+            (tag.transactionCount ?? 0) > 0
+              ? `This tag is used by ${tag.transactionCount} transaction${tag.transactionCount !== 1 ? "s" : ""}. Deleting the tag will unlink it from all of them. This action cannot be undone.`
+              : "Deleting this tag cannot be undone. This action is irreversible!"
+          }
+          confirmLabel="Delete"
+          cancelLabel="Cancel"
+          variant="destructive"
+          icon="trash-can"
+        />
       )}
 
-      <UnsavedChangesSheet />
+      <ConfirmModal
+        visible={unsavedModalVisible}
+        onRequestClose={() => setUnsavedModalVisible(false)}
+        onConfirm={() => {
+          pendingLeaveRef.current?.()
+          pendingLeaveRef.current = null
+        }}
+        title="Close without saving?"
+        description="All changes will be lost."
+        confirmLabel="Discard"
+        cancelLabel="Cancel"
+        variant="default"
+      />
     </View>
   )
 }

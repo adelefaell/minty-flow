@@ -11,13 +11,13 @@ export const KeyboardStickyViewMinty = ({
   const insets = useSafeAreaInsets()
 
   const offset = useMemo(() => {
-    // We use the negative value of the system inset.
-    // This 'undoes' any padding being forced by a parent SafeAreaView.
-    const dynamicPullDown = -insets.bottom
-
+    // Root layout uses paddingBottom: insets.bottom, so our "closed" position
+    // is already above the nav bar — use 0 so we don't double-apply or fight it.
+    // When keyboard is open, the library positions above the keyboard but the
+    // same root padding creates a gap; add insets.bottom so we sit flush.
     return {
-      closed: dynamicPullDown,
-      opened: 0, // Keep 0 so it sticks perfectly to the keyboard top
+      closed: 0,
+      opened: insets.bottom,
     }
   }, [insets.bottom])
 

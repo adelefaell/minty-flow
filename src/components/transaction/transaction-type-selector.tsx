@@ -3,7 +3,7 @@ import { StyleSheet } from "react-native-unistyles"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import type { TransactionType } from "~/types/transactions"
+import { type TransactionType, TransactionTypeEnum } from "~/types/transactions"
 
 interface TransactionTypeSelectorProps {
   value: TransactionType
@@ -11,12 +11,16 @@ interface TransactionTypeSelectorProps {
 }
 
 const TYPE_CONFIG: Record<TransactionType, { label: string }> = {
-  expense: { label: "Expense" },
-  income: { label: "Income" },
-  transfer: { label: "Transfer" },
+  [TransactionTypeEnum.EXPENSE]: { label: "Expense" },
+  [TransactionTypeEnum.INCOME]: { label: "Income" },
+  [TransactionTypeEnum.TRANSFER]: { label: "Transfer" },
 }
 
-const TYPES: TransactionType[] = ["expense", "income", "transfer"]
+const TYPES: TransactionType[] = [
+  TransactionTypeEnum.EXPENSE,
+  TransactionTypeEnum.INCOME,
+  TransactionTypeEnum.TRANSFER,
+]
 
 export const TransactionTypeSelector = ({
   value,

@@ -1,23 +1,28 @@
 import { withObservables } from "@nozbe/watermelondb/react"
-import { endOfMonth, startOfMonth } from "date-fns"
+import { endOfMonth, format, startOfMonth, startOfWeek } from "date-fns"
 import { useRouter } from "expo-router"
-import { Fragment, useCallback, useMemo, useRef } from "react"
-import { Platform, SectionList } from "react-native"
+import { Fragment, useCallback, useMemo, useRef, useState } from "react"
+import { SectionList } from "react-native"
 import type { SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 import { startWith } from "rxjs"
 
 import { DynamicIcon } from "~/components/dynamic-icon"
+import { Money } from "~/components/money"
 import { SummarySection } from "~/components/summary-card"
-import { TransactionItem } from "~/components/transaction-item"
+import { TransactionFilterHeader } from "~/components/transaction/transaction-filter-header"
+import { TransactionItem } from "~/components/transaction/transaction-item"
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
-import { Money } from "~/components/ui/money"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import { observeAccountModels } from "~/database/services/account-service"
+import {
+  observeAccountModels,
+  observeAccounts,
+} from "~/database/services/account-service"
 import { observeCategoriesByType } from "~/database/services/category-service"
+import { observeTags } from "~/database/services/tag-service"
 import type { TransactionWithRelations } from "~/database/services/transaction-service"
 import {
   deleteTransactionModel,
@@ -26,7 +31,18 @@ import {
 import { useTimeUtils } from "~/hooks/use-time-utils"
 import { useMoneyFormattingStore } from "~/stores/money-formatting.store"
 import { useProfileStore } from "~/stores/profile.store"
-import type { TransactionType } from "~/types/transactions"
+import type { Account } from "~/types/accounts"
+import type { Category } from "~/types/categories"
+import type { Tag } from "~/types/tags"
+import type { TransactionListFilterState } from "~/types/transaction-filters"
+import {
+  DEFAULT_TRANSACTION_LIST_FILTER_STATE,
+  type GroupByOption,
+} from "~/types/transaction-filters"
+import type {
+  TransactionListFilters,
+  TransactionType,
+} from "~/types/transactions"
 import { TransactionTypeEnum } from "~/types/transactions"
 import { Toast } from "~/utils/toast"
 
@@ -49,15 +65,189 @@ function getCurrentMonthFilter() {
   }
 }
 
-interface HomeScreenProps {
-  transactionsFull?: TransactionWithRelations[] | null
+/** Build query filters for the DB: only date range. Filter by account/type/pending/attachments is applied client-side on fetched data. */
+function buildQueryFilters(
+  selectedRange: { start: Date; end: Date } | null,
+): TransactionListFilters {
+  return selectedRange
+    ? {
+        fromDate: selectedRange.start.getTime(),
+        toDate: selectedRange.end.getTime(),
+      }
+    : getCurrentMonthFilter()
 }
 
-function HomeScreenInner({ transactionsFull = [] }: HomeScreenProps) {
-  const list = transactionsFull ?? []
+/** Apply filter state to fetched transactions (client-side). */
+function applyFiltersToTransactions(
+  list: TransactionWithRelations[],
+  filterState: TransactionListFilterState,
+): TransactionWithRelations[] {
+  return list.filter((row) => {
+    if (
+      filterState.accountIds.length > 0 &&
+      !filterState.accountIds.includes(row.transaction.accountId)
+    ) {
+      return false
+    }
+    if (filterState.typeFilters.length > 0) {
+      if (!filterState.typeFilters.includes(row.transaction.type)) return false
+    }
+    if (filterState.pendingFilter === "pending") {
+      if (!row.transaction.isPending) return false
+    } else if (filterState.pendingFilter === "notPending") {
+      if (row.transaction.isPending) return false
+    }
+    if (filterState.attachmentFilter !== "all") {
+      const raw = row.transaction.extra?.attachments
+      let hasAttachments = false
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw) as unknown
+          hasAttachments = Array.isArray(parsed)
+            ? parsed.length > 0
+            : typeof parsed === "object" &&
+              parsed !== null &&
+              Object.keys(parsed).length > 0
+        } catch {
+          hasAttachments = raw.length > 0
+        }
+      }
+      if (filterState.attachmentFilter === "has" && !hasAttachments)
+        return false
+      if (filterState.attachmentFilter === "none" && hasAttachments)
+        return false
+    }
+    if (
+      filterState.categoryIds.length > 0 &&
+      (!row.transaction.categoryId ||
+        !filterState.categoryIds.includes(row.transaction.categoryId))
+    ) {
+      return false
+    }
+    if (filterState.tagIds.length > 0) {
+      const rowTagIds = row.tags.map((t) => t.id)
+      const hasSelectedTag = filterState.tagIds.some((id) =>
+        rowTagIds.includes(id),
+      )
+      if (!hasSelectedTag) return false
+    }
+    return true
+  })
+}
+
+function getSectionKeyAndTitle(
+  date: Date,
+  groupBy: GroupByOption,
+  formatSectionDateTitle: (d: Date) => string,
+): { key: string; title: string } {
+  switch (groupBy) {
+    case "hour":
+      return {
+        key: format(date, "yyyy-MM-dd-HH"),
+        title: format(date, "MMM d, yyyy h a"),
+      }
+    case "day":
+      return {
+        key: format(date, "yyyy-MM-dd"),
+        title: formatSectionDateTitle(date),
+      }
+    case "week": {
+      const weekStart = startOfWeek(date, { weekStartsOn: 1 })
+      return {
+        key: format(weekStart, "RRRR-'W'II"),
+        title: `Week of ${format(weekStart, "MMM d")}`,
+      }
+    }
+    case "month":
+      return {
+        key: format(date, "yyyy-MM"),
+        title: format(date, "MMMM yyyy"),
+      }
+    case "year":
+      return {
+        key: format(date, "yyyy"),
+        title: format(date, "yyyy"),
+      }
+    case "allTime":
+      return { key: "all", title: "All time" }
+    default:
+      return {
+        key: format(date, "yyyy-MM-dd"),
+        title: formatSectionDateTitle(date),
+      }
+  }
+}
+
+interface HomeScreenProps {
+  transactionsFull?: TransactionWithRelations[] | null
+  accounts?: Account[]
+  categoriesExpense?: Category[]
+  categoriesIncome?: Category[]
+  categoriesTransfer?: Category[]
+  tags?: Tag[]
+  filterState?: TransactionListFilterState
+  onFilterChange?: (state: TransactionListFilterState) => void
+  selectedRange?: { start: Date; end: Date } | null
+  onDateRangeChange?: (range: { start: Date; end: Date } | null) => void
+  searchQuery?: string
+  onSearchApply?: (query: string) => void
+}
+
+/** Filter transactions by search query (title, description, amount, category name, account name). */
+function applySearchFilter(
+  list: TransactionWithRelations[],
+  query: string,
+): TransactionWithRelations[] {
+  if (!query.trim()) return list
+  const lower = query.toLowerCase().trim()
+  return list.filter((row) => {
+    const title = row.transaction.title ?? ""
+    const description = row.transaction.description ?? ""
+    const amount = String(row.transaction.amount)
+    const categoryName = row.category?.name ?? ""
+    const accountName = row.account.name ?? ""
+    return (
+      title.toLowerCase().includes(lower) ||
+      description.toLowerCase().includes(lower) ||
+      amount.includes(lower) ||
+      categoryName.toLowerCase().includes(lower) ||
+      accountName.toLowerCase().includes(lower)
+    )
+  })
+}
+
+function HomeScreenInner({
+  transactionsFull = [],
+  accounts = [],
+  categoriesExpense = [],
+  categoriesIncome = [],
+  categoriesTransfer = [],
+  tags = [],
+  filterState = DEFAULT_TRANSACTION_LIST_FILTER_STATE,
+  onFilterChange,
+  selectedRange = null,
+  onDateRangeChange,
+  searchQuery = "",
+  onSearchApply,
+}: HomeScreenProps) {
+  const categoriesByType = useMemo(
+    () => ({
+      expense: categoriesExpense,
+      income: categoriesIncome,
+      transfer: categoriesTransfer,
+    }),
+    [categoriesExpense, categoriesIncome, categoriesTransfer],
+  )
+  const list = useMemo(() => {
+    const filtered = applyFiltersToTransactions(
+      transactionsFull ?? [],
+      filterState,
+    )
+    return applySearchFilter(filtered, searchQuery)
+  }, [transactionsFull, filterState, searchQuery])
   const router = useRouter()
   const { theme } = useUnistyles()
-  const { formatDateKey, formatSectionDateTitle } = useTimeUtils()
+  const { formatSectionDateTitle } = useTimeUtils()
   const profileName = useProfileStore((s) => s.name)
   const image = useProfileStore((s) => s.imageUri)
   const { privacyMode: privacyModeEnabled, togglePrivacyMode: togglePrivacy } =
@@ -76,7 +266,7 @@ function HomeScreenInner({ transactionsFull = [] }: HomeScreenProps) {
       ]
     }
 
-    // Newest first: sort by transaction date desc, then by createdAt for same day
+    const groupBy = filterState.groupBy
     const sortedList = [...list].sort((a, b) => {
       const tA = a.transaction.transactionDate
       const tB = b.transaction.transactionDate
@@ -103,32 +293,58 @@ function HomeScreenInner({ transactionsFull = [] }: HomeScreenProps) {
       }
     > = {}
 
-    sortedList.forEach((row) => {
-      const t = row.transaction
-      const dateKey = formatDateKey(t.transactionDate)
-      const headerTitle = formatSectionDateTitle(t.transactionDate)
-
-      if (!grouped[dateKey]) {
-        grouped[dateKey] = {
-          title: headerTitle,
-          data: [],
-          totals: {},
-        }
+    if (groupBy === "allTime") {
+      const key = "all"
+      grouped[key] = {
+        title: "All time",
+        data: [],
+        totals: {},
       }
+      sortedList.forEach((row) => {
+        grouped[key].data.push(row)
+        const currency = row.account.currencyCode
+        const contribution = transactionContribution(
+          row.transaction.type,
+          row.transaction.amount,
+        )
+        grouped[key].totals[currency] =
+          (grouped[key].totals[currency] || 0) + contribution
+      })
+    } else {
+      sortedList.forEach((row) => {
+        const t = row.transaction
+        const d =
+          t.transactionDate instanceof Date
+            ? t.transactionDate
+            : new Date(t.transactionDate)
+        const { key: dateKey, title: headerTitle } = getSectionKeyAndTitle(
+          d,
+          groupBy,
+          formatSectionDateTitle,
+        )
 
-      grouped[dateKey].data.push(row)
-      const currency = row.account.currencyCode
-      const contribution = transactionContribution(t.type, t.amount)
-      grouped[dateKey].totals[currency] =
-        (grouped[dateKey].totals[currency] || 0) + contribution
-    })
+        if (!grouped[dateKey]) {
+          grouped[dateKey] = {
+            title: headerTitle,
+            data: [],
+            totals: {},
+          }
+        }
+
+        grouped[dateKey].data.push(row)
+        const currency = row.account.currencyCode
+        const contribution = transactionContribution(t.type, t.amount)
+        grouped[dateKey].totals[currency] =
+          (grouped[dateKey].totals[currency] || 0) + contribution
+      })
+    }
 
     return Object.values(grouped).sort(
       (a, b) =>
         b.data[0].transaction.transactionDate.getTime() -
         a.data[0].transaction.transactionDate.getTime(),
     )
-  }, [list, formatDateKey, formatSectionDateTitle])
+  }, [list, filterState.groupBy, formatSectionDateTitle])
 
   const handleOnTransactionPress = useCallback(
     (transactionId: string) => {
@@ -199,23 +415,20 @@ function HomeScreenInner({ transactionsFull = [] }: HomeScreenProps) {
         </Button>
       </View>
 
-      {/* Action Row - Refined with theme radius */}
-      <View style={styles.actionRow}>
-        <Pressable style={styles.pillButton}>
-          <IconSymbol name="filter-variant" size={20} />
-          <Text variant="default" style={{ marginLeft: 4 }}>
-            0
-          </Text>
-        </Pressable>
-        <Pressable style={[styles.pillButton, styles.searchButton]}>
-          <IconSymbol name="magnify" size={20} style={{ marginRight: 8 }} />
-          <Text style={styles.searchText}>Search</Text>
-        </Pressable>
-        <Pressable style={styles.pillButton}>
-          <IconSymbol name="calendar" size={20} style={{ marginRight: 8 }} />
-          <Text variant="default">This month</Text>
-        </Pressable>
-      </View>
+      {/* Inline filter header: pill bar + expandable filter panels */}
+      {onFilterChange ? (
+        <TransactionFilterHeader
+          accounts={accounts}
+          categoriesByType={categoriesByType}
+          tags={tags}
+          filterState={filterState}
+          onFilterChange={onFilterChange}
+          selectedRange={selectedRange}
+          onDateRangeChange={onDateRangeChange}
+          searchQuery={searchQuery}
+          onSearchApply={onSearchApply}
+        />
+      ) : null}
 
       {/* Transactions List */}
       <SectionList
@@ -288,16 +501,58 @@ function HomeScreenInner({ transactionsFull = [] }: HomeScreenProps) {
   )
 }
 
-const EnhancedHomeScreen = withObservables([], () => ({
-  transactionsFull: observeTransactionModelsFull(getCurrentMonthFilter(), [
-    observeAccountModels(false),
-    observeCategoriesByType(TransactionTypeEnum.EXPENSE),
-    observeCategoriesByType(TransactionTypeEnum.INCOME),
-    observeCategoriesByType(TransactionTypeEnum.TRANSFER),
-  ]).pipe(startWith([] as TransactionWithRelations[])),
-}))(HomeScreenInner)
+const EnhancedHomeScreen = withObservables(
+  ["selectedRange"],
+  ({
+    selectedRange,
+  }: {
+    selectedRange: { start: Date; end: Date } | null
+  }) => ({
+    transactionsFull: observeTransactionModelsFull(
+      buildQueryFilters(selectedRange ?? null),
+      [
+        observeAccountModels(false),
+        observeCategoriesByType(TransactionTypeEnum.EXPENSE),
+        observeCategoriesByType(TransactionTypeEnum.INCOME),
+        observeCategoriesByType(TransactionTypeEnum.TRANSFER),
+      ],
+    ).pipe(startWith([] as TransactionWithRelations[])),
+    accounts: observeAccounts(false).pipe(startWith([] as Account[])),
+    categoriesExpense: observeCategoriesByType(
+      TransactionTypeEnum.EXPENSE,
+    ).pipe(startWith([] as Category[])),
+    categoriesIncome: observeCategoriesByType(TransactionTypeEnum.INCOME).pipe(
+      startWith([] as Category[]),
+    ),
+    categoriesTransfer: observeCategoriesByType(
+      TransactionTypeEnum.TRANSFER,
+    ).pipe(startWith([] as Category[])),
+    tags: observeTags().pipe(startWith([] as Tag[])),
+  }),
+)(HomeScreenInner)
 
-export default EnhancedHomeScreen
+function HomeScreen() {
+  const [filterState, setFilterState] = useState<TransactionListFilterState>(
+    DEFAULT_TRANSACTION_LIST_FILTER_STATE,
+  )
+  const [selectedRange, setSelectedRange] = useState<{
+    start: Date
+    end: Date
+  } | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
+  return (
+    <EnhancedHomeScreen
+      filterState={filterState}
+      onFilterChange={setFilterState}
+      selectedRange={selectedRange}
+      onDateRangeChange={setSelectedRange}
+      searchQuery={searchQuery}
+      onSearchApply={setSearchQuery}
+    />
+  )
+}
+
+export default HomeScreen
 
 const styles = StyleSheet.create((theme) => ({
   container: {
@@ -310,7 +565,7 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingTop: Platform.OS === "ios" ? 20 : 20, // Reverted to simpler padding
+    paddingTop: 20,
   },
   greetingRow: {
     flexDirection: "row",
@@ -321,30 +576,6 @@ const styles = StyleSheet.create((theme) => ({
   },
   greetingText: {
     fontWeight: "bold",
-  },
-  actionRow: {
-    marginHorizontal: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    marginBottom: 20,
-  },
-  pillButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: theme.colors.radius,
-    borderWidth: 1,
-    borderColor: theme.colors.customColors.semi,
-  },
-  searchButton: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  searchText: {
-    color: theme.colors.onSecondary,
   },
   summaryContainer: {
     paddingHorizontal: 20,
@@ -373,9 +604,8 @@ const styles = StyleSheet.create((theme) => ({
     textAlign: "center",
   },
   sectionHeader: {
-    marginTop: 12,
     paddingHorizontal: 20,
-    marginBottom: 16,
+    marginVertical: 10,
   },
   sectionTitleRow: {
     flexDirection: "row",
@@ -398,7 +628,7 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: "center",
     flexWrap: "wrap",
     gap: 4,
-    marginTop: 4,
+    marginTop: 5,
   },
   totalsContainer: {
     flexDirection: "row",
@@ -406,7 +636,6 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: "flex-end",
     flexWrap: "wrap",
     gap: 8,
-    marginTop: 4,
   },
   sectionTotal: {
     fontWeight: "700",

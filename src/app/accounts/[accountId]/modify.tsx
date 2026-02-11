@@ -7,13 +7,13 @@ import { Controller, useForm } from "react-hook-form"
 import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
-import { AccountTypeSelectorSheet } from "~/components/accounts/account-type-selector-sheet"
-import { DeleteAccountSheet } from "~/components/accounts/delete-account-sheet"
+import { AccountTypeInline } from "~/components/accounts/account-type-inline"
 import { useBottomSheet } from "~/components/bottom-sheet"
 import { CalculatorSheet } from "~/components/calculator-sheet"
 import { ChangeIconSheet } from "~/components/change-icon-sheet"
-import { ColorVariantSheet } from "~/components/color-variant-sheet"
-import { CurrencySelectorSheet } from "~/components/currency-selector-sheet"
+import { ColorVariantInline } from "~/components/color-variant-inline"
+import { ConfirmModal } from "~/components/confirm-modal"
+import { CurrencySelectorInline } from "~/components/currency-selector-inline"
 import { DynamicIcon } from "~/components/dynamic-icon"
 import { KeyboardStickyViewMinty } from "~/components/keyboard-sticky-view-minty"
 import { Button } from "~/components/ui/button"
@@ -24,10 +24,6 @@ import { Separator } from "~/components/ui/separator"
 import { Switch } from "~/components/ui/switch"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import {
-  UnsavedChangesSheet,
-  useUnsavedChangesWarning,
-} from "~/components/unsaved-changes-sheet"
 import type AccountModel from "~/database/models/Account"
 import {
   createAccount,
@@ -44,7 +40,6 @@ import {
 import { getThemeStrict } from "~/styles/theme/registry"
 import { type Account, AccountTypeEnum } from "~/types/accounts"
 import { NewEnum } from "~/types/new"
-import { accountTypesList } from "~/utils/account-types-list"
 import { logger } from "~/utils/logger"
 import { formatDisplayValue } from "~/utils/number-format"
 import { Toast } from "~/utils/toast"
@@ -67,7 +62,7 @@ const EditAccountScreenInner = ({
 
   const handleGoBack = useCallback(() => {
     router.back()
-  }, [router.back])
+  }, [router])
 
   // Form state management with Zod validation
   const {
@@ -97,36 +92,26 @@ const EditAccountScreenInner = ({
   const formColorSchemeName = watch("colorSchemeName")
   const formType = watch("type")
   const formCurrencyCode = watch("currencyCode")
+  const formIsPrimary = watch("isPrimary")
 
   // Loading state
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Navigation and unsaved changes handling
+  // Navigation and unsaved changes (ConfirmModal)
   const navigation = useNavigation()
-  const unsavedChangesWarning = useUnsavedChangesWarning()
   const isNavigatingRef = useRef(false)
+  const pendingLeaveRef = useRef<(() => void) | null>(null)
+  const [unsavedModalVisible, setUnsavedModalVisible] = useState(false)
 
   // Bottom sheet controls
-  const deleteSheet = useBottomSheet(
-    `delete-account-${accountId || NewEnum.NEW}`,
-  )
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false)
   const changeIconSheet = useBottomSheet(
     `change-icon-account-${accountId || NewEnum.NEW}`,
-  )
-  const colorVariantSheet = useBottomSheet(
-    `color-variant-account-${accountId || NewEnum.NEW}`,
-  )
-  const currencySelectorSheet = useBottomSheet(
-    `currency-selector-account-${accountId || NewEnum.NEW}`,
   )
   const calculatorSheet = useBottomSheet(
     `calculator-account-${accountId || NewEnum.NEW}`,
   )
-  const accountTypeSheet = useBottomSheet(
-    `account-type-${accountId || NewEnum.NEW}`,
-  )
-
-  // Handle navigation with unsaved changes warning
+  // Handle navigation with unsaved changes: show ConfirmModal
   useEffect(() => {
     const unsubscribe = navigation.addListener(
       "beforeRemove",
@@ -137,18 +122,16 @@ const EditAccountScreenInner = ({
 
         e.preventDefault()
 
-        unsavedChangesWarning.show(
-          () => {
-            isNavigatingRef.current = true
-            handleGoBack()
-          },
-          () => {},
-        )
+        pendingLeaveRef.current = () => {
+          isNavigatingRef.current = true
+          handleGoBack()
+        }
+        setUnsavedModalVisible(true)
       },
     )
 
     return unsubscribe
-  }, [navigation, isDirty, isSubmitting, unsavedChangesWarning, handleGoBack])
+  }, [navigation, isDirty, isSubmitting, handleGoBack])
 
   const onSubmit = async (data: AddAccountsFormSchema) => {
     setIsSubmitting(true)
@@ -183,7 +166,7 @@ const EditAccountScreenInner = ({
           currencyCode: data.currencyCode,
           icon: data.icon,
           colorSchemeName: data.colorSchemeName,
-          isPrimary: data.isPrimary,
+          isPrimary: data.isArchived ? false : data.isPrimary,
           excludeFromBalance: data.excludeFromBalance,
           isArchived: data.isArchived,
         })
@@ -329,85 +312,26 @@ const EditAccountScreenInner = ({
 
           {/* Settings List */}
           <View style={styles.settingsList}>
-            {/* Currency Selection */}
-            <Pressable
-              style={styles.settingsRow}
-              onPress={() => currencySelectorSheet.present()}
-            >
-              <View style={styles.settingsLeft}>
-                <IconSymbol name="currency-usd" size={24} />
-                <Text variant="default" style={styles.settingsLabel}>
-                  Currency
-                </Text>
-              </View>
-              <View style={styles.settingsRight}>
-                <Text variant="default" style={styles.settingsValue}>
-                  {watch("currencyCode")}
-                </Text>
-                <IconSymbol
-                  name="chevron-right"
-                  size={20}
-                  style={styles.chevronIcon}
-                />
-              </View>
-            </Pressable>
+            {/* Currency – inline with search and scroll */}
+            <CurrencySelectorInline
+              selectedCurrencyCode={formCurrencyCode}
+              onCurrencySelected={handleCurrencySelected}
+            />
 
-            {/* Type Selection */}
-            <Pressable
-              style={styles.settingsRow}
-              onPress={() => accountTypeSheet.present()}
-            >
-              <View style={styles.settingsLeft}>
-                <IconSymbol name="shape" size={24} />
-                <Text variant="default" style={styles.settingsLabel}>
-                  Account type
-                </Text>
-              </View>
-              <View style={styles.settingsRight}>
-                <Text variant="default" style={styles.settingsValue}>
-                  {accountTypesList.find((t) => t.type === formType)?.label}
-                </Text>
-                <IconSymbol
-                  name="chevron-right"
-                  size={20}
-                  style={styles.chevronIcon}
-                />
-              </View>
-            </Pressable>
+            {/* Account type – inline panel */}
+            <AccountTypeInline
+              selectedType={formType}
+              onTypeSelected={(type) =>
+                setValue("type", type, { shouldDirty: true })
+              }
+            />
 
-            {/* Color Selection */}
-            <Pressable
-              style={styles.settingsRow}
-              onPress={() => colorVariantSheet.present()}
-            >
-              <View style={styles.settingsLeft}>
-                <IconSymbol name="palette" size={24} />
-                <Text variant="default" style={styles.settingsLabel}>
-                  Change color
-                </Text>
-              </View>
-              <View style={styles.settingsRight}>
-                {currentColorScheme ? (
-                  <View
-                    style={[
-                      styles.colorPreview,
-                      {
-                        backgroundColor: currentColorScheme.primary,
-                      },
-                    ]}
-                  />
-                ) : (
-                  <Text variant="default" style={styles.defaultColorText}>
-                    Default color
-                  </Text>
-                )}
-                <IconSymbol
-                  name="chevron-right"
-                  size={20}
-                  style={styles.chevronIcon}
-                />
-              </View>
-            </Pressable>
+            {/* Color Selection – inline panel */}
+            <ColorVariantInline
+              selectedSchemeName={formColorSchemeName || undefined}
+              onColorSelected={handleColorSelected}
+              onClearSelection={handleColorCleared}
+            />
           </View>
 
           {/* Divider */}
@@ -443,30 +367,50 @@ const EditAccountScreenInner = ({
 
             {/* Primary Account - Only show in edit mode */}
             {!isAddMode && (
-              <Controller
-                control={control}
-                name="isPrimary"
-                render={({ field: { value, onChange } }) => (
-                  <Pressable
-                    style={styles.switchRow}
-                    onPress={() => onChange(!value)}
-                    accessibilityRole="switch"
-                    accessibilityState={{ checked: value }}
-                  >
-                    <View style={styles.switchLeft}>
-                      <IconSymbol name="star" size={24} />
-                      <Text variant="default" style={styles.switchLabel}>
-                        Primary account
-                      </Text>
-                    </View>
+              <View style={styles.primaryAccountBlock}>
+                <Controller
+                  control={control}
+                  name="isPrimary"
+                  render={({ field: { value, onChange } }) => (
+                    <Pressable
+                      style={styles.switchRow}
+                      onPress={() => {
+                        const next = !value
+                        if (next)
+                          setValue("isArchived", false, { shouldDirty: true })
+                        onChange(next)
+                      }}
+                      accessibilityRole="switch"
+                      accessibilityState={{ checked: value }}
+                    >
+                      <View style={styles.switchLeft}>
+                        <IconSymbol name="star" size={24} />
+                        <Text variant="default" style={styles.switchLabel}>
+                          Primary account
+                        </Text>
+                      </View>
 
-                    {/* Disable pointer events so presses go to the row */}
-                    <View pointerEvents="none">
-                      <Switch value={value} />
-                    </View>
-                  </Pressable>
+                      {/* Disable pointer events so presses go to the row */}
+                      <View pointerEvents="none">
+                        <Switch value={value} />
+                      </View>
+                    </Pressable>
+                  )}
+                />
+                {formIsPrimary && (
+                  <View style={styles.primaryAccountHintContainer}>
+                    <IconSymbol
+                      name="information"
+                      style={styles.primaryAccountHintIcon}
+                      size={14}
+                    />
+                    <Text variant="small" style={styles.primaryAccountHint}>
+                      This account will be used as the default account for new
+                      transactions and other actions.
+                    </Text>
+                  </View>
                 )}
-              />
+              </View>
             )}
 
             {/* Archive Account */}
@@ -477,7 +421,12 @@ const EditAccountScreenInner = ({
                 render={({ field: { value, onChange } }) => (
                   <Pressable
                     style={styles.switchRow}
-                    onPress={() => onChange(!value)}
+                    onPress={() => {
+                      const next = !value
+                      if (next)
+                        setValue("isPrimary", false, { shouldDirty: true })
+                      onChange(next)
+                    }}
                     accessibilityRole="switch"
                     accessibilityState={{ checked: value }}
                   >
@@ -506,7 +455,7 @@ const EditAccountScreenInner = ({
             {account?.isArchived ? (
               <Button
                 variant="ghost"
-                onPress={() => deleteSheet.present()}
+                onPress={() => setDeleteModalVisible(true)}
                 style={styles.actionButton}
               >
                 <IconSymbol
@@ -567,10 +516,20 @@ const EditAccountScreenInner = ({
       </KeyboardStickyViewMinty>
 
       {!isAddMode && account && (
-        <DeleteAccountSheet
-          account={account}
-          transactionCount={transactionCount}
+        <ConfirmModal
+          visible={deleteModalVisible}
+          onRequestClose={() => setDeleteModalVisible(false)}
           onConfirm={handleDelete}
+          title={`Delete ${account.name}?`}
+          description={
+            transactionCount > 0
+              ? `This account has ${transactionCount} transaction${transactionCount !== 1 ? "s" : ""}. Deleting the account will also delete ${transactionCount === 1 ? "it" : "them"}. This action cannot be undone.`
+              : "Deleting this account cannot be undone. This action is irreversible!"
+          }
+          confirmLabel="Delete"
+          cancelLabel="Cancel"
+          variant="destructive"
+          icon="trash-can"
         />
       )}
 
@@ -581,26 +540,6 @@ const EditAccountScreenInner = ({
         colorScheme={currentColorScheme}
       />
 
-      <ColorVariantSheet
-        id={`color-variant-account-${accountId || NewEnum.NEW}`}
-        selectedSchemeName={formColorSchemeName}
-        onColorSelected={handleColorSelected}
-        onClearSelection={handleColorCleared}
-        onDismiss={() => colorVariantSheet.dismiss()}
-      />
-
-      <CurrencySelectorSheet
-        id={`currency-selector-account-${accountId || NewEnum.NEW}`}
-        onCurrencySelected={handleCurrencySelected}
-        initialCurrency={watch("currencyCode")}
-      />
-
-      <AccountTypeSelectorSheet
-        id={`account-type-${accountId || NewEnum.NEW}`}
-        selectedType={formType}
-        onTypeSelected={(type) => setValue("type", type, { shouldDirty: true })}
-      />
-
       <CalculatorSheet
         id={`calculator-account-${accountId || NewEnum.NEW}`}
         title="Update Balance"
@@ -609,7 +548,19 @@ const EditAccountScreenInner = ({
         currencyCode={watch("currencyCode")}
       />
 
-      <UnsavedChangesSheet />
+      <ConfirmModal
+        visible={unsavedModalVisible}
+        onRequestClose={() => setUnsavedModalVisible(false)}
+        onConfirm={() => {
+          pendingLeaveRef.current?.()
+          pendingLeaveRef.current = null
+        }}
+        title="Close without saving?"
+        description="All changes will be lost."
+        confirmLabel="Discard"
+        cancelLabel="Cancel"
+        variant="default"
+      />
     </View>
   )
 }
@@ -775,6 +726,7 @@ const styles = StyleSheet.create((theme) => ({
   switchLeft: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 10,
   },
   switchLabel: {
     fontSize: 16,
@@ -823,8 +775,27 @@ const styles = StyleSheet.create((theme) => ({
     fontWeight: "600",
     color: theme.colors.onPrimary,
   },
+  primaryAccountBlock: {
+    gap: 4,
+  },
+  primaryAccountHintContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingHorizontal: 20,
+    paddingBottom: 8,
+  },
+  primaryAccountHintIcon: {
+    color: theme.colors.customColors.semi,
+  },
+  primaryAccountHint: {
+    flex: 1,
+    fontSize: 12,
+    color: theme.colors.customColors.semi,
+  },
   archiveContainer: {
     flexDirection: "row",
+    alignItems: "center",
     gap: 5,
   },
   archiveWarningIcon: {
@@ -833,8 +804,5 @@ const styles = StyleSheet.create((theme) => ({
   archiveWarning: {
     fontSize: 12,
     color: theme.colors.customColors.semi,
-    opacity: 0.7,
-    fontStyle: "italic",
-    // paddingHorizontal: 8,
   },
 }))

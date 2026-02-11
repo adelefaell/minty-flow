@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-02-09T18:02:05.574Z
+Generated on: 2026-02-11T22:42:45.494Z
 
 ```
 ./
@@ -107,29 +107,24 @@ Generated on: 2026-02-09T18:02:05.574Z
 │   ├── 📁 components/
 │   │   ├── 📁 accounts/
 │   │   │   ├── 📄 account-card.tsx
-│   │   │   ├── 📄 account-type-selector-sheet.tsx
-│   │   │   └── 📄 delete-account-sheet.tsx
+│   │   │   └── 📄 account-type-inline.tsx
 │   │   ├── 📁 categories/
 │   │   │   ├── 📄 category-list.tsx
 │   │   │   ├── 📄 category-row.tsx
 │   │   │   ├── 📄 category-screen-content.tsx
-│   │   │   ├── 📄 category-type-selector-sheet.tsx
-│   │   │   └── 📄 delete-category-sheet.tsx
+│   │   │   └── 📄 category-type-inline.tsx
 │   │   ├── 📁 profile/
 │   │   │   └── 📄 profile-section.tsx
 │   │   ├── 📁 tags/
-│   │   │   ├── 📄 contact-selector-sheet.tsx
-│   │   │   ├── 📄 delete-tag-sheet.tsx
+│   │   │   ├── 📄 contact-selector-inline.tsx
 │   │   │   └── 📄 tag-card.tsx
 │   │   ├── 📁 transaction/
-│   │   │   ├── 📄 account-sheet.tsx
-│   │   │   ├── 📄 category-sheet.tsx
-│   │   │   ├── 📄 delete-file-confirm-sheet.tsx
-│   │   │   ├── 📄 delete-transaction-sheet.tsx
+│   │   │   ├── 📄 attachment-preview-modal.tsx
+│   │   │   ├── 📄 markdown-editor-modal.tsx
 │   │   │   ├── 📄 notes-modal.tsx
-│   │   │   ├── 📄 open-file-confirm-sheet.tsx
-│   │   │   ├── 📄 tag-sheet.tsx
+│   │   │   ├── 📄 transaction-filter-header.tsx
 │   │   │   ├── 📄 transaction-form-v3.tsx
+│   │   │   ├── 📄 transaction-item.tsx
 │   │   │   └── 📄 transaction-type-selector.tsx
 │   │   ├── 📁 ui/
 │   │   │   ├── 📄 button.tsx
@@ -137,7 +132,6 @@ Generated on: 2026-02-09T18:02:05.574Z
 │   │   │   ├── 📄 icon-symbol.ios.tsx
 │   │   │   ├── 📄 icon-symbol.tsx
 │   │   │   ├── 📄 input.tsx
-│   │   │   ├── 📄 money.tsx
 │   │   │   ├── 📄 pressable.tsx
 │   │   │   ├── 📄 separator.tsx
 │   │   │   ├── 📄 switch.tsx
@@ -149,8 +143,10 @@ Generated on: 2026-02-09T18:02:05.574Z
 │   │   ├── 📄 bottom-sheet.tsx
 │   │   ├── 📄 calculator-sheet.tsx
 │   │   ├── 📄 change-icon-sheet.tsx
-│   │   ├── 📄 color-variant-sheet.tsx
-│   │   ├── 📄 currency-selector-sheet.tsx
+│   │   ├── 📄 color-variant-inline.tsx
+│   │   ├── 📄 confirm-modal.tsx
+│   │   ├── 📄 currency-selector-inline.tsx
+│   │   ├── 📄 date-range-preset-modal.tsx
 │   │   ├── 📄 dynamic-icon.tsx
 │   │   ├── 📄 emoji-letter-selection-sheet.tsx
 │   │   ├── 📄 external-link.tsx
@@ -158,6 +154,7 @@ Generated on: 2026-02-09T18:02:05.574Z
 │   │   ├── 📄 icon-selection-sheet.tsx
 │   │   ├── 📄 image-selection-sheet.tsx
 │   │   ├── 📄 keyboard-sticky-view-minty.tsx
+│   │   ├── 📄 money.tsx
 │   │   ├── 📄 parallax-scroll-view.tsx
 │   │   ├── 📄 reorderable-list-v1.tsx
 │   │   ├── 📄 reorderable-list-v2.tsx
@@ -165,9 +162,7 @@ Generated on: 2026-02-09T18:02:05.574Z
 │   │   ├── 📄 search-input.tsx
 │   │   ├── 📄 summary-card.tsx
 │   │   ├── 📄 tabs-minty.tsx
-│   │   ├── 📄 toggle-item.tsx
-│   │   ├── 📄 transaction-item.tsx
-│   │   └── 📄 unsaved-changes-sheet.tsx
+│   │   └── 📄 toggle-item.tsx
 │   ├── 📁 constants/
 │   │   ├── 📄 minty-icons-selection.ts
 │   │   ├── 📄 pre-sets-categories.ts
@@ -253,6 +248,7 @@ Generated on: 2026-02-09T18:02:05.574Z
 │   │   ├── 📄 loans.ts
 │   │   ├── 📄 new.ts
 │   │   ├── 📄 tags.ts
+│   │   ├── 📄 transaction-filters.ts
 │   │   └── 📄 transactions.ts
 │   └── 📁 utils/
 │       ├── 📄 account-types-list.ts

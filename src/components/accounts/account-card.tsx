@@ -1,12 +1,12 @@
 import { useRouter } from "expo-router"
-import { StyleSheet, useUnistyles } from "react-native-unistyles"
+import { StyleSheet } from "react-native-unistyles"
 
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import type { Account } from "~/types/accounts"
 import { TransactionTypeEnum } from "~/types/transactions"
 
 import { DynamicIcon } from "../dynamic-icon"
-import { Money } from "../ui/money"
+import { Money } from "../money"
 import { Pressable } from "../ui/pressable"
 import { Text } from "../ui/text"
 import { View } from "../ui/view"
@@ -27,8 +27,6 @@ export const AccountCard = ({
   isReorderMode,
 }: AccountCardProps) => {
   const router = useRouter()
-
-  const { theme } = useUnistyles()
 
   const handleViewAccount = () => {
     if (!isReorderMode) {
@@ -63,18 +61,21 @@ export const AccountCard = ({
               <IconSymbol
                 name="archive"
                 size={16}
-                color={theme.colors.customColors.semi}
+                color={styles.semiColor.color}
               />
             )}
           </View>
-          <Text variant="small" style={styles.accountType}>
-            {account.type}{" "}
+          <View style={styles.accountTypeRow} variant="muted">
+            <Text variant="small" style={styles.accountType}>
+              {account.type}
+            </Text>
             {account.isPrimary && (
-              <>
-                • <IconSymbol name="star" size={14} />
-              </>
+              <View style={styles.primaryBadge}>
+                <IconSymbol name="star" size={12} />
+                <Text style={styles.primaryBadgeText}>Primary</Text>
+              </View>
             )}
-          </Text>
+          </View>
         </View>
 
         <Money
@@ -96,7 +97,7 @@ export const AccountCard = ({
                 <IconSymbol
                   name="arrow-down"
                   size={12}
-                  color={theme.colors.customColors.income}
+                  color={styles.incomeColor.color}
                 />
                 <Text style={styles.summaryItemLabel}>IN</Text>
               </View>
@@ -104,7 +105,7 @@ export const AccountCard = ({
               <Money
                 value={monthIn}
                 variant="default"
-                style={[styles.summaryAmount, styles.incomeAmount]}
+                style={styles.summaryAmount}
                 currency={account.currencyCode}
                 tone={TransactionTypeEnum.INCOME}
               />
@@ -114,7 +115,7 @@ export const AccountCard = ({
                 <IconSymbol
                   name="arrow-up"
                   size={12}
-                  color={theme.colors.customColors.expense}
+                  color={styles.expenseColor.color}
                 />
                 <Text style={styles.summaryItemLabel}>OUT</Text>
               </View>
@@ -122,7 +123,7 @@ export const AccountCard = ({
               <Money
                 value={monthOut}
                 variant="default"
-                style={[styles.summaryAmount, styles.expenseAmount]}
+                style={styles.summaryAmount}
                 currency={account.currencyCode}
                 // tone={TransactionTypeEnum.EXPENSE}
                 showSign
@@ -133,7 +134,7 @@ export const AccountCard = ({
                 <IconSymbol
                   name="chart-timeline-variant"
                   size={12}
-                  color={theme.colors.customColors.semi}
+                  color={styles.semiColor.color}
                 />
                 <Text style={styles.summaryItemLabel}>NET</Text>
               </View>
@@ -184,12 +185,33 @@ const styles = StyleSheet.create((theme) => ({
     fontWeight: "600",
     color: theme.colors.onSecondary,
   },
+  accountTypeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
   accountType: {
     fontSize: 11,
     fontWeight: "500",
     color: theme.colors.customColors.semi,
     textTransform: "uppercase",
     letterSpacing: 0.5,
+  },
+  primaryBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    backgroundColor: theme.colors.surface,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 4,
+  },
+  primaryBadgeText: {
+    fontSize: 9,
+    fontWeight: "600",
+    color: theme.colors.onSurface,
+    textTransform: "uppercase",
+    letterSpacing: 0.2,
   },
   balance: {
     fontSize: 20,
@@ -234,10 +256,13 @@ const styles = StyleSheet.create((theme) => ({
     fontWeight: "600",
     color: theme.colors.onSecondary,
   },
-  incomeAmount: {
+  semiColor: {
+    color: theme.colors.customColors.semi,
+  },
+  incomeColor: {
     color: theme.colors.customColors.income,
   },
-  expenseAmount: {
+  expenseColor: {
     color: theme.colors.customColors.expense,
   },
 }))
