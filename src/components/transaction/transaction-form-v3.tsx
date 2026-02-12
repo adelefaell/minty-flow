@@ -55,6 +55,8 @@ import type TransactionModel from "~/database/models/Transaction"
 import {
   createTransactionModel,
   deleteTransactionModel,
+  destroyTransactionModel,
+  restoreTransactionModel,
   updateTransactionModel,
 } from "~/database/services/transaction-service"
 import {
@@ -200,6 +202,7 @@ export function TransactionFormV3({
   const isNavigatingRef = useRef(false)
   const pendingLeaveRef = useRef<(() => void) | null>(null)
   const [unsavedModalVisible, setUnsavedModalVisible] = useState(false)
+  const [destroyModalVisible, setDestroyModalVisible] = useState(false)
 
   const defaultValues = useMemo(
     () =>
@@ -481,6 +484,45 @@ export function TransactionFormV3({
     } catch (error) {
       logger.error("Failed to move transaction to trash", { error })
       Toast.error({ title: "Failed to move to trash" })
+    }
+  }, [transaction, router])
+
+  const handleRestore = useCallback(async () => {
+    if (!transaction?.isDeleted) return
+    try {
+      await restoreTransactionModel(transaction)
+      Toast.success({ title: "Restored", description: "Transaction restored." })
+      isNavigatingRef.current = true
+      router.back()
+    } catch {
+      Toast.error({
+        title: "Error",
+        description: "Failed to restore transaction.",
+      })
+    }
+  }, [transaction, router])
+
+  const handleDestroy = useCallback(() => {
+    if (!transaction) return
+    setDestroyModalVisible(true)
+  }, [transaction])
+
+  const handleDestroyConfirm = useCallback(async () => {
+    if (!transaction) return
+    setDestroyModalVisible(false)
+    try {
+      await destroyTransactionModel(transaction)
+      Toast.success({
+        title: "Deleted",
+        description: "Transaction permanently removed.",
+      })
+      isNavigatingRef.current = true
+      router.back()
+    } catch {
+      Toast.error({
+        title: "Error",
+        description: "Failed to delete transaction.",
+      })
     }
   }, [transaction, router])
 
@@ -1587,23 +1629,54 @@ export function TransactionFormV3({
 
           {!isNew && transaction && (
             <View style={styles.deleteButtonBlock}>
-              <Button
-                variant="ghost"
-                style={styles.deleteButton}
-                onPress={handleDeleteConfirm}
-                disabled={isSaving}
-                accessibilityLabel="Move to trash"
-                accessibilityRole="button"
-              >
-                <IconSymbol
-                  name="trash-can"
-                  size={20}
-                  style={styles.deleteButtonColor}
-                />
-                <Text variant="default" style={styles.deleteButtonColor}>
-                  Move to trash
-                </Text>
-              </Button>
+              {transaction.isDeleted ? (
+                <>
+                  <Button
+                    variant="ghost"
+                    onPress={handleRestore}
+                    disabled={isSaving}
+                    accessibilityLabel="Restore"
+                    accessibilityRole="button"
+                  >
+                    <IconSymbol name="delete-restore" size={20} />
+                    <Text variant="default">Restore</Text>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onPress={handleDestroy}
+                    disabled={isSaving}
+                    accessibilityLabel="Destroy permanently"
+                    accessibilityRole="button"
+                  >
+                    <IconSymbol
+                      name="trash-can"
+                      size={20}
+                      style={styles.deleteButtonColor}
+                    />
+                    <Text variant="default" style={styles.deleteButtonColor}>
+                      Permanently delete
+                    </Text>
+                  </Button>
+                </>
+              ) : !transaction.isDeleted ? (
+                <Button
+                  variant="ghost"
+                  style={styles.deleteButton}
+                  onPress={handleDeleteConfirm}
+                  disabled={isSaving}
+                  accessibilityLabel="Move to trash"
+                  accessibilityRole="button"
+                >
+                  <IconSymbol
+                    name="trash-can"
+                    size={20}
+                    style={styles.deleteButtonColor}
+                  />
+                  <Text variant="default" style={styles.deleteButtonColor}>
+                    Move to trash
+                  </Text>
+                </Button>
+              ) : null}
             </View>
           )}
         </View>
@@ -1751,6 +1824,18 @@ export function TransactionFormV3({
         confirmLabel="Discard"
         cancelLabel="Cancel"
         variant="default"
+      />
+
+      <ConfirmModal
+        visible={destroyModalVisible}
+        onRequestClose={() => setDestroyModalVisible(false)}
+        onConfirm={handleDestroyConfirm}
+        title="Delete permanently?"
+        description="This transaction will be removed forever and cannot be restored."
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        variant="destructive"
+        icon="trash-can"
       />
     </View>
   )
@@ -2393,6 +2478,7 @@ const styles = StyleSheet.create((theme) => ({
     marginTop: FORM_GAP,
     marginBottom: FORM_GAP,
     marginHorizontal: H_PAD,
+    gap: 12,
   },
   deleteButton: {
     flexDirection: "row",
@@ -2402,6 +2488,7 @@ const styles = StyleSheet.create((theme) => ({
   deleteButtonColor: {
     color: theme.colors.error,
   },
+
   cancelText: {
     fontSize: 16,
     fontWeight: "600",

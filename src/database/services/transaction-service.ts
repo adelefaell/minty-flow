@@ -111,7 +111,9 @@ const buildTransactionQuery = (filters?: TransactionListFilters) => {
   if (filters?.isPending !== undefined) {
     query = query.extend(Q.where("is_pending", filters.isPending))
   }
-  if (!filters?.includeDeleted) {
+  if (filters?.deletedOnly) {
+    query = query.extend(Q.where("is_deleted", true))
+  } else if (!filters?.includeDeleted) {
     query = query.extend(Q.where("is_deleted", false))
   }
   if (filters?.fromDate !== undefined) {
@@ -211,6 +213,7 @@ const TRANSACTION_OBSERVE_COLUMNS = [
   "category_id",
   "account_id",
   "updated_at",
+  "is_deleted",
 ] as const
 
 export const observeTransactionModels = (
@@ -556,7 +559,45 @@ export const deleteTransactionModel = async (
       })
     }
 
-    await transaction.markAsDeleted()
+    // Use our is_deleted column so the record still appears in trash queries.
+    // WatermelonDB's markAsDeleted() sets _status = 'deleted' and hides the record from all queries.
+    await transaction.update((t) => {
+      t.isDeleted = true
+      t.updatedAt = new Date()
+    })
+  })
+}
+
+/**
+ * Restore a soft-deleted transaction: set is_deleted = false, re-add balance to
+ * account, and re-increment category transaction count.
+ */
+export const restoreTransactionModel = async (
+  transaction: TransactionModel,
+): Promise<void> => {
+  if (!transaction.isDeleted) return
+  const categories = database.get<CategoryModel>("categories")
+
+  return database.write(async () => {
+    await transaction.update((t) => {
+      t.isDeleted = false
+      t.updatedAt = new Date()
+    })
+
+    const balanceDelta = getBalanceDelta(transaction.amount, transaction.type)
+    const account = await accountsCollection().find(transaction.accountId)
+    await account.update((a) => {
+      a.balance = a.balance + balanceDelta
+      a.updatedAt = new Date()
+    })
+
+    if (transaction.categoryId) {
+      const category = await categories.find(transaction.categoryId)
+      await category.update((c) => {
+        c.transactionCount += 1
+        c.updatedAt = new Date()
+      })
+    }
   })
 }
 

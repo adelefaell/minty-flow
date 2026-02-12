@@ -22,7 +22,7 @@ import { View } from "~/components/ui/view"
 import type CategoryModel from "~/database/models/Category"
 import {
   createCategory,
-  deleteCategory,
+  destroyCategory,
   observeCategoryById,
   updateCategory,
 } from "~/database/services/category-service"
@@ -187,7 +187,7 @@ const EditCategoryScreenInner = ({
         return
       }
 
-      await deleteCategory(categoryModel)
+      await destroyCategory(categoryModel)
 
       isNavigatingRef.current = true
       router.replace({
@@ -336,7 +336,7 @@ const EditCategoryScreenInner = ({
                 style={styles.deleteIcon}
               />
               <Text variant="default" style={styles.deleteText}>
-                Delete Category
+                Permanently delete
               </Text>
             </Button>
           </View>

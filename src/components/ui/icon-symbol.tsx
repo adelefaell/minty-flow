@@ -140,6 +140,7 @@ export const VALID_ICON_NAMES = defineValidIcons([
   "adjust",
   "dots-triangle",
   "attachment",
+  "delete-restore",
 ] as const)
 
 /**

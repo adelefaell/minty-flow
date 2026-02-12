@@ -275,7 +275,7 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
                 style={styles.deleteIcon}
               />
               <Text variant="default" style={styles.deleteText}>
-                Delete Tag
+                Permanently delete
               </Text>
             </Button>
           </View>
@@ -313,11 +313,11 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
           visible={deleteModalVisible}
           onRequestClose={() => setDeleteModalVisible(false)}
           onConfirm={handleDelete}
-          title={`Delete ${tag.name}?`}
+          title={`Permanently delete ${tag.name}?`}
           description={
             (tag.transactionCount ?? 0) > 0
-              ? `This tag is used by ${tag.transactionCount} transaction${tag.transactionCount !== 1 ? "s" : ""}. Deleting the tag will unlink it from all of them. This action cannot be undone.`
-              : "Deleting this tag cannot be undone. This action is irreversible!"
+              ? `This tag is used by ${tag.transactionCount} transaction${tag.transactionCount !== 1 ? "s" : ""}. Permanently deleting the tag will unlink it from all of them and remove it permanently. This cannot be undone.`
+              : "Permanently deleting this tag cannot be undone."
           }
           confirmLabel="Delete"
           cancelLabel="Cancel"
