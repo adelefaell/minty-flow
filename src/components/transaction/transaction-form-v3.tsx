@@ -37,12 +37,10 @@ import {
 import Markdown from "react-native-markdown-display"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
-import { useBottomSheet } from "~/components/bottom-sheet"
-import { CalculatorSheet } from "~/components/calculator-sheet"
 import { ConfirmModal } from "~/components/confirm-modal"
 import { DynamicIcon } from "~/components/dynamic-icon"
-import { KeyboardStickyViewMinty } from "~/components/keyboard-sticky-view-minty"
 import { Money } from "~/components/money"
+import { SmartAmountInput } from "~/components/smart-amount-input"
 import { AttachmentPreviewModal } from "~/components/transaction/attachment-preview-modal"
 import { MarkdownEditorModal } from "~/components/transaction/markdown-editor-modal"
 import { TransactionTypeSelector } from "~/components/transaction/transaction-type-selector"
@@ -79,17 +77,10 @@ import {
   getFileIconForExtension,
   isImageExtension,
 } from "~/utils/file-icon"
+import { formatFileSize } from "~/utils/format-file-size"
 import { logger } from "~/utils/logger"
 import { openFileInExternalApp } from "~/utils/open-file"
 import { Toast } from "~/utils/toast"
-
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KiB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MiB`
-}
-
-const CALCULATOR_SHEET_ID = "transaction-v3-ui-amount"
 
 const RECURRING_OPTIONS: { id: RecurringFrequency; label: string }[] = [
   { id: "daily", label: "Daily" },
@@ -210,8 +201,6 @@ export function TransactionFormV3({
   const pendingLeaveRef = useRef<(() => void) | null>(null)
   const [unsavedModalVisible, setUnsavedModalVisible] = useState(false)
 
-  const calculatorSheet = useBottomSheet(CALCULATOR_SHEET_ID)
-
   const defaultValues = useMemo(
     () =>
       getDefaultValues(transaction, accounts, transactionType, initialTagIds),
@@ -297,6 +286,7 @@ export function TransactionFormV3({
     },
   )
 
+  // Handle navigation with unsaved changes: show ConfirmModal
   useEffect(() => {
     const unsubscribe = navigation.addListener(
       "beforeRemove",
@@ -347,8 +337,6 @@ export function TransactionFormV3({
 
   const selectedAccount = accounts.find((a) => a.id === accountId)
   const selectedTags = tags.filter((t) => (tagIds ?? []).includes(t.id))
-  const signedAmount =
-    transactionType === "expense" ? -(amount || 0) : amount || 0
 
   const filteredTagsForPicker = useMemo(() => {
     if (!tagSearchQuery.trim()) return tags
@@ -670,27 +658,19 @@ export function TransactionFormV3({
             ) : null}
           </View>
 
-          {/* Amount: tap opens calculator sheet (unchanged) */}
+          {/* Amount: smart inline input + optional full calculator */}
           <View style={styles.balanceSection}>
-            <Pressable
-              style={styles.balanceContainer}
-              onPress={() => calculatorSheet.present()}
-              accessibilityLabel="Set amount"
-              accessibilityHint="Opens calculator to enter amount"
-            >
-              <Money
-                value={signedAmount}
-                currency={selectedAccount?.currencyCode}
-                tone="auto"
-                style={styles.balanceValue}
-              />
-              <Text variant="muted" style={styles.updateBalanceLabel}>
-                Tap to set amount
-              </Text>
-            </Pressable>
-            {amountError ? (
-              <Text style={styles.fieldError}>{amountError}</Text>
-            ) : null}
+            <SmartAmountInput
+              value={amount ?? 0}
+              onChange={(value) =>
+                setValue("amount", value, { shouldDirty: true })
+              }
+              currencyCode={selectedAccount?.currencyCode}
+              error={amountError ?? undefined}
+              label="AMOUNT"
+              placeholder="0"
+              type={transactionType}
+            />
           </View>
 
           {/* Account: dashed trigger → inline list with search (same pattern as tags) */}
@@ -1629,47 +1609,36 @@ export function TransactionFormV3({
         </View>
       </ScrollView>
 
-      <KeyboardStickyViewMinty>
-        <View style={styles.footer}>
-          <Button
-            variant="secondary"
-            size="lg"
-            onPress={handleCancelPress}
-            style={styles.footerButton}
-            disabled={isSaving}
-          >
-            <Text style={styles.cancelText}>Cancel</Text>
-          </Button>
-          <Button
-            variant="default"
-            size="lg"
-            onPress={handleSubmit(onSubmit)}
-            style={styles.footerButton}
-            disabled={isSaving}
-          >
-            {isSaving ? (
-              <ActivityIndicator
-                size="small"
-                color={theme.colors.onPrimary}
-                style={styles.saveSpinner}
-              />
-            ) : (
-              <Text style={styles.saveText}>{isNew ? "Create" : "Save"}</Text>
-            )}
-          </Button>
-        </View>
-      </KeyboardStickyViewMinty>
-
-      {/* Calculator remains a sheet per requirement */}
-      <CalculatorSheet
-        id={CALCULATOR_SHEET_ID}
-        initialValue={amount}
-        onSubmit={(value) => {
-          setValue("amount", value, { shouldDirty: true })
-          calculatorSheet.dismiss()
-        }}
-        currencyCode={selectedAccount?.currencyCode}
-      />
+      {/* <KeyboardStickyViewMinty> */}
+      <View style={styles.footer}>
+        <Button
+          variant="secondary"
+          size="lg"
+          onPress={handleCancelPress}
+          style={styles.footerButton}
+          disabled={isSaving}
+        >
+          <Text style={styles.cancelText}>Cancel</Text>
+        </Button>
+        <Button
+          variant="default"
+          size="lg"
+          onPress={handleSubmit(onSubmit)}
+          style={styles.footerButton}
+          disabled={isSaving || (!isNew && !isDirty)}
+        >
+          {isSaving ? (
+            <ActivityIndicator
+              size="small"
+              color={theme.colors.onPrimary}
+              style={styles.saveSpinner}
+            />
+          ) : (
+            <Text style={styles.saveText}>{isNew ? "Create" : "Save"}</Text>
+          )}
+        </Button>
+      </View>
+      {/* </KeyboardStickyViewMinty> */}
 
       {Platform.OS === "ios" && datePickerVisible && (
         <Modal

@@ -8,14 +8,11 @@ import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
 import { AccountTypeInline } from "~/components/accounts/account-type-inline"
-import { useBottomSheet } from "~/components/bottom-sheet"
-import { CalculatorSheet } from "~/components/calculator-sheet"
-import { ChangeIconSheet } from "~/components/change-icon-sheet"
+import { ChangeIconInline } from "~/components/change-icon-inline"
 import { ColorVariantInline } from "~/components/color-variant-inline"
 import { ConfirmModal } from "~/components/confirm-modal"
 import { CurrencySelectorInline } from "~/components/currency-selector-inline"
-import { DynamicIcon } from "~/components/dynamic-icon"
-import { KeyboardStickyViewMinty } from "~/components/keyboard-sticky-view-minty"
+import { SmartAmountInput } from "~/components/smart-amount-input"
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Input } from "~/components/ui/input"
@@ -41,7 +38,6 @@ import { getThemeStrict } from "~/styles/theme/registry"
 import { type Account, AccountTypeEnum } from "~/types/accounts"
 import { NewEnum } from "~/types/new"
 import { logger } from "~/utils/logger"
-import { formatDisplayValue } from "~/utils/number-format"
 import { Toast } from "~/utils/toast"
 
 interface EditAccountScreenProps {
@@ -105,12 +101,7 @@ const EditAccountScreenInner = ({
 
   // Bottom sheet controls
   const [deleteModalVisible, setDeleteModalVisible] = useState(false)
-  const changeIconSheet = useBottomSheet(
-    `change-icon-account-${accountId || NewEnum.NEW}`,
-  )
-  const calculatorSheet = useBottomSheet(
-    `calculator-account-${accountId || NewEnum.NEW}`,
-  )
+
   // Handle navigation with unsaved changes: show ConfirmModal
   useEffect(() => {
     const unsubscribe = navigation.addListener(
@@ -207,7 +198,6 @@ const EditAccountScreenInner = ({
 
   const handleIconSelected = (icon: string) => {
     setValue("icon", icon, { shouldDirty: true })
-    changeIconSheet.dismiss()
   }
 
   const handleColorSelected = (schemeName: string) => {
@@ -220,11 +210,6 @@ const EditAccountScreenInner = ({
 
   const handleCurrencySelected = (code: string) => {
     setValue("currencyCode", code, { shouldDirty: true })
-  }
-
-  const handleBalanceSubmit = (value: number) => {
-    setValue("balance", value, { shouldDirty: true })
-    calculatorSheet.dismiss()
   }
 
   const currentColorScheme = getThemeStrict(formColorSchemeName)
@@ -246,19 +231,14 @@ const EditAccountScreenInner = ({
         contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.form} key={account?.id || NewEnum.NEW}>
-          {/* Icon Selection */}
-          <View style={styles.iconSection}>
-            <Pressable
-              style={styles.iconBox}
-              onPress={() => changeIconSheet.present()}
-            >
-              <DynamicIcon
-                icon={formIcon}
-                size={64}
-                colorScheme={currentColorScheme}
-              />
-            </Pressable>
-          </View>
+          {/* Icon Selection – inline toggle (Icon / Emoji/Letter / Image) */}
+          <ChangeIconInline
+            id={`change-icon-account-${accountId || NewEnum.NEW}`}
+            currentIcon={formIcon}
+            onIconSelected={handleIconSelected}
+            colorScheme={currentColorScheme}
+            iconSize={64}
+          />
 
           {/* Account Name */}
           <View style={styles.nameSection}>
@@ -286,27 +266,21 @@ const EditAccountScreenInner = ({
             )}
           </View>
 
-          {/* Balance Selection */}
+          {/* Balance */}
           <View style={styles.balanceSection}>
             <Controller
               control={control}
               name="balance"
-              render={({ field: { value } }) => {
-                const formatted = formatDisplayValue(value, {
-                  currency: formCurrencyCode,
-                })
-                return (
-                  <Pressable
-                    style={styles.balanceContainer}
-                    onPress={() => calculatorSheet.present()}
-                  >
-                    <Text style={styles.balanceValue}>{formatted}</Text>
-                    <Text variant="muted" style={styles.updateBalanceLabel}>
-                      Update balance
-                    </Text>
-                  </Pressable>
-                )
-              }}
+              render={({ field: { value, onChange } }) => (
+                <SmartAmountInput
+                  value={Number(value) || 0}
+                  onChange={(v) => onChange(v)}
+                  currencyCode={formCurrencyCode}
+                  label="INITIAL BALANCE"
+                  placeholder="0"
+                  error={errors.balance?.message}
+                />
+              )}
             />
           </View>
 
@@ -485,35 +459,27 @@ const EditAccountScreenInner = ({
         )}
       </ScrollView>
 
-      <KeyboardStickyViewMinty>
-        <View style={styles.actions}>
-          <Button
-            variant="outline"
-            onPress={handleGoBack}
-            style={styles.button}
-          >
-            <Text variant="default" style={styles.cancelText}>
-              Cancel
-            </Text>
-          </Button>
-          <Button
-            variant="default"
-            onPress={handleSubmit}
-            style={styles.button}
-            disabled={
-              !formName.trim() || (!isAddMode && !isDirty) || isSubmitting
-            }
-          >
-            <Text variant="default" style={styles.saveText}>
-              {isSubmitting
-                ? "Saving..."
-                : isAddMode
-                  ? "Create"
-                  : "Save Changes"}
-            </Text>
-          </Button>
-        </View>
-      </KeyboardStickyViewMinty>
+      {/* <KeyboardStickyViewMinty> */}
+      <View style={styles.actions}>
+        <Button variant="outline" onPress={handleGoBack} style={styles.button}>
+          <Text variant="default" style={styles.cancelText}>
+            Cancel
+          </Text>
+        </Button>
+        <Button
+          variant="default"
+          onPress={handleSubmit}
+          style={styles.button}
+          disabled={
+            !formName.trim() || (!isAddMode && !isDirty) || isSubmitting
+          }
+        >
+          <Text variant="default" style={styles.saveText}>
+            {isSubmitting ? "Saving..." : isAddMode ? "Create" : "Save Changes"}
+          </Text>
+        </Button>
+      </View>
+      {/* </KeyboardStickyViewMinty> */}
 
       {!isAddMode && account && (
         <ConfirmModal
@@ -532,21 +498,6 @@ const EditAccountScreenInner = ({
           icon="trash-can"
         />
       )}
-
-      <ChangeIconSheet
-        id={`change-icon-account-${accountId || NewEnum.NEW}`}
-        currentIcon={formIcon}
-        onIconSelected={handleIconSelected}
-        colorScheme={currentColorScheme}
-      />
-
-      <CalculatorSheet
-        id={`calculator-account-${accountId || NewEnum.NEW}`}
-        title="Update Balance"
-        initialValue={Number(watch("balance"))}
-        onSubmit={handleBalanceSubmit}
-        currencyCode={watch("currencyCode")}
-      />
 
       <ConfirmModal
         visible={unsavedModalVisible}
@@ -622,14 +573,6 @@ const styles = StyleSheet.create((theme) => ({
   },
   form: {
     gap: 32,
-  },
-  iconSection: {
-    alignItems: "center",
-    paddingVertical: 20,
-  },
-  iconBox: {
-    alignItems: "center",
-    justifyContent: "center",
   },
   label: {
     fontSize: 12,

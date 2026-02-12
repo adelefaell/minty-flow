@@ -185,7 +185,8 @@ export function ColorVariantInline({
                       <Pressable
                         style={[
                           styles.colorOption,
-                          isSelected && styles.colorOptionSelected,
+                          isSelected &&
+                            styles.colorOptionSelected(scheme.primary),
                         ]}
                         onPress={() => handleColorSelect(scheme)}
                       >
@@ -326,9 +327,9 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: "center",
     backgroundColor: theme.colors.secondary,
   },
-  colorOptionSelected: {
-    backgroundColor: theme.colors.primary,
-  },
+  colorOptionSelected: (primary: string) => ({
+    backgroundColor: primary,
+  }),
   variantLabel: {
     fontSize: 10,
     color: theme.colors.onSurface,

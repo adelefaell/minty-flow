@@ -7,13 +7,10 @@ import { Controller, useForm } from "react-hook-form"
 import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
-import { useBottomSheet } from "~/components/bottom-sheet"
 import { CategoryTypeInline } from "~/components/categories/category-type-inline"
-import { ChangeIconSheet } from "~/components/change-icon-sheet"
+import { ChangeIconInline } from "~/components/change-icon-inline"
 import { ColorVariantInline } from "~/components/color-variant-inline"
 import { ConfirmModal } from "~/components/confirm-modal"
-import { DynamicIcon } from "~/components/dynamic-icon"
-import { KeyboardStickyViewMinty } from "~/components/keyboard-sticky-view-minty"
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Input } from "~/components/ui/input"
@@ -100,11 +97,6 @@ const EditCategoryScreenInner = ({
   const [unsavedModalVisible, setUnsavedModalVisible] = useState(false)
 
   const [deleteModalVisible, setDeleteModalVisible] = useState(false)
-
-  // Bottom sheet controls (icon + color only)
-  const changeIconSheet = useBottomSheet(
-    `change-icon-category-${categoryModifyId || NewEnum.NEW}`,
-  )
 
   // Handle navigation with unsaved changes: show ConfirmModal
   useEffect(() => {
@@ -212,7 +204,6 @@ const EditCategoryScreenInner = ({
 
   const handleIconSelected = (icon: string) => {
     setValue("icon", icon, { shouldDirty: true })
-    changeIconSheet.dismiss()
   }
 
   const handleColorSelected = (schemeName: string) => {
@@ -242,24 +233,13 @@ const EditCategoryScreenInner = ({
         contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.form} key={category?.id || NewEnum.NEW}>
-          {/* Icon Selection */}
-          <View style={styles.iconSection}>
-            <Pressable
-              style={[
-                styles.iconBox,
-                currentColorScheme?.secondary && {
-                  backgroundColor: currentColorScheme.secondary,
-                },
-              ]}
-              onPress={() => changeIconSheet.present()}
-            >
-              <DynamicIcon
-                icon={formIcon}
-                size={96}
-                colorScheme={currentColorScheme}
-              />
-            </Pressable>
-          </View>
+          {/* Icon Selection – inline toggle (Icon / Emoji/Letter / Image) */}
+          <ChangeIconInline
+            id={`change-icon-category-${categoryModifyId || NewEnum.NEW}`}
+            currentIcon={formIcon}
+            onIconSelected={handleIconSelected}
+            colorScheme={currentColorScheme}
+          />
 
           {/* Category Name */}
           <View style={styles.nameSection}>
@@ -363,42 +343,27 @@ const EditCategoryScreenInner = ({
         )}
       </ScrollView>
 
-      <KeyboardStickyViewMinty>
-        <View style={styles.actions}>
-          <Button
-            variant="outline"
-            onPress={handleGoBack}
-            style={styles.button}
-          >
-            <Text variant="default" style={styles.cancelText}>
-              Cancel
-            </Text>
-          </Button>
-          <Button
-            variant="default"
-            onPress={handleSubmit}
-            style={styles.button}
-            disabled={
-              !formName.trim() || (!isAddMode && !isDirty) || isSubmitting
-            }
-          >
-            <Text variant="default" style={styles.saveText}>
-              {isSubmitting
-                ? "Saving..."
-                : isAddMode
-                  ? "Create"
-                  : "Save Changes"}
-            </Text>
-          </Button>
-        </View>
-      </KeyboardStickyViewMinty>
-
-      <ChangeIconSheet
-        id={`change-icon-category-${categoryModifyId || NewEnum.NEW}`}
-        currentIcon={formIcon}
-        onIconSelected={handleIconSelected}
-        colorScheme={currentColorScheme}
-      />
+      {/* <KeyboardStickyViewMinty> */}
+      <View style={styles.actions}>
+        <Button variant="outline" onPress={handleGoBack} style={styles.button}>
+          <Text variant="default" style={styles.cancelText}>
+            Cancel
+          </Text>
+        </Button>
+        <Button
+          variant="default"
+          onPress={handleSubmit}
+          style={styles.button}
+          disabled={
+            !formName.trim() || (!isAddMode && !isDirty) || isSubmitting
+          }
+        >
+          <Text variant="default" style={styles.saveText}>
+            {isSubmitting ? "Saving..." : isAddMode ? "Create" : "Save Changes"}
+          </Text>
+        </Button>
+      </View>
+      {/* </KeyboardStickyViewMinty> */}
 
       {!isAddMode && category && (
         <ConfirmModal
@@ -499,18 +464,6 @@ const styles = StyleSheet.create((theme) => ({
   },
   form: {
     gap: 32,
-  },
-  iconSection: {
-    alignItems: "center",
-    paddingVertical: 20,
-  },
-  iconBox: {
-    width: 120,
-    height: 120,
-    borderRadius: theme.colors.radius,
-    backgroundColor: theme.colors.secondary,
-    alignItems: "center",
-    justifyContent: "center",
   },
   label: {
     fontSize: 12,

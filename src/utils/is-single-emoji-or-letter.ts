@@ -49,3 +49,48 @@ export const isSingleEmojiOrLetter = (str: string): boolean => {
   const codePoints = Array.from(trimmed)
   return codePoints.length === 1
 }
+
+/**
+ * Returns the first grapheme cluster from a string (for single-char/emoji inputs).
+ * Uses Intl.Segmenter when available, otherwise falls back to first code point.
+ */
+export function getFirstGrapheme(str: string): string {
+  if (!str || typeof str !== "string") return ""
+  const trimmed = str.trim()
+  if (!trimmed) return ""
+  try {
+    const Segmenter = (Intl as unknown as { Segmenter?: typeof Intl.Segmenter })
+      .Segmenter
+    if (typeof Segmenter === "function") {
+      const segmenter = new Segmenter("en", { granularity: "grapheme" })
+      const segments = [...segmenter.segment(trimmed)]
+      return segments[0]?.segment ?? trimmed.slice(0, 1)
+    }
+  } catch {
+    // ignore
+  }
+  return Array.from(trimmed)[0] ?? ""
+}
+
+/**
+ * Returns the last grapheme cluster from a string.
+ * Use for "replace on each key press" UX: new input replaces previous.
+ */
+export function getLastGrapheme(str: string): string {
+  if (!str || typeof str !== "string") return ""
+  const trimmed = str.trim()
+  if (!trimmed) return ""
+  try {
+    const Segmenter = (Intl as unknown as { Segmenter?: typeof Intl.Segmenter })
+      .Segmenter
+    if (typeof Segmenter === "function") {
+      const segmenter = new Segmenter("en", { granularity: "grapheme" })
+      const segments = [...segmenter.segment(trimmed)]
+      return segments[segments.length - 1]?.segment ?? trimmed.slice(-1)
+    }
+  } catch {
+    // ignore
+  }
+  const arr = Array.from(trimmed)
+  return arr[arr.length - 1] ?? ""
+}

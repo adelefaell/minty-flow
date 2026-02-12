@@ -4,7 +4,7 @@
  */
 
 import { useMemo, useState } from "react"
-import { LayoutAnimation, ScrollView, View } from "react-native"
+import { ScrollView, View } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
 import { SearchInput } from "~/components/search-input"
@@ -14,7 +14,6 @@ import { Text } from "~/components/ui/text"
 import { currencyRegistryService } from "~/services/currency-registry"
 import type { Currency } from "~/types/currency"
 
-const LAYOUT_ANIM = LayoutAnimation.Presets.easeInEaseOut
 const LIST_MAX_HEIGHT = 280
 
 export interface CurrencySelectorInlineProps {
@@ -52,14 +51,12 @@ export function CurrencySelectorInline({
 
   const handleToggle = () => {
     if (!editable) return
-    LayoutAnimation.configureNext(LAYOUT_ANIM)
     setSearchQuery("")
     setExpanded((v) => !v)
   }
 
   const handleSelect = (code: string) => {
     onCurrencySelected(code)
-    LayoutAnimation.configureNext(LAYOUT_ANIM)
     setSearchQuery("")
     setExpanded(false)
   }
@@ -215,7 +212,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   listWrapper: {
     height: LIST_MAX_HEIGHT,
-    borderRadius: theme.colors.radius ?? 12,
+    borderRadius: theme.colors.radius,
     overflow: "hidden",
     backgroundColor: `${theme.colors.onSurface}08`,
   },

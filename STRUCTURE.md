@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-02-11T22:42:45.494Z
+Generated on: 2026-02-12T19:58:25.808Z
 
 ```
 ./
@@ -141,8 +141,7 @@ Generated on: 2026-02-11T22:42:45.494Z
 │   │   │   └── 📄 view.tsx
 │   │   ├── 📄 action-item.tsx
 │   │   ├── 📄 bottom-sheet.tsx
-│   │   ├── 📄 calculator-sheet.tsx
-│   │   ├── 📄 change-icon-sheet.tsx
+│   │   ├── 📄 change-icon-inline.tsx
 │   │   ├── 📄 color-variant-inline.tsx
 │   │   ├── 📄 confirm-modal.tsx
 │   │   ├── 📄 currency-selector-inline.tsx
@@ -152,7 +151,6 @@ Generated on: 2026-02-11T22:42:45.494Z
 │   │   ├── 📄 external-link.tsx
 │   │   ├── 📄 haptic-tab.tsx
 │   │   ├── 📄 icon-selection-sheet.tsx
-│   │   ├── 📄 image-selection-sheet.tsx
 │   │   ├── 📄 keyboard-sticky-view-minty.tsx
 │   │   ├── 📄 money.tsx
 │   │   ├── 📄 parallax-scroll-view.tsx
@@ -160,6 +158,7 @@ Generated on: 2026-02-11T22:42:45.494Z
 │   │   ├── 📄 reorderable-list-v2.tsx
 │   │   ├── 📄 screen-shared-header.tsx
 │   │   ├── 📄 search-input.tsx
+│   │   ├── 📄 smart-amount-input.tsx
 │   │   ├── 📄 summary-card.tsx
 │   │   ├── 📄 tabs-minty.tsx
 │   │   └── 📄 toggle-item.tsx
@@ -210,7 +209,6 @@ Generated on: 2026-02-11T22:42:45.494Z
 │   │   └── 📄 index.ts
 │   ├── 📁 stores/
 │   │   ├── 📄 android-sound.store.ts
-│   │   ├── 📄 calculator.store.ts
 │   │   ├── 📄 letter-emoji.store.ts
 │   │   ├── 📄 money-formatting.store.ts
 │   │   ├── 📄 notification.store.ts
@@ -241,7 +239,6 @@ Generated on: 2026-02-11T22:42:45.494Z
 │   ├── 📁 types/
 │   │   ├── 📄 accounts.ts
 │   │   ├── 📄 budgets.ts
-│   │   ├── 📄 calculator.ts
 │   │   ├── 📄 categories.ts
 │   │   ├── 📄 currency.ts
 │   │   ├── 📄 goals.ts
@@ -252,8 +249,8 @@ Generated on: 2026-02-11T22:42:45.494Z
 │   │   └── 📄 transactions.ts
 │   └── 📁 utils/
 │       ├── 📄 account-types-list.ts
-│       ├── 📄 calculate-operations.ts
 │       ├── 📄 file-icon.ts
+│       ├── 📄 format-file-size.ts
 │       ├── 📄 icon-helpers.ts
 │       ├── 📄 is-image-url.ts
 │       ├── 📄 is-single-emoji-or-letter.ts
@@ -262,6 +259,7 @@ Generated on: 2026-02-11T22:42:45.494Z
 │       ├── 📄 number-format.ts
 │       ├── 📄 numpad-utils.ts
 │       ├── 📄 open-file.ts
+│       ├── 📄 parse-math-expression.ts
 │       ├── 📄 string-utils.ts
 │       └── 📄 toast.ts
 ├── 📄 .gitignore

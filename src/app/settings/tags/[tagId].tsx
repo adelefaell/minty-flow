@@ -6,18 +6,14 @@ import { Controller, useForm } from "react-hook-form"
 import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
-import { useBottomSheet } from "~/components/bottom-sheet"
-import { ChangeIconSheet } from "~/components/change-icon-sheet"
+import { ChangeIconInline } from "~/components/change-icon-inline"
 import { ColorVariantInline } from "~/components/color-variant-inline"
 import { ConfirmModal } from "~/components/confirm-modal"
-import { DynamicIcon } from "~/components/dynamic-icon"
-import { KeyboardStickyViewMinty } from "~/components/keyboard-sticky-view-minty"
 import { TabsMinty } from "~/components/tabs-minty"
 import { ContactSelectorInline } from "~/components/tags/contact-selector-inline"
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Input } from "~/components/ui/input"
-import { Pressable } from "~/components/ui/pressable"
 import { Separator } from "~/components/ui/separator"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
@@ -82,12 +78,9 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
   const pendingLeaveRef = useRef<(() => void) | null>(null)
   const [unsavedModalVisible, setUnsavedModalVisible] = useState(false)
 
-  // Sheets
-  const changeIconSheet = useBottomSheet(
-    `change-icon-tag-${tagId || NewEnum.NEW}`,
-  )
   const [deleteModalVisible, setDeleteModalVisible] = useState(false)
 
+  // Handle navigation with unsaved changes: show ConfirmModal
   useEffect(() => {
     const unsubscribe = navigation.addListener("beforeRemove", (e) => {
       if (isSubmitting || isNavigatingRef.current || !isDirty) return
@@ -193,19 +186,15 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
           </View>
         ) : (
           <View style={styles.form} key={tag?.id || NewEnum.NEW}>
-            {/* Icon Selection */}
-            <View style={styles.iconSection}>
-              <Pressable
-                style={styles.iconBox}
-                onPress={() => changeIconSheet.present()}
-              >
-                <DynamicIcon
-                  icon={formIcon}
-                  size={64}
-                  colorScheme={currentColorScheme}
-                />
-              </Pressable>
-            </View>
+            {/* Icon Selection – inline toggle (Icon / Emoji/Letter / Image) */}
+            <ChangeIconInline
+              id={`change-icon-tag-${tagId || NewEnum.NEW}`}
+              currentIcon={formIcon}
+              onIconSelected={(icon) =>
+                setValue("icon", icon, { shouldDirty: true })
+              }
+              colorScheme={currentColorScheme}
+            />
 
             {/* Name Section */}
             <View style={styles.nameSection}>
@@ -293,45 +282,31 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
         )}
       </ScrollView>
 
-      <KeyboardStickyViewMinty>
-        <View style={styles.actions}>
-          <Button
-            variant="outline"
-            onPress={() => router.back()}
-            style={styles.button}
-          >
-            <Text variant="default" style={styles.cancelText}>
-              Cancel
-            </Text>
-          </Button>
-          <Button
-            variant="default"
-            onPress={handleFormSubmit(onSubmit)}
-            style={styles.button}
-            disabled={
-              !formName.trim() || (!isAddMode && !isDirty) || isSubmitting
-            }
-          >
-            <Text variant="default" style={styles.saveText}>
-              {isSubmitting
-                ? "Saving..."
-                : isAddMode
-                  ? "Create"
-                  : "Save Changes"}
-            </Text>
-          </Button>
-        </View>
-      </KeyboardStickyViewMinty>
-
-      <ChangeIconSheet
-        id={`change-icon-tag-${tagId || NewEnum.NEW}`}
-        currentIcon={formIcon}
-        onIconSelected={(icon) => {
-          setValue("icon", icon, { shouldDirty: true })
-          changeIconSheet.dismiss()
-        }}
-        colorScheme={currentColorScheme}
-      />
+      {/* <KeyboardStickyViewMinty> */}
+      <View style={styles.actions}>
+        <Button
+          variant="outline"
+          onPress={() => router.back()}
+          style={styles.button}
+        >
+          <Text variant="default" style={styles.cancelText}>
+            Cancel
+          </Text>
+        </Button>
+        <Button
+          variant="default"
+          onPress={handleFormSubmit(onSubmit)}
+          style={styles.button}
+          disabled={
+            !formName.trim() || (!isAddMode && !isDirty) || isSubmitting
+          }
+        >
+          <Text variant="default" style={styles.saveText}>
+            {isSubmitting ? "Saving..." : isAddMode ? "Create" : "Save Changes"}
+          </Text>
+        </Button>
+      </View>
+      {/* </KeyboardStickyViewMinty> */}
 
       {!isAddMode && tag && (
         <ConfirmModal
@@ -394,14 +369,6 @@ const styles = StyleSheet.create((theme) => ({
   },
   form: {
     gap: 30,
-  },
-  iconSection: {
-    alignItems: "center",
-    paddingVertical: 10,
-  },
-  iconBox: {
-    alignItems: "center",
-    justifyContent: "center",
   },
   label: {
     fontSize: 12,
