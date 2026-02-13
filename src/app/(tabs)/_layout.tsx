@@ -114,6 +114,7 @@ const TabLayout = () => {
   //   }
   // }, [initialPage, activePage, setPage])
 
+  // TODO: Refactor this useEffect
   useEffect(() => {
     logger.debug(`retentionPeriod: ${retentionPeriod}`)
     const runCleanup = async () => {

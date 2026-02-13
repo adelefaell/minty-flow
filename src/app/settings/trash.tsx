@@ -1,11 +1,12 @@
 import { withObservables } from "@nozbe/watermelondb/react"
 import { useRouter } from "expo-router"
-import { useCallback, useMemo, useRef } from "react"
+import { useCallback, useMemo, useRef, useState } from "react"
 import { Alert, FlatList } from "react-native"
 import type { SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable"
 import { StyleSheet } from "react-native-unistyles"
 import { startWith } from "rxjs"
 
+import { ConfirmModal } from "~/components/confirm-modal"
 import { TransactionItem } from "~/components/transaction/transaction-item"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
@@ -22,6 +23,9 @@ function TrashScreenInner({
   transactionsFull: TransactionWithRelations[]
 }) {
   const router = useRouter()
+  const [confirmModalVisible, setConfirmModalVisible] = useState<boolean>(false)
+  const [toRemoveItem, setToRemoveItem] =
+    useState<TransactionWithRelations | null>(null)
   const openSwipeableRef = useRef<SwipeableMethods | null>(null)
 
   const sorted = useMemo(
@@ -40,33 +44,27 @@ function TrashScreenInner({
     [router],
   )
 
+  const handledeleteConfirmed = useCallback(() => {
+    if (!toRemoveItem) return
+    destroyTransactionModel(toRemoveItem.transaction)
+      .then(() => {
+        Toast.success({
+          title: "Deleted",
+          description: "Transaction permanently removed.",
+        })
+      })
+      .catch(() => {
+        Toast.error({
+          title: "Error",
+          description: "Failed to delete transaction.",
+        })
+      })
+  }, [toRemoveItem])
+
   const handleDestroy = useCallback(
     (item: TransactionWithRelations) => () => {
-      Alert.alert(
-        "Delete permanently?",
-        "This transaction will be removed forever and cannot be restored.",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Delete",
-            style: "destructive",
-            onPress: () =>
-              destroyTransactionModel(item.transaction)
-                .then(() => {
-                  Toast.success({
-                    title: "Deleted",
-                    description: "Transaction permanently removed.",
-                  })
-                })
-                .catch(() => {
-                  Toast.error({
-                    title: "Error",
-                    description: "Failed to delete transaction.",
-                  })
-                }),
-          },
-        ],
-      )
+      setToRemoveItem(item)
+      setConfirmModalVisible(true)
     },
     [],
   )
@@ -86,6 +84,19 @@ function TrashScreenInner({
           <Text variant="p" style={styles.description}>
             Tap to open. Swipe left to delete permanently.
           </Text>
+
+          {/* Delete Modal */}
+          <ConfirmModal
+            visible={confirmModalVisible}
+            onRequestClose={() => setConfirmModalVisible(false)}
+            onConfirm={handledeleteConfirmed}
+            title="Delete transaction"
+            description="Are you sure you want to delete this transaction permanently?"
+            confirmLabel="Delete"
+            cancelLabel="Cancel"
+            variant="destructive"
+            icon="trash-can"
+          />
         </>
       }
       ListEmptyComponent={

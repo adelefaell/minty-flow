@@ -1,10 +1,11 @@
 import { useRouter } from "expo-router"
-import { useCallback } from "react"
+import { useCallback, useState } from "react"
 import { Alert } from "react-native"
 import { ScrollView } from "react-native-gesture-handler"
 import { StyleSheet } from "react-native-unistyles"
 
 import { ChoiceChipsComponent } from "~/components/choice-chips"
+import { ConfirmModal } from "~/components/confirm-modal"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
@@ -26,6 +27,7 @@ const RetentionPeriodEnum = {
 
 export default function TrashBinScreen() {
   const router = useRouter()
+  const [confirmModalVisible, setConfirmModalVisible] = useState<boolean>(false)
   const retentionPeriod = useTrashBinStore((s) => s.retentionPeriod)
   const setRetentionPeriod = useTrashBinStore((s) => s.setRetentionPeriod)
 
@@ -33,33 +35,20 @@ export default function TrashBinScreen() {
     router.push("/settings/trash")
   }, [router])
 
-  const handleEmpty = useCallback(() => {
-    Alert.alert(
-      "Empty Trash?",
-      "All items in the trash will be permanently deleted. This action cannot be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Empty Trash",
-          style: "destructive",
-          onPress: () =>
-            destroyAllTransactionModel()
-              .then(() => {
-                Toast.success({
-                  title: "Trash Emptied",
-                  description: "Your trash has been cleared.",
-                })
-              })
-              .catch(() => {
-                Toast.error({
-                  title: "Cleanup Failed",
-                  description:
-                    "An unexpected error occurred. Please try again.",
-                })
-              }),
-        },
-      ],
-    )
+  const handleEmptyConfirmed = useCallback(() => {
+    destroyAllTransactionModel()
+      .then(() => {
+        Toast.success({
+          title: "Trash Emptied",
+          description: "Your trash has been cleared.",
+        })
+      })
+      .catch(() => {
+        Toast.error({
+          title: "Cleanup Failed",
+          description: "An unexpected error occurred. Please try again.",
+        })
+      })
   }, [])
 
   return (
@@ -95,7 +84,12 @@ export default function TrashBinScreen() {
       </Pressable>
 
       {/* Empty Trash Bin */}
-      <Pressable style={styles.actionItem} onPress={handleEmpty}>
+      <Pressable
+        style={styles.actionItem}
+        onPress={() => {
+          setConfirmModalVisible(true)
+        }}
+      >
         <View style={styles.actionItemLeft}>
           <View style={styles.actionItemContent}>
             <View style={styles.titleRow}>
@@ -111,6 +105,19 @@ export default function TrashBinScreen() {
           size={18}
         />
       </Pressable>
+
+      {/* Empty Trash Modal */}
+      <ConfirmModal
+        visible={confirmModalVisible}
+        onRequestClose={() => setConfirmModalVisible(false)}
+        onConfirm={handleEmptyConfirmed}
+        title="Empty Trash"
+        description="All items in the trash will be permanently deleted. This action cannot be undone."
+        confirmLabel="Empty Trash"
+        cancelLabel="Cancel"
+        variant="destructive"
+        icon="trash-can"
+      />
     </ScrollView>
   )
 }

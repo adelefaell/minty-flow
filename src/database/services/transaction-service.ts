@@ -4,7 +4,6 @@ import type { Observable } from "rxjs"
 import { combineLatest, from, map, of, startWith, switchMap } from "rxjs"
 
 import type { TransactionFormValues } from "~/schemas/transactions.schema"
-import type { RetentionPeriodEnum } from "~/stores/trash-bin.store"
 import {
   type TransactionListFilters,
   type TransactionType,
@@ -666,10 +665,8 @@ export const destroyAllTransactionModel = async (): Promise<void> => {
 }
 
 export const autoPurgeTrash = async (retentionValue: string) => {
-  // 1. Handle the "forever" case
   if (retentionValue === "forever") return
 
-  // 2. Extract the number from the string (e.g., "7 days" -> 7)
   const daysToKeep = parseInt(retentionValue.split(" ")[0], 10)
 
   if (Number.isNaN(daysToKeep)) {
