@@ -1,6 +1,5 @@
 import { useRouter } from "expo-router"
 import { useCallback, useState } from "react"
-import { Alert } from "react-native"
 import { ScrollView } from "react-native-gesture-handler"
 import { StyleSheet } from "react-native-unistyles"
 

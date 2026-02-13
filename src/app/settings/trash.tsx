@@ -1,7 +1,7 @@
 import { withObservables } from "@nozbe/watermelondb/react"
 import { useRouter } from "expo-router"
 import { useCallback, useMemo, useRef, useState } from "react"
-import { Alert, FlatList } from "react-native"
+import { FlatList } from "react-native"
 import type { SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable"
 import { StyleSheet } from "react-native-unistyles"
 import { startWith } from "rxjs"
