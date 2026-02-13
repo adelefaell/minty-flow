@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import PagerView, { usePagerView } from "react-native-pager-view"
 import Animated, {
   createAnimatedComponent,
@@ -19,7 +19,10 @@ const AnimatedPressable = createAnimatedComponent(Pressable)
 
 import { Tooltip } from "~/components/ui/tooltip"
 import { View } from "~/components/ui/view"
+import { autoPurgeTrash } from "~/database/services/transaction-service"
+import { useTrashBinStore } from "~/stores/trash-bin.store"
 import { NewEnum } from "~/types/new"
+import { logger } from "~/utils/logger"
 
 import AccountsScreen from "../accounts"
 import SettingsScreen from "../settings"
@@ -92,6 +95,7 @@ const TabLayout = () => {
   // const { initialPage } = useLocalSearchParams()
   const { ref: pagerRef, activePage, setPage } = usePagerView()
   const [fabExpanded, setFabExpanded] = useState(false)
+  const retentionPeriod = useTrashBinStore((s) => s.retentionPeriod)
 
   // Animation values
   const rotation = useSharedValue(0)
@@ -109,6 +113,14 @@ const TabLayout = () => {
   //     setPage(Number(initialPage))
   //   }
   // }, [initialPage, activePage, setPage])
+
+  useEffect(() => {
+    logger.debug(`retentionPeriod: ${retentionPeriod}`)
+    const runCleanup = async () => {
+      await autoPurgeTrash(retentionPeriod)
+    }
+    runCleanup()
+  }, [retentionPeriod])
 
   const toggleFab = () => {
     const newState = !fabExpanded

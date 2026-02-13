@@ -665,22 +665,17 @@ export const destroyAllTransactionModel = async (): Promise<void> => {
   })
 }
 
-export const autoPurgeTrash = async (
-  retentionSetting: keyof typeof RetentionPeriodEnum,
-) => {
-  if (retentionSetting === "FOREVER") return
+export const autoPurgeTrash = async (retentionValue: string) => {
+  // 1. Handle the "forever" case
+  if (retentionValue === "forever") return
 
-  // 1. Map enum to actual days
-  const daysMap: Record<string, number> = {
-    SEVEN_DAYS: 7,
-    FOURTEEN_DAYS: 14,
-    THIRTY_DAYS: 30,
-    NINETY_DAYS: 90,
-    ONE_EIGHTY_DAYS: 180,
-    THREE_SIXTY_FIVE_DAYS: 365,
+  // 2. Extract the number from the string (e.g., "7 days" -> 7)
+  const daysToKeep = parseInt(retentionValue.split(" ")[0], 10)
+
+  if (Number.isNaN(daysToKeep)) {
+    return
   }
 
-  const daysToKeep = daysMap[retentionSetting]
   const cutoffDate = subDays(startOfDay(new Date()), daysToKeep).getTime()
 
   const transactionsToPurge = await transactionsCollection()
@@ -688,9 +683,10 @@ export const autoPurgeTrash = async (
     .fetch()
 
   if (transactionsToPurge.length > 0) {
-    for (let index = 0; index < transactionsToPurge.length; index++) {
-      const element = transactionsToPurge[index]
-      await destroyTransactionModel(element)
-    }
+    await database.write(async () => {
+      for (const transaction of transactionsToPurge) {
+        await transaction.destroyPermanently()
+      }
+    })
   }
 }
