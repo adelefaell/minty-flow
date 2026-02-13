@@ -1,208 +1,127 @@
 import { withObservables } from "@nozbe/watermelondb/react"
 import { useRouter } from "expo-router"
 import { useCallback, useMemo, useRef } from "react"
-import { SectionList } from "react-native"
-import type { SwipeableMethods } from "react-native-gesture-handler/lib/typescript/components/ReanimatedSwipeable"
+import { Alert, FlatList } from "react-native"
+import type { SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable"
 import { StyleSheet } from "react-native-unistyles"
+import { startWith } from "rxjs"
 
 import { TransactionItem } from "~/components/transaction/transaction-item"
+import { Text } from "~/components/ui/text"
+import { View } from "~/components/ui/view"
 import {
   destroyTransactionModel,
   observeTransactionModelsFull,
   type TransactionWithRelations,
-} from "~/database/services"
-import { useTimeUtils } from "~/hooks/use-time-utils"
-import { type TransactionType, TransactionTypeEnum } from "~/types/transactions"
+} from "~/database/services/transaction-service"
 import { Toast } from "~/utils/toast"
 
-function transactionContribution(
-  type: TransactionType,
-  amount: number,
-): number {
-  if (type === TransactionTypeEnum.INCOME) return amount
-  if (type === TransactionTypeEnum.EXPENSE) return -amount
-  return 0
-}
-
-interface TrashBinScreenProps {
-  transactionsFull?: TransactionWithRelations[] | null
-}
-
-function TrashScreen({ transactionsFull = [] }: TrashBinScreenProps) {
-  const list = transactionsFull ?? []
+function TrashScreenInner({
+  transactionsFull = [],
+}: {
+  transactionsFull: TransactionWithRelations[]
+}) {
   const router = useRouter()
-  const { formatDateKey, formatSectionDateTitle } = useTimeUtils()
   const openSwipeableRef = useRef<SwipeableMethods | null>(null)
 
-  const sections = useMemo(() => {
-    if (list.length === 0) {
-      return [
-        {
-          title: "",
-          data: [] as TransactionWithRelations[],
-          totals: {} as Record<string, number>,
-        },
-      ]
-    }
+  const sorted = useMemo(
+    () =>
+      [...transactionsFull].sort(
+        (a, b) =>
+          b.transaction.updatedAt.getTime() - a.transaction.updatedAt.getTime(),
+      ),
+    [transactionsFull],
+  )
 
-    // Newest first: sort by transaction date desc, then by createdAt for same day
-    const sortedList = [...list].sort((a, b) => {
-      const tA = a.transaction.transactionDate
-      const tB = b.transaction.transactionDate
-      const timeA = tA instanceof Date ? tA.getTime() : tA
-      const timeB = tB instanceof Date ? tB.getTime() : tB
-      if (timeB !== timeA) return timeB - timeA
-      const createdA =
-        a.transaction.createdAt instanceof Date
-          ? a.transaction.createdAt.getTime()
-          : a.transaction.createdAt
-      const createdB =
-        b.transaction.createdAt instanceof Date
-          ? b.transaction.createdAt.getTime()
-          : b.transaction.createdAt
-      return (createdB ?? 0) - (createdA ?? 0)
-    })
-
-    const grouped: Record<
-      string,
-      {
-        title: string
-        data: TransactionWithRelations[]
-        totals: Record<string, number>
-      }
-    > = {}
-
-    sortedList.forEach((row) => {
-      const t = row.transaction
-      const dateKey = formatDateKey(t.transactionDate)
-      const headerTitle = formatSectionDateTitle(t.transactionDate)
-
-      if (!grouped[dateKey]) {
-        grouped[dateKey] = {
-          title: headerTitle,
-          data: [],
-          totals: {},
-        }
-      }
-
-      grouped[dateKey].data.push(row)
-      const currency = row.account.currencyCode
-      const contribution = transactionContribution(t.type, t.amount)
-      grouped[dateKey].totals[currency] =
-        (grouped[dateKey].totals[currency] || 0) + contribution
-    })
-
-    return Object.values(grouped).sort(
-      (a, b) =>
-        b.data[0].transaction.transactionDate.getTime() -
-        a.data[0].transaction.transactionDate.getTime(),
-    )
-  }, [list, formatDateKey, formatSectionDateTitle])
-
-  // TODO: header for the trash list (as from the flow app)
-  const renderHeader = () => null
-
-  // TODO: content when the there is no deleted transaction
-  const renderEmptyList = () => null
-
-  // TODO: handle on click on trash list logic
-  const handleOnTransactionPress = useCallback(
-    (transactionId: string) => {
-      router.push({
-        pathname: "/transaction/[id]",
-        params: { id: transactionId },
-      })
+  const handlePress = useCallback(
+    (item: TransactionWithRelations) => () => {
+      router.push(`/transaction/${item.transaction.id}`)
     },
     [router],
   )
 
-  // TODO: handle on delete on trash list logic
-  const handleDeleteTransaction = useCallback(
-    async (transactionWithRelations: TransactionWithRelations) => {
-      try {
-        await destroyTransactionModel(transactionWithRelations.transaction)
-        Toast.success({ title: "Removed" })
-      } catch {
-        Toast.error({ title: "Failed to move to trash" })
-      }
+  const handleDestroy = useCallback(
+    (item: TransactionWithRelations) => () => {
+      Alert.alert(
+        "Delete permanently?",
+        "This transaction will be removed forever and cannot be restored.",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: () =>
+              destroyTransactionModel(item.transaction)
+                .then(() => {
+                  Toast.success({
+                    title: "Deleted",
+                    description: "Transaction permanently removed.",
+                  })
+                })
+                .catch(() => {
+                  Toast.error({
+                    title: "Error",
+                    description: "Failed to delete transaction.",
+                  })
+                }),
+          },
+        ],
+      )
     },
     [],
   )
 
-  // TODO: handle on revert transaction
-
   return (
-    <SectionList
+    <FlatList
       style={styles.container}
-      sections={sections}
-      ListHeaderComponent={renderHeader}
-      ListEmptyComponent={renderEmptyList}
-      keyExtractor={(item) => (item as TransactionWithRelations).transaction.id}
+      contentContainerStyle={[
+        styles.content,
+        sorted.length === 0 && styles.contentEmpty,
+      ]}
+      ListHeaderComponent={
+        <>
+          <Text variant="h2" style={styles.title}>
+            Trash
+          </Text>
+          <Text variant="p" style={styles.description}>
+            Tap to open. Swipe left to delete permanently.
+          </Text>
+        </>
+      }
+      ListEmptyComponent={
+        <View style={styles.placeholder}>
+          <Text variant="small" style={styles.placeholderText}>
+            No deleted transactions
+          </Text>
+        </View>
+      }
+      data={sorted}
+      keyExtractor={(item) => item.transaction.id}
       renderItem={({ item }) => (
         <TransactionItem
-          transactionWithRelations={item as TransactionWithRelations}
-          onPress={() => handleOnTransactionPress(item.transaction.id)}
-          onDelete={() =>
-            handleDeleteTransaction(item as TransactionWithRelations)
-          }
+          transactionWithRelations={item}
+          onPress={handlePress(item)}
+          onDelete={handleDestroy(item)}
           onWillOpen={(methods) => {
             openSwipeableRef.current?.close()
             openSwipeableRef.current = methods
           }}
+          rightActionAccessibilityLabel="Delete permanently"
         />
       )}
-      // renderSectionHeader={({ section }) => {
-      //   const s = section as unknown as {
-      //     title: string
-      //     data: TransactionWithRelations[]
-      //     totals: Record<string, number>
-      //   }
-      //   if (!s.title && s.data.length === 0) return null
-      //   return (
-      //     <View style={styles.sectionHeader}>
-      //       <View style={styles.sectionTitleRow}>
-      //         <Text variant="h4" style={styles.sectionTitle}>
-      //           {s.title}
-      //         </Text>
-      //         <View style={styles.sectionDivider} />
-      //       </View>
-      //       <View style={styles.sectionTotalsContainer}>
-      //         <View style={styles.totalsContainer}>
-      //           {Object.entries(s.totals).map(([curr, total], idx) => (
-      //             <Fragment key={curr + idx.toString()}>
-      //               <Text variant="small" style={styles.sectionTotal}>
-      //                 {idx > 0 && "|"}
-      //               </Text>
-      //               <Money
-      //                 variant="small"
-      //                 style={styles.sectionTotal}
-      //                 value={total}
-      //                 currency={curr}
-      //                 tone="auto"
-      //                 visualTone="transfer"
-      //                 showSign
-      //               />
-      //             </Fragment>
-      //           ))}
-      //         </View>
-
-      //         <Text variant="small" style={styles.sectionTotal}>
-      //           • {s.data.length} transactions
-      //         </Text>
-      //       </View>
-      //     </View>
-      //   )
-      // }}
-      contentContainerStyle={styles.listContent}
-      stickySectionHeadersEnabled={false}
-      showsVerticalScrollIndicator={false}
     />
   )
 }
 
-export default withObservables([], () => ({
-  transactionsFull: observeTransactionModelsFull({ onlyDeleted: true }),
-}))(TrashScreen)
+const EnhancedTrashScreen = withObservables([], () => ({
+  transactionsFull: observeTransactionModelsFull({
+    deletedOnly: true,
+  }).pipe(startWith([] as TransactionWithRelations[])),
+}))(TrashScreenInner)
+
+export default function TrashScreen() {
+  return <EnhancedTrashScreen />
+}
 
 const styles = StyleSheet.create((theme) => ({
   container: {
@@ -211,6 +130,10 @@ const styles = StyleSheet.create((theme) => ({
   },
   content: {
     padding: 20,
+    paddingBottom: 40,
+  },
+  contentEmpty: {
+    flexGrow: 1,
   },
   title: {
     fontSize: 28,

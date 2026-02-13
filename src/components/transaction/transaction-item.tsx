@@ -32,15 +32,19 @@ interface TransactionItemProps {
   onDelete?: () => void
   /** Called before this row opens; use to close the previously open row (single-open coordination). */
   onWillOpen?: (methods: SwipeableMethods) => void
+  /** Accessibility label for the swipe action (e.g. "Delete permanently" on trash screen). */
+  rightActionAccessibilityLabel?: string
 }
 
 function RightAction({
   progress,
   onTrashPress,
+  accessibilityLabel = "Move to trash",
 }: {
   progress: SharedValue<number>
   translation: SharedValue<number>
   onTrashPress: () => void
+  accessibilityLabel?: string
 }) {
   // Animate the icon scale and opacity only (no container translate — keeps icon visible and tappable)
   const iconStyle = useAnimatedStyle(() => {
@@ -64,7 +68,7 @@ function RightAction({
       <Pressable
         style={rightActionStyles.pressable}
         onPress={onTrashPress}
-        accessibilityLabel="Move to trash"
+        accessibilityLabel={accessibilityLabel}
       >
         <Animated.View style={iconStyle}>
           <IconSymbol
@@ -101,6 +105,7 @@ export const TransactionItem = ({
   onPress,
   onDelete,
   onWillOpen,
+  rightActionAccessibilityLabel,
 }: TransactionItemProps) => {
   const swipeableRef = useRef<SwipeableMethods | null>(null)
   const { formatReadableTime } = useTimeUtils()
@@ -121,6 +126,7 @@ export const TransactionItem = ({
         onDelete?.()
         swipeableMethods.close()
       }}
+      accessibilityLabel={rightActionAccessibilityLabel}
     />
   )
 

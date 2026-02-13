@@ -196,12 +196,10 @@ export const updateCategoryById = async (
 
 /**
  * Delete category completely. All transactions that belonged to this category
- * are updated to have no category (uncategorized). The category is then
+ * are updated to the target category (or uncategorized). The category is then
  * permanently removed.
- *
- * Uses batch operations for performance and atomicity.
  */
-export const deleteCategory = async (
+export const destroyCategory = async (
   category: CategoryModel,
   targetCategoryId: string | null = null,
 ): Promise<void> => {
@@ -211,23 +209,13 @@ export const deleteCategory = async (
   })
 
   await database.write(async () => {
-    // Prepare transaction updates
-    const transactionOps = transactions.map((transaction) =>
-      transaction.prepareUpdate((t) => {
-        // Move to target category or set to null for "no category"
+    for (const transaction of transactions) {
+      await transaction.update((t) => {
         t.categoryId = targetCategoryId
         t.updatedAt = new Date()
-      }),
-    )
-
-    // Prepare category deletion
-    const categoryOp = category.prepareDestroyPermanently()
-
-    // Execute all operations atomically
-    await database.batch(...transactionOps, categoryOp)
-
-    // If we moved to a target category, we should recalculate its count
-    // (Note: This might be better handled reactively or by also fetching target category)
+      })
+    }
+    await category.destroyPermanently()
   })
 
   if (targetCategoryId) {

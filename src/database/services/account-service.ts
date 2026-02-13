@@ -16,7 +16,6 @@ import type AccountModel from "../models/Account"
 import { modelToAccount } from "../utils/model-to-account"
 import {
   createTransactionModel,
-  deleteTransactionModel,
   destroyTransactionModel,
   getTransactionModels,
   observeTransactionModels,
@@ -382,23 +381,6 @@ export const updateAccountById = async (
     throw new Error(`Account with id ${id} not found`)
   }
   return await updateAccount(account, updates)
-}
-
-/**
- * Delete account (mark as deleted for sync).
- * Also deletes (marks as deleted) all transactions belonging to this account.
- */
-export const deleteAccount = async (account: AccountModel): Promise<void> => {
-  const transactions = await getTransactionModels({
-    accountId: account.id,
-    includeDeleted: false,
-  })
-  for (const t of transactions) {
-    await deleteTransactionModel(t)
-  }
-  await database.write(async () => {
-    await account.markAsDeleted()
-  })
 }
 
 /**

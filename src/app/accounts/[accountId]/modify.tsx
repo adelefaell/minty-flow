@@ -24,7 +24,7 @@ import { View } from "~/components/ui/view"
 import type AccountModel from "~/database/models/Account"
 import {
   createAccount,
-  deleteAccount,
+  destroyAccount,
   observeAccountById,
   updateAccount,
 } from "~/database/services/account-service"
@@ -182,7 +182,7 @@ const EditAccountScreenInner = ({
     try {
       if (!accountModel) return
 
-      await deleteAccount(accountModel)
+      await destroyAccount(accountModel)
 
       isNavigatingRef.current = true
       router.dismissAll()
@@ -438,7 +438,7 @@ const EditAccountScreenInner = ({
                   style={styles.deleteIcon}
                 />
                 <Text variant="default" style={styles.deleteText}>
-                  Delete Account
+                  Permanently delete Account
                 </Text>
               </Button>
             ) : (
@@ -486,11 +486,11 @@ const EditAccountScreenInner = ({
           visible={deleteModalVisible}
           onRequestClose={() => setDeleteModalVisible(false)}
           onConfirm={handleDelete}
-          title={`Delete ${account.name}?`}
+          title={`Permanently delete ${account.name}?`}
           description={
             transactionCount > 0
-              ? `This account has ${transactionCount} transaction${transactionCount !== 1 ? "s" : ""}. Deleting the account will also delete ${transactionCount === 1 ? "it" : "them"}. This action cannot be undone.`
-              : "Deleting this account cannot be undone. This action is irreversible!"
+              ? `This account has ${transactionCount} transaction${transactionCount !== 1 ? "s" : ""}. Permanently deleting the account will also delete ${transactionCount === 1 ? "it" : "them"}. This action cannot be undone.`
+              : "Permanently deleting this account cannot be undone. This action is irreversible!"
           }
           confirmLabel="Delete"
           cancelLabel="Cancel"

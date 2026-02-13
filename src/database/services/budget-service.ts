@@ -202,15 +202,6 @@ export const resetBudgetModelSpending = async (
 }
 
 /**
- * Delete budget (mark as deleted for sync)
- */
-export const deleteBudgetModel = async (budget: BudgetModel): Promise<void> => {
-  await database.write(async () => {
-    await budget.markAsDeleted()
-  })
-}
-
-/**
  * Permanently destroy budget
  */
 export const destroyBudgetModel = async (

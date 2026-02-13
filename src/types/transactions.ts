@@ -84,7 +84,8 @@ export interface TransactionListFilters {
   type?: TransactionType
   isPending?: boolean
   includeDeleted?: boolean
-  onlyDeleted?: boolean
+  /** When true, return only soft-deleted transactions (for trash). */
+  deletedOnly?: boolean
   /** Start of range (inclusive), Unix timestamp. */
   fromDate?: number
   /** End of range (inclusive), Unix timestamp. */
