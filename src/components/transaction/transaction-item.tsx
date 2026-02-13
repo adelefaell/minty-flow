@@ -14,17 +14,21 @@ import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import type { TransactionWithRelations } from "~/database/services/transaction-service"
+import {
+  findTransactionModel,
+  type TransactionWithRelations,
+  updateTransactionModel,
+} from "~/database/services/transaction-service"
 import { useTimeUtils } from "~/hooks/use-time-utils"
 
 import { DynamicIcon } from "../dynamic-icon"
 
 /**
  * The only caveat (edge case)
- * If TRASH_ACTION_WIDTH ever becomes dynamic:
- * const TRASH_ACTION_WIDTH = Dimensions.get("window").width * 0.3
+ * If RIGHT_ACTION_WIDTH ever becomes dynamic:
+ * const RIGHT_ACTION_WIDTH = Dimensions.get("window").width * 0.3
  */
-const TRASH_ACTION_WIDTH = 100
+const RIGHT_ACTION_WIDTH = 100
 
 interface TransactionItemProps {
   transactionWithRelations: TransactionWithRelations
@@ -40,11 +44,15 @@ function RightAction({
   progress,
   onTrashPress,
   accessibilityLabel = "Move to trash",
+  pendingTransaction = false,
+  onConfirmPendingPress,
 }: {
   progress: SharedValue<number>
   translation: SharedValue<number>
   onTrashPress: () => void
   accessibilityLabel?: string
+  pendingTransaction?: boolean
+  onConfirmPendingPress?: () => void
 }) {
   // Animate the icon scale and opacity only (no container translate — keeps icon visible and tappable)
   const iconStyle = useAnimatedStyle(() => {
@@ -66,7 +74,7 @@ function RightAction({
   return (
     <View style={rightActionStyles.container}>
       <Pressable
-        style={rightActionStyles.pressable}
+        style={rightActionStyles.trashPressable}
         onPress={onTrashPress}
         accessibilityLabel={accessibilityLabel}
       >
@@ -78,25 +86,58 @@ function RightAction({
           />
         </Animated.View>
       </Pressable>
+
+      {pendingTransaction && (
+        <Pressable
+          style={rightActionStyles.pendingPressable}
+          onPress={onConfirmPendingPress}
+          accessibilityLabel={accessibilityLabel}
+        >
+          <Animated.View style={iconStyle}>
+            <IconSymbol
+              name="check"
+              size={24}
+              color={rightActionStyles.pendingIcon.color}
+            />
+          </Animated.View>
+        </Pressable>
+      )}
     </View>
   )
 }
 
 const rightActionStyles = StyleSheet.create((theme) => ({
   container: {
-    width: TRASH_ACTION_WIDTH,
+    width: RIGHT_ACTION_WIDTH,
+    flexDirection: "row-reverse",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  // Trash action styles
+  trashPressable: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: theme.colors.error,
   },
-  pressable: {
-    flex: 1,
-    width: "100%",
-    justifyContent: "center",
-    alignItems: "center",
-  },
   trashIcon: {
     color: theme.colors.onError,
+  },
+
+  // Pending action styles
+  pendingPressable: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: theme.colors.customColors.info,
+  },
+  pendingIcon: {
+    color: theme.colors.onPrimary,
   },
 }))
 
@@ -127,6 +168,15 @@ export const TransactionItem = ({
         swipeableMethods.close()
       }}
       accessibilityLabel={rightActionAccessibilityLabel}
+      pendingTransaction={transaction.isPending}
+      onConfirmPendingPress={async () => {
+        if (transaction.isPending) {
+          const transactionModel = await findTransactionModel(transaction.id)
+          if (transactionModel) {
+            updateTransactionModel(transactionModel, { isPending: false })
+          }
+        }
+      }}
     />
   )
 
@@ -173,7 +223,7 @@ export const TransactionItem = ({
     <Swipeable
       ref={swipeableRef}
       friction={1}
-      rightThreshold={TRASH_ACTION_WIDTH / 2}
+      rightThreshold={RIGHT_ACTION_WIDTH / 2}
       overshootRight={false}
       containerStyle={[
         styles.swipeableContainer,
