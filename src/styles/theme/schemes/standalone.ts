@@ -18,6 +18,8 @@ export const palenight: MintyColorScheme = {
   onPrimary: "#292d3e",
   secondary: "#1f2233",
   onSecondary: "#a6accd",
+  error: "#f07178",
+  onError: "#f5f6fa",
   customColors: {
     income: "#c3e88d",
     expense: "#f07178",
@@ -26,6 +28,10 @@ export const palenight: MintyColorScheme = {
     warning: "#ffcb6b",
     info: "#82aaff",
   },
+  rippleColor: "rgba(255, 255, 255, 0.25)",
+  shadow: "rgba(0, 0, 0, 0.6)",
+  boxShadow: "0 1px 3px rgba(0, 0, 0, 0.3)",
+  radius: 10,
 }
 
 /**
@@ -42,6 +48,8 @@ export const monochrome: MintyColorScheme = {
   onPrimary: "#ffffff",
   secondary: "#f5f5f5",
   onSecondary: "#000000",
+  error: "#000000",
+  onError: "#ffffff",
   customColors: {
     income: "#2d2d2d",
     expense: "#000000",
@@ -50,6 +58,10 @@ export const monochrome: MintyColorScheme = {
     warning: "#666666",
     info: "#4d4d4d",
   },
+  rippleColor: "rgba(0, 0, 0, 0.25)",
+  shadow: "rgba(0, 0, 0, 0.08)",
+  boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+  radius: 10,
 }
 
 /**
@@ -66,6 +78,8 @@ export const nord: MintyColorScheme = {
   onPrimary: "#2e3440",
   secondary: "#3b4252",
   onSecondary: "#eceff4",
+  error: "#bf616a",
+  onError: "#f5f6fa",
   customColors: {
     income: "#a3be8c",
     expense: "#bf616a",
@@ -74,4 +88,8 @@ export const nord: MintyColorScheme = {
     warning: "#ebcb8b",
     info: "#81a1c1",
   },
+  rippleColor: "rgba(255, 255, 255, 0.25)",
+  shadow: "rgba(0, 0, 0, 0.6)",
+  boxShadow: "0 1px 3px rgba(0, 0, 0, 0.3)",
+  radius: 10,
 }

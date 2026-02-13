@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-02-12T21:49:49.381Z
+Generated on: 2026-02-13T21:01:11.857Z
 
 ```
 ./
@@ -67,7 +67,6 @@ Generated on: 2026-02-12T21:49:49.381Z
 │   │   │   │   ├── 📄 exchange-rates.tsx
 │   │   │   │   ├── 📄 index.tsx
 │   │   │   │   ├── 📄 money-formatting.tsx
-│   │   │   │   ├── 📄 numpad.tsx
 │   │   │   │   ├── 📄 pending-transactions.tsx
 │   │   │   │   ├── 📄 privacy.tsx
 │   │   │   │   ├── 📄 reminder.tsx
@@ -212,7 +211,6 @@ Generated on: 2026-02-12T21:49:49.381Z
 │   │   ├── 📄 letter-emoji.store.ts
 │   │   ├── 📄 money-formatting.store.ts
 │   │   ├── 📄 notification.store.ts
-│   │   ├── 📄 numpad-style.store.ts
 │   │   ├── 📄 profile.store.ts
 │   │   ├── 📄 theme.store.ts
 │   │   ├── 📄 toast-style.store.ts
@@ -257,7 +255,6 @@ Generated on: 2026-02-12T21:49:49.381Z
 │       ├── 📄 is-valid-icon-name.ts
 │       ├── 📄 logger.ts
 │       ├── 📄 number-format.ts
-│       ├── 📄 numpad-utils.ts
 │       ├── 📄 open-file.ts
 │       ├── 📄 parse-math-expression.ts
 │       ├── 📄 string-utils.ts

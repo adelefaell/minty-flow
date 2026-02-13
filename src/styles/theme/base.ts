@@ -47,7 +47,7 @@ export const DEFAULT_DARK_BASE: MintyColorScheme = {
   secondary: "#111111",
   onSecondary: "#f5f6fa",
   error: "#FF6B6B",
-  onError: "#000000",
+  onError: "#f5f6fa",
   customColors: {
     income: "#4ADE80",
     expense: "#FF6B6B",

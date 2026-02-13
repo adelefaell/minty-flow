@@ -1,6 +1,8 @@
-import { Alert, ScrollView } from "react-native"
+import { useState } from "react"
+import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
+import { ConfirmModal } from "~/components/confirm-modal"
 import { Button } from "~/components/ui/button"
 import { Pressable } from "~/components/ui/pressable"
 import { Switch } from "~/components/ui/switch"
@@ -11,6 +13,7 @@ import { useToastStyleStore } from "~/stores/toast-style.store"
 import { Toast } from "~/utils/toast"
 
 export default function ToastStyleScreen() {
+  const [resetModalVisible, setResetModalVisible] = useState(false)
   const {
     position,
     showProgressBar,
@@ -55,158 +58,166 @@ export default function ToastStyleScreen() {
   }
 
   const handleResetToDefaults = () => {
-    Alert.alert(
-      "Reset to Defaults",
-      "Are you sure you want to reset all toast style settings to their default values?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "Reset",
-          style: "destructive",
-          onPress: resetToDefaults,
-        },
-      ],
-    )
+    setResetModalVisible(true)
+  }
+
+  const handleConfirmReset = () => {
+    resetToDefaults()
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View native style={styles.section}>
-        {/* Position */}
-        <View native style={styles.settingRow}>
-          <View native style={styles.settingInfo}>
-            <Text variant="p" style={styles.settingLabel}>
-              Position
-            </Text>
-            <Text variant="small" style={styles.settingDescription}>
-              Where toasts appear on screen
-            </Text>
-            <View native style={styles.radioGroup}>
-              <Pressable
-                style={styles.radioOption}
-                onPress={() => handlePositionChange("top")}
-              >
-                <View
-                  native
-                  style={[
-                    styles.radioButton,
-                    position === "top" && styles.radioButtonSelected,
-                  ]}
+    <>
+      <ConfirmModal
+        visible={resetModalVisible}
+        onRequestClose={() => setResetModalVisible(false)}
+        onConfirm={handleConfirmReset}
+        title="Reset to Defaults"
+        description="Are you sure you want to reset all toast style settings to their default values?"
+        confirmLabel="Reset"
+        cancelLabel="Cancel"
+        variant="destructive"
+      />
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+      >
+        <View native style={styles.section}>
+          {/* Position */}
+          <View native style={styles.settingRow}>
+            <View native style={styles.settingInfo}>
+              <Text variant="p" style={styles.settingLabel}>
+                Position
+              </Text>
+              <Text variant="small" style={styles.settingDescription}>
+                Where toasts appear on screen
+              </Text>
+              <View native style={styles.radioGroup}>
+                <Pressable
+                  style={styles.radioOption}
+                  onPress={() => handlePositionChange("top")}
                 >
-                  {position === "top" && (
-                    <View native style={styles.radioButtonInner} />
-                  )}
-                </View>
-                <Text
-                  style={[
-                    styles.radioLabel,
-                    position === "top" && styles.radioLabelSelected,
-                  ]}
+                  <View
+                    native
+                    style={[
+                      styles.radioButton,
+                      position === "top" && styles.radioButtonSelected,
+                    ]}
+                  >
+                    {position === "top" && (
+                      <View native style={styles.radioButtonInner} />
+                    )}
+                  </View>
+                  <Text
+                    style={[
+                      styles.radioLabel,
+                      position === "top" && styles.radioLabelSelected,
+                    ]}
+                  >
+                    Top
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={styles.radioOption}
+                  onPress={() => handlePositionChange("bottom")}
                 >
-                  Top
-                </Text>
-              </Pressable>
-              <Pressable
-                style={styles.radioOption}
-                onPress={() => handlePositionChange("bottom")}
-              >
-                <View
-                  native
-                  style={[
-                    styles.radioButton,
-                    position === "bottom" && styles.radioButtonSelected,
-                  ]}
-                >
-                  {position === "bottom" && (
-                    <View native style={styles.radioButtonInner} />
-                  )}
-                </View>
-                <Text
-                  style={[
-                    styles.radioLabel,
-                    position === "bottom" && styles.radioLabelSelected,
-                  ]}
-                >
-                  Bottom
-                </Text>
-              </Pressable>
+                  <View
+                    native
+                    style={[
+                      styles.radioButton,
+                      position === "bottom" && styles.radioButtonSelected,
+                    ]}
+                  >
+                    {position === "bottom" && (
+                      <View native style={styles.radioButtonInner} />
+                    )}
+                  </View>
+                  <Text
+                    style={[
+                      styles.radioLabel,
+                      position === "bottom" && styles.radioLabelSelected,
+                    ]}
+                  >
+                    Bottom
+                  </Text>
+                </Pressable>
+              </View>
             </View>
           </View>
+
+          {/* Progress Bar */}
+          <Pressable
+            style={styles.settingRow}
+            onPress={() => setShowProgressBar(!showProgressBar)}
+          >
+            <View native style={styles.settingInfo}>
+              <Text variant="p" style={styles.settingLabel}>
+                Progress Bar
+              </Text>
+              <Text variant="small" style={styles.settingDescription}>
+                Visual countdown indicator
+              </Text>
+            </View>
+            <Switch
+              value={showProgressBar}
+              onValueChange={setShowProgressBar}
+            />
+          </Pressable>
+
+          {/* Close Icon */}
+          <Pressable
+            style={styles.settingRow}
+            onPress={() => setShowCloseIcon(!showCloseIcon)}
+          >
+            <View native style={styles.settingInfo}>
+              <Text variant="p" style={styles.settingLabel}>
+                Close Icon
+              </Text>
+              <Text variant="small" style={styles.settingDescription}>
+                Manual dismiss button
+              </Text>
+            </View>
+            <Switch value={showCloseIcon} onValueChange={setShowCloseIcon} />
+          </Pressable>
         </View>
 
-        {/* Progress Bar */}
-        <Pressable
-          style={styles.settingRow}
-          onPress={() => setShowProgressBar(!showProgressBar)}
-        >
-          <View native style={styles.settingInfo}>
-            <Text variant="p" style={styles.settingLabel}>
-              Progress Bar
-            </Text>
-            <Text variant="small" style={styles.settingDescription}>
-              Visual countdown indicator
-            </Text>
+        {/* Demo Section */}
+        <View native style={styles.demoSection}>
+          <Text variant="h3" style={styles.sectionTitle}>
+            Preview
+          </Text>
+          <Text variant="small" style={styles.demoDescription}>
+            Test your toast settings with demo notifications
+          </Text>
+          <View native style={styles.demoButtons}>
+            <Button
+              variant="default"
+              style={styles.demoButton}
+              onPress={handleShowDemoToasts}
+            >
+              <Text style={styles.demoButtonText}>Show Demo Toasts</Text>
+            </Button>
+            <Button
+              variant="outline"
+              style={styles.demoButton}
+              onPress={() => Toast.hideAll()}
+            >
+              <Text style={styles.hideAllButtonText}>Hide All</Text>
+            </Button>
           </View>
-          <Switch value={showProgressBar} onValueChange={setShowProgressBar} />
-        </Pressable>
+        </View>
 
-        {/* Close Icon */}
-        <Pressable
-          style={styles.settingRow}
-          onPress={() => setShowCloseIcon(!showCloseIcon)}
-        >
-          <View native style={styles.settingInfo}>
-            <Text variant="p" style={styles.settingLabel}>
-              Close Icon
-            </Text>
-            <Text variant="small" style={styles.settingDescription}>
-              Manual dismiss button
-            </Text>
-          </View>
-          <Switch value={showCloseIcon} onValueChange={setShowCloseIcon} />
-        </Pressable>
-      </View>
-
-      {/* Demo Section */}
-      <View native style={styles.demoSection}>
-        <Text variant="h3" style={styles.sectionTitle}>
-          Preview
-        </Text>
-        <Text variant="small" style={styles.demoDescription}>
-          Test your toast settings with demo notifications
-        </Text>
-        <View native style={styles.demoButtons}>
+        {/* Reset Section */}
+        <View native style={styles.resetSection}>
           <Button
-            variant="default"
-            style={styles.demoButton}
-            onPress={handleShowDemoToasts}
+            variant="destructive"
+            style={styles.resetButton}
+            onPress={handleResetToDefaults}
           >
-            <Text style={styles.demoButtonText}>Show Demo Toasts</Text>
-          </Button>
-          <Button
-            variant="outline"
-            style={styles.demoButton}
-            onPress={() => Toast.hideAll()}
-          >
-            <Text style={styles.hideAllButtonText}>Hide All</Text>
+            <Text>Reset to Defaults</Text>
           </Button>
         </View>
-      </View>
-
-      {/* Reset Section */}
-      <View native style={styles.resetSection}>
-        <Button
-          variant="destructive"
-          style={styles.resetButton}
-          onPress={handleResetToDefaults}
-        >
-          <Text>Reset to Defaults</Text>
-        </Button>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </>
   )
 }
 

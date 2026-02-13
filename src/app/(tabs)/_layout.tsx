@@ -34,6 +34,7 @@ type TabConfig = {
 type FABOption = {
   icon: IconSymbolName
   color: string
+  iconColor: string
   label: string
   onPress: () => void
 }
@@ -82,7 +83,7 @@ const AnimatedFABOption = ({
         animatedStyle,
       ]}
     >
-      <IconSymbol name={option.icon} size={24} color="#FFFFFF" />
+      <IconSymbol name={option.icon} size={24} color={option.iconColor} />
     </AnimatedPressable>
   )
 }
@@ -120,7 +121,7 @@ const TabLayout = () => {
       mass: 0.5,
     })
 
-    overlayOpacity.value = withTiming(newState ? 1 : 0, {
+    overlayOpacity.value = withTiming(newState ? 0.8 : 0, {
       duration: 100,
       easing: Easing.inOut(Easing.quad),
     })
@@ -131,7 +132,8 @@ const TabLayout = () => {
   const fabOptions: FABOption[] = [
     {
       icon: "arrow-down",
-      color: "#A8D5BA",
+      color: theme.colors.customColors.income,
+      iconColor: theme.colors.onError,
       label: "Income",
       onPress: () => {
         router.push(`/transaction/${NewEnum.NEW}?type=income`)
@@ -140,7 +142,8 @@ const TabLayout = () => {
     },
     {
       icon: "arrow-up",
-      color: "#F8A5A5",
+      color: theme.colors.customColors.expense,
+      iconColor: theme.colors.onError,
       label: "Expense",
       onPress: () => {
         router.push(`/transaction/${NewEnum.NEW}?type=expense`)
@@ -149,7 +152,8 @@ const TabLayout = () => {
     },
     {
       icon: "swap-horizontal",
-      color: "#B8B5E8",
+      color: theme.colors.secondary,
+      iconColor: theme.colors.onSecondary,
       label: "Transfer",
       onPress: () => {
         router.push(`/transaction/${NewEnum.NEW}?type=transfer`)
@@ -235,9 +239,13 @@ const TabLayout = () => {
         </View>
       </View>
 
-      {/* Overlay */}
+      {/* Overlay - backgroundColor from theme so it updates when theme changes */}
       <Animated.View
-        style={[styles.overlay, overlayStyle]}
+        style={[
+          styles.overlay,
+          { backgroundColor: theme.colors.surface },
+          overlayStyle,
+        ]}
         pointerEvents={fabExpanded ? "auto" : "none"}
       >
         <Pressable
@@ -318,10 +326,9 @@ const styles = StyleSheet.create((t) => ({
     flex: 1,
   },
 
-  // Overlay
+  // Overlay (backgroundColor set inline from theme so it reacts to theme change)
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
     zIndex: 20,
   },
   overlayPressable: {

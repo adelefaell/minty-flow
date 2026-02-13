@@ -61,8 +61,16 @@ export function ChangeIconInline({
     surface: theme.colors.surface,
     onSurface: theme.colors.onSurface,
     primary: theme.colors.primary,
+    onPrimary: theme.colors.onPrimary,
     secondary: theme.colors.secondary,
+    onSecondary: theme.colors.onSecondary,
+    error: theme.colors.error,
+    onError: theme.colors.onError,
     customColors: theme.colors.customColors,
+    rippleColor: theme.colors.rippleColor,
+    shadow: theme.colors.shadow,
+    boxShadow: theme.colors.boxShadow,
+    radius: theme.colors.radius,
   }
 
   const iconSheetId = `${id}-icon`

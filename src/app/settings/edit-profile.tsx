@@ -2,7 +2,7 @@ import { Image } from "expo-image"
 import * as ImagePicker from "expo-image-picker"
 import { useRouter } from "expo-router"
 import { useEffect, useState } from "react"
-import { Alert, ScrollView } from "react-native"
+import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
 import { KeyboardStickyViewMinty } from "~/components/keyboard-sticky-view-minty"
@@ -14,6 +14,7 @@ import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import { useProfileStore } from "~/stores/profile.store"
 import { getInitials } from "~/utils/string-utils"
+import { Toast } from "~/utils/toast"
 
 export default function EditProfileScreen() {
   const router = useRouter()
@@ -34,10 +35,10 @@ export default function EditProfileScreen() {
     // Request permissions
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
     if (status !== "granted") {
-      Alert.alert(
-        "Permission Required",
-        "We need access to your photos to set a profile picture.",
-      )
+      Toast.warn({
+        title: "Permission Required",
+        description: "We need access to your photos to set a profile picture.",
+      })
       return
     }
 

@@ -33,13 +33,6 @@ const appearanceItems: PreferenceItem[] = [
     icon: "pound",
   },
   {
-    id: "numpad",
-    title: "Numpad",
-    description: "Configure numpad layout",
-    route: "/settings/preferences/numpad",
-    icon: "dialpad",
-  },
-  {
     id: "toast",
     title: "Toast Style",
     description: "Configure your preferred toast style",

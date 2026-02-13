@@ -154,10 +154,6 @@ export default function RootLayout() {
                 options={{ title: "Reminder" }}
               />
               <Stack.Screen
-                name="settings/preferences/numpad"
-                options={{ title: "Numpad" }}
-              />
-              <Stack.Screen
                 name="settings/preferences/pending-transactions"
                 options={{
                   title: "Pending transactions",
