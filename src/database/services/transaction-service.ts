@@ -111,7 +111,14 @@ const buildTransactionQuery = (filters?: TransactionListFilters) => {
   if (filters?.isPending !== undefined) {
     query = query.extend(Q.where("is_pending", filters.isPending))
   }
-  if (!filters?.includeDeleted) {
+  // if (!filters?.includeDeleted) {
+  //   query = query.extend(Q.where("is_deleted", false))
+  // }
+  if (filters?.onlyDeleted) {
+    // 1. If we only want deleted, filter for true
+    query = query.extend(Q.where("is_deleted", true))
+  } else if (!filters?.includeDeleted) {
+    // 2. Otherwise, if we aren't including them, filter for false
     query = query.extend(Q.where("is_deleted", false))
   }
   if (filters?.fromDate !== undefined) {
@@ -211,6 +218,7 @@ const TRANSACTION_OBSERVE_COLUMNS = [
   "category_id",
   "account_id",
   "updated_at",
+  "is_deleted",
 ] as const
 
 export const observeTransactionModels = (
@@ -536,15 +544,15 @@ export const deleteTransactionModel = async (
   const categories = database.get<CategoryModel>("categories")
 
   return database.write(async () => {
-    if (!transaction.isDeleted && transaction.categoryId) {
-      const category = await categories.find(transaction.categoryId)
-      await category.update((c) => {
-        c.transactionCount = Math.max(0, c.transactionCount - 1)
-        c.updatedAt = new Date()
-      })
-    }
-
     if (!transaction.isDeleted) {
+      if (transaction.categoryId) {
+        const category = await categories.find(transaction.categoryId)
+        await category.update((c) => {
+          c.transactionCount = Math.max(0, c.transactionCount - 1)
+          c.updatedAt = new Date()
+        })
+      }
+
       const reverseDelta = -getBalanceDelta(
         transaction.amount,
         transaction.type,
@@ -554,9 +562,13 @@ export const deleteTransactionModel = async (
         a.balance = a.balance + reverseDelta
         a.updatedAt = new Date()
       })
-    }
 
-    await transaction.markAsDeleted()
+      await transaction.update((t) => {
+        t.isDeleted = true
+        t.deletedAt = new Date()
+        t.updatedAt = new Date()
+      })
+    }
   })
 }
 

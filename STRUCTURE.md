@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-02-12T19:58:25.808Z
+Generated on: 2026-02-13T18:21:34.708Z
 
 ```
 ./
@@ -142,6 +142,7 @@ Generated on: 2026-02-12T19:58:25.808Z
 │   │   ├── 📄 action-item.tsx
 │   │   ├── 📄 bottom-sheet.tsx
 │   │   ├── 📄 change-icon-inline.tsx
+│   │   ├── 📄 choice-chips.tsx
 │   │   ├── 📄 color-variant-inline.tsx
 │   │   ├── 📄 confirm-modal.tsx
 │   │   ├── 📄 currency-selector-inline.tsx
@@ -218,7 +219,8 @@ Generated on: 2026-02-12T19:58:25.808Z
 │   │   ├── 📄 toast-style.store.ts
 │   │   ├── 📄 toast.store.ts
 │   │   ├── 📄 transaction-item-appearance.store.ts
-│   │   └── 📄 transaction-sheet-controls.store.ts
+│   │   ├── 📄 transaction-sheet-controls.store.ts
+│   │   └── 📄 trash-bin.store.ts
 │   ├── 📁 styles/
 │   │   ├── 📁 theme/
 │   │   │   ├── 📁 schemes/
