@@ -1,8 +1,10 @@
 import { Q } from "@nozbe/watermelondb"
+import { startOfDay, subDays } from "date-fns"
 import type { Observable } from "rxjs"
 import { combineLatest, from, map, of, startWith, switchMap } from "rxjs"
 
 import type { TransactionFormValues } from "~/schemas/transactions.schema"
+import type { RetentionPeriodEnum } from "~/stores/trash-bin.store"
 import {
   type TransactionListFilters,
   type TransactionType,
@@ -629,4 +631,66 @@ export const destroyTransactionModel = async (
 
     await transaction.destroyPermanently()
   })
+}
+
+export const destroyAllTransactionModel = async (): Promise<void> => {
+  const categories = database.get<CategoryModel>("categories")
+
+  const transactions = await getTransactionModels({
+    deletedOnly: true,
+  })
+
+  return database.write(async () => {
+    for (const transaction of transactions) {
+      if (!transaction.isDeleted) {
+        if (transaction.categoryId) {
+          const category = await categories.find(transaction.categoryId)
+          await category.update((c) => {
+            c.transactionCount = Math.max(0, c.transactionCount - 1)
+          })
+        }
+
+        const reverseDelta = -getBalanceDelta(
+          transaction.amount,
+          transaction.type,
+        )
+        const account = await accountsCollection().find(transaction.accountId)
+        await account.update((a) => {
+          a.balance += reverseDelta
+        })
+      }
+
+      await transaction.destroyPermanently()
+    }
+  })
+}
+
+export const autoPurgeTrash = async (
+  retentionSetting: keyof typeof RetentionPeriodEnum,
+) => {
+  if (retentionSetting === "FOREVER") return
+
+  // 1. Map enum to actual days
+  const daysMap: Record<string, number> = {
+    SEVEN_DAYS: 7,
+    FOURTEEN_DAYS: 14,
+    THIRTY_DAYS: 30,
+    NINETY_DAYS: 90,
+    ONE_EIGHTY_DAYS: 180,
+    THREE_SIXTY_FIVE_DAYS: 365,
+  }
+
+  const daysToKeep = daysMap[retentionSetting]
+  const cutoffDate = subDays(startOfDay(new Date()), daysToKeep).getTime()
+
+  const transactionsToPurge = await transactionsCollection()
+    .query(Q.where("is_deleted", true), Q.where("deleted_at", Q.lt(cutoffDate)))
+    .fetch()
+
+  if (transactionsToPurge.length > 0) {
+    for (let index = 0; index < transactionsToPurge.length; index++) {
+      const element = transactionsToPurge[index]
+      await destroyTransactionModel(element)
+    }
+  }
 }

@@ -1,3 +1,6 @@
+import { useRouter } from "expo-router"
+import { useCallback } from "react"
+import { Alert } from "react-native"
 import { ScrollView } from "react-native-gesture-handler"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -6,9 +9,12 @@ import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
+import { destroyAllTransactionModel } from "~/database/services/transaction-service"
 import { useTrashBinStore } from "~/stores/trash-bin.store"
+import { Toast } from "~/utils/toast"
 
 const RetentionPeriodEnum = {
+  ONE_DAY: "1 day",
   SEVEN_DAYS: "7 days",
   FOURTEEN_DAYS: "14 days",
   THIRTY_DAYS: "30 days",
@@ -19,15 +25,49 @@ const RetentionPeriodEnum = {
 } as const
 
 export default function TrashBinScreen() {
+  const router = useRouter()
   const retentionPeriod = useTrashBinStore((s) => s.retentionPeriod)
   const setRetentionPeriod = useTrashBinStore((s) => s.setRetentionPeriod)
+
+  const handleView = useCallback(() => {
+    router.push("/settings/trash")
+  }, [router])
+
+  const handleEmpty = useCallback(() => {
+    Alert.alert(
+      "Empty Trash?",
+      "All items in the trash will be permanently deleted. This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Empty Trash",
+          style: "destructive",
+          onPress: () =>
+            destroyAllTransactionModel()
+              .then(() => {
+                Toast.success({
+                  title: "Trash Emptied",
+                  description: "Your trash has been cleared.",
+                })
+              })
+              .catch(() => {
+                Toast.error({
+                  title: "Cleanup Failed",
+                  description:
+                    "An unexpected error occurred. Please try again.",
+                })
+              }),
+        },
+      ],
+    )
+  }, [])
 
   return (
     <ScrollView style={styles.container}>
       {/* Retention Period Choices */}
       <ChoiceChipsComponent
         title="Retention Period"
-        description="description goes here..."
+        description="Automatically clear deleted items after a set period"
         style={{
           paddingHorizontal: 20,
         }}
@@ -37,7 +77,7 @@ export default function TrashBinScreen() {
       />
 
       {/* View Removed List */}
-      <Pressable style={styles.actionItem}>
+      <Pressable style={styles.actionItem} onPress={handleView}>
         <View style={styles.actionItemLeft}>
           <View style={styles.actionItemContent}>
             <View style={styles.titleRow}>
@@ -45,9 +85,6 @@ export default function TrashBinScreen() {
                 View removed list
               </Text>
             </View>
-            {/* <Text variant="small" style={styles.actionItemDescription}>
-              Description
-              </Text> */}
           </View>
         </View>
         <IconSymbol
@@ -58,7 +95,7 @@ export default function TrashBinScreen() {
       </Pressable>
 
       {/* Empty Trash Bin */}
-      <Pressable style={styles.actionItem}>
+      <Pressable style={styles.actionItem} onPress={handleEmpty}>
         <View style={styles.actionItemLeft}>
           <View style={styles.actionItemContent}>
             <View style={styles.titleRow}>
@@ -66,9 +103,6 @@ export default function TrashBinScreen() {
                 Empty trash bin
               </Text>
             </View>
-            {/* <Text variant="small" style={styles.actionItemDescription}>
-              Description
-              </Text> */}
           </View>
         </View>
         <IconSymbol

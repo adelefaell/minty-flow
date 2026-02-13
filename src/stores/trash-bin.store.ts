@@ -11,6 +11,7 @@ export const trashBinStorage = createMMKV({
 
 // Retention period choices
 export const RetentionPeriodEnum = {
+  ONE_DAY: "1 day",
   SEVEN_DAYS: "7 days",
   FOURTEEN_DAYS: "14 days",
   THIRTY_DAYS: "30 days",
