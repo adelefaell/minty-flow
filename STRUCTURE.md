@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-02-13T22:58:53.739Z
+Generated on: 2026-02-14T16:58:36.105Z
 
 ```
 ./
@@ -214,6 +214,7 @@ Generated on: 2026-02-13T22:58:53.739Z
 │   │   ├── 📄 money-formatting.store.ts
 │   │   ├── 📄 notification.store.ts
 │   │   ├── 📄 numpad-style.store.ts
+│   │   ├── 📄 pending-transaction.store.ts
 │   │   ├── 📄 profile.store.ts
 │   │   ├── 📄 theme.store.ts
 │   │   ├── 📄 toast-style.store.ts

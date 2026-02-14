@@ -290,10 +290,12 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.error,
   },
   grantPermissionText: {
+    fontSize: 14,
     color: theme.colors.error,
     fontWeight: "600",
   },
   grantPermissionContent: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
