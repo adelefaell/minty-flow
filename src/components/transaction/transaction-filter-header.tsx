@@ -93,9 +93,7 @@ function Chip({
       >
         {label}
       </Text>
-      {selected ? (
-        <IconSymbol name="check" size={14} color={theme.colors.primary} />
-      ) : null}
+      {selected ? <IconSymbol name="check" size={14} /> : null}
     </Pressable>
   )
 }
@@ -114,11 +112,7 @@ function SearchPanel({
   const { theme } = useUnistyles()
   return (
     <View style={styles.searchRow}>
-      <IconSymbol
-        name="magnify"
-        size={20}
-        color={`${theme.colors.onSurface}80`}
-      />
+      <IconSymbol name="magnify" size={20} />
       <TextInput
         value={value}
         onChangeText={onChange}
@@ -132,11 +126,7 @@ function SearchPanel({
       />
       {value.length > 0 ? (
         <Pressable onPress={onClear} style={styles.clearHit}>
-          <IconSymbol
-            name="close-circle"
-            size={20}
-            color={`${theme.colors.onSurface}60`}
-          />
+          <IconSymbol name="close-circle" size={20} />
         </Pressable>
       ) : null}
     </View>
@@ -760,11 +750,7 @@ export function TransactionFilterHeader({
             style={[styles.clearAllPill, { borderColor }]}
             onPress={handleClearAll}
           >
-            <IconSymbol
-              name="close-circle"
-              size={18}
-              color={theme.colors.primary}
-            />
+            <IconSymbol name="close-circle" size={18} />
             <Text
               variant="default"
               style={[styles.clearAllLabel, { color: theme.colors.primary }]}
@@ -799,11 +785,11 @@ export function TransactionFilterHeader({
               <IconSymbol
                 name={icon}
                 size={18}
-                color={
-                  isExpanded || active
-                    ? theme.colors.primary
-                    : theme.colors.onSurface
-                }
+                // color={
+                //   isExpanded || active
+                //     ? theme.colors.primary
+                //     : theme.colors.onSurface
+                // }
               />
               <Text
                 variant="default"
@@ -820,13 +806,7 @@ export function TransactionFilterHeader({
               >
                 {label}
               </Text>
-              {isExpanded ? (
-                <IconSymbol
-                  name="chevron-up"
-                  size={14}
-                  color={theme.colors.primary}
-                />
-              ) : null}
+              {isExpanded ? <IconSymbol name="chevron-up" size={14} /> : null}
             </Pressable>
           )
         })}
