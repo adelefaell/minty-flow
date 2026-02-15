@@ -119,7 +119,10 @@ export const VALID_ICON_NAMES = defineValidIcons([
   "trash-can",
   "target",
   "clock",
+  "clock-fast",
   "calendar",
+  "calendar-sync",
+  "progress-clock",
   "anchor",
   "archive",
   "archive-arrow-up",
@@ -141,6 +144,7 @@ export const VALID_ICON_NAMES = defineValidIcons([
   "dots-triangle",
   "attachment",
   "delete-restore",
+  "check-all",
 ] as const)
 
 /**

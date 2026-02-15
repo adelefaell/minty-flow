@@ -61,6 +61,7 @@ export interface Transaction {
   description?: string
   amount: number
   isPending: boolean
+  requiresManualConfirmation?: boolean
 
   subtype?: string // More specific classification
   extra?: Record<string, string> // Custom metadata object (stored as JSON)

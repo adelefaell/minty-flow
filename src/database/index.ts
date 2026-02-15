@@ -7,6 +7,7 @@ import BudgetModel from "./models/Budget"
 import CategoryModel from "./models/Category"
 import GoalModel from "./models/Goal"
 import LoanModel from "./models/Loan"
+import RecurringTransactionModel from "./models/RecurringTransaction"
 import TagModel from "./models/Tag"
 import TransactionModel from "./models/Transaction"
 import TransactionTagModel from "./models/TransactionTag"
@@ -46,6 +47,7 @@ export const database = new Database({
     CategoryModel,
     GoalModel,
     LoanModel,
+    RecurringTransactionModel,
     TagModel,
     TransactionModel,
     TransactionTagModel,
@@ -57,6 +59,7 @@ export type { default as BudgetModel } from "./models/Budget"
 export type { default as CategoryModel } from "./models/Category"
 export type { default as GoalModel } from "./models/Goal"
 export type { default as LoanModel } from "./models/Loan"
+export type { default as RecurringTransactionModel } from "./models/RecurringTransaction"
 export type { default as TagModel } from "./models/Tag"
 export type { default as TransactionModel } from "./models/Transaction"
 export type { default as TransactionTagModel } from "./models/TransactionTag"

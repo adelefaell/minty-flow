@@ -22,6 +22,7 @@ export default class TransactionModel extends Model implements Transaction {
   @field("description") description?: string
   @field("amount") amount!: number
   @field("is_pending") isPending!: boolean
+  @field("requires_manual_confirmation") requiresManualConfirmation?: boolean
 
   // Additional fields
   @field("subtype") subtype?: string

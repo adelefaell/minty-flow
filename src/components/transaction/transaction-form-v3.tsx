@@ -52,6 +52,7 @@ import { Switch } from "~/components/ui/switch"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import type TransactionModel from "~/database/models/Transaction"
+import { createRecurringFromTransaction } from "~/database/services/recurring-transaction-service"
 import {
   createTransactionModel,
   deleteTransactionModel,
@@ -63,6 +64,7 @@ import {
   type TransactionFormValues,
   transactionSchema,
 } from "~/schemas/transactions.schema"
+import { usePendingTransactionsStore } from "~/stores/pending-transactions.store"
 import { getThemeStrict } from "~/styles/theme/registry"
 import type { Account } from "~/types/accounts"
 import type { Category } from "~/types/categories"
@@ -82,6 +84,8 @@ import {
 import { formatFileSize } from "~/utils/format-file-size"
 import { logger } from "~/utils/logger"
 import { openFileInExternalApp } from "~/utils/open-file"
+import { startOfNextMinute } from "~/utils/pending-transactions"
+import { buildRRuleString } from "~/utils/recurrence"
 import { Toast } from "~/utils/toast"
 
 const RECURRING_OPTIONS: { id: RecurringFrequency; label: string }[] = [
@@ -198,6 +202,9 @@ export function TransactionFormV3({
   const { theme } = useUnistyles()
   const { id } = useLocalSearchParams<{ id: string }>()
   const isNew = id === NewEnum.NEW
+  const requireConfirmation = usePendingTransactionsStore(
+    (s) => s.requireConfirmation,
+  )
 
   const isNavigatingRef = useRef(false)
   const pendingLeaveRef = useRef<(() => void) | null>(null)
@@ -319,24 +326,9 @@ export function TransactionFormV3({
 
   const ENDS_ON_OCCURRENCE_PRESETS = [2, 4, 6, 8, 10, 12, 14]
 
-  const handleRecurringToggle = useCallback(
-    (next: boolean) => {
-      setRecurringEnabled(next)
-      logger.info("Recurring toggled (Coming soon)", {
-        enabled: next,
-        frequency: recurringFrequency,
-        startDate: recurringStartDate,
-        endDate: recurringEndDate,
-        endAfterOccurrences: recurringEndAfterOccurrences,
-      })
-    },
-    [
-      recurringFrequency,
-      recurringStartDate,
-      recurringEndDate,
-      recurringEndAfterOccurrences,
-    ],
-  )
+  const handleRecurringToggle = useCallback((next: boolean) => {
+    setRecurringEnabled(next)
+  }, [])
 
   const selectedAccount = accounts.find((a) => a.id === accountId)
   const selectedTags = tags.filter((t) => (tagIds ?? []).includes(t.id))
@@ -380,7 +372,16 @@ export function TransactionFormV3({
                     const t = datePickerTargetRef.current
                     if (t === "recurringStart") setRecurringStartDate(timeDate)
                     else if (t === "recurringEnd") setRecurringEndDate(timeDate)
-                    else setValue("transactionDate", timeDate)
+                    else {
+                      setValue("transactionDate", timeDate, {
+                        shouldDirty: true,
+                      })
+                      setValue(
+                        "isPending",
+                        timeDate.getTime() > startOfNextMinute().getTime(),
+                        { shouldDirty: true },
+                      )
+                    }
                   }
                 },
               })
@@ -407,7 +408,14 @@ export function TransactionFormV3({
       const t = datePickerTargetRef.current
       if (t === "recurringStart") setRecurringStartDate(tempDate)
       else if (t === "recurringEnd") setRecurringEndDate(tempDate)
-      else setValue("transactionDate", tempDate)
+      else {
+        setValue("transactionDate", tempDate, { shouldDirty: true })
+        setValue(
+          "isPending",
+          tempDate.getTime() > startOfNextMinute().getTime(),
+          { shouldDirty: true },
+        )
+      }
       setDatePickerVisible(false)
     } else {
       setDatePickerMode("time")
@@ -428,24 +436,74 @@ export function TransactionFormV3({
         delete builtExtra.attachments
       }
 
+      // When recurring is on, date and pending come from the rule; recurring is always auto-confirmed
+      const effectiveDate = recurringEnabled
+        ? recurringStartDate
+        : data.transactionDate
+      const effectiveIsPending = recurringEnabled
+        ? true
+        : (data.isPending ?? false)
+      const isFuture = effectiveDate.getTime() > Date.now()
+      const requiresManualConfirmation = recurringEnabled
+        ? undefined
+        : transaction
+          ? (transaction.requiresManualConfirmation ??
+            (isFuture ? requireConfirmation : undefined))
+          : isFuture
+            ? requireConfirmation
+            : undefined
       const payload = {
         amount: data.amount,
         currency: selectedAccount?.currencyCode ?? "USD",
         type: data.type,
-        transactionDate: data.transactionDate,
+        transactionDate: effectiveDate,
         categoryId: data.categoryId ?? null,
         accountId: data.accountId,
         title: data.title?.trim() || "Untitled Transaction",
         description: data.description?.trim() ?? undefined,
-        isPending: data.isPending ?? false,
+        isPending: effectiveIsPending,
+        requiresManualConfirmation,
         tags: data.tags ?? [],
         location: undefined as string | undefined,
         extra: Object.keys(builtExtra).length > 0 ? builtExtra : undefined,
         subtype: transaction?.subtype ?? undefined,
       }
       if (isNew) {
-        await createTransactionModel(payload)
-        Toast.success({ title: "Transaction created" })
+        const created = await createTransactionModel(payload)
+
+        // If recurring is enabled, create a RecurringTransaction from the saved transaction
+        if (recurringEnabled && recurringFrequency) {
+          try {
+            const rruleStr = buildRRuleString({
+              frequency: recurringFrequency,
+              startDate: recurringStartDate,
+              endDate: recurringEndDate,
+              count: recurringEndAfterOccurrences,
+            })
+            // Use a far-future end if "never"
+            const rangeEnd =
+              recurringEndDate?.getTime() ?? new Date(2099, 11, 31).getTime()
+
+            await createRecurringFromTransaction(created.id, {
+              range: {
+                from: recurringStartDate.getTime(),
+                to: rangeEnd,
+              },
+              rules: [rruleStr],
+            })
+            Toast.success({ title: "Recurring transaction created" })
+          } catch (recErr) {
+            logger.error("Failed to create recurring template", {
+              message:
+                recErr instanceof Error ? recErr.message : String(recErr),
+            })
+            Toast.success({
+              title: "Transaction created (recurring setup failed)",
+            })
+          }
+        } else {
+          Toast.success({ title: "Transaction created" })
+        }
       } else if (transaction) {
         await updateTransactionModel(transaction, payload)
         Toast.success({ title: "Transaction updated" })
@@ -1100,60 +1158,85 @@ export function TransactionFormV3({
             )}
           </View>
 
-          {/* Date & time inline */}
-          <View style={styles.fieldBlock}>
-            <Text variant="small" style={styles.sectionLabel}>
-              Transaction date
-            </Text>
-            <Pressable
-              style={styles.inlineDateRow}
-              onPress={() => openDatePicker("transaction")}
-            >
-              <DynamicIcon
-                icon="calendar"
-                size={20}
-                color={theme.colors.primary}
-                variant="badge"
-              />
-              <Text variant="default" style={styles.inlineDateText}>
-                {format(date, "MMM d yyyy h:mm a")}
-              </Text>
-              <IconSymbol
-                name="chevron-right"
-                size={20}
-                style={[styles.chevronIcon, { color: theme.colors.primary }]}
-              />
-            </Pressable>
-          </View>
-
-          {/* Pending switch */}
-          <Controller
-            control={control}
-            name="isPending"
-            render={({ field: { value, onChange } }) => (
-              <Pressable
-                style={styles.switchRow}
-                onPress={() => onChange(!(value ?? false))}
-                accessibilityRole="switch"
-                accessibilityState={{ checked: value ?? false }}
-              >
-                <View style={styles.switchLeft}>
+          {/* Transaction date and Pending: hidden when recurring is on (rule controls date and they're always auto-confirmed) */}
+          {!recurringEnabled && (
+            <>
+              <View style={styles.fieldBlock}>
+                <View style={styles.sectionLabelRow}>
+                  <Text variant="small" style={styles.sectionLabelInRow}>
+                    Transaction date
+                  </Text>
+                  <Pressable
+                    onPress={() => {
+                      const now = new Date()
+                      setValue("transactionDate", now, { shouldDirty: true })
+                      setValue(
+                        "isPending",
+                        now.getTime() > startOfNextMinute().getTime(),
+                        { shouldDirty: true },
+                      )
+                    }}
+                    style={styles.clearButton}
+                    accessibilityLabel="Set date and time to now"
+                  >
+                    <Text variant="small" style={styles.clearButtonText}>
+                      Now
+                    </Text>
+                  </Pressable>
+                </View>
+                <Pressable
+                  style={styles.inlineDateRow}
+                  onPress={() => openDatePicker("transaction")}
+                >
                   <DynamicIcon
-                    icon="clock"
+                    icon="calendar"
                     size={20}
                     color={theme.colors.primary}
                     variant="badge"
                   />
-                  <Text variant="default" style={styles.switchLabel}>
-                    Pending
+                  <Text variant="default" style={styles.inlineDateText}>
+                    {format(date, "MMM d yyyy h:mm a")}
                   </Text>
-                </View>
-                <View pointerEvents="none">
-                  <Switch value={value ?? false} onValueChange={onChange} />
-                </View>
-              </Pressable>
-            )}
-          />
+                  <IconSymbol
+                    name="chevron-right"
+                    size={20}
+                    style={[
+                      styles.chevronIcon,
+                      { color: theme.colors.primary },
+                    ]}
+                  />
+                </Pressable>
+              </View>
+
+              <Controller
+                control={control}
+                name="isPending"
+                render={({ field: { value, onChange } }) => (
+                  <Pressable
+                    style={styles.switchRow}
+                    onPress={() => onChange(!(value ?? false))}
+                    accessibilityRole="switch"
+                    accessibilityState={{ checked: value ?? false }}
+                  >
+                    <View style={styles.switchLeft}>
+                      <DynamicIcon
+                        icon="clock"
+                        size={20}
+                        color={theme.colors.primary}
+                        variant="badge"
+                      />
+                      <Text variant="default" style={styles.switchLabel}>
+                        Pending
+                      </Text>
+                    </View>
+                    <View pointerEvents="none">
+                      <Switch value={value ?? false} onValueChange={onChange} />
+                    </View>
+                  </Pressable>
+                )}
+              />
+            </>
+          )}
 
           {/* Notes: pressable opens modal; formatted preview inside the same pressable */}
           <View style={styles.fieldBlock}>
@@ -1374,7 +1457,7 @@ export function TransactionFormV3({
             )}
           </View>
 
-          {/* Recurring — full UI kept for later; toggle works but only logs (Coming soon) */}
+          {/* Recurring */}
           <View style={styles.fieldBlock}>
             <View style={styles.recurringSwitchRow}>
               <View style={styles.switchLeft}>
@@ -1388,22 +1471,14 @@ export function TransactionFormV3({
                   Recurring transaction
                 </Text>
               </View>
-              <View style={styles.recurringRightWithBadge}>
-                <View style={styles.comingSoonBadge}>
-                  <Text style={styles.comingSoonBadgeText}>Coming soon</Text>
-                </View>
-                <Switch
-                  value={recurringEnabled}
-                  onValueChange={handleRecurringToggle}
-                />
-              </View>
+              <Switch
+                value={recurringEnabled}
+                onValueChange={handleRecurringToggle}
+              />
             </View>
 
             {recurringEnabled && (
-              <View
-                style={styles.recurringDisabledOverlay}
-                pointerEvents="none"
-              >
+              <View>
                 <View style={styles.recurringSubSection}>
                   <Text variant="small" style={styles.recurringSubLabel}>
                     RECURRENCE

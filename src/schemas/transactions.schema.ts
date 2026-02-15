@@ -11,6 +11,7 @@ export const transactionSchema = z.object({
   title: z.string().optional(),
   description: z.string().optional(),
   isPending: z.boolean().default(false),
+  requiresManualConfirmation: z.boolean().optional(),
   tags: z.array(z.string()).default([]),
   location: z.string().optional(),
   extra: z.record(z.string(), z.string()).optional(),

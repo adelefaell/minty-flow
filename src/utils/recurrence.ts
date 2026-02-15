@@ -1,0 +1,100 @@
+import { RRule, rrulestr } from "rrule"
+
+import type { RecurringFrequency } from "~/types/transactions"
+
+export interface TimeRange {
+  from: number // Unix ms
+  to: number // Unix ms
+}
+
+const FREQ_MAP: Record<NonNullable<RecurringFrequency>, number> = {
+  daily: RRule.DAILY,
+  weekly: RRule.WEEKLY,
+  biweekly: RRule.WEEKLY,
+  monthly: RRule.MONTHLY,
+  yearly: RRule.YEARLY,
+}
+
+/**
+ * Build an RRULE string from the form's recurring frequency, start date, and optional end conditions.
+ * - For "biweekly" we use WEEKLY with interval 2.
+ * - `until` and `count` are mutually exclusive in RRULE spec.
+ */
+export function buildRRuleString(opts: {
+  frequency: NonNullable<RecurringFrequency>
+  startDate: Date
+  endDate?: Date | null
+  count?: number | null
+}): string {
+  const freq = FREQ_MAP[opts.frequency]
+  const interval = opts.frequency === "biweekly" ? 2 : 1
+
+  const rule = new RRule({
+    freq,
+    interval,
+    dtstart: opts.startDate,
+    ...(opts.endDate ? { until: opts.endDate } : {}),
+    ...(opts.count ? { count: opts.count } : {}),
+  })
+
+  return rule.toString()
+}
+
+/**
+ * Safely parse an RRULE string that may contain a DTSTART line.
+ *
+ * `RRule.fromString` can silently drop the DTSTART prefix in some versions
+ * of the rrule library.  `rrulestr()` handles the full RFC format correctly
+ * and always preserves the DTSTART, so we prefer it.  Fall back to
+ * `RRule.fromString` only when `rrulestr` is unavailable or fails.
+ */
+function parseRRule(ruleString: string): RRule {
+  try {
+    // rrulestr handles multi-line "DTSTART:…\nRRULE:…" correctly
+    const result = rrulestr(ruleString)
+    // rrulestr may return an RRuleSet when there are multiple rules;
+    // for our purposes we always store a single rule, so unwrap if needed.
+    if (result instanceof RRule) return result
+    // RRuleSet – grab the first rrule out of the set
+    const rules = (result as unknown as { _rrule: RRule[] })._rrule
+    if (Array.isArray(rules) && rules.length > 0) return rules[0]
+    return result as unknown as RRule
+  } catch {
+    return RRule.fromString(ruleString)
+  }
+}
+
+/**
+ * Get the next occurrence **strictly after** `anchor` that falls within
+ * the given range.  Returns null if no next occurrence exists in range.
+ *
+ * Matches the Flutter `Recurrence.nextAbsoluteOccurrence(anchor, subrange:)`
+ * behaviour:
+ * - When anchor < range.from → use inclusive search from range.from so the
+ *   first occurrence itself is not skipped.
+ * - When anchor >= range.from → exclusive search so we skip the already-
+ *   generated occurrence at anchor.
+ */
+export function nextAbsoluteOccurrence(
+  ruleStrings: string[],
+  range: TimeRange,
+  anchor: Date,
+): Date | null {
+  if (ruleStrings.length === 0) return null
+
+  const rrule = parseRRule(ruleStrings[0])
+  const fromDate = new Date(range.from)
+  const toDate = new Date(range.to)
+  if (anchor.getTime() > toDate.getTime()) return null
+
+  // When anchor < fromDate we need inclusive search (inc=true) so we don't
+  // miss an occurrence that falls exactly on fromDate.
+  // When anchor >= fromDate we need exclusive search (inc=false) to skip
+  // the already-generated occurrence at anchor.
+  const anchorBeforeRange = anchor.getTime() < fromDate.getTime()
+  const start = anchorBeforeRange ? fromDate : anchor
+  const next = rrule.after(start, anchorBeforeRange)
+  if (!next) return null
+  if (next.getTime() > range.to) return null
+  return next
+}

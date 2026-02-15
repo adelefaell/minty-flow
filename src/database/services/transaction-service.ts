@@ -1,4 +1,5 @@
 import { Q } from "@nozbe/watermelondb"
+import { startOfDay, subDays } from "date-fns"
 import type { Observable } from "rxjs"
 import { combineLatest, from, map, of, startWith, switchMap } from "rxjs"
 
@@ -8,6 +9,7 @@ import {
   type TransactionType,
   TransactionTypeEnum,
 } from "~/types/transactions"
+import { startOfNextMinute } from "~/utils/pending-transactions"
 
 import { database } from "../index"
 import type AccountModel from "../models/Account"
@@ -124,6 +126,141 @@ const buildTransactionQuery = (filters?: TransactionListFilters) => {
   }
 
   return query
+}
+
+/**
+ * Pending transactions: future-dated OR explicitly pending (isPending === true).
+ * Excludes deleted. Order: transactionDate descending.
+ * Optional range: fromDate/toDate (Unix ms) to limit results (e.g. home timeframe).
+ */
+export const getPendingTransactionModels = async (options?: {
+  fromDate?: number
+  toDate?: number
+}): Promise<TransactionModel[]> => {
+  const anchor = startOfNextMinute()
+  const anchorTs = anchor.getTime()
+
+  let futureQuery = transactionsCollection().query(
+    Q.where("is_deleted", false),
+    Q.where("transaction_date", Q.gte(anchorTs)),
+  )
+  if (options?.fromDate !== undefined) {
+    futureQuery = futureQuery.extend(
+      Q.where("transaction_date", Q.gte(options.fromDate)),
+    )
+  }
+  if (options?.toDate !== undefined) {
+    futureQuery = futureQuery.extend(
+      Q.where("transaction_date", Q.lte(options.toDate)),
+    )
+  }
+
+  const [pendingTrue, futureDated] = await Promise.all([
+    buildTransactionQuery({
+      isPending: true,
+      includeDeleted: false,
+      ...(options?.fromDate !== undefined && {
+        fromDate: options.fromDate,
+      }),
+      ...(options?.toDate !== undefined && { toDate: options.toDate }),
+    }).fetch(),
+    futureQuery.fetch(),
+  ])
+
+  const byId = new Map<string, TransactionModel>()
+  for (const t of pendingTrue) byId.set(t.id, t)
+  for (const t of futureDated) if (!byId.has(t.id)) byId.set(t.id, t)
+
+  const merged = Array.from(byId.values())
+  merged.sort(
+    (a, b) => b.transactionDate.getTime() - a.transactionDate.getTime(),
+  )
+  return merged
+}
+
+/** Pending transactions with account, category, and tags hydrated. */
+export const getPendingTransactionModelsFull = async (options?: {
+  fromDate?: number
+  toDate?: number
+}): Promise<TransactionWithRelations[]> => {
+  const rows = await getPendingTransactionModels(options)
+  return Promise.all(rows.map(hydrateTransaction))
+}
+
+/* ------------------------------------------------------------------ */
+/* CONFIRM PENDING */
+/* ------------------------------------------------------------------ */
+
+export interface ConfirmTransactionOptions {
+  /** When true, set transactionDate to now on confirm; when false, keep original date. */
+  updateTransactionDate: boolean
+  /**
+   * When true (default), confirms the transaction (isPending → false).
+   * When false, "holds" the transaction (isPending → true).
+   * Flutter equivalent: `Transaction.confirm([bool confirm = true, ...])`
+   */
+  confirm?: boolean
+}
+
+/**
+ * Confirm or hold a pending transaction (and its transfer pair if any).
+ *
+ * Confirm (default): sets isPending = false, optionally sets transactionDate = now,
+ * and adds the balance delta to the account.
+ *
+ * Hold (confirm: false): sets isPending = true (re-pend), and reverses the balance
+ * delta if the transaction was previously confirmed.
+ *
+ * Applies to the transfer pair if present (both legs updated together).
+ */
+export const confirmTransactionSync = async (
+  identifier: string,
+  options: ConfirmTransactionOptions,
+): Promise<void> => {
+  const shouldConfirm = options.confirm !== false
+  const transaction = await findTransactionModel(identifier)
+  if (!transaction) {
+    throw new Error(`Transaction with id ${identifier} not found`)
+  }
+
+  // If confirming but already confirmed, or holding but already pending – no-op.
+  if (shouldConfirm && !transaction.isPending) return
+  if (!shouldConfirm && transaction.isPending) return
+
+  const transferPairId = transaction.extra?.transferPairId
+
+  return database.write(async () => {
+    const toUpdate: TransactionModel[] = [transaction]
+    if (transferPairId) {
+      const pair = await findTransactionModel(transferPairId)
+      if (pair) {
+        // Only include pair if it's in the opposite state from what we want
+        if (shouldConfirm && pair.isPending) toUpdate.push(pair)
+        if (!shouldConfirm && !pair.isPending) toUpdate.push(pair)
+      }
+    }
+
+    const now = new Date()
+    for (const t of toUpdate) {
+      await t.update((x) => {
+        x.isPending = !shouldConfirm
+        x.updatedAt = now
+        if (shouldConfirm && options.updateTransactionDate) {
+          x.transactionDate = now
+        }
+      })
+
+      // Balance: confirming adds delta; holding reverses delta
+      const balanceDelta = getBalanceDelta(t.amount, t.type)
+      const account = await accountsCollection().find(t.accountId)
+      await account.update((a) => {
+        a.balance = shouldConfirm
+          ? a.balance + balanceDelta
+          : a.balance - balanceDelta
+        a.updatedAt = now
+      })
+    }
+  })
 }
 
 /* ------------------------------------------------------------------ */
@@ -340,6 +477,8 @@ export const createTransactionModel = async (
       t.title = data.title ?? ""
       t.description = data.description ?? ""
       t.isPending = data.isPending ?? false
+      if (data.requiresManualConfirmation !== undefined)
+        t.requiresManualConfirmation = data.requiresManualConfirmation
       t.isDeleted = false
       t.createdAt = new Date()
       t.updatedAt = new Date()
@@ -349,11 +488,13 @@ export const createTransactionModel = async (
     })
 
     const account = await accountsCollection().find(data.accountId)
-    const balanceDelta = getBalanceDelta(data.amount, data.type)
-    await account.update((a) => {
-      a.balance = a.balance + balanceDelta
-      a.updatedAt = new Date()
-    })
+    if (!data.isPending) {
+      const balanceDelta = getBalanceDelta(data.amount, data.type)
+      await account.update((a) => {
+        a.balance = a.balance + balanceDelta
+        a.updatedAt = new Date()
+      })
+    }
 
     if (category) {
       await category.update((c) => {
@@ -413,6 +554,8 @@ export const updateTransactionModel = async (
       if (updates.title !== undefined) t.title = updates.title
       if (updates.description !== undefined) t.description = updates.description
       if (updates.isPending !== undefined) t.isPending = updates.isPending
+      if (updates.requiresManualConfirmation !== undefined)
+        t.requiresManualConfirmation = updates.requiresManualConfirmation
 
       if (updates.categoryId !== undefined) {
         t.categoryId = updates.categoryId ?? null
@@ -491,8 +634,15 @@ export const updateTransactionModel = async (
     const newAmount = updatedTransaction.amount
     const newType = updatedTransaction.type
     const newAccountId = updatedTransaction.accountId
-    const reverseOldDelta = -getBalanceDelta(oldAmount, oldType)
-    const forwardNewDelta = getBalanceDelta(newAmount, newType)
+    const oldPending = transaction.isPending
+    const newPending = updatedTransaction.isPending
+
+    const reverseOldDelta = !oldPending
+      ? -getBalanceDelta(oldAmount, oldType)
+      : 0
+    const forwardNewDelta = !newPending
+      ? getBalanceDelta(newAmount, newType)
+      : 0
 
     const accounts = accountsCollection()
     if (newAccountId === oldAccountId) {
@@ -547,7 +697,7 @@ export const deleteTransactionModel = async (
       })
     }
 
-    if (!transaction.isDeleted) {
+    if (!transaction.isDeleted && !transaction.isPending) {
       const reverseDelta = -getBalanceDelta(
         transaction.amount,
         transaction.type,
@@ -561,9 +711,11 @@ export const deleteTransactionModel = async (
 
     // Use our is_deleted column so the record still appears in trash queries.
     // WatermelonDB's markAsDeleted() sets _status = 'deleted' and hides the record from all queries.
+    const now = new Date()
     await transaction.update((t) => {
       t.isDeleted = true
-      t.updatedAt = new Date()
+      t.deletedAt = now
+      t.updatedAt = now
     })
   })
 }
@@ -581,15 +733,18 @@ export const restoreTransactionModel = async (
   return database.write(async () => {
     await transaction.update((t) => {
       t.isDeleted = false
+      t.deletedAt = undefined
       t.updatedAt = new Date()
     })
 
-    const balanceDelta = getBalanceDelta(transaction.amount, transaction.type)
-    const account = await accountsCollection().find(transaction.accountId)
-    await account.update((a) => {
-      a.balance = a.balance + balanceDelta
-      a.updatedAt = new Date()
-    })
+    if (!transaction.isPending) {
+      const balanceDelta = getBalanceDelta(transaction.amount, transaction.type)
+      const account = await accountsCollection().find(transaction.accountId)
+      await account.update((a) => {
+        a.balance = a.balance + balanceDelta
+        a.updatedAt = new Date()
+      })
+    }
 
     if (transaction.categoryId) {
       const category = await categories.find(transaction.categoryId)
@@ -615,7 +770,7 @@ export const destroyTransactionModel = async (
       })
     }
 
-    if (!transaction.isDeleted) {
+    if (!transaction.isDeleted && !transaction.isPending) {
       const reverseDelta = -getBalanceDelta(
         transaction.amount,
         transaction.type,
@@ -629,4 +784,60 @@ export const destroyTransactionModel = async (
 
     await transaction.destroyPermanently()
   })
+}
+
+export const destroyAllTransactionModel = async (): Promise<void> => {
+  const categories = database.get<CategoryModel>("categories")
+
+  const transactions = await getTransactionModels({
+    deletedOnly: true,
+  })
+
+  return database.write(async () => {
+    for (const transaction of transactions) {
+      if (!transaction.isDeleted) {
+        if (transaction.categoryId) {
+          const category = await categories.find(transaction.categoryId)
+          await category.update((c) => {
+            c.transactionCount = Math.max(0, c.transactionCount - 1)
+          })
+        }
+
+        const reverseDelta = -getBalanceDelta(
+          transaction.amount,
+          transaction.type,
+        )
+        const account = await accountsCollection().find(transaction.accountId)
+        await account.update((a) => {
+          a.balance += reverseDelta
+        })
+      }
+
+      await transaction.destroyPermanently()
+    }
+  })
+}
+
+export const autoPurgeTrash = async (retentionValue: string) => {
+  if (retentionValue === "forever") return
+
+  const daysToKeep = parseInt(retentionValue.split(" ")[0], 10)
+
+  if (Number.isNaN(daysToKeep)) {
+    return
+  }
+
+  const cutoffDate = subDays(startOfDay(new Date()), daysToKeep).getTime()
+
+  const transactionsToPurge = await transactionsCollection()
+    .query(Q.where("is_deleted", true), Q.where("deleted_at", Q.lt(cutoffDate)))
+    .fetch()
+
+  if (transactionsToPurge.length > 0) {
+    await database.write(async () => {
+      for (const transaction of transactionsToPurge) {
+        await transaction.destroyPermanently()
+      }
+    })
+  }
 }

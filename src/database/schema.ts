@@ -7,7 +7,7 @@ import { appSchema, tableSchema } from "@nozbe/watermelondb"
  * Each table represents a collection of models that can be queried and manipulated.
  */
 export const schema = appSchema({
-  version: 6,
+  version: 1,
   tables: [
     // Categories table - stores transaction categories
     tableSchema({
@@ -54,6 +54,11 @@ export const schema = appSchema({
         { name: "description", type: "string", isOptional: true },
         { name: "amount", type: "number" },
         { name: "is_pending", type: "boolean" },
+        {
+          name: "requires_manual_confirmation",
+          type: "boolean",
+          isOptional: true,
+        },
         // Currency comes from account (account_id); type explains meaning.
         { name: "type", type: "string" }, // "expense" | "income" | "transfer"
         { name: "subtype", type: "string", isOptional: true }, // "recurring" | "one-time" | "subscription" etc.
@@ -143,6 +148,24 @@ export const schema = appSchema({
         { name: "is_archived", type: "boolean" },
         { name: "created_at", type: "number" },
         { name: "updated_at", type: "number" },
+      ],
+    }),
+
+    // Recurring transactions (templates that generate Transaction instances)
+    tableSchema({
+      name: "recurring_transactions",
+      columns: [
+        { name: "json_transaction_template", type: "string" },
+        { name: "transfer_to_account_id", type: "string", isOptional: true },
+        { name: "range", type: "string" }, // JSON or encoded time range { from, to }
+        { name: "rules", type: "string" }, // JSON array of RRULE strings
+        { name: "created_at", type: "number" },
+        {
+          name: "last_generated_transaction_date",
+          type: "number",
+          isOptional: true,
+        },
+        { name: "disabled", type: "boolean" },
       ],
     }),
 

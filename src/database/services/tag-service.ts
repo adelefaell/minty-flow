@@ -42,6 +42,14 @@ export const findTag = async (id: string): Promise<TagModel | null> => {
 }
 
 /**
+ * Find a tag by name (first match). Used e.g. for recurring extension tags.
+ */
+export const findTagByName = async (name: string): Promise<TagModel | null> => {
+  const rows = await getTagCollection().query(Q.where("name", name)).fetch()
+  return rows[0] ?? null
+}
+
+/**
  * Observe all tags reactively
  */
 export const observeTags = (): Observable<Tag[]> => {

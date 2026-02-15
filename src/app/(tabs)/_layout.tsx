@@ -1,5 +1,6 @@
 import { useRouter } from "expo-router"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { AppState } from "react-native"
 import PagerView, { usePagerView } from "react-native-pager-view"
 import Animated, {
   createAnimatedComponent,
@@ -19,7 +20,11 @@ const AnimatedPressable = createAnimatedComponent(Pressable)
 
 import { Tooltip } from "~/components/ui/tooltip"
 import { View } from "~/components/ui/view"
+import { synchronizeAllRecurringTransactions } from "~/database/services/recurring-transaction-service"
+import { autoPurgeTrash } from "~/database/services/transaction-service"
+import { useTrashBinStore } from "~/stores/trash-bin.store"
 import { NewEnum } from "~/types/new"
+import { logger } from "~/utils/logger"
 
 import AccountsScreen from "../accounts"
 import SettingsScreen from "../settings"
@@ -90,26 +95,47 @@ const AnimatedFABOption = ({
 
 const TabLayout = () => {
   const { theme } = useUnistyles()
-  // const { initialPage } = useLocalSearchParams()
   const { ref: pagerRef, activePage, setPage } = usePagerView()
   const [fabExpanded, setFabExpanded] = useState(false)
 
   // Animation values
   const rotation = useSharedValue(0)
   const overlayOpacity = useSharedValue(0)
-
+  const retentionPeriod = useTrashBinStore((s) => s.retentionPeriod)
   const isActiveTab = (index: number) =>
     activePage === index ? { opacity: 1 } : { opacity: 0.8 }
 
-  /**
-   * this and useLocalSearchParams cAa be used to navigate to a specific tab from a
-   * deep nested stack
-   */
-  // useEffect(() => {
-  //   if (initialPage != null && Number(initialPage) !== activePage) {
-  //     setPage(Number(initialPage))
-  //   }
-  // }, [initialPage, activePage, setPage])
+  useEffect(() => {
+    autoPurgeTrash(retentionPeriod).catch((e) =>
+      logger.error("Trash purge failed", { error: String(e) }),
+    )
+  }, [retentionPeriod])
+
+  // ── Recurring transactions sync (matches Flutter singleton behaviour) ──
+  // Runs once on mount and again every time the app returns to foreground.
+  useEffect(() => {
+    let cancelled = false
+
+    const syncTransactions = () => {
+      if (cancelled) return
+      synchronizeAllRecurringTransactions().catch((e) =>
+        logger.error("Recurring sync failed", { error: String(e) }),
+      )
+    }
+
+    syncTransactions()
+
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state === "active") {
+        syncTransactions()
+      }
+    })
+
+    return () => {
+      cancelled = true
+      sub.remove()
+    }
+  }, [])
 
   const toggleFab = () => {
     const newState = !fabExpanded

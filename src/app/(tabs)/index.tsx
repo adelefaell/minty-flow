@@ -1,5 +1,11 @@
 import { withObservables } from "@nozbe/watermelondb/react"
-import { endOfMonth, format, startOfMonth, startOfWeek } from "date-fns"
+import {
+  addDays,
+  endOfMonth,
+  format,
+  startOfMonth,
+  startOfWeek,
+} from "date-fns"
 import { useRouter } from "expo-router"
 import { Fragment, useCallback, useMemo, useRef, useState } from "react"
 import { SectionList } from "react-native"
@@ -12,6 +18,7 @@ import { Money } from "~/components/money"
 import { SummarySection } from "~/components/summary-card"
 import { TransactionFilterHeader } from "~/components/transaction/transaction-filter-header"
 import { TransactionItem } from "~/components/transaction/transaction-item"
+import { UpcomingTransactionsSection } from "~/components/transaction/upcoming-transactions-section"
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
@@ -30,6 +37,7 @@ import {
 } from "~/database/services/transaction-service"
 import { useTimeUtils } from "~/hooks/use-time-utils"
 import { useMoneyFormattingStore } from "~/stores/money-formatting.store"
+import { usePendingTransactionsStore } from "~/stores/pending-transactions.store"
 import { useProfileStore } from "~/stores/profile.store"
 import type { Account } from "~/types/accounts"
 import type { Category } from "~/types/categories"
@@ -56,25 +64,29 @@ function transactionContribution(
   return 0
 }
 
-/** Current month filter: start and end of this month as timestamps. */
-function getCurrentMonthFilter() {
+/** Default home range: current month extended by homeTimeframe days so upcoming (e.g. recurring) can show. */
+function getDefaultHomeFilter(homeTimeframe: number) {
   const now = new Date()
+  const from = startOfMonth(now)
+  const endOfMonthDate = endOfMonth(now)
+  const extendedEnd = addDays(now, homeTimeframe)
   return {
-    fromDate: startOfMonth(now).getTime(),
-    toDate: endOfMonth(now).getTime(),
+    fromDate: from.getTime(),
+    toDate: Math.max(endOfMonthDate.getTime(), extendedEnd.getTime()),
   }
 }
 
 /** Build query filters for the DB: only date range. Filter by account/type/pending/attachments is applied client-side on fetched data. */
 function buildQueryFilters(
   selectedRange: { start: Date; end: Date } | null,
+  homeTimeframe: number,
 ): TransactionListFilters {
   return selectedRange
     ? {
         fromDate: selectedRange.start.getTime(),
         toDate: selectedRange.end.getTime(),
       }
-    : getCurrentMonthFilter()
+    : getDefaultHomeFilter(homeTimeframe)
 }
 
 /** Apply filter state to fetched transactions (client-side). */
@@ -83,6 +95,12 @@ function applyFiltersToTransactions(
   filterState: TransactionListFilterState,
 ): TransactionWithRelations[] {
   return list.filter((row) => {
+    // Hide pending transactions from the main list — they are shown in the
+    // "Upcoming" section instead.  Only include them when the user explicitly
+    // filters for "pending".
+    if (row.transaction.isPending && filterState.pendingFilter !== "pending") {
+      return false
+    }
     if (
       filterState.accountIds.length > 0 &&
       !filterState.accountIds.includes(row.transaction.accountId)
@@ -339,11 +357,13 @@ function HomeScreenInner({
       })
     }
 
-    return Object.values(grouped).sort(
-      (a, b) =>
+    return Object.values(grouped).sort((a, b) => {
+      if (a.data.length === 0 || b.data.length === 0) return 0
+      return (
         b.data[0].transaction.transactionDate.getTime() -
-        a.data[0].transaction.transactionDate.getTime(),
-    )
+        a.data[0].transaction.transactionDate.getTime()
+      )
+    })
   }, [list, filterState.groupBy, formatSectionDateTitle])
 
   const handleOnTransactionPress = useCallback(
@@ -369,9 +389,16 @@ function HomeScreenInner({
   )
 
   const renderHeader = () => (
-    <View style={styles.summaryContainer}>
-      <SummarySection transactionsWithRelations={list} />
-    </View>
+    <>
+      <View style={styles.summaryContainer}>
+        <SummarySection transactionsWithRelations={list} />
+      </View>
+      <UpcomingTransactionsSection
+        transactions={transactionsFull ?? []}
+        filterState={filterState}
+        onTransactionPress={handleOnTransactionPress}
+      />
+    </>
   )
 
   const renderEmptyList = () => (
@@ -502,14 +529,16 @@ function HomeScreenInner({
 }
 
 const EnhancedHomeScreen = withObservables(
-  ["selectedRange"],
+  ["selectedRange", "homeTimeframe"],
   ({
     selectedRange,
+    homeTimeframe = 3,
   }: {
     selectedRange: { start: Date; end: Date } | null
+    homeTimeframe?: number
   }) => ({
     transactionsFull: observeTransactionModelsFull(
-      buildQueryFilters(selectedRange ?? null),
+      buildQueryFilters(selectedRange ?? null, homeTimeframe),
       [
         observeAccountModels(false),
         observeCategoriesByType(TransactionTypeEnum.EXPENSE),
@@ -540,11 +569,13 @@ function HomeScreen() {
     end: Date
   } | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
+  const homeTimeframe = usePendingTransactionsStore((s) => s.homeTimeframe)
   return (
     <EnhancedHomeScreen
       filterState={filterState}
       onFilterChange={setFilterState}
       selectedRange={selectedRange}
+      homeTimeframe={homeTimeframe}
       onDateRangeChange={setSelectedRange}
       searchQuery={searchQuery}
       onSearchApply={setSearchQuery}

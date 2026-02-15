@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-02-13T21:01:11.857Z
+Generated on: 2026-02-15T00:44:24.407Z
 
 ```
 ./
@@ -124,9 +124,11 @@ Generated on: 2026-02-13T21:01:11.857Z
 │   │   │   ├── 📄 transaction-filter-header.tsx
 │   │   │   ├── 📄 transaction-form-v3.tsx
 │   │   │   ├── 📄 transaction-item.tsx
-│   │   │   └── 📄 transaction-type-selector.tsx
+│   │   │   ├── 📄 transaction-type-selector.tsx
+│   │   │   └── 📄 upcoming-transactions-section.tsx
 │   │   ├── 📁 ui/
 │   │   │   ├── 📄 button.tsx
+│   │   │   ├── 📄 choice-chips.tsx
 │   │   │   ├── 📄 collapsible.tsx
 │   │   │   ├── 📄 icon-symbol.ios.tsx
 │   │   │   ├── 📄 icon-symbol.tsx
@@ -172,6 +174,7 @@ Generated on: 2026-02-13T21:01:11.857Z
 │   │   │   ├── 📄 Category.ts
 │   │   │   ├── 📄 Goal.ts
 │   │   │   ├── 📄 Loan.ts
+│   │   │   ├── 📄 RecurringTransaction.ts
 │   │   │   ├── 📄 Tag.ts
 │   │   │   ├── 📄 Transaction.ts
 │   │   │   └── 📄 TransactionTag.ts
@@ -183,6 +186,7 @@ Generated on: 2026-02-13T21:01:11.857Z
 │   │   │   ├── 📄 index.ts
 │   │   │   ├── 📄 loan-service.ts
 │   │   │   ├── 📄 README.md
+│   │   │   ├── 📄 recurring-transaction-service.ts
 │   │   │   ├── 📄 tag-service.ts
 │   │   │   └── 📄 transaction-service.ts
 │   │   ├── 📁 utils/
@@ -196,6 +200,7 @@ Generated on: 2026-02-13T21:01:11.857Z
 │   │   ├── 📄 use-boolean.ts
 │   │   ├── 📄 use-color-scheme.ts
 │   │   ├── 📄 use-color-scheme.web.ts
+│   │   ├── 📄 use-time-reactivity.ts
 │   │   └── 📄 use-time-utils.ts
 │   ├── 📁 schemas/
 │   │   ├── 📄 accounts.schema.ts
@@ -203,20 +208,24 @@ Generated on: 2026-02-13T21:01:11.857Z
 │   │   ├── 📄 tags.schema.ts
 │   │   └── 📄 transactions.schema.ts
 │   ├── 📁 services/
+│   │   ├── 📄 auto-confirmation-service.ts
 │   │   ├── 📄 currency-registry.ts
 │   │   ├── 📄 exchange-rates.ts
-│   │   └── 📄 index.ts
+│   │   ├── 📄 index.ts
+│   │   └── 📄 pending-transaction-notifications.ts
 │   ├── 📁 stores/
 │   │   ├── 📄 android-sound.store.ts
 │   │   ├── 📄 letter-emoji.store.ts
 │   │   ├── 📄 money-formatting.store.ts
 │   │   ├── 📄 notification.store.ts
+│   │   ├── 📄 pending-transactions.store.ts
 │   │   ├── 📄 profile.store.ts
 │   │   ├── 📄 theme.store.ts
 │   │   ├── 📄 toast-style.store.ts
 │   │   ├── 📄 toast.store.ts
 │   │   ├── 📄 transaction-item-appearance.store.ts
-│   │   └── 📄 transaction-sheet-controls.store.ts
+│   │   ├── 📄 transaction-sheet-controls.store.ts
+│   │   └── 📄 trash-bin.store.ts
 │   ├── 📁 styles/
 │   │   ├── 📁 theme/
 │   │   │   ├── 📁 schemes/
@@ -257,6 +266,8 @@ Generated on: 2026-02-13T21:01:11.857Z
 │       ├── 📄 number-format.ts
 │       ├── 📄 open-file.ts
 │       ├── 📄 parse-math-expression.ts
+│       ├── 📄 pending-transactions.ts
+│       ├── 📄 recurrence.ts
 │       ├── 📄 string-utils.ts
 │       └── 📄 toast.ts
 ├── 📄 .gitignore
