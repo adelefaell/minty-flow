@@ -12,7 +12,6 @@ import {
   endOfMonth,
   endOfWeek,
   endOfYear,
-  format,
   startOfDay,
   startOfMonth,
   startOfWeek,
@@ -29,32 +28,12 @@ import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Input } from "~/components/ui/input"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
-
-const WEEK_STARTS_ON = 1 // Monday
-const MONTH_NAMES = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-]
-
-export type DateRangePresetId =
-  | "last30"
-  | "thisWeek"
-  | "thisMonth"
-  | "thisYear"
-  | "allTime"
-  | "byMonth"
-  | "byYear"
-  | "custom"
+import {
+  type DateRangePresetId,
+  formatLoanDate,
+  MONTH_NAMES,
+  WEEK_STARTS_ON,
+} from "~/utils/time-utils"
 
 export interface DateRangePresetModalProps {
   visible: boolean
@@ -663,7 +642,7 @@ export function DateRangePresetModal({
                   </Text>
                   <View style={styles.customRangeValue}>
                     <Text variant="default" style={styles.customRangeValueText}>
-                      {format(customStart, "MMM d, yyyy")}
+                      {formatLoanDate(customStart)}
                     </Text>
                     <IconSymbol
                       name="chevron-right"
@@ -681,7 +660,7 @@ export function DateRangePresetModal({
                   </Text>
                   <View style={styles.customRangeValue}>
                     <Text variant="default" style={styles.customRangeValueText}>
-                      {format(customEnd, "MMM d, yyyy")}
+                      {formatLoanDate(customEnd)}
                     </Text>
                     <IconSymbol
                       name="chevron-right"

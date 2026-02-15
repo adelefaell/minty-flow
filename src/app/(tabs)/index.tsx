@@ -1,11 +1,5 @@
 import { withObservables } from "@nozbe/watermelondb/react"
-import {
-  addDays,
-  endOfMonth,
-  format,
-  startOfMonth,
-  startOfWeek,
-} from "date-fns"
+import { addDays, endOfMonth, startOfMonth, startOfWeek } from "date-fns"
 import { useRouter } from "expo-router"
 import { Fragment, useCallback, useMemo, useRef, useState } from "react"
 import { SectionList } from "react-native"
@@ -35,7 +29,6 @@ import {
   deleteTransactionModel,
   observeTransactionModelsFull,
 } from "~/database/services/transaction-service"
-import { useTimeUtils } from "~/hooks/use-time-utils"
 import { useMoneyFormattingStore } from "~/stores/money-formatting.store"
 import { usePendingTransactionsStore } from "~/stores/pending-transactions.store"
 import { useProfileStore } from "~/stores/profile.store"
@@ -52,6 +45,17 @@ import type {
   TransactionType,
 } from "~/types/transactions"
 import { TransactionTypeEnum } from "~/types/transactions"
+import {
+  formatDateKey,
+  formatHourKey,
+  formatHourTitle,
+  formatMonthKey,
+  formatMonthTitle,
+  formatSectionDateTitle,
+  formatWeekKey,
+  formatWeekTitle,
+  formatYear,
+} from "~/utils/time-utils"
 import { Toast } from "~/utils/toast"
 
 /** Signed contribution for aggregation: income adds, expense subtracts, transfer is neutral. */
@@ -156,41 +160,40 @@ function applyFiltersToTransactions(
 function getSectionKeyAndTitle(
   date: Date,
   groupBy: GroupByOption,
-  formatSectionDateTitle: (d: Date) => string,
 ): { key: string; title: string } {
   switch (groupBy) {
     case "hour":
       return {
-        key: format(date, "yyyy-MM-dd-HH"),
-        title: format(date, "MMM d, yyyy h a"),
+        key: formatHourKey(date),
+        title: formatHourTitle(date),
       }
     case "day":
       return {
-        key: format(date, "yyyy-MM-dd"),
+        key: formatDateKey(date),
         title: formatSectionDateTitle(date),
       }
     case "week": {
       const weekStart = startOfWeek(date, { weekStartsOn: 1 })
       return {
-        key: format(weekStart, "RRRR-'W'II"),
-        title: `Week of ${format(weekStart, "MMM d")}`,
+        key: formatWeekKey(weekStart),
+        title: formatWeekTitle(weekStart),
       }
     }
     case "month":
       return {
-        key: format(date, "yyyy-MM"),
-        title: format(date, "MMMM yyyy"),
+        key: formatMonthKey(date),
+        title: formatMonthTitle(date),
       }
     case "year":
       return {
-        key: format(date, "yyyy"),
-        title: format(date, "yyyy"),
+        key: formatYear(date),
+        title: formatYear(date),
       }
     case "allTime":
       return { key: "all", title: "All time" }
     default:
       return {
-        key: format(date, "yyyy-MM-dd"),
+        key: formatDateKey(date),
         title: formatSectionDateTitle(date),
       }
   }
@@ -265,7 +268,6 @@ function HomeScreenInner({
   }, [transactionsFull, filterState, searchQuery])
   const router = useRouter()
   const { theme } = useUnistyles()
-  const { formatSectionDateTitle } = useTimeUtils()
   const profileName = useProfileStore((s) => s.name)
   const image = useProfileStore((s) => s.imageUri)
   const { privacyMode: privacyModeEnabled, togglePrivacyMode: togglePrivacy } =
@@ -338,7 +340,6 @@ function HomeScreenInner({
         const { key: dateKey, title: headerTitle } = getSectionKeyAndTitle(
           d,
           groupBy,
-          formatSectionDateTitle,
         )
 
         if (!grouped[dateKey]) {
@@ -364,7 +365,7 @@ function HomeScreenInner({
         a.data[0].transaction.transactionDate.getTime()
       )
     })
-  }, [list, filterState.groupBy, formatSectionDateTitle])
+  }, [list, filterState.groupBy])
 
   const handleOnTransactionPress = useCallback(
     (transactionId: string) => {

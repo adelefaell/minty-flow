@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-02-15T00:44:24.407Z
+Generated on: 2026-02-15T17:28:12.027Z
 
 ```
 ./
@@ -200,8 +200,9 @@ Generated on: 2026-02-15T00:44:24.407Z
 │   │   ├── 📄 use-boolean.ts
 │   │   ├── 📄 use-color-scheme.ts
 │   │   ├── 📄 use-color-scheme.web.ts
-│   │   ├── 📄 use-time-reactivity.ts
-│   │   └── 📄 use-time-utils.ts
+│   │   ├── 📄 use-recurring-transaction-sync.ts
+│   │   ├── 📄 use-retention-cleanup.ts
+│   │   └── 📄 use-time-reactivity.ts
 │   ├── 📁 schemas/
 │   │   ├── 📄 accounts.schema.ts
 │   │   ├── 📄 categories.schema.ts
@@ -269,6 +270,7 @@ Generated on: 2026-02-15T00:44:24.407Z
 │       ├── 📄 pending-transactions.ts
 │       ├── 📄 recurrence.ts
 │       ├── 📄 string-utils.ts
+│       ├── 📄 time-utils.ts
 │       └── 📄 toast.ts
 ├── 📄 .gitignore
 ├── 📄 app.json

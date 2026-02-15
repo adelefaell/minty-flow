@@ -12,6 +12,8 @@ import "react-native-reanimated"
 import { setStyle } from "expo-navigation-bar"
 import { Platform } from "react-native"
 
+import { useRecurringTransactionSync } from "~/hooks/use-recurring-transaction-sync"
+import { useRetentionCleanup } from "~/hooks/use-retention-cleanup"
 import { NewEnum } from "~/types/new"
 
 export default function RootLayout() {
@@ -22,6 +24,10 @@ export default function RootLayout() {
   if (Platform.OS === "android") {
     setStyle(theme.isDark ? "dark" : "light")
   }
+
+  // Ports to reality: retention cleanup and recurring sync (effects live in domain hooks)
+  useRetentionCleanup()
+  useRecurringTransactionSync()
 
   return (
     <KeyboardProvider>

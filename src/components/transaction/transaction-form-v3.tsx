@@ -14,7 +14,6 @@ import DateTimePicker, {
   type DateTimePickerEvent,
 } from "@react-native-community/datetimepicker"
 import type { EventArg } from "@react-navigation/native"
-import { format } from "date-fns"
 import * as DocumentPicker from "expo-document-picker"
 import * as ImagePicker from "expo-image-picker"
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router"
@@ -86,6 +85,12 @@ import { logger } from "~/utils/logger"
 import { openFileInExternalApp } from "~/utils/open-file"
 import { startOfNextMinute } from "~/utils/pending-transactions"
 import { buildRRuleString } from "~/utils/recurrence"
+import {
+  formatCreatedAt,
+  formatDayName,
+  formatMonthDay,
+  formatOrdinalDay,
+} from "~/utils/time-utils"
 import { Toast } from "~/utils/toast"
 
 const RECURRING_OPTIONS: { id: RecurringFrequency; label: string }[] = [
@@ -107,13 +112,13 @@ function getRecurrenceDisplayLabel(
     case "daily":
       return "Every day"
     case "weekly":
-      return `Every week, ${format(startDate, "EEEE")}`
+      return `Every week, ${formatDayName(startDate)}`
     case "biweekly":
-      return `Every 2 weeks, ${format(startDate, "EEEE")}`
+      return `Every 2 weeks, ${formatDayName(startDate)}`
     case "monthly":
-      return `Every month, ${format(startDate, "do")}`
+      return `Every month, ${formatOrdinalDay(startDate)}`
     case "yearly":
-      return `Every year, ${format(startDate, "MMMM d")}`
+      return `Every year, ${formatMonthDay(startDate)}`
     default:
       return "None"
   }
@@ -1195,7 +1200,7 @@ export function TransactionFormV3({
                     variant="badge"
                   />
                   <Text variant="default" style={styles.inlineDateText}>
-                    {format(date, "MMM d yyyy h:mm a")}
+                    {formatCreatedAt(date)}
                   </Text>
                   <IconSymbol
                     name="chevron-right"
@@ -1331,7 +1336,7 @@ export function TransactionFormV3({
                           {a.name}
                         </Text>
                         <Text variant="muted" style={styles.attachmentMeta}>
-                          {format(a.addedAt, "MMM d yyyy h:mm a")} •{" "}
+                          {formatCreatedAt(a.addedAt)} •{" "}
                           {formatFileSize(a.size)}
                         </Text>
                       </View>
@@ -1462,7 +1467,7 @@ export function TransactionFormV3({
             <View style={styles.recurringSwitchRow}>
               <View style={styles.switchLeft}>
                 <DynamicIcon
-                  icon="swap-horizontal"
+                  icon="calendar-sync"
                   size={20}
                   color={theme.colors.primary}
                   variant="badge"
@@ -1533,7 +1538,7 @@ export function TransactionFormV3({
                       variant="badge"
                     />
                     <Text variant="default" style={styles.inlineDateText}>
-                      {format(recurringStartDate, "MMM d, yyyy h:mm a")}
+                      {formatCreatedAt(recurringStartDate)}
                     </Text>
                     <IconSymbol
                       name="chevron-right"
@@ -1567,7 +1572,7 @@ export function TransactionFormV3({
                       {endsOnType === "never"
                         ? "Never"
                         : endsOnType === "date" && recurringEndDate
-                          ? format(recurringEndDate, "MMM d, yyyy h:mm a")
+                          ? formatCreatedAt(recurringEndDate)
                           : endsOnType === "occurrences" &&
                               recurringEndAfterOccurrences !== null
                             ? `${recurringEndAfterOccurrences} times`
@@ -1917,11 +1922,18 @@ export function TransactionFormV3({
 }
 
 const H_PAD = 20
-const FORM_GAP = 15
+const FORM_GAP = 8
+const SECTION_GAP = 8
 const ROW_PADDING_V = 10
 const ROW_GAP = 10
+const CARD_PAD = 12
+const SMALL_GAP = 4
+const ELEMENT_GAP = 12
+const TRIGGER_PAD = 6
+const MICRO_GAP = 2
 const CATEGORY_CELL_SIZE = 74
 const CATEGORY_GAP = 10
+const BUTTON_PAD_H = 14
 
 const styles = StyleSheet.create((theme) => ({
   container: {
@@ -1965,12 +1977,12 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 14,
     fontWeight: "500",
     color: theme.colors.customColors.semi,
-    marginTop: 4,
+    marginTop: SMALL_GAP,
   },
   fieldError: {
     fontSize: 13,
     color: theme.colors.error,
-    marginTop: 4,
+    marginTop: SMALL_GAP,
     paddingHorizontal: H_PAD,
   },
   fieldBlock: {
@@ -1982,7 +1994,7 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.customColors.semi,
     textTransform: "capitalize",
     letterSpacing: 0.5,
-    marginBottom: 8,
+    marginBottom: SECTION_GAP,
     marginHorizontal: H_PAD,
   },
   sectionLabelRow: {
@@ -1990,7 +2002,7 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: H_PAD,
-    marginBottom: 8,
+    marginBottom: SECTION_GAP,
   },
   sectionLabelInRow: {
     fontSize: 12,
@@ -2001,8 +2013,8 @@ const styles = StyleSheet.create((theme) => ({
   },
   clearButton: {
     borderRadius: theme.colors.radius,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
+    paddingVertical: SMALL_GAP,
+    paddingHorizontal: SECTION_GAP,
   },
   clearButtonDisabled: {
     opacity: 0.4,
@@ -2017,9 +2029,9 @@ const styles = StyleSheet.create((theme) => ({
   accountTrigger: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
-    paddingVertical: 6,
-    paddingHorizontal: 6,
+    gap: ELEMENT_GAP,
+    paddingVertical: TRIGGER_PAD,
+    paddingHorizontal: TRIGGER_PAD,
     borderRadius: theme.colors.radius,
     marginHorizontal: H_PAD,
     borderWidth: 2,
@@ -2039,7 +2051,7 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    gap: 8,
+    gap: SECTION_GAP,
   },
   accountTriggerName: {
     fontSize: 16,
@@ -2058,9 +2070,9 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.customColors.semi,
   },
   inlineAccountPicker: {
-    marginTop: 8,
+    marginTop: FORM_GAP,
     marginHorizontal: H_PAD,
-    padding: 12,
+    padding: CARD_PAD,
     borderRadius: theme.colors.radius,
     backgroundColor: theme.colors.secondary,
     maxHeight: 280,
@@ -2071,13 +2083,12 @@ const styles = StyleSheet.create((theme) => ({
     borderColor: theme.colors.primary,
   },
   accountPickerRow: {
-    marginTop: 8,
-
+    marginTop: FORM_GAP,
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
-    paddingVertical: 6,
-    paddingHorizontal: 6,
+    gap: ELEMENT_GAP,
+    paddingVertical: TRIGGER_PAD,
+    paddingHorizontal: TRIGGER_PAD,
     borderRadius: theme.colors.radius,
   },
   accountPickerRowContent: {
@@ -2086,7 +2097,7 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    gap: 8,
+    gap: SECTION_GAP,
   },
   accountPickerRowName: {
     fontSize: 15,
@@ -2098,17 +2109,17 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 13,
   },
   pickerSearchInput: {
-    marginBottom: 8,
+    marginBottom: SECTION_GAP,
   },
   pickerList: {
     height: 180,
   },
   pickerListContent: {
-    paddingRight: 12,
+    paddingRight: CARD_PAD,
   },
   categoryScrollContent: {
     paddingHorizontal: H_PAD,
-    paddingVertical: 4,
+    paddingVertical: SMALL_GAP,
   },
   categoryGrid: {
     flexDirection: "row",
@@ -2119,8 +2130,8 @@ const styles = StyleSheet.create((theme) => ({
     width: CATEGORY_CELL_SIZE,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 6,
+    paddingVertical: ROW_PADDING_V,
+    paddingHorizontal: TRIGGER_PAD,
     borderRadius: 12,
     // backgroundColor: theme.colors.secondary,
     borderWidth: 2,
@@ -2135,7 +2146,7 @@ const styles = StyleSheet.create((theme) => ({
   categoryCellLabel: {
     fontSize: 11,
     color: theme.colors.onSurface,
-    marginTop: 4,
+    marginTop: SMALL_GAP,
     textAlign: "center",
   },
   tagsWrapGrid: {
@@ -2143,16 +2154,16 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     flexWrap: "wrap",
     alignItems: "center",
-    gap: 8,
-    paddingVertical: 4,
+    gap: SECTION_GAP,
+    paddingVertical: SMALL_GAP,
   },
   tagChipBase: {
     flexDirection: "row",
     alignItems: "center",
     alignSelf: "flex-start",
-    gap: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 6,
+    gap: SECTION_GAP,
+    paddingVertical: TRIGGER_PAD,
+    paddingHorizontal: TRIGGER_PAD,
     borderRadius: theme.colors.radius,
     borderWidth: 2,
   },
@@ -2181,28 +2192,27 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.primary,
   },
   inlineTagPicker: {
-    marginTop: 8,
-    padding: 12,
+    marginTop: FORM_GAP,
+    padding: CARD_PAD,
     marginHorizontal: H_PAD,
-
     borderRadius: 12,
     backgroundColor: theme.colors.secondary,
     maxHeight: 400,
-    gap: 6,
+    gap: ROW_GAP,
   },
   tagSearchInput: {
-    marginBottom: 8,
+    marginBottom: SECTION_GAP,
   },
   tagPickerList: {
     height: 180,
   },
   tagPickerRow: {
-    gap: 6,
-    marginTop: 8,
+    gap: ROW_GAP,
+    marginTop: FORM_GAP,
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 6,
-    paddingHorizontal: 6,
+    paddingVertical: TRIGGER_PAD,
+    paddingHorizontal: TRIGGER_PAD,
     borderRadius: theme.colors.radius,
     backgroundColor: theme.colors.secondary,
     borderWidth: 2,
@@ -2218,10 +2228,10 @@ const styles = StyleSheet.create((theme) => ({
   createTagRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-    marginTop: 8,
+    gap: ROW_GAP,
+    paddingVertical: ROW_PADDING_V,
+    paddingHorizontal: SECTION_GAP,
+    marginTop: FORM_GAP,
     borderRadius: theme.colors.radius,
   },
   createTagRowText: {
@@ -2261,12 +2271,12 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: "center",
     paddingVertical: ROW_PADDING_V,
     paddingHorizontal: H_PAD,
-    marginBottom: 12,
+    marginBottom: ELEMENT_GAP,
   },
   switchLeft: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 14,
+    gap: ROW_GAP,
   },
   switchLabel: {
     fontSize: 16,
@@ -2282,8 +2292,8 @@ const styles = StyleSheet.create((theme) => ({
   },
   comingSoonBadge: {
     backgroundColor: theme.colors.secondary,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: ROW_PADDING_V,
+    paddingVertical: SMALL_GAP,
     borderRadius: theme.colors.radius ?? 12,
   },
   comingSoonBadgeText: {
@@ -2294,7 +2304,7 @@ const styles = StyleSheet.create((theme) => ({
   recurringRightWithBadge: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: ROW_GAP,
   },
   recurringDisabledOverlay: {
     opacity: 0.7,
@@ -2307,28 +2317,26 @@ const styles = StyleSheet.create((theme) => ({
     paddingHorizontal: H_PAD,
   },
   recurringSubSection: {
-    marginTop: 16,
+    marginTop: 2 * FORM_GAP,
   },
   recurringSubLabel: {
     marginHorizontal: H_PAD,
-
     fontSize: 12,
     fontWeight: "600",
     color: theme.colors.customColors.semi,
     textTransform: "uppercase",
     letterSpacing: 0.5,
-    marginBottom: 8,
+    marginBottom: SECTION_GAP,
   },
   recurringToggleRow: {
     marginHorizontal: H_PAD,
-
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 10,
+    gap: ROW_GAP,
   },
   recurringToggleButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
+    paddingVertical: ROW_PADDING_V,
+    paddingHorizontal: BUTTON_PAD_H,
     borderRadius: theme.colors.radius ?? 12,
     backgroundColor: theme.colors.secondary,
     borderWidth: 2,
@@ -2347,7 +2355,7 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.onPrimary,
   },
   endsOnPickerContainer: {
-    marginTop: 8,
+    marginTop: FORM_GAP,
     backgroundColor: theme.colors.secondary,
     borderRadius: theme.colors.radius,
     overflow: "hidden",
@@ -2357,7 +2365,7 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 12,
+    paddingVertical: CARD_PAD,
     paddingHorizontal: H_PAD,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.customColors.semi,
@@ -2373,13 +2381,13 @@ const styles = StyleSheet.create((theme) => ({
   occurrencePresetsRow: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 10,
+    gap: ROW_GAP,
     padding: H_PAD,
     paddingTop: 0,
   },
   occurrencePresetButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
+    paddingVertical: ROW_PADDING_V,
+    paddingHorizontal: BUTTON_PAD_H,
     borderRadius: theme.colors.radius ?? 12,
     backgroundColor: theme.colors.surface,
     borderWidth: 2,
@@ -2420,9 +2428,9 @@ const styles = StyleSheet.create((theme) => ({
     paddingHorizontal: H_PAD,
   },
   notesFullPreviewWrap: {
-    marginTop: 8,
+    marginTop: FORM_GAP,
     minWidth: 0,
-    padding: 12,
+    padding: CARD_PAD,
     borderRadius: theme.colors.radius,
     overflow: "hidden",
     backgroundColor: theme.colors.secondary,
@@ -2434,7 +2442,7 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.customColors.semi,
   },
   addFilesOptionsContainer: {
-    marginTop: 8,
+    marginTop: FORM_GAP,
     marginHorizontal: H_PAD,
     backgroundColor: theme.colors.secondary,
     borderRadius: theme.colors.radius,
@@ -2444,7 +2452,7 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     alignItems: "center",
     gap: ROW_GAP,
-    paddingVertical: 12,
+    paddingVertical: CARD_PAD,
     paddingHorizontal: H_PAD,
     borderBottomWidth: 1,
     borderBottomColor: `${theme.colors.customColors.semi}20`,
@@ -2459,8 +2467,8 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.onSurface,
   },
   attachmentsList: {
-    marginTop: 12,
-    gap: 8,
+    marginTop: ELEMENT_GAP,
+    gap: SECTION_GAP,
   },
   attachmentRow: {
     flexDirection: "row",
@@ -2488,16 +2496,16 @@ const styles = StyleSheet.create((theme) => ({
   },
   attachmentMeta: {
     fontSize: 13,
-    marginTop: 2,
+    marginTop: MICRO_GAP,
     color: theme.colors.customColors.semi,
   },
   attachmentRemoveBtn: {
-    marginRight: 20,
+    marginRight: H_PAD,
   },
   notesTextArea: {
     marginHorizontal: H_PAD,
-    marginTop: 4,
-    padding: 12,
+    marginTop: SMALL_GAP,
+    padding: CARD_PAD,
     borderRadius: theme.colors.radius,
     borderWidth: 1,
     minHeight: 96,
@@ -2514,13 +2522,13 @@ const styles = StyleSheet.create((theme) => ({
     paddingBottom: 34,
   },
   datePickerBody: {
-    paddingVertical: 8,
+    paddingVertical: SECTION_GAP,
   },
   datePickerHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 8,
+    paddingVertical: SECTION_GAP,
     borderBottomWidth: 1,
   },
   datePickerCancel: {
@@ -2540,9 +2548,9 @@ const styles = StyleSheet.create((theme) => ({
   footer: {
     flexDirection: "row",
     paddingHorizontal: H_PAD,
-    paddingTop: 16,
-    paddingBottom: 16,
-    gap: 12,
+    paddingTop: 2 * FORM_GAP,
+    paddingBottom: 2 * FORM_GAP,
+    gap: ELEMENT_GAP,
     borderTopWidth: 1,
     borderTopColor: `${theme.colors.customColors.semi}20`,
   },
@@ -2553,7 +2561,7 @@ const styles = StyleSheet.create((theme) => ({
     marginTop: FORM_GAP,
     marginBottom: FORM_GAP,
     marginHorizontal: H_PAD,
-    gap: 12,
+    gap: ELEMENT_GAP,
   },
   deleteButton: {
     flexDirection: "row",
@@ -2575,6 +2583,6 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.onPrimary,
   },
   saveSpinner: {
-    marginVertical: 2,
+    marginVertical: MICRO_GAP,
   },
 }))

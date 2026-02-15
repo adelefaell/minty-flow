@@ -19,8 +19,8 @@ import { Pressable } from "~/components/ui/pressable"
 import { Switch } from "~/components/ui/switch"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import { useTimeUtils } from "~/hooks/use-time-utils"
 import { useNotificationStore } from "~/stores/notification.store"
+import { formatReadableTime } from "~/utils/time-utils"
 
 const DAILY_REMINDER_ID = "daily-check-in-reminder"
 
@@ -53,7 +53,6 @@ export default function ReminderScreen() {
     return date
   })()
 
-  const { formatReadableTime } = useTimeUtils()
   const [showIosPicker, setShowIosPicker] = useState(false)
 
   useEffect(() => {

@@ -3,21 +3,31 @@
  * Use for delete confirmations or other destructive/important actions.
  */
 
-import { useCallback } from "react"
-import { Modal, Pressable, useWindowDimensions, View } from "react-native"
+import { useCallback, useState } from "react"
+import {
+  ActivityIndicator,
+  Modal,
+  TouchableWithoutFeedback,
+  useWindowDimensions,
+  View,
+} from "react-native"
+import { SafeAreaView } from "react-native-safe-area-context"
 import { StyleSheet } from "react-native-unistyles"
 
 import { Button } from "~/components/ui/button"
 import { IconSymbol, type IconSymbolName } from "~/components/ui/icon-symbol"
 import { Text } from "~/components/ui/text"
+import { logger } from "~/utils/logger"
+
+import { Pressable } from "./ui/pressable"
 
 export interface ConfirmModalProps {
   /** Whether the modal is visible. */
   visible: boolean
   /** Called when the user requests close (backdrop tap or cancel). */
   onRequestClose: () => void
-  /** Called when the user confirms the action. */
-  onConfirm: () => void
+  /** Called when the user confirms the action. May return a Promise for async flows. */
+  onConfirm: () => Promise<void> | void
   /** Title shown in the modal (e.g. "Delete category?"). */
   title: string
   /** Description or warning message. */
@@ -45,13 +55,19 @@ export function ConfirmModal({
 }: ConfirmModalProps) {
   const { width } = useWindowDimensions()
   const maxCardWidth = Math.min(width - 48, 400)
+  const [loading, setLoading] = useState(false)
 
-  const handleConfirm = useCallback(() => {
-    onRequestClose()
-    onConfirm()
-  }, [onRequestClose, onConfirm])
-
-  // const iconColor = variant === "destructive" ? theme.colors.error : undefined
+  const handleConfirm = useCallback(async () => {
+    try {
+      setLoading(true)
+      await Promise.resolve(onConfirm())
+      onRequestClose()
+    } catch (e) {
+      logger.error("Error confirming modal", { error: e })
+    } finally {
+      setLoading(false)
+    }
+  }, [onConfirm, onRequestClose])
 
   return (
     <Modal
@@ -60,52 +76,66 @@ export function ConfirmModal({
       animationType="fade"
       onRequestClose={onRequestClose}
       statusBarTranslucent
+      accessibilityViewIsModal
     >
       <Pressable
         style={[styles.backdrop, { width }]}
         onPress={onRequestClose}
         accessibilityLabel="Close"
         accessibilityRole="button"
+        native
+        disableRipple
       >
-        <Pressable
-          style={[styles.card, { maxWidth: maxCardWidth }]}
-          onPress={(e) => e.stopPropagation()}
-        >
-          {icon ? (
-            <View style={styles.iconRow}>
-              <IconSymbol
-                name={icon}
-                size={40}
-                color={styles.iconColor(variant).color}
-              />
+        <TouchableWithoutFeedback onPress={() => {}}>
+          <SafeAreaView
+            style={[styles.card, { maxWidth: maxCardWidth }]}
+            accessible
+            accessibilityLabel={title}
+            accessibilityRole="alert"
+          >
+            {icon ? (
+              <View style={styles.iconRow}>
+                <IconSymbol
+                  name={icon}
+                  size={40}
+                  color={styles.iconColor(variant).color}
+                />
+              </View>
+            ) : null}
+
+            <Text variant="h3" style={styles.title}>
+              {title}
+            </Text>
+
+            <Text variant="p" style={styles.description}>
+              {description}
+            </Text>
+
+            <View style={styles.actions}>
+              <Button
+                variant="outline"
+                onPress={onRequestClose}
+                style={styles.actionButton}
+                disabled={loading}
+              >
+                <Text variant="default">{cancelLabel}</Text>
+              </Button>
+
+              <Button
+                variant={variant === "destructive" ? "destructive" : "default"}
+                onPress={handleConfirm}
+                style={styles.actionButton}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator />
+                ) : (
+                  <Text variant="default">{confirmLabel}</Text>
+                )}
+              </Button>
             </View>
-          ) : null}
-
-          <Text variant="h3" style={styles.title}>
-            {title}
-          </Text>
-
-          <Text variant="p" style={styles.description}>
-            {description}
-          </Text>
-
-          <View style={styles.actions}>
-            <Button
-              variant="outline"
-              onPress={onRequestClose}
-              style={styles.actionButton}
-            >
-              <Text variant="default">{cancelLabel}</Text>
-            </Button>
-            <Button
-              variant={variant === "destructive" ? "destructive" : "default"}
-              onPress={handleConfirm}
-              style={styles.actionButton}
-            >
-              <Text variant="default">{confirmLabel}</Text>
-            </Button>
-          </View>
-        </Pressable>
+          </SafeAreaView>
+        </TouchableWithoutFeedback>
       </Pressable>
     </Modal>
   )

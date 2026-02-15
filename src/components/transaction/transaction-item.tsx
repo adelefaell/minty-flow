@@ -16,8 +16,8 @@ import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import type { TransactionWithRelations } from "~/database/services/transaction-service"
 import { useIsConfirmable } from "~/hooks/use-time-reactivity"
-import { useTimeUtils } from "~/hooks/use-time-utils"
 import { usePendingTransactionsStore } from "~/stores/pending-transactions.store"
+import { formatFriendlyDate, formatReadableTime } from "~/utils/time-utils"
 
 import { DynamicIcon } from "../dynamic-icon"
 
@@ -106,7 +106,6 @@ export const TransactionItem = ({
   variant = "default",
 }: TransactionItemProps) => {
   const swipeableRef = useRef<SwipeableMethods | null>(null)
-  const { formatReadableTime, formatFriendlyDate } = useTimeUtils()
   const { theme } = useUnistyles()
   const { transaction, account, category } = transactionWithRelations
   const icon = category?.icon
