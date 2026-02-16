@@ -131,8 +131,8 @@ const styles = StyleSheet.create((theme) => {
       color: muted,
     },
     presetsRow: {
-      flexDirection: "row" as const,
-      flexWrap: "wrap" as const,
+      flexDirection: "row",
+      flexWrap: "wrap",
       gap: 10,
       marginBottom: 24,
       paddingHorizontal: 20,
@@ -144,8 +144,8 @@ const styles = StyleSheet.create((theme) => {
       borderWidth: 1,
       borderColor,
       backgroundColor: "transparent",
-      flexDirection: "row" as const,
-      alignItems: "center" as const,
+      flexDirection: "row",
+      alignItems: "center",
       gap: 8,
       flexShrink: 0,
     },
@@ -155,19 +155,19 @@ const styles = StyleSheet.create((theme) => {
     },
     presetButtonText: {
       color: theme.colors.onSurface,
-      fontWeight: "400" as const,
+      fontWeight: "400",
     },
     presetButtonTextSelected: {
       color: primary,
-      fontWeight: "600" as const,
+      fontWeight: "600",
     },
     collapsibleSection: {
       marginBottom: 8,
     },
     rowBase: {
-      flexDirection: "row" as const,
-      alignItems: "center" as const,
-      justifyContent: "space-between" as const,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
       paddingVertical: 14,
       paddingHorizontal: 20,
       backgroundColor: theme.colors.surface,
@@ -187,14 +187,20 @@ const styles = StyleSheet.create((theme) => {
       backgroundColor: theme.colors.surface,
     },
     monthYearRow: {
-      flexDirection: "row" as const,
-      alignItems: "center" as const,
-      justifyContent: "space-between" as const,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
       marginBottom: 8,
     },
+    monthYearInput: {
+      flex: 1,
+      minWidth: 72,
+      marginHorizontal: 8,
+      textAlign: "center",
+    },
     monthGrid: {
-      flexDirection: "row" as const,
-      flexWrap: "wrap" as const,
+      flexDirection: "row",
+      flexWrap: "wrap",
       gap: 8,
     },
     monthCell: {
@@ -202,36 +208,36 @@ const styles = StyleSheet.create((theme) => {
       paddingVertical: 10,
       borderRadius: radius,
       backgroundColor: "transparent",
-      alignItems: "center" as const,
+      alignItems: "center",
     },
     monthCellSelected: {
       backgroundColor: `${primary}25`,
     },
     monthCellText: {
       color: theme.colors.onSurface,
-      fontWeight: "400" as const,
+      fontWeight: "400",
     },
     monthCellTextSelected: {
       color: primary,
-      fontWeight: "600" as const,
+      fontWeight: "600",
     },
     customRangeRow: {
-      flexDirection: "row" as const,
-      alignItems: "center" as const,
-      justifyContent: "space-between" as const,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
       paddingVertical: 14,
       paddingHorizontal: 20,
     },
     customRangeValue: {
-      flexDirection: "row" as const,
-      alignItems: "center" as const,
+      flexDirection: "row",
+      alignItems: "center",
       gap: 8,
     },
     customRangeValueText: {
       color: muted,
     },
     bottomBar: {
-      flexDirection: "row" as const,
+      flexDirection: "row",
       gap: 12,
       paddingHorizontal: 16,
       paddingTop: 12,
@@ -240,7 +246,7 @@ const styles = StyleSheet.create((theme) => {
     },
     iosPickerOverlay: {
       flex: 1,
-      justifyContent: "flex-end" as const,
+      justifyContent: "flex-end",
       backgroundColor: "rgba(0,0,0,0.5)",
     },
     iosPickerSheet: {
@@ -250,9 +256,9 @@ const styles = StyleSheet.create((theme) => {
       paddingBottom: 16,
     },
     iosPickerHeader: {
-      flexDirection: "row" as const,
-      justifyContent: "space-between" as const,
-      alignItems: "center" as const,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
       paddingHorizontal: 20,
       paddingVertical: 12,
       borderBottomWidth: 1,
@@ -260,14 +266,14 @@ const styles = StyleSheet.create((theme) => {
     },
     iosPickerHeaderTitle: {
       color: theme.colors.onSurface,
-      fontWeight: "600" as const,
+      fontWeight: "600",
     },
     mutedText: {
       color: muted,
     },
     iosPickerDone: {
       color: primary,
-      fontWeight: "600" as const,
+      fontWeight: "600",
     },
     datePickerWrapper: {
       paddingHorizontal: 16,
@@ -296,6 +302,9 @@ export function DateRangePresetModal({
   )
   const [customEnd, setCustomEnd] = useState<Date>(() => initialEnd ?? now)
   const [byMonthYear, setByMonthYear] = useState(() => now.getFullYear())
+  const [byMonthYearInput, setByMonthYearInput] = useState(() =>
+    String(now.getFullYear()),
+  )
   const [byMonthMonth, setByMonthMonth] = useState(() => now.getMonth())
   const [byYearInput, setByYearInput] = useState(() =>
     String(now.getFullYear()),
@@ -311,6 +320,7 @@ export function DateRangePresetModal({
       setCustomStart(initialStart ?? initialNow)
       setCustomEnd(initialEnd ?? initialNow)
       setByMonthYear(initialNow.getFullYear())
+      setByMonthYearInput(String(initialNow.getFullYear()))
       setByMonthMonth(initialNow.getMonth())
       setByYearInput(String(initialNow.getFullYear()))
       setSelectedPresetId(null)
@@ -388,7 +398,9 @@ export function DateRangePresetModal({
   }, [now])
 
   const handleByMonthNow = useCallback(() => {
-    setByMonthYear(now.getFullYear())
+    const y = now.getFullYear()
+    setByMonthYear(y)
+    setByMonthYearInput(String(y))
     setByMonthMonth(now.getMonth())
   }, [now])
 
@@ -503,24 +515,41 @@ export function DateRangePresetModal({
             </Pressable>
             {expandedSection === "byMonth" && (
               <View style={styles.expandedContent}>
-                <Text variant="small" style={styles.sectionLabel}>
-                  Select a month
-                </Text>
                 <View style={styles.monthYearRow}>
                   <Button
                     variant="secondary"
-                    onPress={() => setByMonthYear((y) => y - 1)}
+                    onPress={() => {
+                      const next = Math.max(1970, byMonthYear - 1)
+                      setByMonthYear(next)
+                      setByMonthYearInput(String(next))
+                    }}
                     size="icon"
                     hitSlop={8}
                   >
                     <IconSymbol name="chevron-left" size={24} color={fgColor} />
                   </Button>
-                  <Text variant="large" style={styles.iosPickerHeaderTitle}>
-                    {byMonthYear}
-                  </Text>
+                  <Input
+                    value={byMonthYearInput}
+                    onChangeText={(t) => {
+                      const digits = t.replace(/\D/g, "").slice(0, 4)
+                      setByMonthYearInput(digits)
+                      const num = Number.parseInt(digits, 10)
+                      if (!Number.isNaN(num)) {
+                        setByMonthYear(Math.min(2100, Math.max(1970, num)))
+                      }
+                    }}
+                    keyboardType="number-pad"
+                    maxLength={4}
+                    placeholder="Year"
+                    style={styles.monthYearInput}
+                  />
                   <Button
                     variant="secondary"
-                    onPress={() => setByMonthYear((y) => y + 1)}
+                    onPress={() => {
+                      const next = Math.min(2100, byMonthYear + 1)
+                      setByMonthYear(next)
+                      setByMonthYearInput(String(next))
+                    }}
                     hitSlop={8}
                     size="icon"
                   >

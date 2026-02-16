@@ -77,7 +77,7 @@ export function SmartAmountInput({
       ? ""
       : value.toString()
 
-  // Derived preview — no useEffect, computed during render
+  // Derived preview — computed during render
   const previewResult = useMemo<ParseResult | null>(() => {
     if (!hasMathOperation(displayValue)) return null
     return parseMathExpression(displayValue)

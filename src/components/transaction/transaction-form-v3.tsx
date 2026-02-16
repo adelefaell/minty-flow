@@ -13,18 +13,10 @@ import DateTimePicker, {
   DateTimePickerAndroid,
   type DateTimePickerEvent,
 } from "@react-native-community/datetimepicker"
-import type { EventArg } from "@react-navigation/native"
 import * as DocumentPicker from "expo-document-picker"
 import * as ImagePicker from "expo-image-picker"
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router"
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react"
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { Controller, type Resolver, useForm } from "react-hook-form"
 import {
   ActivityIndicator,
@@ -59,6 +51,7 @@ import {
   restoreTransactionModel,
   updateTransactionModel,
 } from "~/database/services/transaction-service"
+import { useNavigationGuard } from "~/hooks/use-navigation-guard"
 import {
   type TransactionFormValues,
   transactionSchema,
@@ -211,8 +204,6 @@ export function TransactionFormV3({
     (s) => s.requireConfirmation,
   )
 
-  const isNavigatingRef = useRef(false)
-  const pendingLeaveRef = useRef<(() => void) | null>(null)
   const [unsavedModalVisible, setUnsavedModalVisible] = useState(false)
   const [destroyModalVisible, setDestroyModalVisible] = useState(false)
 
@@ -250,6 +241,12 @@ export function TransactionFormV3({
   const tagIds = watch("tags")
 
   const [isSaving, setIsSaving] = useState(false)
+  const { confirmNavigation, allowNavigation } = useNavigationGuard({
+    navigation,
+    when: isDirty && !isSaving,
+    onConfirm: handleGoBack,
+    onBlock: () => setUnsavedModalVisible(true),
+  })
   const [notesModalVisible, setNotesModalVisible] = useState(false)
   const [datePickerVisible, setDatePickerVisible] = useState(false)
   const [datePickerMode, setDatePickerMode] = useState<"date" | "time">("date")
@@ -300,25 +297,6 @@ export function TransactionFormV3({
       }
     },
   )
-
-  // Handle navigation with unsaved changes: show ConfirmModal
-  useEffect(() => {
-    const unsubscribe = navigation.addListener(
-      "beforeRemove",
-      (e: EventArg<"beforeRemove", true, { action: unknown }>) => {
-        if (isSaving || isNavigatingRef.current || !isDirty) {
-          return
-        }
-        e.preventDefault()
-        pendingLeaveRef.current = () => {
-          isNavigatingRef.current = true
-          handleGoBack()
-        }
-        setUnsavedModalVisible(true)
-      },
-    )
-    return unsubscribe
-  }, [navigation, isDirty, isSaving, handleGoBack])
 
   const datePickerTargetRef = useRef<DatePickerTarget>("transaction")
 
@@ -513,7 +491,7 @@ export function TransactionFormV3({
         await updateTransactionModel(transaction, payload)
         Toast.success({ title: "Transaction updated" })
       }
-      isNavigatingRef.current = true
+      allowNavigation()
       router.back()
     } catch (error) {
       logger.error("Failed to save transaction", {
@@ -527,35 +505,32 @@ export function TransactionFormV3({
 
   const handleCancelPress = useCallback(() => {
     if (isDirty) {
-      pendingLeaveRef.current = () => {
-        isNavigatingRef.current = true
-        handleGoBack()
-      }
       setUnsavedModalVisible(true)
     } else {
+      allowNavigation()
       handleGoBack()
     }
-  }, [isDirty, handleGoBack])
+  }, [isDirty, handleGoBack, allowNavigation])
 
   const handleDeleteConfirm = useCallback(async () => {
     if (!transaction) return
     try {
       await deleteTransactionModel(transaction)
       Toast.success({ title: "Moved to trash" })
-      isNavigatingRef.current = true
+      allowNavigation()
       router.back()
     } catch (error) {
       logger.error("Failed to move transaction to trash", { error })
       Toast.error({ title: "Failed to move to trash" })
     }
-  }, [transaction, router])
+  }, [transaction, router, allowNavigation])
 
   const handleRestore = useCallback(async () => {
     if (!transaction?.isDeleted) return
     try {
       await restoreTransactionModel(transaction)
       Toast.success({ title: "Restored", description: "Transaction restored." })
-      isNavigatingRef.current = true
+      allowNavigation()
       router.back()
     } catch {
       Toast.error({
@@ -563,7 +538,7 @@ export function TransactionFormV3({
         description: "Failed to restore transaction.",
       })
     }
-  }, [transaction, router])
+  }, [transaction, router, allowNavigation])
 
   const handleDestroy = useCallback(() => {
     if (!transaction) return
@@ -579,7 +554,7 @@ export function TransactionFormV3({
         title: "Deleted",
         description: "Transaction permanently removed.",
       })
-      isNavigatingRef.current = true
+      allowNavigation()
       router.back()
     } catch {
       Toast.error({
@@ -587,7 +562,7 @@ export function TransactionFormV3({
         description: "Failed to delete transaction.",
       })
     }
-  }, [transaction, router])
+  }, [transaction, router, allowNavigation])
 
   const addTag = useCallback(
     (tagId: string) => {
@@ -1467,7 +1442,7 @@ export function TransactionFormV3({
             <View style={styles.recurringSwitchRow}>
               <View style={styles.switchLeft}>
                 <DynamicIcon
-                  icon="calendar-sync"
+                  icon="repeat"
                   size={20}
                   color={theme.colors.primary}
                   variant="badge"
@@ -1896,8 +1871,8 @@ export function TransactionFormV3({
         visible={unsavedModalVisible}
         onRequestClose={() => setUnsavedModalVisible(false)}
         onConfirm={() => {
-          pendingLeaveRef.current?.()
-          pendingLeaveRef.current = null
+          setUnsavedModalVisible(false)
+          confirmNavigation()
         }}
         title="Close without saving?"
         description="All changes will be lost."

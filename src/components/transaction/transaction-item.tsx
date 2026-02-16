@@ -175,7 +175,7 @@ export const TransactionItem = ({
                   ]}
                 >
                   <IconSymbol
-                    name="calendar-sync"
+                    name="repeat"
                     size={12}
                     color={theme.colors.customColors.info}
                   />
@@ -238,7 +238,7 @@ export const TransactionItem = ({
               ]}
             >
               <IconSymbol
-                name="calendar-sync"
+                name="repeat"
                 size={12}
                 color={theme.colors.customColors.info}
               />

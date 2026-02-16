@@ -3,14 +3,8 @@ import DateTimePicker, {
   type DateTimePickerEvent,
 } from "@react-native-community/datetimepicker"
 import * as Notifications from "expo-notifications"
-import { useEffect, useState } from "react"
-import {
-  AppState,
-  type AppStateStatus,
-  Linking,
-  Platform,
-  ScrollView,
-} from "react-native"
+import { useState } from "react"
+import { Linking, Platform, ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
 import { Button } from "~/components/ui/button"
@@ -19,6 +13,7 @@ import { Pressable } from "~/components/ui/pressable"
 import { Switch } from "~/components/ui/switch"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
+import { useNotificationPermissionStatus } from "~/hooks/use-notification-permission-status"
 import { useNotificationStore } from "~/stores/notification.store"
 import { formatReadableTime } from "~/utils/time-utils"
 
@@ -34,10 +29,8 @@ Notifications.setNotificationHandler({
 })
 
 export default function ReminderScreen() {
-  const [permissionStatus, setPermissionStatus] =
-    useState<Notifications.PermissionStatus>(
-      Notifications.PermissionStatus.UNDETERMINED,
-    )
+  const { permissionStatus, refreshPermissionStatus } =
+    useNotificationPermissionStatus()
 
   const {
     isDailyReminderEnabled,
@@ -55,25 +48,6 @@ export default function ReminderScreen() {
 
   const [showIosPicker, setShowIosPicker] = useState(false)
 
-  useEffect(() => {
-    const subscription = AppState.addEventListener(
-      "change",
-      (nextAppState: AppStateStatus) => {
-        if (nextAppState === "active") {
-          getPermissionCurrentStatusAsync().then((status) => {
-            setPermissionStatus(status)
-          })
-        }
-      },
-    )
-    getPermissionCurrentStatusAsync().then((status) =>
-      setPermissionStatus(status),
-    )
-    return () => {
-      subscription.remove()
-    }
-  }, [])
-
   const handleRequestPermission = async () => {
     // Android notification channel setup
     if (Platform.OS === "android") {
@@ -84,7 +58,7 @@ export default function ReminderScreen() {
     }
 
     const { status } = await Notifications.requestPermissionsAsync()
-    setPermissionStatus(status)
+    await refreshPermissionStatus()
 
     if (status !== Notifications.PermissionStatus.GRANTED) {
       // If it's still not granted (e.g. user denied or it's already denied),
@@ -158,29 +132,30 @@ export default function ReminderScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* grant permission button */}
-      {permissionStatus !== Notifications.PermissionStatus.GRANTED && (
-        <Pressable
-          onPress={handleRequestPermission}
-          style={styles.actionButton}
-        >
-          <View style={styles.grantPermissionContent}>
-            <IconSymbol
-              name="alert"
-              outline
-              size={20}
-              style={styles.grantPermissionIcon}
-            />
-            <Text variant="default" style={styles.grantPermissionText}>
-              Notifications permission not granted
-            </Text>
-            <IconSymbol
-              name="open-in-new"
-              size={20}
-              style={styles.grantPermissionIcon}
-            />
-          </View>
-        </Pressable>
-      )}
+      {permissionStatus !== null &&
+        permissionStatus !== Notifications.PermissionStatus.GRANTED && (
+          <Pressable
+            onPress={handleRequestPermission}
+            style={styles.actionButton}
+          >
+            <View style={styles.grantPermissionContent}>
+              <IconSymbol
+                name="alert"
+                outline
+                size={20}
+                style={styles.grantPermissionIcon}
+              />
+              <Text variant="default" style={styles.grantPermissionText}>
+                Notifications permission not granted
+              </Text>
+              <IconSymbol
+                name="open-in-new"
+                size={20}
+                style={styles.grantPermissionIcon}
+              />
+            </View>
+          </Pressable>
+        )}
 
       {/* Remind daily */}
       <Pressable
@@ -263,14 +238,6 @@ async function schedulePushNotification() {
       seconds: 1,
     },
   })
-}
-
-/**
- * Gets the current notification permission status.
- */
-async function getPermissionCurrentStatusAsync(): Promise<Notifications.PermissionStatus> {
-  const { status: existingStatus } = await Notifications.getPermissionsAsync()
-  return existingStatus
 }
 
 const styles = StyleSheet.create((theme) => ({

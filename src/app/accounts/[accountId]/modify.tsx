@@ -1,8 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { withObservables } from "@nozbe/watermelondb/react"
-import type { EventArg } from "@react-navigation/native"
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
@@ -30,6 +29,7 @@ import {
 } from "~/database/services/account-service"
 import { observeTransactionCountByAccountId } from "~/database/services/transaction-service"
 import { modelToAccount } from "~/database/utils/model-to-account"
+import { useNavigationGuard } from "~/hooks/use-navigation-guard"
 import {
   type AddAccountsFormSchema,
   addAccountsSchema,
@@ -93,36 +93,18 @@ const EditAccountScreenInner = ({
   // Loading state
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Navigation and unsaved changes (ConfirmModal)
+  // Navigation guard: block leave when dirty, show confirm modal
   const navigation = useNavigation()
-  const isNavigatingRef = useRef(false)
-  const pendingLeaveRef = useRef<(() => void) | null>(null)
   const [unsavedModalVisible, setUnsavedModalVisible] = useState(false)
+  const { confirmNavigation, allowNavigation } = useNavigationGuard({
+    navigation,
+    when: isDirty && !isSubmitting,
+    onConfirm: handleGoBack,
+    onBlock: () => setUnsavedModalVisible(true),
+  })
 
   // Bottom sheet controls
   const [deleteModalVisible, setDeleteModalVisible] = useState(false)
-
-  // Handle navigation with unsaved changes: show ConfirmModal
-  useEffect(() => {
-    const unsubscribe = navigation.addListener(
-      "beforeRemove",
-      (e: EventArg<"beforeRemove", true, { action: unknown }>) => {
-        if (isSubmitting || isNavigatingRef.current || !isDirty) {
-          return
-        }
-
-        e.preventDefault()
-
-        pendingLeaveRef.current = () => {
-          isNavigatingRef.current = true
-          handleGoBack()
-        }
-        setUnsavedModalVisible(true)
-      },
-    )
-
-    return unsubscribe
-  }, [navigation, isDirty, isSubmitting, handleGoBack])
 
   const onSubmit = async (data: AddAccountsFormSchema) => {
     setIsSubmitting(true)
@@ -141,7 +123,7 @@ const EditAccountScreenInner = ({
           isArchived: data.isArchived,
         })
 
-        isNavigatingRef.current = true
+        allowNavigation()
         handleGoBack()
       } else {
         if (!accountModel) {
@@ -162,7 +144,7 @@ const EditAccountScreenInner = ({
           isArchived: data.isArchived,
         })
 
-        isNavigatingRef.current = true
+        allowNavigation()
         handleGoBack()
       }
     } catch (error) {
@@ -184,7 +166,7 @@ const EditAccountScreenInner = ({
 
       await destroyAccount(accountModel)
 
-      isNavigatingRef.current = true
+      allowNavigation()
       router.dismissAll()
       router.push("/settings/all-accounts")
     } catch (error) {
@@ -503,8 +485,8 @@ const EditAccountScreenInner = ({
         visible={unsavedModalVisible}
         onRequestClose={() => setUnsavedModalVisible(false)}
         onConfirm={() => {
-          pendingLeaveRef.current?.()
-          pendingLeaveRef.current = null
+          setUnsavedModalVisible(false)
+          confirmNavigation()
         }}
         title="Close without saving?"
         description="All changes will be lost."

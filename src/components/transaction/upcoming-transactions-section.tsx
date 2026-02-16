@@ -330,7 +330,7 @@ export function UpcomingTransactionsSection({
                 ]}
               >
                 <IconSymbol
-                  name="calendar-sync"
+                  name="repeat"
                   size={14}
                   color={theme.colors.customColors.info}
                 />

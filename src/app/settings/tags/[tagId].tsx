@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { withObservables } from "@nozbe/watermelondb/react"
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router"
-import { useEffect, useRef, useState } from "react"
+import { useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
@@ -25,6 +25,7 @@ import {
   updateTag,
 } from "~/database/services/tag-service"
 import { modelToTag } from "~/database/utils/model-to-tag"
+import { useNavigationGuard } from "~/hooks/use-navigation-guard"
 import { type AddTagsFormSchema, addTagsSchema } from "~/schemas/tags.schema"
 import { getThemeStrict } from "~/styles/theme/registry"
 import { NewEnum } from "~/types/new"
@@ -72,27 +73,17 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
 
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Navigation and unsaved changes (ConfirmModal)
+  // Navigation guard: block leave when dirty, show confirm modal
   const navigation = useNavigation()
-  const isNavigatingRef = useRef(false)
-  const pendingLeaveRef = useRef<(() => void) | null>(null)
   const [unsavedModalVisible, setUnsavedModalVisible] = useState(false)
+  const { confirmNavigation, allowNavigation } = useNavigationGuard({
+    navigation,
+    when: isDirty && !isSubmitting,
+    onConfirm: () => router.back(),
+    onBlock: () => setUnsavedModalVisible(true),
+  })
 
   const [deleteModalVisible, setDeleteModalVisible] = useState(false)
-
-  // Handle navigation with unsaved changes: show ConfirmModal
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("beforeRemove", (e) => {
-      if (isSubmitting || isNavigatingRef.current || !isDirty) return
-      e.preventDefault()
-      pendingLeaveRef.current = () => {
-        isNavigatingRef.current = true
-        router.back()
-      }
-      setUnsavedModalVisible(true)
-    })
-    return unsubscribe
-  }, [navigation, isDirty, isSubmitting, router])
 
   const onSubmit = async (data: AddTagsFormSchema) => {
     setIsSubmitting(true)
@@ -116,7 +107,7 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
           colorSchemeName: data.colorSchemeName,
         })
       }
-      isNavigatingRef.current = true
+      allowNavigation()
       router.back()
     } catch (error) {
       logger.error("Error saving tag", { error })
@@ -134,7 +125,7 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
       if (!tagModel) return
       await deleteTag(tagModel)
 
-      isNavigatingRef.current = true
+      allowNavigation()
       router.back()
     } catch (error) {
       logger.error("Error deleting tag", { error })
@@ -330,8 +321,8 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
         visible={unsavedModalVisible}
         onRequestClose={() => setUnsavedModalVisible(false)}
         onConfirm={() => {
-          pendingLeaveRef.current?.()
-          pendingLeaveRef.current = null
+          setUnsavedModalVisible(false)
+          confirmNavigation()
         }}
         title="Close without saving?"
         description="All changes will be lost."

@@ -118,7 +118,7 @@ const TabLayout = () => {
 
   const fabOptions: FABOption[] = [
     {
-      icon: "arrow-down",
+      icon: "arrow-bottom-left",
       color: theme.colors.customColors.income,
       iconColor: theme.colors.onError,
       label: "Income",
@@ -128,7 +128,7 @@ const TabLayout = () => {
       },
     },
     {
-      icon: "arrow-up",
+      icon: "arrow-top-right",
       color: theme.colors.customColors.expense,
       iconColor: theme.colors.onError,
       label: "Expense",

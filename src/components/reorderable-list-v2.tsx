@@ -129,7 +129,7 @@ function ReorderableRow<T>({
               isFirst && styles.buttonDisabled,
             ]}
           >
-            <IconSymbol name="arrow-up" size={18} color={iconColor} />
+            <IconSymbol name="arrow-top-right" size={18} color={iconColor} />
           </AnimatedPressable>
 
           <AnimatedPressable
@@ -141,7 +141,7 @@ function ReorderableRow<T>({
               isLast && styles.buttonDisabled,
             ]}
           >
-            <IconSymbol name="arrow-down" size={18} color={iconColor} />
+            <IconSymbol name="arrow-bottom-left" size={18} color={iconColor} />
           </AnimatedPressable>
         </AnimatedView>
       )}

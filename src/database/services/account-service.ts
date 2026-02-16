@@ -163,6 +163,41 @@ export const observeAccountDetailsById = (id: string): Observable<Account> => {
     )
 }
 
+/**
+ * Observe a single account with its current-month transaction totals (in, out, net).
+ * Use for account detail screen header. Includes archived accounts.
+ */
+export const observeAccountWithMonthTotalsById = (
+  id: string,
+): Observable<AccountWithMonthTotals> => {
+  const { fromDate, toDate } = getCurrentMonthRange()
+  const account$ = observeAccountDetailsById(id)
+  const transactions$ = observeTransactionModels({
+    accountId: id,
+    fromDate,
+    toDate,
+    includeDeleted: false,
+  })
+
+  return combineLatest([account$, transactions$]).pipe(
+    map(([account, transactions]) => {
+      let in_ = 0
+      let out = 0
+      for (const t of transactions) {
+        if (t.type === TransactionTypeEnum.INCOME) in_ += t.amount
+        else if (t.type === TransactionTypeEnum.EXPENSE) out += t.amount
+      }
+      return {
+        ...account,
+        monthIn: in_,
+        monthOut: out,
+        monthNet: in_ - out,
+        monthTransactionCount: transactions.length,
+      }
+    }),
+  )
+}
+
 /** Current calendar month as Unix timestamps (start 00:00:00, end 23:59:59.999) */
 export const getCurrentMonthRange = (): {
   fromDate: number
@@ -175,11 +210,60 @@ export const getCurrentMonthRange = (): {
   }
 }
 
-/** Account plus current-month transaction totals (in, out, net) */
+/** Month range for a given year and month (month 0–11). */
+export const getMonthRange = (
+  year: number,
+  month: number,
+): { fromDate: number; toDate: number } => {
+  const d = new Date(year, month, 1)
+  return {
+    fromDate: startOfMonth(d).getTime(),
+    toDate: endOfMonth(d).getTime(),
+  }
+}
+
+/**
+ * Observe a single account with transaction totals for a given date range.
+ * Use for account detail when user selects a specific month.
+ */
+export const observeAccountWithMonthTotalsByIdAndRange = (
+  id: string,
+  fromDate: number,
+  toDate: number,
+): Observable<AccountWithMonthTotals> => {
+  const account$ = observeAccountDetailsById(id)
+  const transactions$ = observeTransactionModels({
+    accountId: id,
+    fromDate,
+    toDate,
+    includeDeleted: false,
+  })
+
+  return combineLatest([account$, transactions$]).pipe(
+    map(([account, transactions]) => {
+      let in_ = 0
+      let out = 0
+      for (const t of transactions) {
+        if (t.type === TransactionTypeEnum.INCOME) in_ += t.amount
+        else if (t.type === TransactionTypeEnum.EXPENSE) out += t.amount
+      }
+      return {
+        ...account,
+        monthIn: in_,
+        monthOut: out,
+        monthNet: in_ - out,
+        monthTransactionCount: transactions.length,
+      }
+    }),
+  )
+}
+
+/** Account plus current-month transaction totals (in, out, net) and count */
 export interface AccountWithMonthTotals extends Account {
   monthIn: number
   monthOut: number
   monthNet: number
+  monthTransactionCount: number
 }
 
 /**
@@ -201,14 +285,16 @@ export const observeAccountsWithMonthTotals = (
     map(([accounts, transactions]) => {
       const totalsByAccount = new Map<
         string,
-        { in: number; out: number; net: number }
+        { in: number; out: number; net: number; count: number }
       >()
       for (const t of transactions) {
         const cur = totalsByAccount.get(t.accountId) ?? {
           in: 0,
           out: 0,
           net: 0,
+          count: 0,
         }
+        cur.count += 1
         if (t.type === TransactionTypeEnum.INCOME) {
           cur.in += t.amount
         } else if (t.type === TransactionTypeEnum.EXPENSE) {
@@ -217,18 +303,20 @@ export const observeAccountsWithMonthTotals = (
         cur.net = cur.in - cur.out
         totalsByAccount.set(t.accountId, cur)
       }
-      return accounts.map((model) => {
+      return accounts.map((model): AccountWithMonthTotals => {
         const account = modelToAccount(model)
         const totals = totalsByAccount.get(model.id) ?? {
           in: 0,
           out: 0,
           net: 0,
+          count: 0,
         }
         return {
           ...account,
           monthIn: totals.in,
           monthOut: totals.out,
           monthNet: totals.net,
+          monthTransactionCount: totals.count,
         }
       })
     }),

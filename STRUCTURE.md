@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-02-15T17:38:28.114Z
+Generated on: 2026-02-16T20:24:31.819Z
 
 ```
 ./
@@ -124,13 +124,14 @@ Generated on: 2026-02-15T17:38:28.114Z
 │   │   │   ├── 📄 transaction-filter-header.tsx
 │   │   │   ├── 📄 transaction-form-v3.tsx
 │   │   │   ├── 📄 transaction-item.tsx
+│   │   │   ├── 📄 transaction-section-list.tsx
 │   │   │   ├── 📄 transaction-type-selector.tsx
 │   │   │   └── 📄 upcoming-transactions-section.tsx
 │   │   ├── 📁 ui/
 │   │   │   ├── 📄 button.tsx
 │   │   │   ├── 📄 choice-chips.tsx
 │   │   │   ├── 📄 collapsible.tsx
-│   │   │   ├── 📄 icon-symbol.ios.tsx
+│   │   │   ├── 📄 icon-symbol.ios.tsx.md
 │   │   │   ├── 📄 icon-symbol.tsx
 │   │   │   ├── 📄 input.tsx
 │   │   │   ├── 📄 pressable.tsx
@@ -154,6 +155,7 @@ Generated on: 2026-02-15T17:38:28.114Z
 │   │   ├── 📄 icon-selection-sheet.tsx
 │   │   ├── 📄 keyboard-sticky-view-minty.tsx
 │   │   ├── 📄 money.tsx
+│   │   ├── 📄 month-year-picker.tsx
 │   │   ├── 📄 parallax-scroll-view.tsx
 │   │   ├── 📄 reorderable-list-v1.tsx
 │   │   ├── 📄 reorderable-list-v2.tsx
@@ -199,7 +201,8 @@ Generated on: 2026-02-15T17:38:28.114Z
 │   ├── 📁 hooks/
 │   │   ├── 📄 use-boolean.ts
 │   │   ├── 📄 use-color-scheme.ts
-│   │   ├── 📄 use-color-scheme.web.ts
+│   │   ├── 📄 use-navigation-guard.ts
+│   │   ├── 📄 use-notification-permission-status.ts
 │   │   ├── 📄 use-recurring-transaction-sync.ts
 │   │   ├── 📄 use-retention-cleanup.ts
 │   │   └── 📄 use-time-reactivity.ts
@@ -271,7 +274,8 @@ Generated on: 2026-02-15T17:38:28.114Z
 │       ├── 📄 recurrence.ts
 │       ├── 📄 string-utils.ts
 │       ├── 📄 time-utils.ts
-│       └── 📄 toast.ts
+│       ├── 📄 toast.ts
+│       └── 📄 transaction-list-utils.ts
 ├── 📄 .gitignore
 ├── 📄 app.json
 ├── 📄 babel.config.js

@@ -18,6 +18,7 @@ import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
+import { Toast } from "~/utils/toast"
 
 const LAYOUT_ANIM = LayoutAnimation.Presets.easeInEaseOut
 
@@ -54,6 +55,11 @@ export function ContactSelectorInline({
 
       if (!granted) {
         onPermissionDenied?.()
+        Toast.warn({
+          title: "Permission Required",
+          description:
+            "Please grant permission to access your contacts in order to select a contact from your phone.",
+        })
         return
       }
 

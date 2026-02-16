@@ -1,7 +1,7 @@
 import { Image } from "expo-image"
 import * as ImagePicker from "expo-image-picker"
 import { useRouter } from "expo-router"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -20,13 +20,10 @@ export default function EditProfileScreen() {
   const router = useRouter()
   const { name, imageUri, setName, setImageUri } = useProfileStore()
 
-  const [localName, setLocalName] = useState(name)
-  const [localImageUri, setLocalImageUri] = useState<string | null>(imageUri)
-
-  useEffect(() => {
-    setLocalName(name)
-    setLocalImageUri(imageUri)
-  }, [name, imageUri])
+  const [localName, setLocalName] = useState(() => name)
+  const [localImageUri, setLocalImageUri] = useState<string | null>(
+    () => imageUri,
+  )
 
   const displayName = localName || "?"
   const initials = getInitials(displayName)

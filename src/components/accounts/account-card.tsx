@@ -95,7 +95,7 @@ export const AccountCard = ({
             <View variant="muted" style={styles.summaryItem}>
               <View variant="muted" style={styles.summaryItemHeader}>
                 <IconSymbol
-                  name="arrow-down"
+                  name="arrow-bottom-left"
                   size={12}
                   color={styles.incomeColor.color}
                 />
@@ -113,7 +113,7 @@ export const AccountCard = ({
             <View variant="muted" style={styles.summaryItem}>
               <View variant="muted" style={styles.summaryItemHeader}>
                 <IconSymbol
-                  name="arrow-up"
+                  name="arrow-top-right"
                   size={12}
                   color={styles.expenseColor.color}
                 />

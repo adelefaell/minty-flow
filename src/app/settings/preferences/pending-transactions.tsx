@@ -1,12 +1,5 @@
 import * as Notifications from "expo-notifications"
-import { useEffect, useState } from "react"
-import {
-  AppState,
-  type AppStateStatus,
-  Linking,
-  Platform,
-  ScrollView,
-} from "react-native"
+import { Linking, Platform, ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
 import { ChoiceChipsComponent } from "~/components/ui/choice-chips"
@@ -14,6 +7,7 @@ import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
+import { useNotificationPermissionStatus } from "~/hooks/use-notification-permission-status"
 import { usePendingTransactionsStore } from "~/stores/pending-transactions.store"
 
 const SHOW_ON_HOME_DAYS = [1, 2, 3, 5, 7, 14, 30] as const
@@ -37,29 +31,9 @@ function choiceToDays(choice: string): number {
   return Number.isNaN(n) ? 3 : Math.min(30, Math.max(1, n))
 }
 
-async function getPermissionCurrentStatusAsync(): Promise<Notifications.PermissionStatus> {
-  const { status } = await Notifications.getPermissionsAsync()
-  return status
-}
-
 function PermissionWarnings() {
-  const [permissionStatus, setPermissionStatus] =
-    useState<Notifications.PermissionStatus>(
-      Notifications.PermissionStatus.UNDETERMINED,
-    )
-
-  useEffect(() => {
-    const subscription = AppState.addEventListener(
-      "change",
-      (nextAppState: AppStateStatus) => {
-        if (nextAppState === "active") {
-          getPermissionCurrentStatusAsync().then(setPermissionStatus)
-        }
-      },
-    )
-    getPermissionCurrentStatusAsync().then(setPermissionStatus)
-    return () => subscription.remove()
-  }, [])
+  const { permissionStatus, refreshPermissionStatus } =
+    useNotificationPermissionStatus()
 
   const handleRequestPermission = async () => {
     if (Platform.OS === "android") {
@@ -69,87 +43,43 @@ function PermissionWarnings() {
       })
     }
     const { status } = await Notifications.requestPermissionsAsync()
-    setPermissionStatus(status)
+    await refreshPermissionStatus()
     if (status !== Notifications.PermissionStatus.GRANTED) {
       await Linking.openSettings()
     }
   }
 
-  const handleOpenSettings = () => {
-    Linking.openSettings()
-  }
-
   const showNotificationsRow =
+    permissionStatus !== null &&
     permissionStatus !== Notifications.PermissionStatus.GRANTED
-  const showAlarmRow = Platform.OS === "android"
 
-  if (!showNotificationsRow && !showAlarmRow) return null
+  if (!showNotificationsRow) return null
 
   return (
     <View style={styles.permissionSection}>
-      {showNotificationsRow && (
-        <Pressable
-          onPress={handleRequestPermission}
-          style={styles.actionButton}
-          accessibilityLabel="Grant notifications permission"
-          accessibilityRole="button"
-        >
-          <View style={styles.grantPermissionContent}>
-            <IconSymbol
-              name="alert"
-              outline
-              size={20}
-              style={styles.grantPermissionIcon}
-            />
-            <Text variant="default" style={styles.grantPermissionText}>
-              Notifications permission not granted
-            </Text>
-            <IconSymbol
-              name="open-in-new"
-              size={20}
-              style={styles.grantPermissionIcon}
-            />
-          </View>
-        </Pressable>
-      )}
-      {showAlarmRow && (
-        <>
-          <Pressable
-            onPress={handleOpenSettings}
-            style={styles.actionButton}
-            accessibilityLabel="Grant alarm and reminder permission"
-            accessibilityRole="button"
-          >
-            <View style={styles.grantPermissionContent}>
-              <IconSymbol
-                name="alert"
-                outline
-                size={20}
-                style={styles.grantPermissionIcon}
-              />
-              <Text variant="default" style={styles.grantPermissionText}>
-                Alarm/Reminder permission not granted
-              </Text>
-              <IconSymbol
-                name="open-in-new"
-                size={20}
-                style={styles.grantPermissionIcon}
-              />
-            </View>
-          </Pressable>
-          <View style={styles.permissionInfoRow}>
-            <IconSymbol
-              name="information"
-              size={24}
-              style={styles.footerIcon}
-            />
-            <Text style={styles.footerText}>
-              Grant &apos;Alarms and Reminder&apos; permission (last in the
-              permissions list) to receive exact-time reminders.
-            </Text>
-          </View>
-        </>
-      )}
+      <Pressable
+        onPress={handleRequestPermission}
+        style={styles.actionButton}
+        accessibilityLabel="Grant notifications permission"
+        accessibilityRole="button"
+      >
+        <View style={styles.grantPermissionContent}>
+          <IconSymbol
+            name="alert"
+            outline
+            size={20}
+            style={styles.grantPermissionIcon}
+          />
+          <Text variant="default" style={styles.grantPermissionText}>
+            Notifications permission not granted
+          </Text>
+          <IconSymbol
+            name="open-in-new"
+            size={20}
+            style={styles.grantPermissionIcon}
+          />
+        </View>
+      </Pressable>
     </View>
   )
 }
@@ -256,7 +186,7 @@ export default function PendingTransactionsPreferencesScreen() {
         />
       )}
 
-      <PermissionWarnings />
+      {requireConfirmation && <PermissionWarnings />}
     </ScrollView>
   )
 }
@@ -354,23 +284,5 @@ const styles = StyleSheet.create((theme) => ({
     paddingHorizontal: 20,
     justifyContent: "space-between",
     flexDirection: "row",
-  },
-  permissionInfoRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 8,
-    paddingHorizontal: 20,
-  },
-  footerIcon: {
-    color: theme.colors.onSecondary,
-    opacity: 0.7,
-    marginTop: 5,
-  },
-  footerText: {
-    fontSize: 13,
-    color: theme.colors.onSecondary,
-    opacity: 0.7,
-    lineHeight: 18,
-    flex: 1,
   },
 }))

@@ -60,7 +60,9 @@ interface CardProps {
 const Card = ({ type, rows, label }: CardProps) => {
   const { theme } = useUnistyles()
   const isIncome = type === TransactionTypeEnum.INCOME
-  const icon: IconSymbolName = isIncome ? "arrow-down" : "arrow-up"
+  const icon: IconSymbolName = isIncome
+    ? "arrow-bottom-left"
+    : "arrow-top-right"
   const colorStyle = isIncome ? styles.incomeText : styles.expenseText
 
   // Sum by currency (from account)

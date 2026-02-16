@@ -26,9 +26,9 @@ export function defineValidIcons<T extends readonly MaterialName[]>(
  */
 export const VALID_ICON_NAMES = defineValidIcons([
   // UI & Navigation
-  "arrow-down",
+  "arrow-bottom-left",
   "arrow-left",
-  "arrow-up",
+  "arrow-top-right",
   "chevron-down",
   "chevron-up",
   "chevron-left",
@@ -145,6 +145,7 @@ export const VALID_ICON_NAMES = defineValidIcons([
   "attachment",
   "delete-restore",
   "check-all",
+  "repeat",
 ] as const)
 
 /**

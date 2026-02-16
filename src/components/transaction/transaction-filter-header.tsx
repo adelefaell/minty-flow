@@ -30,7 +30,7 @@ import {
 import type { TransactionType } from "~/types/transactions"
 import { TransactionTypeEnum } from "~/types/transactions"
 
-type FilterPanelKey =
+export type FilterPanelKey =
   | "search"
   | "accounts"
   | "categories"
@@ -474,6 +474,8 @@ export interface TransactionFilterHeaderProps {
   onDateRangeChange?: (range: { start: Date; end: Date } | null) => void
   searchQuery?: string
   onSearchApply?: (query: string) => void
+  /** Filter panel keys to hide from the pill bar (e.g. ["accounts"] on account detail). */
+  hiddenFilters?: FilterPanelKey[]
 }
 
 export function TransactionFilterHeader({
@@ -486,6 +488,7 @@ export function TransactionFilterHeader({
   onDateRangeChange,
   searchQuery = "",
   onSearchApply,
+  hiddenFilters = [],
 }: TransactionFilterHeaderProps) {
   const [expandedPanel, setExpandedPanel] = useState<FilterPanelKey | null>(
     null,
@@ -737,6 +740,10 @@ export function TransactionFilterHeader({
     },
   ]
 
+  const visiblePills = pills.filter(
+    (p) => !hiddenFilters.includes(p.key as FilterPanelKey),
+  )
+
   return (
     <View style={styles.container}>
       {/* ── Pill bar ── */}
@@ -759,7 +766,7 @@ export function TransactionFilterHeader({
             </Text>
           </Pressable>
         ) : null}
-        {pills.map(({ key, icon, label, active }) => {
+        {visiblePills.map(({ key, icon, label, active }) => {
           const isExpanded = expandedPanel === key
           return (
             <Pressable

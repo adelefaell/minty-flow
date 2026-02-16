@@ -1,8 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { withObservables } from "@nozbe/watermelondb/react"
-import type { EventArg } from "@react-navigation/native"
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
@@ -27,6 +26,7 @@ import {
   updateCategory,
 } from "~/database/services/category-service"
 import { modelToCategory } from "~/database/utils/model-to-category"
+import { useNavigationGuard } from "~/hooks/use-navigation-guard"
 import {
   type AddCategoriesFormSchema,
   addCategoriesSchema,
@@ -90,35 +90,17 @@ const EditCategoryScreenInner = ({
   // Loading state
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Navigation and unsaved changes handling (ConfirmModal instead of sheet)
+  // Navigation guard: block leave when dirty, show confirm modal
   const navigation = useNavigation()
-  const isNavigatingRef = useRef(false)
-  const pendingLeaveRef = useRef<(() => void) | null>(null)
   const [unsavedModalVisible, setUnsavedModalVisible] = useState(false)
+  const { confirmNavigation, allowNavigation } = useNavigationGuard({
+    navigation,
+    when: isDirty && !isSubmitting,
+    onConfirm: handleGoBack,
+    onBlock: () => setUnsavedModalVisible(true),
+  })
 
   const [deleteModalVisible, setDeleteModalVisible] = useState(false)
-
-  // Handle navigation with unsaved changes: show ConfirmModal
-  useEffect(() => {
-    const unsubscribe = navigation.addListener(
-      "beforeRemove",
-      (e: EventArg<"beforeRemove", true, { action: unknown }>) => {
-        if (isSubmitting || isNavigatingRef.current || !isDirty) {
-          return
-        }
-
-        e.preventDefault()
-
-        pendingLeaveRef.current = () => {
-          isNavigatingRef.current = true
-          handleGoBack()
-        }
-        setUnsavedModalVisible(true)
-      },
-    )
-
-    return unsubscribe
-  }, [navigation, isDirty, isSubmitting, handleGoBack])
 
   const onSubmit = async (data: AddCategoriesFormSchema) => {
     const trimmedName = data.name.trim()
@@ -134,7 +116,7 @@ const EditCategoryScreenInner = ({
           isArchived: data.isArchived,
         })
 
-        isNavigatingRef.current = true
+        allowNavigation()
         handleGoBack()
       } else {
         if (!categoryModel) {
@@ -153,7 +135,7 @@ const EditCategoryScreenInner = ({
           isArchived: data.isArchived,
         })
 
-        isNavigatingRef.current = true
+        allowNavigation()
         handleGoBack()
       }
     } catch (error) {
@@ -189,7 +171,7 @@ const EditCategoryScreenInner = ({
 
       await destroyCategory(categoryModel)
 
-      isNavigatingRef.current = true
+      allowNavigation()
       router.replace({
         pathname: "/settings/categories",
       })
@@ -387,8 +369,8 @@ const EditCategoryScreenInner = ({
         visible={unsavedModalVisible}
         onRequestClose={() => setUnsavedModalVisible(false)}
         onConfirm={() => {
-          pendingLeaveRef.current?.()
-          pendingLeaveRef.current = null
+          setUnsavedModalVisible(false)
+          confirmNavigation()
         }}
         title="Close without saving?"
         description="All changes will be lost."

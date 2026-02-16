@@ -4,7 +4,7 @@
  * The trigger button that opens the panel lives here so styles are shared.
  */
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { LayoutAnimation, View } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -56,13 +56,6 @@ export function ColorVariantInline({
     ? getThemeStrict(selectedSchemeName)
     : undefined
 
-  // When panel opens, init pending from current selection
-  useEffect(() => {
-    if (expanded) {
-      setPendingSchemeName(selectedSchemeName ?? null)
-    }
-  }, [expanded, selectedSchemeName])
-
   const getCurrentThemeInfo = (): {
     category: string
     variant: string
@@ -103,7 +96,13 @@ export function ColorVariantInline({
 
   const handleToggle = () => {
     LayoutAnimation.configureNext(LAYOUT_ANIM)
-    setExpanded((v) => !v)
+    setExpanded((v) => {
+      const next = !v
+      if (next) {
+        setPendingSchemeName(selectedSchemeName ?? null)
+      }
+      return next
+    })
   }
 
   /** Only update pending selection; apply on Done. */

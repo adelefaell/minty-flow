@@ -2,7 +2,7 @@
  * Transaction editor — create or edit a transaction.
  * Uses the same pattern as accounts/[accountId]/modify and
  * settings/categories/[categoryId]/modify: withObservables for
- * reactive data, no useEffect for loading transaction or tag IDs.
+ * reactive data.
  */
 
 import { withObservables } from "@nozbe/watermelondb/react"

@@ -1,30 +1,94 @@
 import { withObservables } from "@nozbe/watermelondb/react"
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router"
-import { useLayoutEffect } from "react"
-import { StyleSheet } from "react-native-unistyles"
+import { useLayoutEffect, useMemo, useState } from "react"
+import { StyleSheet, useUnistyles } from "react-native-unistyles"
+import { startWith } from "rxjs"
 
 import { DynamicIcon } from "~/components/dynamic-icon"
 import { Money } from "~/components/money"
+import { MonthYearPicker } from "~/components/month-year-picker"
+import { TransactionFilterHeader } from "~/components/transaction/transaction-filter-header"
+import { TransactionSectionList } from "~/components/transaction/transaction-section-list"
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
+import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import { observeAccountDetailsById } from "~/database/services/account-service"
-import { getThemeStrict } from "~/styles/theme/registry"
-import type { Account } from "~/types/accounts"
+import {
+  type AccountWithMonthTotals,
+  getMonthRange,
+  observeAccountModels,
+  observeAccountWithMonthTotalsByIdAndRange,
+} from "~/database/services/account-service"
+import { observeCategoriesByType } from "~/database/services/category-service"
+import { observeTags } from "~/database/services/tag-service"
+import type { TransactionWithRelations } from "~/database/services/transaction-service"
+import { observeTransactionModelsFull } from "~/database/services/transaction-service"
+import type { Category } from "~/types/categories"
+import type { Tag } from "~/types/tags"
+import type {
+  GroupByOption,
+  TransactionListFilterState,
+} from "~/types/transaction-filters"
+import { DEFAULT_TRANSACTION_LIST_FILTER_STATE } from "~/types/transaction-filters"
+import { TransactionTypeEnum } from "~/types/transactions"
+import { MONTH_NAMES } from "~/utils/time-utils"
 
-interface AccountDetailsProps {
-  account: Account
+const GROUP_BY_DISPLAY: Record<GroupByOption, string> = {
+  hour: "By hour",
+  day: "By day",
+  week: "By week",
+  month: "By month",
+  year: "By year",
+  allTime: "All time",
 }
 
-const AccountDetailsScreenInner = ({ account }: AccountDetailsProps) => {
-  // Convert models to domain types
+interface AccountDetailsProps {
+  account: AccountWithMonthTotals
+  transactionsFull: TransactionWithRelations[]
+  categoriesExpense: Category[]
+  categoriesIncome: Category[]
+  categoriesTransfer: Category[]
+  tags: Tag[]
+  selectedYear: number
+  selectedMonth: number
+  onMonthYearChange: (year: number, month: number) => void
+}
 
+const AccountDetailsScreenInner = ({
+  account,
+  transactionsFull = [],
+  categoriesExpense = [],
+  categoriesIncome = [],
+  categoriesTransfer = [],
+  tags = [],
+  selectedYear,
+  selectedMonth,
+  onMonthYearChange,
+}: AccountDetailsProps) => {
   const router = useRouter()
   const navigation = useNavigation()
+  const { theme } = useUnistyles()
+
+  const [filterState, setFilterState] = useState<TransactionListFilterState>(
+    DEFAULT_TRANSACTION_LIST_FILTER_STATE,
+  )
+  const [showFilters, setShowFilters] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [monthPickerOpen, setMonthPickerOpen] = useState(false)
+
+  const categoriesByType = useMemo(
+    () => ({
+      expense: categoriesExpense,
+      income: categoriesIncome,
+      transfer: categoriesTransfer,
+    }),
+    [categoriesExpense, categoriesIncome, categoriesTransfer],
+  )
 
   useLayoutEffect(() => {
     navigation.setOptions({
+      title: account.name,
       headerRight: () => (
         <Button
           variant="ghost"
@@ -40,7 +104,7 @@ const AccountDetailsScreenInner = ({ account }: AccountDetailsProps) => {
         </Button>
       ),
     })
-  }, [navigation, router, account.id])
+  }, [navigation, router, account.id, account.name])
 
   if (!account) {
     return (
@@ -52,38 +116,182 @@ const AccountDetailsScreenInner = ({ account }: AccountDetailsProps) => {
     )
   }
 
-  const colorScheme = getThemeStrict(account.colorSchemeName)
+  const displayMonthName = MONTH_NAMES[selectedMonth] ?? "Month"
+  const net = account.monthNet
+  const typeLabel = account.type.charAt(0).toUpperCase() + account.type.slice(1)
+
+  const goPrevMonth = () => {
+    if (selectedMonth <= 0) {
+      onMonthYearChange(selectedYear - 1, 11)
+    } else {
+      onMonthYearChange(selectedYear, selectedMonth - 1)
+    }
+  }
+
+  const goNextMonth = () => {
+    if (selectedMonth >= 11) {
+      onMonthYearChange(selectedYear + 1, 0)
+    } else {
+      onMonthYearChange(selectedYear, selectedMonth + 1)
+    }
+  }
+
+  const headerContent = (
+    <>
+      {/* Account Header Card */}
+      <View style={styles.headerCard}>
+        {/* Top Row: Icon + Name/Meta */}
+        <View style={styles.headerTopRow}>
+          <DynamicIcon
+            icon={account.icon || "wallet-bifold-outline"}
+            size={32}
+            variant="badge"
+            colorScheme={account.colorScheme ?? undefined}
+          />
+          <View style={styles.headerInfo}>
+            <Text style={styles.accountName}>{account.name}</Text>
+            <View style={styles.metaRow}>
+              <Text style={styles.metaText}>{typeLabel}</Text>
+              {account.isPrimary && (
+                <>
+                  <Text style={styles.metaSeparator}>/</Text>
+                  <IconSymbol
+                    name="star"
+                    size={14}
+                    color={theme.colors.customColors.warning}
+                  />
+                  <Text style={styles.primaryText}>Primary</Text>
+                </>
+              )}
+            </View>
+          </View>
+        </View>
+
+        {/* Balance Section */}
+        <View style={styles.balanceSection}>
+          <Text style={styles.balanceLabel}>CURRENT BALANCE</Text>
+          <View style={styles.balanceRow}>
+            <Money
+              value={account.balance}
+              currency={account.currencyCode}
+              style={styles.balanceAmount}
+            />
+            <Text style={styles.currencyCode}>{account.currencyCode}</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Summary: Income & Expenses as side-by-side pill cards, Net in separate card below */}
+      <View style={styles.summaryRow}>
+        <View style={styles.summaryPillCard}>
+          <Money
+            value={account.monthIn}
+            currency={account.currencyCode}
+            visualTone={TransactionTypeEnum.INCOME}
+            style={styles.summaryPillAmount}
+          />
+        </View>
+        <View style={styles.summaryPillCard}>
+          <Money
+            value={account.monthOut}
+            currency={account.currencyCode}
+            visualTone={TransactionTypeEnum.EXPENSE}
+            style={styles.summaryPillAmount}
+          />
+        </View>
+      </View>
+      <View style={styles.summaryNetCard}>
+        <Text style={styles.summaryNetLabel}>Net this month</Text>
+        <Money
+          value={net}
+          currency={account.currencyCode}
+          tone={
+            net >= 0 ? TransactionTypeEnum.INCOME : TransactionTypeEnum.EXPENSE
+          }
+          showSign
+          style={styles.summaryNetAmount}
+        />
+      </View>
+    </>
+  )
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <DynamicIcon
-          icon={account.icon || "wallet-bifold-outline"}
-          size={40}
-          colorScheme={colorScheme}
-        />
-        <Text variant="h3" style={styles.accountName}>
-          {account.name}
-        </Text>
-        <Text variant="default" style={styles.accountType}>
-          {account.type.toUpperCase()}
-        </Text>
-        <Money
-          value={account.balance}
-          variant="h1"
-          style={styles.balance}
-          currency={account.currencyCode}
-        />
+      {/* Top: month selector — left arrow, pill (month), right arrow */}
+      <View style={styles.topMonthRow}>
+        <Button variant="secondary" size="icon" onPress={goPrevMonth}>
+          <IconSymbol
+            name="chevron-left"
+            size={24}
+            color={theme.colors.onSurface}
+          />
+        </Button>
+        <Pressable
+          style={styles.monthHeaderButton}
+          onPress={() => setMonthPickerOpen((v) => !v)}
+        >
+          <Text style={styles.monthHeaderButtonText}>{displayMonthName}</Text>
+        </Pressable>
+        <Button variant="secondary" size="icon" onPress={goNextMonth}>
+          <IconSymbol
+            name="chevron-right"
+            size={24}
+            color={theme.colors.onSurface}
+          />
+        </Button>
       </View>
 
-      <View style={styles.content}>
-        <View style={styles.placeholderContainer}>
-          <IconSymbol name="chart-box" size={48} color="gray" outline />
-          <Text variant="default" style={styles.placeholderText}>
-            Transactions coming soon
-          </Text>
+      {/* Inline month/year picker */}
+      {monthPickerOpen && (
+        <View style={styles.monthPickerContainer}>
+          <MonthYearPicker
+            year={selectedYear}
+            month={selectedMonth}
+            onSelect={(y, m) => {
+              onMonthYearChange(y, m)
+              setMonthPickerOpen(false)
+            }}
+            onDone={() => setMonthPickerOpen(false)}
+          />
         </View>
+      )}
+
+      {/* Row: By month | More options */}
+      <View style={styles.filterToggleRow}>
+        <Text style={styles.byLabel}>
+          {GROUP_BY_DISPLAY[filterState.groupBy]}
+        </Text>
+        <Button
+          variant="ghost"
+          onPress={() => setShowFilters((v) => !v)}
+          style={styles.moreOptionsButton}
+        >
+          <Text style={styles.moreOptionsText}>More options</Text>
+        </Button>
       </View>
+
+      {/* Filter header (when More options is on) */}
+      {showFilters && (
+        <TransactionFilterHeader
+          accounts={[]}
+          categoriesByType={categoriesByType}
+          tags={tags}
+          filterState={filterState}
+          onFilterChange={setFilterState}
+          searchQuery={searchQuery}
+          onSearchApply={setSearchQuery}
+          hiddenFilters={["accounts"]}
+        />
+      )}
+
+      {/* Transaction list with account card + cash flow as ListHeaderComponent */}
+      <TransactionSectionList
+        transactionsFull={transactionsFull}
+        filterState={filterState}
+        searchQuery={searchQuery}
+        showUpcoming
+        ListHeaderComponent={headerContent}
+      />
     </View>
   )
 }
@@ -98,56 +306,244 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: "center",
     alignItems: "center",
   },
-  header: {
+
+  // ── Header Card ──────────────────────────────────────────────
+  headerCard: {
+    backgroundColor: theme.colors.secondary,
+    borderRadius: theme.colors.radius,
+    marginHorizontal: 20,
+    marginTop: 8,
+    padding: 20,
+    gap: 15,
+  },
+  headerTopRow: {
+    flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 30,
-    gap: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.onSurface,
+    gap: 12,
+    backgroundColor: theme.colors.secondary,
+  },
+  headerInfo: {
+    flex: 1,
+    gap: 4,
+    backgroundColor: theme.colors.secondary,
   },
   accountName: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: theme.colors.onSurface,
+    fontSize: 18,
+    fontWeight: "700",
+    color: theme.colors.onSecondary,
   },
-  accountType: {
-    fontSize: 12,
+  metaRow: {
+    flexDirection: "row",
+    backgroundColor: theme.colors.secondary,
+
+    alignItems: "center",
+    gap: 6,
+  },
+  metaText: {
+    fontSize: 13,
+    fontWeight: "500",
+    color: theme.colors.customColors.semi,
+  },
+  metaSeparator: {
+    fontSize: 13,
+    color: `${theme.colors.customColors.semi}60`,
+    marginHorizontal: 2,
+  },
+  primaryText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: theme.colors.customColors.warning,
+  },
+  balanceSection: {
+    gap: 4,
+    paddingTop: 4,
+    backgroundColor: theme.colors.secondary,
+  },
+  balanceLabel: {
+    fontSize: 11,
+    fontWeight: "600",
     color: theme.colors.customColors.semi,
     letterSpacing: 1,
   },
-  balance: {
+  balanceRow: {
+    backgroundColor: theme.colors.secondary,
+    justifyContent: "space-between",
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: 8,
+  },
+  balanceAmount: {
     fontSize: 32,
-    fontWeight: "700",
-    color: theme.colors.onSurface,
-    marginTop: 10,
+    fontWeight: "800",
+    color: theme.colors.onSecondary,
+    letterSpacing: -0.5,
   },
-  content: {
-    flex: 1,
-    padding: 20,
+  currencyCode: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: theme.colors.customColors.semi,
   },
-  placeholderContainer: {
+
+  // ── Top: Month selector (arrow | pill | arrow) ─────────────────
+  topMonthRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+    marginHorizontal: 20,
+    marginTop: 8,
+    paddingVertical: 6,
+  },
+  monthHeaderButton: {
+    backgroundColor: theme.colors.secondary,
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    borderRadius: theme.colors.radius,
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    opacity: 0.5,
-    gap: 10,
   },
-  placeholderText: {
-    color: theme.colors.onSurface,
+  monthHeaderButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: theme.colors.onSecondary,
+  },
+  monthPickerContainer: {
+    marginHorizontal: 20,
+    marginTop: 4,
+    marginBottom: 8,
+    backgroundColor: theme.colors.secondary,
+    borderRadius: theme.colors.radius,
+    overflow: "hidden",
+  },
+  filterToggleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  byLabel: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: theme.colors.customColors.semi,
+  },
+  moreOptionsButton: {
+    alignSelf: "flex-end",
+  },
+  moreOptionsText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: theme.colors.customColors.semi,
+  },
+
+  // ── Summary: Income & Expense pills + Net card ─────────────────
+  summaryRow: {
+    flexDirection: "row",
+    gap: 5,
+    marginHorizontal: 20,
+    marginTop: 5,
+  },
+  summaryPillCard: {
+    flex: 1,
+    backgroundColor: theme.colors.secondary,
+    borderRadius: theme.colors.radius,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  summaryPillAmount: {
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  summaryNetCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: theme.colors.secondary,
+    borderRadius: theme.colors.radius,
+    marginHorizontal: 20,
+    marginTop: 5,
+    marginBottom: 5,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+  },
+  summaryNetLabel: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: theme.colors.onSecondary,
+  },
+  summaryNetAmount: {
+    fontSize: 15,
+    fontWeight: "700",
   },
 }))
 
 const EnhancedAccountDetailsScreen = withObservables(
-  ["accountId"],
-  ({ accountId }) => ({
-    account: observeAccountDetailsById(accountId),
-  }),
+  ["accountId", "selectedYear", "selectedMonth"],
+  ({
+    accountId,
+    selectedYear,
+    selectedMonth,
+  }: {
+    accountId: string
+    selectedYear: number
+    selectedMonth: number
+  }) => {
+    const { fromDate, toDate } = getMonthRange(selectedYear, selectedMonth)
+    return {
+      account: observeAccountWithMonthTotalsByIdAndRange(
+        accountId,
+        fromDate,
+        toDate,
+      ),
+      transactionsFull: observeTransactionModelsFull(
+        {
+          accountId,
+          fromDate,
+          toDate,
+        },
+        [
+          observeAccountModels(false),
+          observeCategoriesByType(TransactionTypeEnum.EXPENSE),
+          observeCategoriesByType(TransactionTypeEnum.INCOME),
+          observeCategoriesByType(TransactionTypeEnum.TRANSFER),
+        ],
+      ).pipe(startWith([] as TransactionWithRelations[])),
+      categoriesExpense: observeCategoriesByType(
+        TransactionTypeEnum.EXPENSE,
+      ).pipe(startWith([] as Category[])),
+      categoriesIncome: observeCategoriesByType(
+        TransactionTypeEnum.INCOME,
+      ).pipe(startWith([] as Category[])),
+      categoriesTransfer: observeCategoriesByType(
+        TransactionTypeEnum.TRANSFER,
+      ).pipe(startWith([] as Category[])),
+      tags: observeTags().pipe(startWith([] as Tag[])),
+    }
+  },
 )(AccountDetailsScreenInner)
 
 export default function AccountDetailsScreen() {
   const { accountId } = useLocalSearchParams<{ accountId: string }>()
+  const now = new Date()
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear())
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth())
+
+  const handleMonthYearChange = (year: number, month: number) => {
+    setSelectedYear(year)
+    setSelectedMonth(month)
+  }
 
   if (!accountId) return null
 
-  return <EnhancedAccountDetailsScreen accountId={accountId} />
+  return (
+    <EnhancedAccountDetailsScreen
+      accountId={accountId}
+      selectedYear={selectedYear}
+      selectedMonth={selectedMonth}
+      onMonthYearChange={handleMonthYearChange}
+    />
+  )
 }
