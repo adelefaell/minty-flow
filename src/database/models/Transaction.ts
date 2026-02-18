@@ -104,4 +104,12 @@ export default class TransactionModel extends Model implements Transaction {
   setLocationObject(value: TransactionLocation | undefined): void {
     this.locationJson = value ? JSON.stringify(value) : null
   }
+
+  /**
+   * Convenience getter: true when transaction date is in the future.
+   * Matches migration guide "isPlanned" — used for display/grouping.
+   */
+  get isPlanned(): boolean {
+    return this.transactionDate.getTime() > Date.now()
+  }
 }

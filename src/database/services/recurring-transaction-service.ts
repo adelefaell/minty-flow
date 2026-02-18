@@ -265,6 +265,29 @@ export async function synchronizeRecurringTransaction(
     if (effectiveLast && nextOccurrence.getTime() <= effectiveLast.getTime())
       return
 
+    // ── Migration guide: duplicate guard ─────────────────────────────
+    // Prevent double-generating if engine runs twice (e.g. app reopen + foreground).
+    const nextTs = nextOccurrence.getTime()
+    const alreadyExists =
+      (await database
+        .get<TransactionModel>("transactions")
+        .query(
+          Q.where("recurring_id", recurring.id),
+          Q.where("transaction_date", nextTs),
+        )
+        .fetchCount()) > 0
+    if (alreadyExists) {
+      await database.write(async () => {
+        await recurring.update((r) => {
+          r.lastGeneratedTransactionDate = nextOccurrence
+        })
+      })
+      if (nextOccurrence.getTime() < anchor.getTime()) {
+        await synchronizeRecurringTransaction(recurring, anchor)
+      }
+      return
+    }
+
     const template = recurring.template
     const isTransfer = Boolean(recurring.transferToAccountId)
 
@@ -279,7 +302,7 @@ export async function synchronizeRecurringTransaction(
     const extra: Record<string, string> = {
       ...template.extra,
       recurringId: recurring.id,
-      recurringInitialDate: String(nextOccurrence.getTime()),
+      recurringInitialDate: String(nextTs),
     }
 
     if (!isTransfer) {

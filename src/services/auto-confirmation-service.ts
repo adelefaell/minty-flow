@@ -2,7 +2,10 @@ import { useSyncExternalStore } from "react"
 import { AppState } from "react-native"
 
 import type { TransactionWithRelations } from "~/database/services/transaction-service"
-import { confirmTransactionSync } from "~/database/services/transaction-service"
+import {
+  confirmTransactionSync,
+  getPendingTransactionModelsFull,
+} from "~/database/services/transaction-service"
 import { usePendingTransactionsStore } from "~/stores/pending-transactions.store"
 
 /**
@@ -108,6 +111,16 @@ class AutoConfirmationService {
     for (const [txId] of this.scheduledTimeouts) {
       if (!scheduled.has(txId)) this.clearTimeout(txId)
     }
+  }
+
+  /**
+   * Run on app startup (and optionally foreground). Fetches all pending
+   * transactions and confirms any that are past-due and pre-approved.
+   * Matches migration guide: "Call autoConfirmDueTransactions on app startup".
+   */
+  async runAutoConfirmDueOnStartup(): Promise<void> {
+    const rows = await getPendingTransactionModelsFull()
+    await this.confirmPastDue(rows)
   }
 
   /**

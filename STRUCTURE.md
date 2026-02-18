@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-02-18T16:54:10.694Z
+Generated on: 2026-02-18T20:16:02.924Z
 
 ```
 ./
@@ -244,6 +244,7 @@ Generated on: 2026-02-18T16:54:10.694Z
 │   │   ├── 📄 breakpoints.ts
 │   │   ├── 📄 fonts.ts
 │   │   └── 📄 unistyles.ts
+│   ├── 📁 sync/
 │   ├── 📁 types/
 │   │   ├── 📄 accounts.ts
 │   │   ├── 📄 budgets.ts

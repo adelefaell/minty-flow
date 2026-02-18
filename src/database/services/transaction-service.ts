@@ -189,8 +189,32 @@ const buildTransactionQuery = (filters?: TransactionListFilters) => {
 }
 
 /**
+ * Query for pending/planned transactions (is_pending === true), sorted by
+ * transaction_date ascending — closest upcoming first. Excludes deleted.
+ * Matches migration guide: "pending list should always be sorted by scheduled
+ * date ascending".
+ */
+export function pendingTransactionsQuery(options?: {
+  fromDate?: number
+  toDate?: number
+}) {
+  let query = transactionsCollection().query(
+    Q.where("is_deleted", false),
+    Q.where("is_pending", true),
+    Q.sortBy("transaction_date", Q.asc),
+  )
+  if (options?.fromDate !== undefined) {
+    query = query.extend(Q.where("transaction_date", Q.gte(options.fromDate)))
+  }
+  if (options?.toDate !== undefined) {
+    query = query.extend(Q.where("transaction_date", Q.lte(options.toDate)))
+  }
+  return query
+}
+
+/**
  * Pending transactions: future-dated OR explicitly pending (isPending === true).
- * Excludes deleted. Order: transactionDate descending.
+ * Excludes deleted. Order: transaction_date ascending (closest upcoming first).
  * Optional range: fromDate/toDate (Unix ms) to limit results (e.g. home timeframe).
  */
 export const getPendingTransactionModels = async (options?: {
@@ -233,7 +257,7 @@ export const getPendingTransactionModels = async (options?: {
 
   const merged = Array.from(byId.values())
   merged.sort(
-    (a, b) => b.transactionDate.getTime() - a.transactionDate.getTime(),
+    (a, b) => a.transactionDate.getTime() - b.transactionDate.getTime(),
   )
   return merged
 }
@@ -516,6 +540,34 @@ export const observeTransactionTagIds = (
 /* ------------------------------------------------------------------ */
 /* WRITE */
 /* ------------------------------------------------------------------ */
+
+/**
+ * Create a pending (planned) transaction with a future scheduled date.
+ * Mirrors migration guide: "add future transaction" — isPending = true,
+ * no balance update until confirmed.
+ */
+export const createPendingTransaction = async (data: {
+  title?: string
+  description?: string
+  amount: number
+  type: TransactionType
+  scheduledDate: Date
+  accountId: string
+  categoryId?: string | null
+  recurringId?: string | null
+  notes?: Record<string, string>
+  requiresManualConfirmation?: boolean
+  tags?: string[]
+}): Promise<TransactionModel> => {
+  const { scheduledDate, notes, tags, ...rest } = data
+  return createTransactionModel({
+    ...rest,
+    transactionDate: scheduledDate,
+    isPending: true,
+    extra: notes,
+    tags: tags ?? [],
+  })
+}
 
 export const createTransactionModel = async (
   data: TransactionFormValues,

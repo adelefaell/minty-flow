@@ -2,14 +2,15 @@ import { useEffect } from "react"
 import { AppState } from "react-native"
 
 import { synchronizeAllRecurringTransactions } from "~/database/services/recurring-transaction-service"
+import { autoConfirmationService } from "~/services/auto-confirmation-service"
 import { logger } from "~/utils/logger"
 
 const SYNC_DEBOUNCE_MS = 1_000
 
 /**
  * Syncs recurring transactions: once on mount and whenever the app returns to foreground.
- * Syncs with reality: AppState + DB. No orchestration—just "when app is active, keep
- * recurrings in sync". Debounces rapid AppState flapping to avoid redundant syncs.
+ * Also runs auto-confirm of past-due pending transactions on startup (after first sync),
+ * per migration guide: "Call autoConfirmDueTransactions on app startup".
  */
 export function useRecurringTransactionSync(): void {
   useEffect(() => {
@@ -27,10 +28,13 @@ export function useRecurringTransactionSync(): void {
       }, SYNC_DEBOUNCE_MS)
     }
 
-    // Initial sync without debounce
-    synchronizeAllRecurringTransactions().catch((e) =>
-      logger.error("Recurring sync failed", { error: String(e) }),
-    )
+    // Initial sync, then auto-confirm past-due pending (guide: run on app startup)
+    synchronizeAllRecurringTransactions()
+      .then(() => {
+        if (cancelled) return
+        return autoConfirmationService.runAutoConfirmDueOnStartup()
+      })
+      .catch((e) => logger.error("Recurring sync failed", { error: String(e) }))
 
     const sub = AppState.addEventListener("change", (state) => {
       if (state === "active") sync()
