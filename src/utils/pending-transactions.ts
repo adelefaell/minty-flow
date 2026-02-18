@@ -1,13 +1,31 @@
 import type TransactionModel from "~/database/models/Transaction"
 
 /**
- * Utility functions for pending transactions
+ * Utility functions for pending transactions.
+ *
+ * Balance rule (Flutter parity): balance must EXCLUDE pending.
+ * We store `is_pending`; account balance is only updated on create/update/delete
+ * when the transaction is confirmed (!isPending). Pending transactions must never
+ * bleed into the live balance.
  */
 
 export interface Transaction {
   transactionDate: Date
   isPending: boolean
   isDeleted?: boolean
+}
+
+/**
+ * "Effective" pending for display/filtering: true when the transaction should
+ * be shown as upcoming. Flutter derives isPending from date (transactionDate > now);
+ * we also store is_pending so we support manual "hold" for today/past.
+ * Use this when building pending lists or excluding from balance.
+ */
+export function effectiveIsPending(
+  tx: { transactionDate: Date; isPending: boolean },
+  now: number = Date.now(),
+): boolean {
+  return tx.transactionDate.getTime() > now || tx.isPending === true
 }
 
 /**

@@ -19,6 +19,7 @@ const FREQ_MAP: Record<NonNullable<RecurringFrequency>, number> = {
  * Build an RRULE string from the form's recurring frequency, start date, and optional end conditions.
  * - For "biweekly" we use WEEKLY with interval 2.
  * - `until` and `count` are mutually exclusive in RRULE spec.
+ * - RRule handles month-end (e.g. Jan 31 → Feb 28/29); avoid raw setMonth/setDate for intervals.
  */
 export function buildRRuleString(opts: {
   frequency: NonNullable<RecurringFrequency>

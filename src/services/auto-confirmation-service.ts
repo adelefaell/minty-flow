@@ -125,8 +125,9 @@ class AutoConfirmationService {
 
   /**
    * Immediate sweep for all past-due auto-confirm transactions.
-   * Called on foreground resume and after settings change.
-   * confirm when transactionDate <= now (no buffer).
+   * Fix #3: When date passes, pre-approved (no requiresManualConfirmation) get
+   * isPending → false and move from Upcoming to Today; manual-confirm ones stay
+   * in Upcoming until user taps Confirm. Called on startup and foreground.
    */
   async confirmPastDue(transactions: TransactionWithRelations[]) {
     const { updateDateUponConfirmation } =

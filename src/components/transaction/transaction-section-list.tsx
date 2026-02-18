@@ -19,7 +19,9 @@ import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import type { TransactionWithRelations } from "~/database/services/transaction-service"
 import { deleteTransactionModel } from "~/database/services/transaction-service"
+import { useMinuteTick } from "~/hooks/use-time-reactivity"
 import type { TransactionListFilterState } from "~/types/transaction-filters"
+import { effectiveIsPending } from "~/utils/pending-transactions"
 import { Toast } from "~/utils/toast"
 import { buildTransactionSections } from "~/utils/transaction-list-utils"
 
@@ -44,10 +46,19 @@ export function TransactionSectionList({
   const openSwipeableRef = useRef<SwipeableMethods | null>(null)
 
   const list = useMemo(() => transactionsFull ?? [], [transactionsFull])
+  const tick = useMinuteTick()
+
+  // Today/history sections show only CONFIRMED and not future-dated.
+  // Use effective pending (date > now || isPending) so future txs never appear here.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: tick triggers re-group at minute boundary
+  const confirmedOnly = useMemo(() => {
+    const now = Date.now()
+    return list.filter((r) => !effectiveIsPending(r.transaction, now))
+  }, [list, tick])
 
   const sections = useMemo(
-    () => buildTransactionSections(list, filterState.groupBy),
-    [list, filterState.groupBy],
+    () => buildTransactionSections(confirmedOnly, filterState.groupBy),
+    [confirmedOnly, filterState.groupBy],
   )
 
   const handleOnTransactionPress = useCallback(

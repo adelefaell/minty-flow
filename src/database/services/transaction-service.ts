@@ -70,6 +70,9 @@ const hydrateTransaction = async (
 
 /**
  * Balance delta for the account: expense/transfer = -amount, income = +amount.
+ *
+ * Balance rule (Flutter parity): we only apply this when the transaction is
+ * confirmed (!isPending). Pending transactions must never affect account balance.
  */
 const getBalanceDelta = (amount: number, type: TransactionType): number => {
   if (type === TransactionTypeEnum.INCOME) return amount
@@ -839,6 +842,104 @@ export const deleteTransactionModel = async (
       t.updatedAt = now
     })
   })
+}
+
+/* ------------------------------------------------------------------ */
+/* RECURRING SCOPE HELPERS (for DeleteRecurringModal / EditRecurringModal) */
+/* ------------------------------------------------------------------ */
+
+/** Soft-delete every transaction linked to this recurring rule. */
+export const deleteAllRecurringInstances = async (
+  ruleId: string,
+): Promise<void> => {
+  const instances = await transactionsCollection()
+    .query(Q.where("recurring_id", ruleId), Q.where("is_deleted", false))
+    .fetch()
+  for (const tx of instances) {
+    await deleteTransactionModel(tx)
+  }
+}
+
+/** Soft-delete instances from the given date onward (inclusive). */
+export const deleteFutureRecurringInstances = async (
+  ruleId: string,
+  fromDate: Date,
+): Promise<void> => {
+  const fromTs = fromDate.getTime()
+  const instances = await transactionsCollection()
+    .query(
+      Q.where("recurring_id", ruleId),
+      Q.where("transaction_date", Q.gte(fromTs)),
+      Q.where("is_deleted", false),
+    )
+    .fetch()
+  for (const tx of instances) {
+    await deleteTransactionModel(tx)
+  }
+}
+
+/** Detach this transaction from its recurring rule (sets recurringId = null). */
+export const detachTransactionFromRule = async (
+  transaction: TransactionModel,
+): Promise<void> => {
+  await database.write(async () => {
+    await transaction.update((t) => {
+      t.recurringId = null
+      t.updatedAt = new Date()
+    })
+  })
+}
+
+/** Payload shape for editing recurring instances (matches form + updateTransactionModel). */
+export interface RecurringEditPayload {
+  amount: number
+  type: TransactionType
+  transactionDate: Date
+  categoryId: string | null
+  accountId: string
+  title: string
+  description?: string
+  isPending: boolean
+  requiresManualConfirmation?: boolean
+  tags: string[]
+  extra?: Record<string, string>
+  subtype?: string
+}
+
+/** Update all pending/future instances of a rule from the given date onward. */
+export const updateFutureRecurringInstances = async (
+  ruleId: string,
+  fromDate: Date,
+  payload: RecurringEditPayload,
+): Promise<void> => {
+  const fromTs = fromDate.getTime()
+  const instances = await transactionsCollection()
+    .query(
+      Q.where("recurring_id", ruleId),
+      Q.where("transaction_date", Q.gte(fromTs)),
+      Q.where("is_pending", true),
+      Q.where("is_deleted", false),
+    )
+    .fetch()
+
+  const updates: Partial<TransactionFormValues> = {
+    amount: payload.amount,
+    type: payload.type,
+    transactionDate: payload.transactionDate,
+    categoryId: payload.categoryId,
+    accountId: payload.accountId,
+    title: payload.title,
+    description: payload.description,
+    isPending: payload.isPending,
+    requiresManualConfirmation: payload.requiresManualConfirmation,
+    tags: payload.tags,
+    extra: payload.extra,
+    subtype: payload.subtype,
+  }
+
+  for (const tx of instances) {
+    await updateTransactionModel(tx, updates)
+  }
 }
 
 /**

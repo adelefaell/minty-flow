@@ -9,8 +9,11 @@ const SYNC_DEBOUNCE_MS = 1_000
 
 /**
  * Syncs recurring transactions: once on mount and whenever the app returns to foreground.
- * Also runs auto-confirm of past-due pending transactions on startup (after first sync),
- * per migration guide: "Call autoConfirmDueTransactions on app startup".
+ * Also runs auto-confirm of past-due pending transactions on startup (after first sync).
+ *
+ * Bug #2: This is the ONLY place that should trigger the recurring generator.
+ * Do not call synchronizeAllRecurringTransactions from screens, context, or store
+ * subscriptions — that causes double-runs and duplicate transactions.
  */
 export function useRecurringTransactionSync(): void {
   useEffect(() => {

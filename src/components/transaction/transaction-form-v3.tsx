@@ -33,6 +33,11 @@ import { DynamicIcon } from "~/components/dynamic-icon"
 import { Money } from "~/components/money"
 import { SmartAmountInput } from "~/components/smart-amount-input"
 import { AttachmentPreviewModal } from "~/components/transaction/attachment-preview-modal"
+import { DeleteRecurringModal } from "~/components/transaction/delete-recurring-modal"
+import {
+  EditRecurringModal,
+  type RecurringEditPayload,
+} from "~/components/transaction/edit-recurring-modal"
 import { MarkdownEditorModal } from "~/components/transaction/markdown-editor-modal"
 import { TransactionTypeSelector } from "~/components/transaction/transaction-type-selector"
 import { Button } from "~/components/ui/button"
@@ -43,7 +48,7 @@ import { Switch } from "~/components/ui/switch"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import type TransactionModel from "~/database/models/Transaction"
-import { createRecurringFromTransaction } from "~/database/services/recurring-transaction-service"
+import { createRecurringRule } from "~/database/services/recurring-transaction-service"
 import {
   createTransactionModel,
   deleteTransactionModel,
@@ -52,6 +57,7 @@ import {
   updateTransactionModel,
 } from "~/database/services/transaction-service"
 import { useNavigationGuard } from "~/hooks/use-navigation-guard"
+import { useRecurringRule } from "~/hooks/use-recurring-rule"
 import {
   type TransactionFormValues,
   transactionSchema,
@@ -205,6 +211,14 @@ export function TransactionFormV3({
   )
 
   const [unsavedModalVisible, setUnsavedModalVisible] = useState(false)
+  const [editRecurringModalVisible, setEditRecurringModalVisible] =
+    useState(false)
+  const [deleteRecurringModalVisible, setDeleteRecurringModalVisible] =
+    useState(false)
+  const [pendingEditPayload, setPendingEditPayload] =
+    useState<RecurringEditPayload | null>(null)
+
+  const recurringRule = useRecurringRule(transaction?.recurringId ?? null)
   const [destroyModalVisible, setDestroyModalVisible] = useState(false)
 
   const defaultValues = useMemo(
@@ -241,7 +255,7 @@ export function TransactionFormV3({
   const tagIds = watch("tags")
 
   const [isSaving, setIsSaving] = useState(false)
-  const { confirmNavigation, allowNavigation } = useNavigationGuard({
+  const { allowNavigation } = useNavigationGuard({
     navigation,
     when: isDirty && !isSaving,
     onConfirm: handleGoBack,
@@ -319,9 +333,15 @@ export function TransactionFormV3({
 
   const ENDS_ON_OCCURRENCE_PRESETS = [2, 4, 6, 8, 10, 12, 14]
 
-  const handleRecurringToggle = useCallback((next: boolean) => {
-    setRecurringEnabled(next)
-  }, [])
+  const handleRecurringToggle = useCallback(
+    (next: boolean) => {
+      setRecurringEnabled(next)
+      if (next) {
+        setRecurringStartDate(watch("transactionDate"))
+      }
+    },
+    [watch],
+  )
 
   const selectedAccount = accounts.find((a) => a.id === accountId)
   const selectedTags = tags.filter((t) => (tagIds ?? []).includes(t.id))
@@ -429,17 +449,13 @@ export function TransactionFormV3({
         delete builtExtra.attachments
       }
 
-      // When recurring is on, date and pending come from the rule; recurring is always auto-confirmed
+      // When recurring is on we only create the rule (Bug #1 fix); no transaction here.
       const effectiveDate = recurringEnabled
         ? recurringStartDate
         : data.transactionDate
-      const effectiveIsPending = recurringEnabled
-        ? true
-        : (data.isPending ?? false)
       const isFuture = effectiveDate.getTime() > Date.now()
-      // Lock in "manual vs auto-confirm" at create time so changing the global
-      // preference later doesn't change behavior for existing pending transactions.
-      // For new: if created as pending, use current global; for edit: preserve existing or use global for future.
+      // For non-recurring: derive pending from form (no forced true when recurring).
+      const effectiveIsPending = data.isPending ?? false
       const requiresManualConfirmation = recurringEnabled
         ? undefined
         : transaction
@@ -465,10 +481,8 @@ export function TransactionFormV3({
         subtype: transaction?.subtype ?? undefined,
       }
       if (isNew) {
-        const created = await createTransactionModel(payload)
-
-        // If recurring is enabled, create a RecurringTransaction from the saved transaction
         if (recurringEnabled && recurringFrequency) {
+          // Bug #1 fix: only create the rule; scheduler generates all instances (including first)
           try {
             const rruleStr = buildRRuleString({
               frequency: recurringFrequency,
@@ -476,11 +490,17 @@ export function TransactionFormV3({
               endDate: recurringEndDate,
               count: recurringEndAfterOccurrences,
             })
-            // Use a far-future end if "never"
             const rangeEnd =
               recurringEndDate?.getTime() ?? new Date(2099, 11, 31).getTime()
-
-            await createRecurringFromTransaction(created.id, {
+            await createRecurringRule({
+              amount: data.amount,
+              type: data.type,
+              accountId: data.accountId,
+              categoryId: data.categoryId ?? null,
+              title: data.title?.trim() || "Untitled Transaction",
+              description: data.description?.trim() ?? undefined,
+              subtype: transaction?.subtype ?? undefined,
+              tags: data.tags ?? [],
               range: {
                 from: recurringStartDate.getTime(),
                 to: rangeEnd,
@@ -489,18 +509,38 @@ export function TransactionFormV3({
             })
             Toast.success({ title: "Recurring transaction created" })
           } catch (recErr) {
-            logger.error("Failed to create recurring template", {
+            logger.error("Failed to create recurring rule", {
               message:
                 recErr instanceof Error ? recErr.message : String(recErr),
             })
-            Toast.success({
-              title: "Transaction created (recurring setup failed)",
-            })
+            Toast.error({ title: "Failed to create recurring transaction" })
+            setIsSaving(false)
+            return
           }
         } else {
+          await createTransactionModel(payload)
           Toast.success({ title: "Transaction created" })
         }
       } else if (transaction) {
+        if (transaction.recurringId && recurringRule) {
+          setPendingEditPayload({
+            amount: payload.amount,
+            type: payload.type,
+            transactionDate: payload.transactionDate,
+            categoryId: payload.categoryId ?? null,
+            accountId: payload.accountId,
+            title: payload.title,
+            description: payload.description,
+            isPending: payload.isPending,
+            requiresManualConfirmation: payload.requiresManualConfirmation,
+            tags: payload.tags ?? [],
+            extra: payload.extra,
+            subtype: payload.subtype,
+          })
+          setEditRecurringModalVisible(true)
+          setIsSaving(false)
+          return
+        }
         await updateTransactionModel(transaction, payload)
         Toast.success({ title: "Transaction updated" })
       }
@@ -527,6 +567,10 @@ export function TransactionFormV3({
 
   const handleDeleteConfirm = useCallback(async () => {
     if (!transaction) return
+    if (transaction.recurringId && recurringRule) {
+      setDeleteRecurringModalVisible(true)
+      return
+    }
     try {
       await deleteTransactionModel(transaction)
       Toast.success({ title: "Moved to trash" })
@@ -536,7 +580,7 @@ export function TransactionFormV3({
       logger.error("Failed to move transaction to trash", { error })
       Toast.error({ title: "Failed to move to trash" })
     }
-  }, [transaction, router, allowNavigation])
+  }, [transaction, recurringRule, router, allowNavigation])
 
   const handleRestore = useCallback(async () => {
     if (!transaction?.isDeleted) return
@@ -1204,29 +1248,41 @@ export function TransactionFormV3({
               <Controller
                 control={control}
                 name="isPending"
-                render={({ field: { value, onChange } }) => (
-                  <Pressable
-                    style={styles.switchRow}
-                    onPress={() => onChange(!(value ?? false))}
-                    accessibilityRole="switch"
-                    accessibilityState={{ checked: value ?? false }}
-                  >
-                    <View style={styles.switchLeft}>
-                      <DynamicIcon
-                        icon="clock"
-                        size={20}
-                        color={theme.colors.primary}
-                        variant="badge"
-                      />
-                      <Text variant="default" style={styles.switchLabel}>
-                        Pending
-                      </Text>
-                    </View>
-                    <View pointerEvents="none">
-                      <Switch value={value ?? false} onValueChange={onChange} />
-                    </View>
-                  </Pressable>
-                )}
+                render={({ field: { value, onChange } }) => {
+                  const txDate = watch("transactionDate")
+                  const isFuture =
+                    txDate && txDate.getTime() > startOfNextMinute().getTime()
+                  return (
+                    <Pressable
+                      style={styles.switchRow}
+                      onPress={() => !isFuture && onChange(!(value ?? false))}
+                      accessibilityRole="switch"
+                      accessibilityState={{
+                        checked: value ?? false,
+                        disabled: isFuture,
+                      }}
+                    >
+                      <View style={styles.switchLeft}>
+                        <DynamicIcon
+                          icon="clock"
+                          size={20}
+                          color={theme.colors.primary}
+                          variant="badge"
+                        />
+                        <Text variant="default" style={styles.switchLabel}>
+                          Pending
+                        </Text>
+                      </View>
+                      <View pointerEvents="none">
+                        <Switch
+                          value={value ?? false}
+                          onValueChange={onChange}
+                          disabled={isFuture}
+                        />
+                      </View>
+                    </Pressable>
+                  )
+                }}
               />
             </>
           )}
@@ -1885,7 +1941,8 @@ export function TransactionFormV3({
         onRequestClose={() => setUnsavedModalVisible(false)}
         onConfirm={() => {
           setUnsavedModalVisible(false)
-          confirmNavigation()
+          allowNavigation()
+          handleGoBack()
         }}
         title="Close without saving?"
         description="All changes will be lost."
@@ -1905,6 +1962,35 @@ export function TransactionFormV3({
         variant="destructive"
         icon="trash-can"
       />
+
+      {transaction?.recurringId && recurringRule && (
+        <>
+          <DeleteRecurringModal
+            visible={deleteRecurringModalVisible}
+            transaction={transaction}
+            recurringRule={recurringRule}
+            onRequestClose={() => setDeleteRecurringModalVisible(false)}
+            onDeleted={() => {
+              allowNavigation()
+              router.back()
+            }}
+          />
+          <EditRecurringModal
+            visible={editRecurringModalVisible}
+            transaction={transaction}
+            recurringRule={recurringRule}
+            pendingPayload={pendingEditPayload}
+            onRequestClose={() => {
+              setEditRecurringModalVisible(false)
+              setPendingEditPayload(null)
+            }}
+            onSaved={() => {
+              allowNavigation()
+              router.back()
+            }}
+          />
+        </>
+      )}
     </View>
   )
 }

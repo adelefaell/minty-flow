@@ -1,7 +1,6 @@
 import { Q } from "@nozbe/watermelondb"
 
 import type { TransactionFormValues } from "~/schemas/transactions.schema"
-import { usePendingTransactionsStore } from "~/stores/pending-transactions.store"
 import { TransactionTypeEnum } from "~/types/transactions"
 import { logger } from "~/utils/logger"
 import { nextAbsoluteOccurrence } from "~/utils/recurrence"
@@ -265,8 +264,8 @@ export async function synchronizeRecurringTransaction(
     if (effectiveLast && nextOccurrence.getTime() <= effectiveLast.getTime())
       return
 
-    // ── Migration guide: duplicate guard ─────────────────────────────
-    // Prevent double-generating if engine runs twice (e.g. app reopen + foreground).
+    // ── Idempotency (Bug #1): duplicate guard by (ruleId + date) ───────
+    // Don't generate if a transaction already exists for this rule and date.
     const nextTs = nextOccurrence.getTime()
     const alreadyExists =
       (await database
@@ -291,13 +290,9 @@ export async function synchronizeRecurringTransaction(
     const template = recurring.template
     const isTransfer = Boolean(recurring.transferToAccountId)
 
-    // Match Flutter behavior: future occurrences are pending only when
-    // requireConfirmation is on; past occurrences (backfill) are always
-    // confirmed (isPending = false).
-    const isPending =
-      nextOccurrence.getTime() > anchor.getTime()
-        ? usePendingTransactionsStore.getState().requireConfirmation
-        : false
+    // Future occurrences are always pending; past (backfill) are confirmed.
+    // requireConfirmation only controls auto-confirm when time comes (auto-confirmation-service).
+    const isPending = nextOccurrence.getTime() > anchor.getTime()
 
     const extra: Record<string, string> = {
       ...template.extra,
@@ -385,6 +380,8 @@ export async function synchronizeRecurringTransaction(
 /* ------------------------------------------------------------------ */
 /* Concurrency lock – prevents parallel sync runs from creating dupes  */
 /* ------------------------------------------------------------------ */
+/* Bug #2: Generator must only run from ONE place (e.g. root layout useEffect).
+ * This lock guards against concurrent calls from AppState + any double-wiring. */
 
 let _syncRunning = false
 
@@ -412,9 +409,70 @@ export interface RecurrenceInput {
   rules: string[] // RRULE strings
 }
 
+export interface CreateRecurringRuleInput {
+  amount: number
+  type: string
+  accountId: string
+  categoryId: string | null
+  title?: string
+  description?: string
+  subtype?: string
+  tags?: string[]
+  /** Range start = first occurrence date; end = last (or far future). */
+  range: { from: number; to: number }
+  rules: string[]
+}
+
+/**
+ * Create a recurring RULE only — no transaction is created.
+ * The scheduler (synchronizeRecurringTransaction) will generate actual transaction
+ * rows, including the first occurrence, when it runs (app open / foreground).
+ * Fix for Bug #1: never create a transaction when user enables recurring — only the rule.
+ */
+export async function createRecurringRule(
+  data: CreateRecurringRuleInput,
+): Promise<RecurringTransactionModel> {
+  const template: import("../models/RecurringTransaction").RecurringTransactionTemplate =
+    {
+      amount: data.amount,
+      type: data.type,
+      accountId: data.accountId,
+      categoryId: data.categoryId ?? null,
+      title: data.title,
+      description: data.description,
+      subtype: data.subtype,
+      tags: data.tags,
+    }
+  const rangeEncoded = JSON.stringify(data.range)
+  const rulesEncoded = JSON.stringify(data.rules)
+
+  let created: RecurringTransactionModel | null = null
+  await database.write(async () => {
+    const coll = getRecurringTransactionsCollection()
+    created = await coll.create((r) => {
+      r.jsonTransactionTemplate = JSON.stringify(template)
+      r.transferToAccountId = null
+      r.rangeEncoded = rangeEncoded
+      r.rulesEncoded = rulesEncoded
+      r.createdAt = new Date()
+      r.lastGeneratedTransactionDate = null
+      r.disabled = false
+    })
+  })
+  if (!created) throw new Error("Failed to create RecurringTransaction")
+  const recurring = created as RecurringTransactionModel
+  await synchronizeAllRecurringTransactions()
+  return recurring
+}
+
 /**
  * Create a RecurringTransaction from an existing transaction.
- * The transaction's date is used as lastGeneratedTransactionDate (first occurrence).
+ *
+ * Flutter parity (Bug #1): Save the RULE only — do NOT create a new instance.
+ * The existing transaction is the first occurrence; we only set recurringId + extra
+ * on it. The generator (synchronizeRecurringTransaction) creates subsequent due
+ * occurrences when run on app open / foreground. lastGeneratedTransactionDate
+ * is set to the transaction's date so the next generated date is after it.
  */
 export async function createRecurringFromTransaction(
   transactionId: string,
@@ -523,5 +581,57 @@ export async function deleteRecurringTransaction(
   }
   await database.write(async () => {
     await recurring.destroyPermanently()
+  })
+}
+
+/**
+ * Disable a recurring rule so no new instances are generated.
+ * Used by DeleteRecurringModal after soft-deleting instances (all or this-and-future).
+ */
+export async function disableRecurringRule(ruleId: string): Promise<void> {
+  const rule = await findRecurringById(ruleId)
+  if (!rule) return
+  await database.write(async () => {
+    await rule.update((r) => {
+      r.disabled = true
+    })
+  })
+}
+
+export type RecurringRuleTemplateUpdate = Partial<{
+  amount: number
+  title: string
+  description: string
+  categoryId: string | null
+  accountId: string
+  type: string
+}>
+
+/**
+ * Update the rule's transaction template (used for "this and future" edit).
+ * New instances generated after this will use the updated values.
+ */
+export async function updateRecurringRuleTemplate(
+  ruleId: string,
+  fields: RecurringRuleTemplateUpdate,
+): Promise<void> {
+  const rule = await findRecurringById(ruleId)
+  if (!rule) throw new Error(`Recurring rule ${ruleId} not found`)
+  const template = rule.template
+  const merged = {
+    ...template,
+    ...(fields.amount !== undefined && { amount: fields.amount }),
+    ...(fields.title !== undefined && { title: fields.title }),
+    ...(fields.description !== undefined && {
+      description: fields.description,
+    }),
+    ...(fields.categoryId !== undefined && { categoryId: fields.categoryId }),
+    ...(fields.accountId !== undefined && { accountId: fields.accountId }),
+    ...(fields.type !== undefined && { type: fields.type }),
+  }
+  await database.write(async () => {
+    await rule.update((r) => {
+      r.jsonTransactionTemplate = JSON.stringify(merged)
+    })
   })
 }

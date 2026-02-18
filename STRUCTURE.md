@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-02-18T20:16:02.924Z
+Generated on: 2026-02-18T21:41:59.285Z
 
 ```
 ./
@@ -115,6 +115,8 @@ Generated on: 2026-02-18T20:16:02.924Z
 │   │   │   └── 📄 tag-card.tsx
 │   │   ├── 📁 transaction/
 │   │   │   ├── 📄 attachment-preview-modal.tsx
+│   │   │   ├── 📄 delete-recurring-modal.tsx
+│   │   │   ├── 📄 edit-recurring-modal.tsx
 │   │   │   ├── 📄 markdown-editor-modal.tsx
 │   │   │   ├── 📄 notes-modal.tsx
 │   │   │   ├── 📄 transaction-filter-header.tsx
@@ -199,6 +201,7 @@ Generated on: 2026-02-18T20:16:02.924Z
 │   │   ├── 📄 use-color-scheme.ts
 │   │   ├── 📄 use-navigation-guard.ts
 │   │   ├── 📄 use-notification-permission-status.ts
+│   │   ├── 📄 use-recurring-rule.ts
 │   │   ├── 📄 use-recurring-transaction-sync.ts
 │   │   ├── 📄 use-retention-cleanup.ts
 │   │   └── 📄 use-time-reactivity.ts
