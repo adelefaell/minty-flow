@@ -77,7 +77,7 @@ import { formatFileSize } from "~/utils/format-file-size"
 import { logger } from "~/utils/logger"
 import { openFileInExternalApp } from "~/utils/open-file"
 import { startOfNextMinute } from "~/utils/pending-transactions"
-import { buildRRuleString } from "~/utils/recurrence"
+import { buildRRuleString, countOccurrencesBetween } from "~/utils/recurrence"
 import {
   formatCreatedAt,
   formatDayName,
@@ -307,6 +307,16 @@ export function TransactionFormV3({
         ? "date"
         : "never"
 
+  const recurringEndDateOccurrenceCount = useMemo(() => {
+    if (endsOnType !== "date" || !recurringEndDate || !recurringFrequency)
+      return null
+    return countOccurrencesBetween(
+      recurringStartDate,
+      recurringEndDate,
+      recurringFrequency,
+    )
+  }, [endsOnType, recurringEndDate, recurringFrequency, recurringStartDate])
+
   const ENDS_ON_OCCURRENCE_PRESETS = [2, 4, 6, 8, 10, 12, 14]
 
   const handleRecurringToggle = useCallback((next: boolean) => {
@@ -427,12 +437,15 @@ export function TransactionFormV3({
         ? true
         : (data.isPending ?? false)
       const isFuture = effectiveDate.getTime() > Date.now()
+      // Lock in "manual vs auto-confirm" at create time so changing the global
+      // preference later doesn't change behavior for existing pending transactions.
+      // For new: if created as pending, use current global; for edit: preserve existing or use global for future.
       const requiresManualConfirmation = recurringEnabled
         ? undefined
         : transaction
           ? (transaction.requiresManualConfirmation ??
             (isFuture ? requireConfirmation : undefined))
-          : isFuture
+          : effectiveIsPending
             ? requireConfirmation
             : undefined
       const payload = {
@@ -747,7 +760,7 @@ export function TransactionFormV3({
               }
               currencyCode={selectedAccount?.currencyCode}
               error={amountError ?? undefined}
-              label="AMOUNT"
+              label="Amount"
               placeholder="0"
               type={transactionType}
             />
@@ -1461,7 +1474,7 @@ export function TransactionFormV3({
               <View>
                 <View style={styles.recurringSubSection}>
                   <Text variant="small" style={styles.recurringSubLabel}>
-                    RECURRENCE
+                    Recurrence
                   </Text>
                   <View style={styles.recurringToggleRow}>
                     {RECURRING_OPTIONS.map((option) => {
@@ -1500,7 +1513,7 @@ export function TransactionFormV3({
 
                 <View style={styles.recurringSubSection}>
                   <Text variant="small" style={styles.recurringSubLabel}>
-                    STARTS ON
+                    Starts on
                   </Text>
                   <Pressable
                     style={styles.recurringDateRow}
@@ -1525,7 +1538,7 @@ export function TransactionFormV3({
 
                 <View style={styles.recurringSubSection}>
                   <Text variant="small" style={styles.recurringSubLabel}>
-                    ENDS ON
+                    Ends on
                   </Text>
                   <Pressable
                     style={styles.recurringDateRow}
@@ -1547,7 +1560,7 @@ export function TransactionFormV3({
                       {endsOnType === "never"
                         ? "Never"
                         : endsOnType === "date" && recurringEndDate
-                          ? formatCreatedAt(recurringEndDate)
+                          ? `${formatCreatedAt(recurringEndDate)}${recurringEndDateOccurrenceCount != null ? ` · ${recurringEndDateOccurrenceCount} time${recurringEndDateOccurrenceCount === 1 ? "" : "s"}` : ""}`
                           : endsOnType === "occurrences" &&
                               recurringEndAfterOccurrences !== null
                             ? `${recurringEndAfterOccurrences} times`

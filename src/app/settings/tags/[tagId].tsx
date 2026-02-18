@@ -59,7 +59,7 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
   } = useForm({
     resolver: zodResolver(addTagsSchema),
     defaultValues: {
-      name: tag?.name || "",
+      name: tag?.name ?? "",
       type: tag?.type || TagKindEnum.GENERIC,
       icon: tag?.icon || "tag",
       colorSchemeName: tag?.colorSchemeName || undefined,
@@ -205,6 +205,7 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
                     }
                     error={!!errors.name}
                     autoFocus={isAddMode}
+                    editable={true}
                   />
                 )}
               />

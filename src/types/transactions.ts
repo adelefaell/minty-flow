@@ -75,6 +75,7 @@ export interface Transaction {
 
 /**
  * Filters for transaction list queries (service layer).
+ * All structural filters: database returns exactly the rows that exist.
  * Dates are Unix timestamps for WatermelonDB Q.gte / Q.lte.
  */
 export interface TransactionListFilters {
@@ -82,7 +83,11 @@ export interface TransactionListFilters {
   /** When set and non-empty, filter to these account IDs only. */
   accountIds?: string[]
   categoryId?: string
+  /** When set and non-empty, filter to these category IDs only. */
+  categoryIds?: string[]
   type?: TransactionType
+  /** When set and non-empty, filter to these types only (income/expense/transfer). */
+  typeFilters?: TransactionType[]
   isPending?: boolean
   includeDeleted?: boolean
   /** When true, return only soft-deleted transactions (for trash). */
@@ -91,6 +96,16 @@ export interface TransactionListFilters {
   fromDate?: number
   /** End of range (inclusive), Unix timestamp. */
   toDate?: number
+  /** Search in title and description (DB-side). */
+  search?: string
+  /** Min amount (inclusive). */
+  minAmount?: number
+  /** Max amount (inclusive). */
+  maxAmount?: number
+  /** When set and non-empty, only transactions that have at least one of these tags (DB join). */
+  tagIds?: string[]
+  /** Filter by attachment presence (DB column has_attachments). */
+  attachmentFilter?: "all" | "has" | "none"
 }
 
 /**

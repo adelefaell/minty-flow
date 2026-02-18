@@ -65,6 +65,28 @@ function parseRRule(ruleString: string): RRule {
 }
 
 /**
+ * Count how many times a recurrence occurs between startDate (inclusive) and endDate (inclusive).
+ * Uses the same frequency/interval logic as buildRRuleString (e.g. biweekly = every 2 weeks).
+ */
+export function countOccurrencesBetween(
+  startDate: Date,
+  endDate: Date,
+  frequency: NonNullable<RecurringFrequency>,
+): number {
+  if (endDate.getTime() < startDate.getTime()) return 0
+  const freq = FREQ_MAP[frequency]
+  const interval = frequency === "biweekly" ? 2 : 1
+  const rule = new RRule({
+    freq,
+    interval,
+    dtstart: startDate,
+    until: endDate,
+  })
+  const occurrences = rule.all()
+  return occurrences.length
+}
+
+/**
  * Get the next occurrence **strictly after** `anchor` that falls within
  * the given range.  Returns null if no next occurrence exists in range.
  *

@@ -4,7 +4,7 @@
  * No bottom sheets — filters are shown directly in the view.
  */
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { LayoutAnimation, ScrollView, TextInput, View } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
@@ -29,6 +29,8 @@ import {
 } from "~/types/transaction-filters"
 import type { TransactionType } from "~/types/transactions"
 import { TransactionTypeEnum } from "~/types/transactions"
+
+import { Button } from "../ui/button"
 
 export type FilterPanelKey =
   | "search"
@@ -100,6 +102,16 @@ function Chip({
 
 // ─── Inline filter panels ─────────────────────────────────────────────────────
 
+const CHIPS_PER_ROW = 4
+
+function chunk<T>(arr: T[], size: number): T[][] {
+  const result: T[][] = []
+  for (let i = 0; i < arr.length; i += size) {
+    result.push(arr.slice(i, i + size))
+  }
+  return result
+}
+
 function SearchPanel({
   value,
   onChange,
@@ -147,44 +159,47 @@ function AccountsPanel({
   const { theme } = useUnistyles()
   return (
     <View>
-      <View style={styles.panelHeader}>
-        <Text style={[styles.panelTitle, { color: theme.colors.onSurface }]}>
-          Accounts
-        </Text>
-        {selectedIds.length > 0 ? (
-          <Pressable onPress={onClear} style={styles.clearHit}>
+      {chunk(accounts, CHIPS_PER_ROW).map((row) => (
+        <ScrollView
+          key={row.map((a) => a.id).join(",")}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.chipScrollRow}
+          style={styles.categoryRow}
+        >
+          {row.map((account) => (
+            <Chip
+              key={account.id}
+              label={account.name}
+              selected={selectedIds.includes(account.id)}
+              onPress={() => onToggle(account.id)}
+              leading={
+                account.icon ? (
+                  <DynamicIcon
+                    icon={account.icon}
+                    size={18}
+                    colorScheme={account.colorScheme}
+                    variant="raw"
+                  />
+                ) : (
+                  <IconSymbol name="wallet" size={18} />
+                )
+              }
+            />
+          ))}
+        </ScrollView>
+      ))}
+
+      {selectedIds.length > 0 ? (
+        <View style={styles.panelHeader}>
+          <View />
+          <Button variant="ghost" onPress={onClear} style={styles.clearHit}>
             <Text style={[styles.clearText, { color: theme.colors.primary }]}>
               Clear
             </Text>
-          </Pressable>
-        ) : null}
-      </View>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.chipScrollRow}
-      >
-        {accounts.map((account) => (
-          <Chip
-            key={account.id}
-            label={account.name}
-            selected={selectedIds.includes(account.id)}
-            onPress={() => onToggle(account.id)}
-            leading={
-              account.icon ? (
-                <DynamicIcon
-                  icon={account.icon}
-                  size={18}
-                  colorScheme={account.colorScheme}
-                  variant="raw"
-                />
-              ) : (
-                <IconSymbol name="wallet" size={18} />
-              )
-            }
-          />
-        ))}
-      </ScrollView>
+          </Button>
+        </View>
+      ) : null}
     </View>
   )
 }
@@ -197,14 +212,21 @@ function PendingPanel({
   onSelect: (v: "all" | "pending" | "notPending") => void
 }) {
   return (
-    <View style={styles.chipWrap}>
-      {PENDING_OPTIONS.map((opt) => (
-        <Chip
-          key={opt.id}
-          label={opt.label}
-          selected={value === opt.id}
-          onPress={() => onSelect(opt.id)}
-        />
+    <View>
+      {chunk(PENDING_OPTIONS, CHIPS_PER_ROW).map((row) => (
+        <View
+          key={row.map((o) => o.id).join(",")}
+          style={[styles.chipScrollRow, styles.categoryRow]}
+        >
+          {row.map((opt) => (
+            <Chip
+              key={opt.id}
+              label={opt.label}
+              selected={value === opt.id}
+              onPress={() => onSelect(opt.id)}
+            />
+          ))}
+        </View>
       ))}
     </View>
   )
@@ -222,28 +244,34 @@ function TypePanel({
   const { theme } = useUnistyles()
   return (
     <View>
-      <View style={styles.panelHeader}>
-        <Text style={[styles.panelTitle, { color: theme.colors.onSurface }]}>
-          Transaction type
-        </Text>
-        {value.length > 0 ? (
-          <Pressable onPress={onClear} style={styles.clearHit}>
+      {chunk(
+        TYPE_OPTIONS.filter((o) => o.id !== "all"),
+        CHIPS_PER_ROW,
+      ).map((row) => (
+        <View
+          key={row.map((o) => o.id).join(",")}
+          style={[styles.chipScrollRow, styles.categoryRow]}
+        >
+          {row.map((opt) => (
+            <Chip
+              key={opt.id}
+              label={opt.label}
+              selected={value.includes(opt.id as TransactionType)}
+              onPress={() => onToggle(opt.id as TransactionType)}
+            />
+          ))}
+        </View>
+      ))}
+      {value.length > 0 ? (
+        <View style={styles.panelHeader}>
+          <View />
+          <Button variant="ghost" onPress={onClear} style={styles.clearHit}>
             <Text style={[styles.clearText, { color: theme.colors.primary }]}>
               Clear
             </Text>
-          </Pressable>
-        ) : null}
-      </View>
-      <View style={styles.chipWrap}>
-        {TYPE_OPTIONS.filter((o) => o.id !== "all").map((opt) => (
-          <Chip
-            key={opt.id}
-            label={opt.label}
-            selected={value.includes(opt.id as TransactionType)}
-            onPress={() => onToggle(opt.id as TransactionType)}
-          />
-        ))}
-      </View>
+          </Button>
+        </View>
+      ) : null}
     </View>
   )
 }
@@ -256,14 +284,21 @@ function GroupByPanel({
   onSelect: (v: GroupByOption) => void
 }) {
   return (
-    <View style={styles.chipWrap}>
-      {GROUP_BY_OPTIONS.map((opt) => (
-        <Chip
-          key={opt.id}
-          label={opt.label}
-          selected={value === opt.id}
-          onPress={() => onSelect(opt.id)}
-        />
+    <View>
+      {chunk(GROUP_BY_OPTIONS, CHIPS_PER_ROW).map((row) => (
+        <View
+          key={row.map((o) => o.id).join(",")}
+          style={[styles.chipScrollRow, styles.categoryRow]}
+        >
+          {row.map((opt) => (
+            <Chip
+              key={opt.id}
+              label={opt.label}
+              selected={value === opt.id}
+              onPress={() => onSelect(opt.id)}
+            />
+          ))}
+        </View>
       ))}
     </View>
   )
@@ -277,14 +312,21 @@ function AttachmentsPanel({
   onSelect: (v: "all" | "has" | "none") => void
 }) {
   return (
-    <View style={styles.chipWrap}>
-      {ATTACHMENT_OPTIONS.map((opt) => (
-        <Chip
-          key={opt.id}
-          label={opt.label}
-          selected={value === opt.id}
-          onPress={() => onSelect(opt.id)}
-        />
+    <View>
+      {chunk(ATTACHMENT_OPTIONS, CHIPS_PER_ROW).map((row) => (
+        <View
+          key={row.map((o) => o.id).join(",")}
+          style={[styles.chipScrollRow, styles.categoryRow]}
+        >
+          {row.map((opt) => (
+            <Chip
+              key={opt.id}
+              label={opt.label}
+              selected={value === opt.id}
+              onPress={() => onSelect(opt.id)}
+            />
+          ))}
+        </View>
       ))}
     </View>
   )
@@ -295,6 +337,24 @@ const CATEGORY_TYPE_OPTIONS: { id: TransactionType; label: string }[] = [
   { id: TransactionTypeEnum.INCOME, label: "Income" },
   { id: TransactionTypeEnum.TRANSFER, label: "Transfer" },
 ]
+
+/** Infer which category type to show first when panel opens, from current selection. */
+function inferInitialCategoryType(
+  selectedIds: string[],
+  categoriesByType: Record<TransactionType, Category[]>,
+): TransactionType | null {
+  if (selectedIds.length === 0) return null
+  const types: TransactionType[] = [
+    TransactionTypeEnum.EXPENSE,
+    TransactionTypeEnum.INCOME,
+    TransactionTypeEnum.TRANSFER,
+  ]
+  for (const type of types) {
+    const cats = categoriesByType[type] ?? []
+    if (cats.some((c) => selectedIds.includes(c.id))) return type
+  }
+  return null
+}
 
 function CategoriesPanel({
   categoriesByType,
@@ -308,15 +368,18 @@ function CategoriesPanel({
   onClear: () => void
 }) {
   const { theme } = useUnistyles()
-  const [selectedType, setSelectedType] = useState<TransactionType | null>(null)
+  const initialType = useMemo(
+    () => inferInitialCategoryType(selectedIds, categoriesByType),
+    [selectedIds, categoriesByType],
+  )
+  const [selectedType, setSelectedType] = useState<TransactionType | null>(
+    () => initialType,
+  )
 
   const categories =
     selectedType !== null ? (categoriesByType[selectedType] ?? []) : []
 
-  // Two rows with horizontal scroll: split categories in half
-  const mid = Math.ceil(categories.length / 2)
-  const row1 = categories.slice(0, mid)
-  const row2 = categories.slice(mid)
+  const categoryRows = chunk(categories, CHIPS_PER_ROW)
 
   const renderCategoryRow = (items: Category[], rowKey: string) => (
     <ScrollView
@@ -349,18 +412,6 @@ function CategoriesPanel({
 
   return (
     <View>
-      <View style={styles.panelHeader}>
-        <Text style={[styles.panelTitle, { color: theme.colors.onSurface }]}>
-          Category type
-        </Text>
-        {selectedIds.length > 0 ? (
-          <Pressable onPress={onClear} style={styles.clearHit}>
-            <Text style={[styles.clearText, { color: theme.colors.primary }]}>
-              Clear
-            </Text>
-          </Pressable>
-        ) : null}
-      </View>
       <View style={styles.chipWrap}>
         {CATEGORY_TYPE_OPTIONS.map((opt) => (
           <Chip
@@ -372,33 +423,28 @@ function CategoriesPanel({
         ))}
       </View>
       {selectedType !== null && categories.length > 0 ? (
-        <>
-          <Text
-            style={[
-              styles.panelTitle,
-              { color: theme.colors.onSurface, marginTop: 12, marginBottom: 6 },
-            ]}
-          >
-            Categories
-          </Text>
-          {renderCategoryRow(row1, "cat-row-1")}
-          {row2.length > 0 ? renderCategoryRow(row2, "cat-row-2") : null}
-        </>
+        <View style={styles.categorySection}>
+          {categoryRows.map((row) =>
+            renderCategoryRow(row, row.map((c) => c.id).join(",")),
+          )}
+        </View>
       ) : selectedType !== null && categories.length === 0 ? (
         <Text
-          style={[
-            styles.panelTitle,
-            {
-              color: theme.colors.onSurface,
-              marginTop: 12,
-              opacity: 0.6,
-              fontWeight: "400",
-              textTransform: "none",
-            },
-          ]}
+          style={[styles.categoryEmptyHint, { color: theme.colors.onSurface }]}
         >
           No categories for this type
         </Text>
+      ) : null}
+
+      {selectedIds.length > 0 ? (
+        <View style={styles.panelHeader}>
+          <View />
+          <Button variant="ghost" onPress={onClear} style={styles.clearHit}>
+            <Text style={[styles.clearText, { color: theme.colors.primary }]}>
+              Clear
+            </Text>
+          </Button>
+        </View>
       ) : null}
     </View>
   )
@@ -418,44 +464,46 @@ function TagsPanel({
   const { theme } = useUnistyles()
   return (
     <View>
-      <View style={styles.panelHeader}>
-        <Text style={[styles.panelTitle, { color: theme.colors.onSurface }]}>
-          Tags
-        </Text>
-        {selectedIds.length > 0 ? (
-          <Pressable onPress={onClear} style={styles.clearHit}>
+      {chunk(tags, CHIPS_PER_ROW).map((row) => (
+        <ScrollView
+          key={row.map((t) => t.id).join(",")}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.chipScrollRow}
+          style={styles.categoryRow}
+        >
+          {row.map((tag) => (
+            <Chip
+              key={tag.id}
+              label={tag.name}
+              selected={selectedIds.includes(tag.id)}
+              onPress={() => onToggle(tag.id)}
+              leading={
+                tag.icon ? (
+                  <DynamicIcon
+                    icon={tag.icon}
+                    size={18}
+                    colorScheme={tag.colorScheme}
+                    variant="raw"
+                  />
+                ) : (
+                  <IconSymbol name="tag" size={18} />
+                )
+              }
+            />
+          ))}
+        </ScrollView>
+      ))}
+      {selectedIds.length > 0 ? (
+        <View style={styles.panelHeader}>
+          <View />
+          <Button variant="ghost" onPress={onClear} style={styles.clearHit}>
             <Text style={[styles.clearText, { color: theme.colors.primary }]}>
               Clear
             </Text>
-          </Pressable>
-        ) : null}
-      </View>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.chipScrollRow}
-      >
-        {tags.map((tag) => (
-          <Chip
-            key={tag.id}
-            label={tag.name}
-            selected={selectedIds.includes(tag.id)}
-            onPress={() => onToggle(tag.id)}
-            leading={
-              tag.icon ? (
-                <DynamicIcon
-                  icon={tag.icon}
-                  size={18}
-                  colorScheme={tag.colorScheme}
-                  variant="raw"
-                />
-              ) : (
-                <IconSymbol name="tag" size={18} />
-              )
-            }
-          />
-        ))}
-      </ScrollView>
+          </Button>
+        </View>
+      ) : null}
     </View>
   )
 }
@@ -813,7 +861,6 @@ export function TransactionFilterHeader({
               >
                 {label}
               </Text>
-              {isExpanded ? <IconSymbol name="chevron-up" size={14} /> : null}
             </Pressable>
           )
         })}
@@ -954,18 +1001,12 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: "center",
     marginBottom: 10,
   },
-  panelTitle: {
-    fontSize: 13,
-    fontWeight: "600",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-    opacity: 0.6,
-  },
   clearText: {
     fontSize: 13,
     fontWeight: "500",
   },
   clearHit: {
+    marginLeft: "auto",
     padding: 4,
   },
 
@@ -981,6 +1022,15 @@ const styles = StyleSheet.create((theme) => ({
   },
   categoryRow: {
     marginBottom: 8,
+  },
+  categorySection: {
+    marginTop: 14,
+  },
+  categoryEmptyHint: {
+    marginTop: 14,
+    fontSize: 13,
+    fontWeight: "400",
+    opacity: 0.5,
   },
   chip: {
     flexDirection: "row",

@@ -10,7 +10,10 @@ import type {
   GroupByOption,
   TransactionListFilterState,
 } from "~/types/transaction-filters"
-import type { TransactionType } from "~/types/transactions"
+import type {
+  TransactionListFilters,
+  TransactionType,
+} from "~/types/transactions"
 import { TransactionTypeEnum } from "~/types/transactions"
 import {
   formatDateKey,
@@ -46,7 +49,7 @@ export function getDefaultDateRange(timeframeDays: number) {
   }
 }
 
-/** Build query filters for the DB: only date range. Client-side filtering is done separately. */
+/** Build query filters for the DB: only date range. */
 export function buildQueryFilters(
   selectedRange: { start: Date; end: Date } | null,
   homeTimeframe: number,
@@ -59,91 +62,55 @@ export function buildQueryFilters(
     : getDefaultDateRange(homeTimeframe)
 }
 
-/** Apply filter state to fetched transactions (client-side). */
-export function applyFiltersToTransactions(
-  list: TransactionWithRelations[],
+/**
+ * Single source of truth: convert UI filter state + date range + search
+ * into the one object passed to the database query.
+ * All structural filters go here; UI-only (groupBy, sort) stay in JS.
+ */
+export function buildTransactionListFilters(
   filterState: TransactionListFilterState,
-): TransactionWithRelations[] {
-  return list.filter((row) => {
-    // Hide pending transactions from the main list — they are shown in the
-    // "Upcoming" section instead.  Only include them when the user explicitly
-    // filters for "pending".
-    if (row.transaction.isPending && filterState.pendingFilter !== "pending") {
-      return false
-    }
-    if (
-      filterState.accountIds.length > 0 &&
-      !filterState.accountIds.includes(row.transaction.accountId)
-    ) {
-      return false
-    }
-    if (filterState.typeFilters.length > 0) {
-      if (!filterState.typeFilters.includes(row.transaction.type)) return false
-    }
-    if (filterState.pendingFilter === "pending") {
-      if (!row.transaction.isPending) return false
-    } else if (filterState.pendingFilter === "notPending") {
-      if (row.transaction.isPending) return false
-    }
-    if (filterState.attachmentFilter !== "all") {
-      const raw = row.transaction.extra?.attachments
-      let hasAttachments = false
-      if (raw) {
-        try {
-          const parsed = JSON.parse(raw) as unknown
-          hasAttachments = Array.isArray(parsed)
-            ? parsed.length > 0
-            : typeof parsed === "object" &&
-              parsed !== null &&
-              Object.keys(parsed).length > 0
-        } catch {
-          hasAttachments = raw.length > 0
-        }
-      }
-      if (filterState.attachmentFilter === "has" && !hasAttachments)
-        return false
-      if (filterState.attachmentFilter === "none" && hasAttachments)
-        return false
-    }
-    if (
-      filterState.categoryIds.length > 0 &&
-      (!row.transaction.categoryId ||
-        !filterState.categoryIds.includes(row.transaction.categoryId))
-    ) {
-      return false
-    }
-    if (filterState.tagIds.length > 0) {
-      const rowTagIds = row.tags.map((t) => t.id)
-      const hasSelectedTag = filterState.tagIds.some((id) =>
-        rowTagIds.includes(id),
-      )
-      if (!hasSelectedTag) return false
-    }
-    return true
-  })
-}
-
-/** Filter transactions by search query (title, description, amount, category name, account name). */
-export function applySearchFilter(
-  list: TransactionWithRelations[],
-  query: string,
-): TransactionWithRelations[] {
-  if (!query.trim()) return list
-  const lower = query.toLowerCase().trim()
-  return list.filter((row) => {
-    const title = row.transaction.title ?? ""
-    const description = row.transaction.description ?? ""
-    const amount = String(row.transaction.amount)
-    const categoryName = row.category?.name ?? ""
-    const accountName = row.account.name ?? ""
-    return (
-      title.toLowerCase().includes(lower) ||
-      description.toLowerCase().includes(lower) ||
-      amount.includes(lower) ||
-      categoryName.toLowerCase().includes(lower) ||
-      accountName.toLowerCase().includes(lower)
-    )
-  })
+  options: {
+    fromDate: number
+    toDate: number
+    search?: string
+    /** When on account detail, scope to this account. */
+    accountId?: string
+  },
+): TransactionListFilters {
+  const { fromDate, toDate, search, accountId } = options
+  const filters: TransactionListFilters = {
+    fromDate,
+    toDate,
+    includeDeleted: false,
+  }
+  if (accountId) {
+    filters.accountId = accountId
+  }
+  if (filterState.accountIds.length > 0) {
+    filters.accountIds = filterState.accountIds
+  }
+  if (filterState.categoryIds.length > 0) {
+    filters.categoryIds = filterState.categoryIds
+  }
+  if (filterState.typeFilters.length > 0) {
+    filters.typeFilters = filterState.typeFilters
+  }
+  if (filterState.pendingFilter === "pending") {
+    filters.isPending = true
+  } else if (filterState.pendingFilter === "notPending") {
+    filters.isPending = false
+  }
+  const searchTrimmed = search?.trim()
+  if (searchTrimmed && searchTrimmed.length > 0) {
+    filters.search = searchTrimmed
+  }
+  if (filterState.tagIds.length > 0) {
+    filters.tagIds = filterState.tagIds
+  }
+  if (filterState.attachmentFilter !== "all") {
+    filters.attachmentFilter = filterState.attachmentFilter
+  }
+  return filters
 }
 
 export function getSectionKeyAndTitle(

@@ -27,6 +27,7 @@ export default class TransactionModel extends Model implements Transaction {
   // Additional fields
   @field("subtype") subtype?: string
   @field("extra") private extraJson!: string | null
+  @field("has_attachments") hasAttachments!: boolean
 
   // Foreign key column + relation for category (nullable for uncategorized transactions)
   @field("category_id") categoryId!: string | null
@@ -35,6 +36,9 @@ export default class TransactionModel extends Model implements Transaction {
   // Foreign key column + relation for account (required)
   @field("account_id") accountId!: string
   @relation("accounts", "account_id") account!: AccountModel
+
+  /** Set when this transaction is an instance of a recurring template. Indexed for fast "all instances of recurrence X" queries. */
+  @field("recurring_id") recurringId!: string | null
 
   @field("location") private locationJson!: string | null
 

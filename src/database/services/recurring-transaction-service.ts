@@ -2,17 +2,14 @@ import { Q } from "@nozbe/watermelondb"
 
 import type { TransactionFormValues } from "~/schemas/transactions.schema"
 import { usePendingTransactionsStore } from "~/stores/pending-transactions.store"
-import { TagKindEnum } from "~/types/tags"
 import { TransactionTypeEnum } from "~/types/transactions"
 import { logger } from "~/utils/logger"
 import { nextAbsoluteOccurrence } from "~/utils/recurrence"
 
 import { database } from "../index"
 import type RecurringTransactionModel from "../models/RecurringTransaction"
-import type TagModel from "../models/Tag"
 import type TransactionModel from "../models/Transaction"
 import type TransactionTagModel from "../models/TransactionTag"
-import { createTag, findTagByName } from "./tag-service"
 import {
   createTransactionModel,
   deleteTransactionModel,
@@ -55,20 +52,6 @@ export async function getActiveRecurringTransactions(): Promise<
     .fetch()
 }
 
-/** Get or create the extension tag for a recurring template. */
-export async function getOrCreateRecurringExtensionTag(
-  extensionIdentifierTag: string,
-): Promise<TagModel> {
-  let tag = await findTagByName(extensionIdentifierTag)
-  if (!tag) {
-    tag = await createTag({
-      name: extensionIdentifierTag,
-      type: TagKindEnum.GENERIC,
-    })
-  }
-  return tag
-}
-
 function getInitialDateMs(t: TransactionModel): number {
   const raw = t.extra?.recurringInitialDate
   if (!raw) return t.transactionDate.getTime()
@@ -77,26 +60,16 @@ function getInitialDateMs(t: TransactionModel): number {
 }
 
 /**
- * Related transactions that have the given extension tag.
- * Excludes soft-deleted (trashed) transactions so sync and last-generated logic match flow.
- * Sorted by recurringInitialDate asc.
+ * Related transactions for a recurring template (by recurring_id column).
+ * Excludes soft-deleted (trashed) transactions. Sorted by recurringInitialDate asc.
  */
-export async function getRelatedTransactions(
-  extensionIdentifierTag: string,
+export async function getRelatedTransactionsByRecurringId(
+  recurringId: string,
 ): Promise<TransactionModel[]> {
-  const tag = await findTagByName(extensionIdentifierTag)
-  if (!tag) return []
-
-  const ttCollection = database.get<TransactionTagModel>("transaction_tags")
-  const links = await ttCollection.query(Q.where("tag_id", tag.id)).fetch()
-  if (links.length === 0) return []
-
-  const txIds = links.map((l) => l.transactionId)
   const transactions = await database
     .get<TransactionModel>("transactions")
-    .query(Q.where("id", Q.oneOf(txIds)), Q.where("is_deleted", false))
+    .query(Q.where("recurring_id", recurringId), Q.where("is_deleted", false))
     .fetch()
-
   transactions.sort((a, b) => getInitialDateMs(a) - getInitialDateMs(b))
   return transactions
 }
@@ -112,7 +85,7 @@ export async function findRelatedTransactionsByMode(
   recurring: RecurringTransactionModel
   transactions: TransactionModel[]
 }> {
-  const recurringId = transaction.extra?.recurringId
+  const recurringId = transaction.recurringId ?? transaction.extra?.recurringId
   if (!recurringId) {
     throw new Error("Transaction does not have a recurring extension")
   }
@@ -124,9 +97,7 @@ export async function findRelatedTransactionsByMode(
     )
   }
 
-  const allRelated = await getRelatedTransactions(
-    recurring.extensionIdentifierTag,
-  )
+  const allRelated = await getRelatedTransactionsByRecurringId(recurring.id)
 
   if (mode === "current") {
     return { recurring, transactions: [transaction] }
@@ -285,10 +256,8 @@ export async function synchronizeRecurringTransaction(
       return
     }
 
-    // ── Effective-last from related transactions (tag-based) ─────────
-    const related = await getRelatedTransactions(
-      recurring.extensionIdentifierTag,
-    )
+    // ── Effective-last from related transactions ──────────────────────
+    const related = await getRelatedTransactionsByRecurringId(recurring.id)
     const effectiveLast = related.length
       ? new Date(Math.max(...related.map(getInitialDateMs)))
       : null
@@ -313,10 +282,6 @@ export async function synchronizeRecurringTransaction(
       recurringInitialDate: String(nextOccurrence.getTime()),
     }
 
-    const tag = await getOrCreateRecurringExtensionTag(
-      recurring.extensionIdentifierTag,
-    )
-
     if (!isTransfer) {
       const data: TransactionFormValues = {
         amount: template.amount,
@@ -327,7 +292,8 @@ export async function synchronizeRecurringTransaction(
         title: template.title,
         description: template.description,
         subtype: template.subtype,
-        tags: [tag.id, ...(template.tags ?? [])],
+        tags: template.tags ?? [],
+        recurringId: recurring.id,
         extra,
         isPending,
       }
@@ -347,7 +313,8 @@ export async function synchronizeRecurringTransaction(
         title: template.title,
         description: template.description,
         subtype: template.subtype,
-        tags: [tag.id, ...(template.tags ?? [])],
+        tags: template.tags ?? [],
+        recurringId: recurring.id,
         extra,
         isPending,
       }
@@ -360,7 +327,8 @@ export async function synchronizeRecurringTransaction(
         title: template.title,
         description: template.description,
         subtype: template.subtype,
-        tags: [tag.id, ...(template.tags ?? [])],
+        tags: template.tags ?? [],
+        recurringId: recurring.id,
         extra: { ...extra },
         isPending,
       }
@@ -474,20 +442,18 @@ export async function createRecurringFromTransaction(
   if (!created) throw new Error("Failed to create RecurringTransaction")
   const recurringModel = created as RecurringTransactionModel
 
-  // Mark the source transaction as the first recurring instance so it's pre-approved and auto-confirms
-  const extensionTag = await getOrCreateRecurringExtensionTag(
-    recurringModel.extensionIdentifierTag,
-  )
+  // Mark the source transaction as the first recurring instance (recurring_id + extra for ordering)
   const existingTagIds = tags.map((t) => t.tagId)
-  const tagIds = existingTagIds.includes(extensionTag.id)
-    ? existingTagIds
-    : [...existingTagIds, extensionTag.id]
   const newExtra: Record<string, string> = {
     ...(transaction.extra ?? {}),
     recurringId: recurringModel.id,
     recurringInitialDate: String(transaction.transactionDate.getTime()),
   }
-  await updateTransactionModel(transaction, { extra: newExtra, tags: tagIds })
+  await updateTransactionModel(transaction, {
+    extra: newExtra,
+    recurringId: recurringModel.id,
+    tags: existingTagIds,
+  })
 
   await synchronizeAllRecurringTransactions()
   return recurringModel
@@ -526,7 +492,7 @@ export async function updateRecurringTransaction(
 export async function deleteRecurringTransaction(
   recurring: RecurringTransactionModel,
 ): Promise<void> {
-  const related = await getRelatedTransactions(recurring.extensionIdentifierTag)
+  const related = await getRelatedTransactionsByRecurringId(recurring.id)
   if (related.length > 0) {
     throw new Error(
       "Cannot delete recurring template: it has generated transactions. Use RecurringUpdateMode (current / thisAndFuture / all) from UI.",

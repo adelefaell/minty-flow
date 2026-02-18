@@ -95,10 +95,10 @@ class AutoConfirmationService {
       const msUntil = targetTime - now
 
       if (msUntil <= 0) {
-        // Past due → confirm immediately
+        // Past due → confirm now (no buffer, time has passed)
         void this.confirmTransaction(txId, updateDateUponConfirmation)
       } else {
-        // Future → precise timeout
+        // Future → schedule timeout for exact time
         this.scheduleTimeout(txId, msUntil, updateDateUponConfirmation)
       }
       scheduled.add(txId)
@@ -113,6 +113,7 @@ class AutoConfirmationService {
   /**
    * Immediate sweep for all past-due auto-confirm transactions.
    * Called on foreground resume and after settings change.
+   * confirm when transactionDate <= now (no buffer).
    */
   async confirmPastDue(transactions: TransactionWithRelations[]) {
     const { updateDateUponConfirmation } =

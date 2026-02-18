@@ -33,6 +33,7 @@ import type {
 import { DEFAULT_TRANSACTION_LIST_FILTER_STATE } from "~/types/transaction-filters"
 import { TransactionTypeEnum } from "~/types/transactions"
 import { MONTH_NAMES } from "~/utils/time-utils"
+import { buildTransactionListFilters } from "~/utils/transaction-list-utils"
 
 const GROUP_BY_DISPLAY: Record<GroupByOption, string> = {
   hour: "By hour",
@@ -53,6 +54,10 @@ interface AccountDetailsProps {
   selectedYear: number
   selectedMonth: number
   onMonthYearChange: (year: number, month: number) => void
+  filterState: TransactionListFilterState
+  onFilterChange: (state: TransactionListFilterState) => void
+  searchQuery: string
+  onSearchApply: (query: string) => void
 }
 
 const AccountDetailsScreenInner = ({
@@ -65,16 +70,16 @@ const AccountDetailsScreenInner = ({
   selectedYear,
   selectedMonth,
   onMonthYearChange,
+  filterState,
+  onFilterChange,
+  searchQuery,
+  onSearchApply,
 }: AccountDetailsProps) => {
   const router = useRouter()
   const navigation = useNavigation()
   const { theme } = useUnistyles()
 
-  const [filterState, setFilterState] = useState<TransactionListFilterState>(
-    DEFAULT_TRANSACTION_LIST_FILTER_STATE,
-  )
   const [showFilters, setShowFilters] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
   const [monthPickerOpen, setMonthPickerOpen] = useState(false)
 
   const categoriesByType = useMemo(
@@ -277,9 +282,9 @@ const AccountDetailsScreenInner = ({
           categoriesByType={categoriesByType}
           tags={tags}
           filterState={filterState}
-          onFilterChange={setFilterState}
+          onFilterChange={onFilterChange}
           searchQuery={searchQuery}
-          onSearchApply={setSearchQuery}
+          onSearchApply={onSearchApply}
           hiddenFilters={["accounts"]}
         />
       )}
@@ -288,7 +293,6 @@ const AccountDetailsScreenInner = ({
       <TransactionSectionList
         transactionsFull={transactionsFull}
         filterState={filterState}
-        searchQuery={searchQuery}
         showUpcoming
         ListHeaderComponent={headerContent}
       />
@@ -410,8 +414,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   monthPickerContainer: {
     marginHorizontal: 20,
-    marginTop: 4,
-    marginBottom: 8,
+    marginVertical: 8,
     backgroundColor: theme.colors.secondary,
     borderRadius: theme.colors.radius,
     overflow: "hidden",
@@ -421,7 +424,6 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingVertical: 10,
   },
   byLabel: {
     fontSize: 14,
@@ -481,36 +483,39 @@ const styles = StyleSheet.create((theme) => ({
 }))
 
 const EnhancedAccountDetailsScreen = withObservables(
-  ["accountId", "selectedYear", "selectedMonth"],
+  ["accountId", "selectedYear", "selectedMonth", "filterState", "searchQuery"],
   ({
     accountId,
     selectedYear,
     selectedMonth,
+    filterState,
+    searchQuery,
   }: {
     accountId: string
     selectedYear: number
     selectedMonth: number
+    filterState: TransactionListFilterState
+    searchQuery: string
   }) => {
     const { fromDate, toDate } = getMonthRange(selectedYear, selectedMonth)
+    const queryFilters = buildTransactionListFilters(filterState, {
+      fromDate,
+      toDate,
+      search: searchQuery,
+      accountId,
+    })
     return {
       account: observeAccountWithMonthTotalsByIdAndRange(
         accountId,
         fromDate,
         toDate,
       ),
-      transactionsFull: observeTransactionModelsFull(
-        {
-          accountId,
-          fromDate,
-          toDate,
-        },
-        [
-          observeAccountModels(false),
-          observeCategoriesByType(TransactionTypeEnum.EXPENSE),
-          observeCategoriesByType(TransactionTypeEnum.INCOME),
-          observeCategoriesByType(TransactionTypeEnum.TRANSFER),
-        ],
-      ).pipe(startWith([] as TransactionWithRelations[])),
+      transactionsFull: observeTransactionModelsFull(queryFilters, [
+        observeAccountModels(false),
+        observeCategoriesByType(TransactionTypeEnum.EXPENSE),
+        observeCategoriesByType(TransactionTypeEnum.INCOME),
+        observeCategoriesByType(TransactionTypeEnum.TRANSFER),
+      ]).pipe(startWith([] as TransactionWithRelations[])),
       categoriesExpense: observeCategoriesByType(
         TransactionTypeEnum.EXPENSE,
       ).pipe(startWith([] as Category[])),
@@ -530,6 +535,10 @@ export default function AccountDetailsScreen() {
   const now = new Date()
   const [selectedYear, setSelectedYear] = useState(now.getFullYear())
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth())
+  const [filterState, setFilterState] = useState<TransactionListFilterState>(
+    DEFAULT_TRANSACTION_LIST_FILTER_STATE,
+  )
+  const [searchQuery, setSearchQuery] = useState("")
 
   const handleMonthYearChange = (year: number, month: number) => {
     setSelectedYear(year)
@@ -544,6 +553,10 @@ export default function AccountDetailsScreen() {
       selectedYear={selectedYear}
       selectedMonth={selectedMonth}
       onMonthYearChange={handleMonthYearChange}
+      filterState={filterState}
+      onFilterChange={setFilterState}
+      searchQuery={searchQuery}
+      onSearchApply={setSearchQuery}
     />
   )
 }

@@ -7,7 +7,7 @@ import { appSchema, tableSchema } from "@nozbe/watermelondb"
  * Each table represents a collection of models that can be queried and manipulated.
  */
 export const schema = appSchema({
-  version: 1,
+  version: 4,
   tables: [
     // Categories table - stores transaction categories
     tableSchema({
@@ -47,26 +47,33 @@ export const schema = appSchema({
     tableSchema({
       name: "transactions",
       columns: [
-        { name: "transaction_date", type: "number" },
+        { name: "transaction_date", type: "number", isIndexed: true },
         { name: "is_deleted", type: "boolean" },
         { name: "deleted_at", type: "number", isOptional: true },
         { name: "title", type: "string", isOptional: true },
         { name: "description", type: "string", isOptional: true },
         { name: "amount", type: "number" },
-        { name: "is_pending", type: "boolean" },
+        { name: "is_pending", type: "boolean", isIndexed: true },
         {
           name: "requires_manual_confirmation",
           type: "boolean",
           isOptional: true,
         },
         // Currency comes from account (account_id); type explains meaning.
-        { name: "type", type: "string" }, // "expense" | "income" | "transfer"
+        { name: "type", type: "string", isIndexed: true }, // "expense" | "income" | "transfer"
         { name: "subtype", type: "string", isOptional: true }, // "recurring" | "one-time" | "subscription" etc.
         { name: "extra", type: "string", isOptional: true }, // JSON for custom metadata
+        { name: "has_attachments", type: "boolean", isIndexed: true }, // derived from extra.attachments, kept in sync on write
         // REMOVE extra_tags - use transaction_tags join table instead
 
         { name: "category_id", type: "string", isIndexed: true },
         { name: "account_id", type: "string", isIndexed: true },
+        {
+          name: "recurring_id",
+          type: "string",
+          isIndexed: true,
+          isOptional: true,
+        },
         { name: "location", type: "string", isOptional: true },
         { name: "created_at", type: "number" },
         { name: "updated_at", type: "number" },

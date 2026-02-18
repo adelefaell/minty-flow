@@ -21,19 +21,13 @@ import type { TransactionWithRelations } from "~/database/services/transaction-s
 import { deleteTransactionModel } from "~/database/services/transaction-service"
 import type { TransactionListFilterState } from "~/types/transaction-filters"
 import { Toast } from "~/utils/toast"
-import {
-  applyFiltersToTransactions,
-  applySearchFilter,
-  buildTransactionSections,
-} from "~/utils/transaction-list-utils"
+import { buildTransactionSections } from "~/utils/transaction-list-utils"
 
 export interface TransactionSectionListProps {
   /** All transactions including pending/upcoming. Used for filtering + upcoming section. */
   transactionsFull: TransactionWithRelations[]
   /** Current filter state. */
   filterState: TransactionListFilterState
-  /** Search query for text filtering. */
-  searchQuery?: string
   /** Whether to show the upcoming transactions section above the list. */
   showUpcoming?: boolean
   /** Additional content rendered at the top of the list (before upcoming). */
@@ -43,20 +37,13 @@ export interface TransactionSectionListProps {
 export function TransactionSectionList({
   transactionsFull,
   filterState,
-  searchQuery = "",
   showUpcoming = true,
   ListHeaderComponent,
 }: TransactionSectionListProps) {
   const router = useRouter()
   const openSwipeableRef = useRef<SwipeableMethods | null>(null)
 
-  const list = useMemo(() => {
-    const filtered = applyFiltersToTransactions(
-      transactionsFull ?? [],
-      filterState,
-    )
-    return applySearchFilter(filtered, searchQuery)
-  }, [transactionsFull, filterState, searchQuery])
+  const list = useMemo(() => transactionsFull ?? [], [transactionsFull])
 
   const sections = useMemo(
     () => buildTransactionSections(list, filterState.groupBy),
@@ -97,7 +84,6 @@ export function TransactionSectionList({
         {showUpcoming && (
           <UpcomingTransactionsSection
             transactions={transactionsFull ?? []}
-            filterState={filterState}
             onTransactionPress={handleOnTransactionPress}
           />
         )}
@@ -107,7 +93,6 @@ export function TransactionSectionList({
       ListHeaderComponent,
       showUpcoming,
       transactionsFull,
-      filterState,
       handleOnTransactionPress,
     ],
   )

@@ -258,7 +258,7 @@ const EditAccountScreenInner = ({
                   value={Number(value) || 0}
                   onChange={(v) => onChange(v)}
                   currencyCode={formCurrencyCode}
-                  label="INITIAL BALANCE"
+                  label="Initial balance"
                   placeholder="0"
                   error={errors.balance?.message}
                 />

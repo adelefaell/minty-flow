@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-02-16T20:24:31.819Z
+Generated on: 2026-02-18T16:54:10.694Z
 
 ```
 ./
@@ -98,10 +98,6 @@ Generated on: 2026-02-16T20:24:31.819Z
 │   │       ├── 📄 android-icon-monochrome.png
 │   │       ├── 📄 favicon.png
 │   │       ├── 📄 icon.png
-│   │       ├── 📄 partial-react-logo.png
-│   │       ├── 📄 react-logo.png
-│   │       ├── 📄 react-logo@2x.png
-│   │       ├── 📄 react-logo@3x.png
 │   │       └── 📄 splash-icon.png
 │   ├── 📁 components/
 │   │   ├── 📁 accounts/
@@ -229,7 +225,8 @@ Generated on: 2026-02-16T20:24:31.819Z
 │   │   ├── 📄 toast.store.ts
 │   │   ├── 📄 transaction-item-appearance.store.ts
 │   │   ├── 📄 transaction-sheet-controls.store.ts
-│   │   └── 📄 trash-bin.store.ts
+│   │   ├── 📄 trash-bin.store.ts
+│   │   └── 📄 upcoming-section.store.ts
 │   ├── 📁 styles/
 │   │   ├── 📁 theme/
 │   │   │   ├── 📁 schemes/

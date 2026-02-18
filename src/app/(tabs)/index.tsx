@@ -31,9 +31,8 @@ import type { TransactionListFilterState } from "~/types/transaction-filters"
 import { DEFAULT_TRANSACTION_LIST_FILTER_STATE } from "~/types/transaction-filters"
 import { TransactionTypeEnum } from "~/types/transactions"
 import {
-  applyFiltersToTransactions,
-  applySearchFilter,
   buildQueryFilters,
+  buildTransactionListFilters,
 } from "~/utils/transaction-list-utils"
 
 interface HomeScreenProps {
@@ -74,14 +73,7 @@ function HomeScreenInner({
     [categoriesExpense, categoriesIncome, categoriesTransfer],
   )
 
-  // Filtered list used only for the SummarySection header
-  const filteredList = useMemo(() => {
-    const filtered = applyFiltersToTransactions(
-      transactionsFull ?? [],
-      filterState,
-    )
-    return applySearchFilter(filtered, searchQuery)
-  }, [transactionsFull, filterState, searchQuery])
+  const filteredList = useMemo(() => transactionsFull ?? [], [transactionsFull])
 
   const router = useRouter()
   const { theme } = useUnistyles()
@@ -147,7 +139,6 @@ function HomeScreenInner({
       <TransactionSectionList
         transactionsFull={transactionsFull ?? []}
         filterState={filterState}
-        searchQuery={searchQuery}
         showUpcoming
         ListHeaderComponent={summaryHeader}
       />
@@ -156,35 +147,47 @@ function HomeScreenInner({
 }
 
 const EnhancedHomeScreen = withObservables(
-  ["selectedRange", "homeTimeframe"],
+  ["selectedRange", "homeTimeframe", "filterState", "searchQuery"],
   ({
     selectedRange,
     homeTimeframe = 3,
+    filterState,
+    searchQuery,
   }: {
     selectedRange: { start: Date; end: Date } | null
     homeTimeframe?: number
-  }) => ({
-    transactionsFull: observeTransactionModelsFull(
-      buildQueryFilters(selectedRange ?? null, homeTimeframe),
-      [
+    filterState: TransactionListFilterState
+    searchQuery: string
+  }) => {
+    const { fromDate, toDate } = buildQueryFilters(
+      selectedRange ?? null,
+      homeTimeframe,
+    )
+    const queryFilters = buildTransactionListFilters(filterState, {
+      fromDate,
+      toDate,
+      search: searchQuery,
+    })
+    return {
+      transactionsFull: observeTransactionModelsFull(queryFilters, [
         observeAccountModels(false),
         observeCategoriesByType(TransactionTypeEnum.EXPENSE),
         observeCategoriesByType(TransactionTypeEnum.INCOME),
         observeCategoriesByType(TransactionTypeEnum.TRANSFER),
-      ],
-    ).pipe(startWith([] as TransactionWithRelations[])),
-    accounts: observeAccounts(false).pipe(startWith([] as Account[])),
-    categoriesExpense: observeCategoriesByType(
-      TransactionTypeEnum.EXPENSE,
-    ).pipe(startWith([] as Category[])),
-    categoriesIncome: observeCategoriesByType(TransactionTypeEnum.INCOME).pipe(
-      startWith([] as Category[]),
-    ),
-    categoriesTransfer: observeCategoriesByType(
-      TransactionTypeEnum.TRANSFER,
-    ).pipe(startWith([] as Category[])),
-    tags: observeTags().pipe(startWith([] as Tag[])),
-  }),
+      ]).pipe(startWith([] as TransactionWithRelations[])),
+      accounts: observeAccounts(false).pipe(startWith([] as Account[])),
+      categoriesExpense: observeCategoriesByType(
+        TransactionTypeEnum.EXPENSE,
+      ).pipe(startWith([] as Category[])),
+      categoriesIncome: observeCategoriesByType(
+        TransactionTypeEnum.INCOME,
+      ).pipe(startWith([] as Category[])),
+      categoriesTransfer: observeCategoriesByType(
+        TransactionTypeEnum.TRANSFER,
+      ).pipe(startWith([] as Category[])),
+      tags: observeTags().pipe(startWith([] as Tag[])),
+    }
+  },
 )(HomeScreenInner)
 
 function HomeScreen() {

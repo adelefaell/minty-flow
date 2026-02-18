@@ -55,7 +55,7 @@ export function SmartAmountInput({
   onChange,
   currencyCode,
   error,
-  label = "AMOUNT",
+  label = "Amount",
   placeholder = "0",
   type,
   decimalPlaces = CALCULATOR_CONFIG.MAX_DECIMALS,

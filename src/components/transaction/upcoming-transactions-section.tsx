@@ -20,7 +20,7 @@ import {
   useAutoConfirmVersion,
 } from "~/services/auto-confirmation-service"
 import { usePendingTransactionsStore } from "~/stores/pending-transactions.store"
-import type { TransactionListFilterState } from "~/types/transaction-filters"
+import { useUpcomingSectionStore } from "~/stores/upcoming-section.store"
 import { confirmable } from "~/utils/pending-transactions"
 import { Toast } from "~/utils/toast"
 
@@ -32,7 +32,6 @@ import { TransactionItem } from "./transaction-item"
 
 interface UpcomingTransactionsSectionProps {
   transactions: TransactionWithRelations[]
-  filterState: TransactionListFilterState
   onTransactionPress: (transactionId: string) => void
 }
 
@@ -45,35 +44,6 @@ function isUpcoming(row: TransactionWithRelations, now: Date): boolean {
     row.transaction.isPending ||
     row.transaction.transactionDate.getTime() > now.getTime()
   )
-}
-
-function applyUpcomingFilters(
-  list: TransactionWithRelations[],
-  filterState: TransactionListFilterState,
-): TransactionWithRelations[] {
-  return list.filter((row) => {
-    if (
-      filterState.accountIds.length > 0 &&
-      !filterState.accountIds.includes(row.transaction.accountId)
-    )
-      return false
-    if (
-      filterState.typeFilters.length > 0 &&
-      !filterState.typeFilters.includes(row.transaction.type)
-    )
-      return false
-    if (
-      filterState.categoryIds.length > 0 &&
-      (!row.transaction.categoryId ||
-        !filterState.categoryIds.includes(row.transaction.categoryId))
-    )
-      return false
-    if (filterState.tagIds.length > 0) {
-      const rowTagIds = row.tags.map((t) => t.id)
-      if (!filterState.tagIds.some((id) => rowTagIds.includes(id))) return false
-    }
-    return true
-  })
 }
 
 /* ---- AppState subscription for useSyncExternalStore ---- */
@@ -119,7 +89,6 @@ function useAppForeground(): number {
 
 export function UpcomingTransactionsSection({
   transactions,
-  filterState,
   onTransactionPress,
 }: UpcomingTransactionsSectionProps) {
   const { theme } = useUnistyles()
@@ -135,17 +104,16 @@ export function UpcomingTransactionsSection({
   const autoConfirmVersion = useAutoConfirmVersion()
   const foregroundVersion = useAppForeground()
 
-  // ---------- Filter upcoming ----------
+  // ---------- Filter upcoming (structural filters already applied by query) ----------
   const upcoming = useMemo(() => {
     void tick
     void autoConfirmVersion
     void foregroundVersion
     const now = new Date()
-    const raw = transactions.filter(
+    return transactions.filter(
       (r) => !r.transaction.isDeleted && isUpcoming(r, now),
     )
-    return applyUpcomingFilters(raw, filterState)
-  }, [transactions, filterState, tick, autoConfirmVersion, foregroundVersion])
+  }, [transactions, tick, autoConfirmVersion, foregroundVersion])
 
   // ---------- Group + auto-confirm past-due ----------
   //
@@ -203,7 +171,7 @@ export function UpcomingTransactionsSection({
     autoConfirmationService.scheduleTransactions(upcoming)
   }, [upcoming, requireConfirmation, autoConfirmVersion])
 
-  const [collapsed, setCollapsed] = useState(false)
+  const { collapsed, setCollapsed } = useUpcomingSectionStore()
   const [confirmAllModalVisible, setConfirmAllModalVisible] = useState(false)
 
   const handleConfirm = useCallback(

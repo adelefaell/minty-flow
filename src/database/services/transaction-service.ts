@@ -92,37 +92,97 @@ const loadTransactionTags = async (
     .fetch()
 }
 
+/**
+ * Single source of truth for the derived rule:
+ *   has_attachments = (extra.attachments is non-empty)
+ *
+ * This value is denormalized into the `has_attachments` column for indexed
+ * filtering. Whenever extra is written (create or update), has_attachments
+ * must be set in the same write so the cache never drifts.
+ */
+function hasAttachmentsFromExtra(
+  extra: Record<string, string> | undefined,
+): boolean {
+  if (!extra?.attachments) return false
+  try {
+    const parsed = JSON.parse(extra.attachments) as unknown
+    if (Array.isArray(parsed)) return parsed.length > 0
+    if (typeof parsed === "object" && parsed !== null)
+      return Object.keys(parsed).length > 0
+    return false
+  } catch {
+    return extra.attachments.length > 0
+  }
+}
+
 /* ------------------------------------------------------------------ */
 /* Query builder */
 /* ------------------------------------------------------------------ */
 
+/** Escape % and _ for SQL LIKE so they match literally. */
+function escapeLike(term: string): string {
+  return term.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_")
+}
+
 const buildTransactionQuery = (filters?: TransactionListFilters) => {
   let query = transactionsCollection().query()
+
+  // Always exclude deleted unless explicitly requested
+  if (filters?.deletedOnly) {
+    query = query.extend(Q.where("is_deleted", true))
+  } else if (filters?.includeDeleted !== true) {
+    query = query.extend(Q.where("is_deleted", false))
+  }
 
   if (filters?.accountIds?.length) {
     query = query.extend(Q.where("account_id", Q.oneOf(filters.accountIds)))
   } else if (filters?.accountId) {
     query = query.extend(Q.where("account_id", filters.accountId))
   }
-  if (filters?.categoryId) {
+  if (filters?.categoryIds?.length) {
+    query = query.extend(Q.where("category_id", Q.oneOf(filters.categoryIds)))
+  } else if (filters?.categoryId) {
     query = query.extend(Q.where("category_id", filters.categoryId))
   }
-  if (filters?.type) {
+  if (filters?.typeFilters?.length) {
+    query = query.extend(Q.where("type", Q.oneOf(filters.typeFilters)))
+  } else if (filters?.type) {
     query = query.extend(Q.where("type", filters.type))
   }
   if (filters?.isPending !== undefined) {
     query = query.extend(Q.where("is_pending", filters.isPending))
-  }
-  if (filters?.deletedOnly) {
-    query = query.extend(Q.where("is_deleted", true))
-  } else if (!filters?.includeDeleted) {
-    query = query.extend(Q.where("is_deleted", false))
   }
   if (filters?.fromDate !== undefined) {
     query = query.extend(Q.where("transaction_date", Q.gte(filters.fromDate)))
   }
   if (filters?.toDate !== undefined) {
     query = query.extend(Q.where("transaction_date", Q.lte(filters.toDate)))
+  }
+  if (filters?.minAmount !== undefined) {
+    query = query.extend(Q.where("amount", Q.gte(filters.minAmount)))
+  }
+  if (filters?.maxAmount !== undefined) {
+    query = query.extend(Q.where("amount", Q.lte(filters.maxAmount)))
+  }
+  const searchTrimmed = filters?.search?.trim()
+  if (searchTrimmed && searchTrimmed.length > 0) {
+    const pattern = `%${escapeLike(searchTrimmed)}%`
+    query = query.extend(
+      Q.or(
+        Q.where("title", Q.like(pattern)),
+        Q.where("description", Q.like(pattern)),
+      ),
+    )
+  }
+  if (filters?.tagIds?.length) {
+    query = query.extend(
+      Q.on("transaction_tags", Q.where("tag_id", Q.oneOf(filters.tagIds))),
+    )
+  }
+  if (filters?.attachmentFilter === "has") {
+    query = query.extend(Q.where("has_attachments", true))
+  } else if (filters?.attachmentFilter === "none") {
+    query = query.extend(Q.where("has_attachments", false))
   }
 
   return query
@@ -351,6 +411,7 @@ const TRANSACTION_OBSERVE_COLUMNS = [
   "account_id",
   "updated_at",
   "is_deleted",
+  "has_attachments",
 ] as const
 
 export const observeTransactionModels = (
@@ -483,6 +544,9 @@ export const createTransactionModel = async (
       t.createdAt = new Date()
       t.updatedAt = new Date()
       t.extra = data.extra
+      t.recurringId = data.recurringId ?? null
+      // Cached derivative: set in same write so has_attachments never drifts from extra.attachments
+      t.hasAttachments = hasAttachmentsFromExtra(data.extra)
       t.subtype = data.subtype
       t.location = data.location
     })
@@ -567,12 +631,17 @@ export const updateTransactionModel = async (
       t.updatedAt = new Date()
       if (updates.extra !== undefined) {
         t.extra = updates.extra
+        // Cached derivative: always update both in same write (atomic, no drift)
+        t.hasAttachments = hasAttachmentsFromExtra(updates.extra)
       }
       if (updates.subtype !== undefined) {
         t.subtype = updates.subtype
       }
       if (updates.location !== undefined) {
         t.location = updates.location
+      }
+      if (updates.recurringId !== undefined) {
+        t.recurringId = updates.recurringId ?? null
       }
     })
 

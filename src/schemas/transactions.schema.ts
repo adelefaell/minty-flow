@@ -13,6 +13,7 @@ export const transactionSchema = z.object({
   isPending: z.boolean().default(false),
   requiresManualConfirmation: z.boolean().optional(),
   tags: z.array(z.string()).default([]),
+  recurringId: z.string().nullable().optional(),
   location: z.string().optional(),
   extra: z.record(z.string(), z.string()).optional(),
   subtype: z.string().optional(),
