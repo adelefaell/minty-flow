@@ -101,18 +101,7 @@ await recordLoanPayment(loan, 500)
 ### Tag Service (`tag-service.ts`)
 Manages tags for categorizing transactions
 
-```typescript
-import { getTags, createTag, incrementTagUsage } from '~/database/services'
 
-const tag = await createTag({
-  name: 'Business',
-  color: 'blue',
-  icon: '💼',
-})
-
-// Increment when used
-await incrementTagUsage(tag)
-```
 
 ### Transaction Service (`transaction-service.ts`)
 Manages financial transactions

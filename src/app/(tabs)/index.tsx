@@ -1,178 +1,245 @@
-import { Image } from "expo-image"
-import { Link } from "expo-router"
-import { useCallback } from "react"
-import { StyleSheet } from "react-native-unistyles"
+import { withObservables } from "@nozbe/watermelondb/react"
+import { useRouter } from "expo-router"
+import { useMemo, useState } from "react"
+import { StyleSheet, useUnistyles } from "react-native-unistyles"
+import { startWith } from "rxjs"
 
-import { useBottomSheet } from "~/components/bottom-sheet"
-import { CalculatorSheet } from "~/components/calculator-sheet"
-import { ChangeIconSheet } from "~/components/change-icon-sheet"
-import { ColorVariantSheet } from "~/components/color-variant-sheet"
-import ParallaxScrollView from "~/components/parallax-scroll-view"
+import { DynamicIcon } from "~/components/dynamic-icon"
+import { SummarySection } from "~/components/summary-card"
+import { TransactionFilterHeader } from "~/components/transaction/transaction-filter-header"
+import { TransactionSectionList } from "~/components/transaction/transaction-section-list"
+import { Button } from "~/components/ui/button"
+import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
+import {
+  observeAccountModels,
+  observeAccounts,
+} from "~/database/services/account-service"
+import { observeCategoriesByType } from "~/database/services/category-service"
+import { observeTags } from "~/database/services/tag-service"
+import type { TransactionWithRelations } from "~/database/services/transaction-service"
+import { observeTransactionModelsFull } from "~/database/services/transaction-service"
+import { useMoneyFormattingStore } from "~/stores/money-formatting.store"
+import { usePendingTransactionsStore } from "~/stores/pending-transactions.store"
+import { useProfileStore } from "~/stores/profile.store"
+import type { Account } from "~/types/accounts"
+import type { Category } from "~/types/categories"
+import type { Tag } from "~/types/tags"
+import type { TransactionListFilterState } from "~/types/transaction-filters"
+import { DEFAULT_TRANSACTION_LIST_FILTER_STATE } from "~/types/transaction-filters"
+import { TransactionTypeEnum } from "~/types/transactions"
+import {
+  buildQueryFilters,
+  buildTransactionListFilters,
+} from "~/utils/transaction-list-utils"
 
-export default function HomeScreen() {
+interface HomeScreenProps {
+  transactionsFull?: TransactionWithRelations[] | null
+  accounts?: Account[]
+  categoriesExpense?: Category[]
+  categoriesIncome?: Category[]
+  categoriesTransfer?: Category[]
+  tags?: Tag[]
+  filterState?: TransactionListFilterState
+  onFilterChange?: (state: TransactionListFilterState) => void
+  selectedRange?: { start: Date; end: Date } | null
+  onDateRangeChange?: (range: { start: Date; end: Date } | null) => void
+  searchQuery?: string
+  onSearchApply?: (query: string) => void
+}
+
+function HomeScreenInner({
+  transactionsFull = [],
+  accounts = [],
+  categoriesExpense = [],
+  categoriesIncome = [],
+  categoriesTransfer = [],
+  tags = [],
+  filterState = DEFAULT_TRANSACTION_LIST_FILTER_STATE,
+  onFilterChange,
+  selectedRange = null,
+  onDateRangeChange,
+  searchQuery = "",
+  onSearchApply,
+}: HomeScreenProps) {
+  const categoriesByType = useMemo(
+    () => ({
+      expense: categoriesExpense,
+      income: categoriesIncome,
+      transfer: categoriesTransfer,
+    }),
+    [categoriesExpense, categoriesIncome, categoriesTransfer],
+  )
+
+  const filteredList = useMemo(() => transactionsFull ?? [], [transactionsFull])
+
+  const router = useRouter()
+  const { theme } = useUnistyles()
+  const profileName = useProfileStore((s) => s.name)
+  const image = useProfileStore((s) => s.imageUri)
+  const { privacyMode: privacyModeEnabled, togglePrivacyMode: togglePrivacy } =
+    useMoneyFormattingStore()
+
+  const summaryHeader = useMemo(
+    () => (
+      <View style={styles.summaryContainer}>
+        <SummarySection transactionsWithRelations={filteredList} />
+      </View>
+    ),
+    [filteredList],
+  )
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
-      headerImage={
-        <Image
-          source={require("~/assets/images/partial-react-logo.png")}
-          style={styles.reactLogo}
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Pressable
+          onPress={() => router.push("/settings/edit-profile")}
+          style={styles.greetingRow}
+        >
+          {image ? (
+            <DynamicIcon icon={image} variant="raw" size={48} />
+          ) : (
+            <IconSymbol name="account" size={24} />
+          )}
+          <Text variant="large" style={styles.greetingText}>
+            Hi, {profileName}!
+          </Text>
+        </Pressable>
+
+        <Button variant="ghost" onPress={togglePrivacy}>
+          <IconSymbol
+            name={privacyModeEnabled ? "eye-off" : "eye"}
+            size={24}
+            color={
+              privacyModeEnabled ? theme.colors.customColors.semi : undefined
+            }
+          />
+        </Button>
+      </View>
+
+      {/* Inline filter header: pill bar + expandable filter panels */}
+      {onFilterChange ? (
+        <TransactionFilterHeader
+          accounts={accounts}
+          categoriesByType={categoriesByType}
+          tags={tags}
+          filterState={filterState}
+          onFilterChange={onFilterChange}
+          selectedRange={selectedRange}
+          onDateRangeChange={onDateRangeChange}
+          searchQuery={searchQuery}
+          onSearchApply={onSearchApply}
         />
-      }
-      // style={{ flex: 1, padding: 32, gap: 16 }}
-      // scrollEventThrottle={16}
-    >
-      <View style={styles.stepContainer}>
-        <Text variant="h2" style={styles.pageTitle}>
-          Toast Notification Examples
-        </Text>
-        <Link href="/toast-demo" style={styles.link}>
-          <Link.Trigger>
-            <Text>Open Interactive Toast Demo →</Text>
-          </Link.Trigger>
-        </Link>
-      </View>
+      ) : null}
 
-      <View style={styles.stepContainer}>
-        <Text variant="h2" style={styles.pageTitle}>
-          Bottom Sheet Examples
-        </Text>
-        <Text variant="p" style={styles.description}>
-          Try out these different bottom sheet examples:
-        </Text>
-        <CalculatorSheetExample />
-        <ChangeIconSheetExample />
-        <ColorVariantSheetExample />
-      </View>
-    </ParallaxScrollView>
-  )
-}
-
-const CalculatorSheetExample = () => {
-  const sheet = useBottomSheet("calculator-sheet")
-
-  const handleSubmit = useCallback(
-    (value: number) => {
-      alert(`Calculator submitted with value: ${value}`)
-      sheet.dismiss()
-    },
-    [sheet],
-  )
-
-  return (
-    <>
-      <Pressable style={styles.triggerButton} onPress={() => sheet.present()}>
-        <Text style={styles.triggerButtonText}>Open Calculator</Text>
-      </Pressable>
-
-      <CalculatorSheet
-        id="calculator-sheet"
-        title="Expense"
-        onSubmit={handleSubmit}
-        onChange={(sheetIndex) => {
-          if (sheetIndex === -1) {
-            // Sheet closed
-          }
-        }}
-        onDismiss={() => {
-          // Handle sheet dismiss
-        }}
+      {/* Transactions List */}
+      <TransactionSectionList
+        transactionsFull={transactionsFull ?? []}
+        filterState={filterState}
+        showUpcoming
+        ListHeaderComponent={summaryHeader}
       />
-    </>
+    </View>
   )
 }
 
-const ChangeIconSheetExample = () => {
-  const sheet = useBottomSheet("change-icon-sheet")
+const EnhancedHomeScreen = withObservables(
+  ["selectedRange", "homeTimeframe", "filterState", "searchQuery"],
+  ({
+    selectedRange,
+    homeTimeframe = 3,
+    filterState,
+    searchQuery,
+  }: {
+    selectedRange: { start: Date; end: Date } | null
+    homeTimeframe?: number
+    filterState: TransactionListFilterState
+    searchQuery: string
+  }) => {
+    const { fromDate, toDate } = buildQueryFilters(
+      selectedRange ?? null,
+      homeTimeframe,
+    )
+    const queryFilters = buildTransactionListFilters(filterState, {
+      fromDate,
+      toDate,
+      search: searchQuery,
+    })
+    return {
+      transactionsFull: observeTransactionModelsFull(queryFilters, [
+        observeAccountModels(false),
+        observeCategoriesByType(TransactionTypeEnum.EXPENSE),
+        observeCategoriesByType(TransactionTypeEnum.INCOME),
+        observeCategoriesByType(TransactionTypeEnum.TRANSFER),
+      ]).pipe(startWith([] as TransactionWithRelations[])),
+      accounts: observeAccounts(false).pipe(startWith([] as Account[])),
+      categoriesExpense: observeCategoriesByType(
+        TransactionTypeEnum.EXPENSE,
+      ).pipe(startWith([] as Category[])),
+      categoriesIncome: observeCategoriesByType(
+        TransactionTypeEnum.INCOME,
+      ).pipe(startWith([] as Category[])),
+      categoriesTransfer: observeCategoriesByType(
+        TransactionTypeEnum.TRANSFER,
+      ).pipe(startWith([] as Category[])),
+      tags: observeTags().pipe(startWith([] as Tag[])),
+    }
+  },
+)(HomeScreenInner)
 
+function HomeScreen() {
+  const [filterState, setFilterState] = useState<TransactionListFilterState>(
+    DEFAULT_TRANSACTION_LIST_FILTER_STATE,
+  )
+  const [selectedRange, setSelectedRange] = useState<{
+    start: Date
+    end: Date
+  } | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
+  const homeTimeframe = usePendingTransactionsStore((s) => s.homeTimeframe)
   return (
-    <>
-      <Pressable style={styles.triggerButton} onPress={() => sheet.present()}>
-        <Text style={styles.triggerButtonText}>Open Change Icon Sheet</Text>
-      </Pressable>
-
-      <ChangeIconSheet
-        id="change-icon-sheet"
-        onIconSelected={(selectedIcon) => {
-          // Handle icon selection
-          alert(`Icon selected: ${selectedIcon}`)
-          sheet.dismiss()
-        }}
-      />
-    </>
+    <EnhancedHomeScreen
+      filterState={filterState}
+      onFilterChange={setFilterState}
+      selectedRange={selectedRange}
+      homeTimeframe={homeTimeframe}
+      onDateRangeChange={setSelectedRange}
+      searchQuery={searchQuery}
+      onSearchApply={setSearchQuery}
+    />
   )
 }
 
-const ColorVariantSheetExample = () => {
-  const sheet = useBottomSheet("color-variant-sheet")
+export default HomeScreen
 
-  return (
-    <>
-      <Pressable style={styles.triggerButton} onPress={() => sheet.present()}>
-        <Text style={styles.triggerButtonText}>Select Color Variant</Text>
-      </Pressable>
-
-      <ColorVariantSheet
-        id="color-variant-sheet"
-        onColorSelected={(schemeName) => {
-          // Color variant has been selected - use it for your purpose
-          alert(`Selected color scheme: ${schemeName}`)
-        }}
-        onClearSelection={() => {
-          // Selection has been cleared
-          alert("Selection cleared")
-        }}
-        onDismiss={() => {
-          // Handle sheet dismiss
-        }}
-      />
-    </>
-  )
-}
-
-const styles = StyleSheet.create((t) => ({
-  titleContainer: {
+const styles = StyleSheet.create((theme) => ({
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.surface,
+  },
+  header: {
+    marginHorizontal: 20,
+    marginVertical: 10,
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    justifyContent: "space-between",
+    paddingTop: 20,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  greetingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    borderRadius: theme.colors.radius,
+    padding: 10,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: "absolute",
+  greetingText: {
+    fontWeight: "bold",
   },
-  link: {
-    textDecorationLine: "underline",
-  },
-  pageTitle: {
-    marginBottom: 16,
-    textAlign: "center",
-  },
-  description: {
-    marginBottom: 16,
-    textAlign: "center",
-    color: t.colors.onSecondary,
-  },
-  triggerButton: {
-    backgroundColor: t.colors.primary,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: t.colors.radius,
-    alignSelf: "center",
-    marginVertical: 8,
-  },
-  triggerButtonText: {
-    color: t.colors.onPrimary,
-    fontSize: 16,
-    fontWeight: "600",
+  summaryContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 24,
   },
 }))

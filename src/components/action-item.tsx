@@ -22,9 +22,9 @@ export const ActionItem = ({
 }: ActionItemProps) => {
   return (
     <Pressable
-      style={(state) => [
+      style={() => [
         styles.actionItem,
-        state.pressed && styles.actionItemPressed,
+        // state.pressed && styles.actionItemPressed,
         soon && { opacity: 0.5 },
       ]}
       onPress={onPress}
@@ -61,24 +61,21 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 16,
+    paddingVertical: 15,
     paddingHorizontal: 20,
-    // backgroundColor: theme.card,
   },
-  actionItemPressed: {
-    opacity: 0.8,
-  },
+  // actionItemPressed: {
+  //   opacity: 0.8,
+  // },
   actionItemLeft: {
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
+    gap: 15,
   },
   iconContainer: {
-    width: 32,
-    height: 32,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 16,
   },
   actionItemContent: {
     flex: 1,
@@ -86,13 +83,12 @@ const styles = StyleSheet.create((theme) => ({
   titleRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 10,
   },
   actionItemTitle: {
     fontSize: 15,
     fontWeight: "600",
     color: theme.colors.onSurface,
-    marginBottom: 2,
   },
   actionItemDescription: {
     fontSize: 13,
@@ -108,8 +104,5 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 10,
     fontWeight: "600",
     color: theme.colors.onSecondary,
-  },
-  chevron: {
-    marginLeft: 8,
   },
 }))

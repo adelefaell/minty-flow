@@ -1,7 +1,7 @@
 import { create } from "zustand"
 import { devtools } from "zustand/middleware"
 
-export type TransactionType = "expense" | "income" | "transfer"
+import type { TransactionType } from "~/types/transactions"
 
 type OnboardingStep =
   | "account"

@@ -261,11 +261,11 @@ class ExchangeRatesService {
    * Gets exchange rate for a specific currency pair.
    *
    * @remarks
-   * Always returns latest rates.
-   * Returns 1 if both currencies are the same.
+   * Always returns latest rates. Direction matches Flutter: "to per 1 from"
+   * so that creditAmount = amount * rate. Returns 1 if both currencies are the same.
    *
-   * @param fromCurrency - Source currency code
-   * @param toCurrency - Target currency code
+   * @param fromCurrency - Source currency code (debit account)
+   * @param toCurrency - Target currency code (credit account)
    * @returns Exchange rate (amount of toCurrency per 1 fromCurrency) or null
    */
   async getRate(
@@ -298,21 +298,22 @@ class ExchangeRatesService {
       return 1
     }
 
-    const rates = await this.tryFetchRates(fromCurrency)
-    if (!rates || !rates.rates) {
-      const errorMessage = `Unable to fetch exchange rates for ${fromCurrency}. Please try again later.`
-      this.showToast(errorMessage)
-      return null
-    }
-
+    let rates = await this.tryFetchRates(fromCurrency)
+    const fromCurrencyLower = normalizeCurrencyCode(fromCurrency)
     const toCurrencyLower = normalizeCurrencyCode(toCurrency)
-    const rate = rates.rates[toCurrencyLower]
 
-    if (typeof rate === "number") {
-      return rate
+    if (rates?.rates && typeof rates.rates[toCurrencyLower] === "number") {
+      return rates.rates[toCurrencyLower]
     }
 
-    const errorMessage = `Exchange rate not found for ${fromCurrency} to ${toCurrency}. Please check the currency codes and try again.`
+    // Fallback: many APIs only support USD (or a few bases). Try fetching with toCurrency as base and invert.
+    rates = await this.tryFetchRates(toCurrency)
+    if (rates?.rates && typeof rates.rates[fromCurrencyLower] === "number") {
+      const inverse = rates.rates[fromCurrencyLower]
+      if (inverse !== 0) return 1 / inverse
+    }
+
+    const errorMessage = `Exchange rate not found for ${fromCurrency} to ${toCurrency}. Please try again or set a custom rate in Settings.`
     this.showToast(errorMessage)
     logger.error("Exchange rate not found", {
       fromCurrency,

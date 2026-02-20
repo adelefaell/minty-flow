@@ -124,11 +124,12 @@ run_task() {
 # -----------------------------
 echo -e "
 ${green}
-    _    ____  ____    _   _    _    __  __ _____ 
-   / \  |  _ \|  _ \  | \ | |  / \  |  \/  | ____|
-  / _ \ | |_) | |_) | |  \| | / _ \ | |\/| |  _|  
- / ___ \|  __/|  __/  | |\  |/ ___ \| |  | | |___ 
-/_/   \_\_|   |_|     |_| \_/_/   \_\_|  |_|_____|                  
+ __  __ _       _         _____ _               
+|  \/  (_)_ __ | |_ _   _|  ___| | _____      __
+| |\/| | | '_ \| __| | | | |_  | |/ _ \ \ /\ / /
+| |  | | | | | | |_| |_| |  _| | | (_) \ V  V / 
+|_|  |_|_|_| |_|\__|\__, |_|   |_|\___/ \_/\_/  
+                    |___/                      
 ${clear}
 "
 
@@ -139,12 +140,15 @@ echo -e "Let's hope you are not ${red}DUMB${clear}!"; echo
 # -----------------------------
 types_log="$(mktemp -t types_output.XXXXXX)"
 lint_log="$(mktemp -t lint_output.XXXXXX)"
-cleanup() { rm -f "$types_log" "$lint_log" >/dev/null 2>&1 || true; }
+structure_log="$(mktemp -t structure_output.XXXXXX)"
+cleanup() { rm -f "$types_log" "$lint_log" "$structure_log" >/dev/null 2>&1 || true; }
 trap cleanup EXIT INT TERM
 
 # -----------------------------
-# ORDER: 1) Lint (fix)  2) Stage changes  3) Types
+# ORDER: 1) Structure  2) Lint (fix)  3) Stage changes  4) Types
 # -----------------------------
+run_task "Generating project structure map" "$PACKAGE_MANAGER run structure" "$structure_log"
+
 run_task "Running linting (fix)"   "$PACKAGE_MANAGER run lint:fix" "$lint_log"
 
 # -----------------------------

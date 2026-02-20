@@ -221,15 +221,6 @@ export const markLoanModelAsPaid = async (
 }
 
 /**
- * Delete loan (mark as deleted for sync)
- */
-export const deleteLoanModel = async (loan: LoanModel): Promise<void> => {
-  await database.write(async () => {
-    await loan.markAsDeleted()
-  })
-}
-
-/**
  * Permanently destroy loan
  */
 export const destroyLoanModel = async (loan: LoanModel): Promise<void> => {

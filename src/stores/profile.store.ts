@@ -1,6 +1,6 @@
 import { createMMKV } from "react-native-mmkv"
 import { create } from "zustand"
-import { createJSONStorage, persist } from "zustand/middleware"
+import { createJSONStorage, devtools, persist } from "zustand/middleware"
 
 /**
  * MMKV storage instance for user profile data.
@@ -57,24 +57,27 @@ interface ProfileStore {
  * @see https://github.com/pmndrs/zustand
  */
 export const useProfileStore = create<ProfileStore>()(
-  persist(
-    (set) => ({
-      // State definitions
-      name: "Name",
-      imageUri: null,
+  devtools(
+    persist(
+      (set) => ({
+        // State definitions
+        name: "Name",
+        imageUri: null,
 
-      // Actions
-      setName: (name) => set({ name: name.trim() || "Name" }),
-      setImageUri: (imageUri) => set({ imageUri }),
-    }),
-    {
-      name: "user-profile", // Name for the store (MMKV key)
-      // Use the custom MMKV instance for storage
-      storage: createJSONStorage(() => ({
-        getItem: (name) => profileStorage.getString(name) ?? null,
-        setItem: (name, value) => profileStorage.set(name, value),
-        removeItem: (name) => profileStorage.remove(name),
-      })),
-    },
+        // Actions
+        setName: (name) => set({ name: name.trim() || "Name" }),
+        setImageUri: (imageUri) => set({ imageUri }),
+      }),
+      {
+        name: "user-profile", // Name for the store (MMKV key)
+        // Use the custom MMKV instance for storage
+        storage: createJSONStorage(() => ({
+          getItem: (name) => profileStorage.getString(name) ?? null,
+          setItem: (name, value) => profileStorage.set(name, value),
+          removeItem: (name) => profileStorage.remove(name),
+        })),
+      },
+    ),
+    { name: "user-profile-store-dev" },
   ),
 )

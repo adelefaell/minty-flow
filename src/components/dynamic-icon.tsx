@@ -17,31 +17,41 @@ interface DynamicIconProps {
   icon?: string | null
   size?: IconSize
   colorScheme?: MintyColorScheme | null
+  color?: string
+  variant?: "badge" | "raw"
 }
 
 export const DynamicIcon: FC<DynamicIconProps> = ({
   icon,
   size = 24,
   colorScheme,
+  color: explicitColor,
+  variant = "badge",
 }) => {
-  // Extract color and background from colorScheme
-  const color = colorScheme?.primary || undefined
+  const color = explicitColor || colorScheme?.primary || undefined
   const bgColor = colorScheme?.secondary || undefined
-  const containerSize = size * 2 // Make container 2x icon size for circular appearance
+  const containerSize = size * 2
 
-  // Case 1: image URL/URI
-  if (icon && icon !== null && isImageUrl(icon)) {
+  const isRaw = variant === "raw"
+
+  // ---------- Image ----------
+  if (icon && isImageUrl(icon)) {
+    if (isRaw) {
+      return (
+        <Image
+          source={{ uri: icon }}
+          style={[styles.image, { width: size, height: size }]}
+          contentFit="contain"
+        />
+      )
+    }
+
     return (
       <View
         style={[
           styles.imageContainer,
-          {
-            width: containerSize,
-            height: containerSize,
-          },
-          bgColor && {
-            backgroundColor: bgColor,
-          },
+          { width: containerSize, height: containerSize },
+          bgColor && { backgroundColor: bgColor },
         ]}
       >
         <Image
@@ -53,30 +63,28 @@ export const DynamicIcon: FC<DynamicIconProps> = ({
     )
   }
 
-  // Case 2: text/emoji
-  if (icon && icon !== null && isSingleEmojiOrLetter(icon)) {
+  // ---------- Emoji / Letter ----------
+  if (icon && isSingleEmojiOrLetter(icon)) {
+    if (isRaw) {
+      return (
+        <RNText
+          style={[styles.emojiText, { fontSize: size }, color && { color }]}
+        >
+          {icon}
+        </RNText>
+      )
+    }
+
     return (
       <View
         style={[
           styles.emojiContainer,
-          {
-            width: containerSize,
-            height: containerSize,
-          },
-          bgColor && {
-            backgroundColor: bgColor,
-          },
+          { width: containerSize, height: containerSize },
+          bgColor && { backgroundColor: bgColor },
         ]}
       >
         <RNText
-          style={[
-            styles.emojiText,
-            {
-              fontSize: size,
-              lineHeight: size * 1.2,
-            },
-            color && { color },
-          ]}
+          style={[styles.emojiText, { fontSize: size }, color && { color }]}
         >
           {icon}
         </RNText>
@@ -84,27 +92,32 @@ export const DynamicIcon: FC<DynamicIconProps> = ({
     )
   }
 
-  // Case 3: fallback
-  if (!icon || icon === null) {
+  // ---------- Fallback ----------
+  if (!icon) {
+    if (isRaw) {
+      return <IconSymbol name="adjust" size={size} color={color} />
+    }
+
     return (
       <View
         style={[
           styles.iconContainer,
-          {
-            width: containerSize,
-            height: containerSize,
-          },
-          bgColor && {
-            backgroundColor: bgColor,
-          },
+          { width: containerSize, height: containerSize },
+          bgColor && { backgroundColor: bgColor },
         ]}
       >
-        <IconSymbol name="shape-outline" size={size} color={color} />
+        <IconSymbol name="adjust" size={size} color={color} />
       </View>
     )
   }
 
-  // Case 4: icon (MaterialCommunityIcons or IconSymbol)
+  // ---------- IconSymbol ----------
+  if (isRaw) {
+    return (
+      <IconSymbol name={icon as IconSymbolName} size={size} color={color} />
+    )
+  }
+
   return (
     <View
       style={[
@@ -128,11 +141,7 @@ const styles = StyleSheet.create((theme) => ({
   emojiText: {
     fontWeight: "600",
     color: theme.colors.primary,
-    // Don't set lineHeight - let React Native compute it automatically
-    // Setting lineHeight to 1 causes emojis to be clipped and show as ❓
     textAlign: "center",
-    // Don't set fontFamily - let the system use native emoji fonts
-    // This ensures emojis render correctly on iOS (Apple Color Emoji) and Android (Noto Color Emoji)
   },
   iconContainer: {
     alignItems: "center",

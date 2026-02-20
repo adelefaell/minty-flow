@@ -3,166 +3,238 @@ import { Stack } from "expo-router"
 import { StatusBar } from "expo-status-bar"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { KeyboardProvider } from "react-native-keyboard-controller"
-import { useUnistyles } from "react-native-unistyles"
+import { UnistylesRuntime, useUnistyles } from "react-native-unistyles"
 
-import { ScreenSharedHeader } from "~/components/screen-shared-header"
 import { ToastManager } from "~/components/ui/toast"
 import { TooltipProvider } from "~/components/ui/tooltip"
 import "react-native-reanimated"
 
+import { setStyle } from "expo-navigation-bar"
+import { Platform } from "react-native"
+
+import { useRecurringTransactionSync } from "~/hooks/use-recurring-transaction-sync"
+import { useRetentionCleanup } from "~/hooks/use-retention-cleanup"
+import { NewEnum } from "~/types/new"
+
 export default function RootLayout() {
   const { theme } = useUnistyles()
 
+  UnistylesRuntime.setRootViewBackgroundColor(theme.colors.surface)
+
+  if (Platform.OS === "android") {
+    setStyle(theme.isDark ? "dark" : "light")
+  }
+
+  // Ports to reality: retention cleanup and recurring sync (effects live in domain hooks)
+  useRetentionCleanup()
+  useRecurringTransactionSync()
+
   return (
     <KeyboardProvider>
-      <GestureHandlerRootView style={{ flex: 1 }}>
+      <GestureHandlerRootView
+        style={{
+          flex: 1,
+          // paddingTop: UnistylesRuntime.insets.top,
+          paddingBottom: UnistylesRuntime.insets.bottom,
+        }}
+      >
         <TooltipProvider>
           <BottomSheetModalProvider>
             <Stack
               screenOptions={{
-                // headerStyle: {
-                //   backgroundColor: theme.colors.surface,
-                // },
-                // headerTintColor: theme.colors.primary,
-                // headerTitleStyle: {
-                //   color: theme.colors.onSurface,
-                //   fontWeight: "600",
-                // },
-                header: (props) => <ScreenSharedHeader props={props} />,
+                headerStyle: {
+                  backgroundColor: theme.colors.surface,
+                },
+                headerTintColor: theme.colors.primary,
+                headerTitleStyle: {
+                  color: theme.colors.onSurface,
+                  fontWeight: "600",
+                },
+                headerShadowVisible: false,
+                // header: (props) => <ScreenSharedHeader props={props} />,
                 // animation: "fade",
               }}
             >
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="toast-demo"
-                options={{ presentation: "modal", title: "Toast Demo" }}
-              />
 
               {/* settings screens */}
               <Stack.Screen
-                name="(settings)/edit-profile"
-                options={{ presentation: "modal", title: "Edit Profile" }}
+                name="settings/edit-profile"
+                options={{ title: "Edit Profile" }}
+              />
+              <Stack.Screen name="settings/loans" options={{ title: "Loan" }} />
+              <Stack.Screen
+                name="settings/all-accounts"
+                options={{ title: "All Accounts" }}
               />
               <Stack.Screen
-                name="(settings)/loans"
-                options={{ presentation: "modal", title: "Loan" }}
+                name="settings/categories/index"
+                options={{ title: "Categories" }}
               />
               <Stack.Screen
-                name="(settings)/(categories)/categories"
-                options={{ presentation: "modal", title: "Categories" }}
+                name="settings/categories/archived"
+                options={{ title: "Archived Categories" }}
+              />
+
+              <Stack.Screen
+                name="settings/categories/[categoryId]/index"
+                options={{
+                  title: "Category Details",
+                }}
+              />
+
+              <Stack.Screen
+                name="settings/categories/presets"
+                options={{ title: "Add from Presets" }}
               />
               <Stack.Screen
-                name="(settings)/(categories)/presets"
-                options={{ presentation: "modal", title: "Add from Presets" }}
-              />
-              <Stack.Screen
-                name="(settings)/(categories)/[categoryId]"
+                name="settings/categories/[categoryId]/modify"
                 options={({ route }) => {
                   const params = route.params as
                     | { categoryId?: string }
                     | undefined
                   return {
-                    presentation: "modal",
                     title:
-                      params?.categoryId === "add-category"
+                      params?.categoryId === NewEnum.NEW
                         ? "Create Category"
                         : "Edit Category",
                   }
                 }}
               />
               <Stack.Screen
-                name="(settings)/tags"
-                options={{ presentation: "modal", title: "Tags" }}
+                name="settings/tags/index"
+                options={{ title: "Tags" }}
               />
               <Stack.Screen
-                name="(settings)/trash"
-                options={{ presentation: "modal", title: "Trash" }}
+                name="settings/trash"
+                options={{ title: "Trash" }}
               />
               <Stack.Screen
-                name="(settings)/(preferences)/preferences"
-                options={{ presentation: "modal", title: "Preferences" }}
+                name="settings/preferences/index"
+                options={{ title: "Preferences" }}
               />
               <Stack.Screen
-                name="(settings)/data-management"
-                options={{ presentation: "modal", title: "Data Management" }}
+                name="settings/data-management"
+                options={{ title: "Data Management" }}
               />
               <Stack.Screen
-                name="(settings)/notifications"
-                options={{ presentation: "modal", title: "Notifications" }}
+                name="settings/budgets"
+                options={{ title: "Budgets" }}
               />
               <Stack.Screen
-                name="(settings)/budgets"
-                options={{ presentation: "modal", title: "Budgets" }}
-              />
-              <Stack.Screen
-                name="(settings)/pending-transactions"
+                name="settings/pending-transactions"
                 options={{
-                  presentation: "modal",
                   title: "Pending Transactions",
                 }}
               />
               <Stack.Screen
-                name="(settings)/bill-splitter"
-                options={{ presentation: "modal", title: "Bill Splitter" }}
+                name="settings/bill-splitter"
+                options={{ title: "Bill Splitter" }}
               />
               <Stack.Screen
-                name="(settings)/goals"
-                options={{ presentation: "modal", title: "Goals" }}
+                name="settings/goals"
+                options={{ title: "Goals" }}
               />
 
-              {/* settings screens (preferences) */}
+              {/* settings screens preferences */}
               <Stack.Screen
-                name="(settings)/(preferences)/theme"
-                options={{ presentation: "modal", title: "Theme" }}
+                name="settings/preferences/theme"
+                options={{ title: "Theme" }}
               />
               <Stack.Screen
-                name="(settings)/(preferences)/toast-style"
+                name="settings/preferences/toast-style"
                 options={{
-                  presentation: "modal",
                   title: "Toast Style",
                 }}
               />
               <Stack.Screen
-                name="(settings)/(preferences)/exchange-rates"
-                options={{ presentation: "modal", title: "Exchange Rates" }}
+                name="settings/preferences/exchange-rates"
+                options={{ title: "Exchange Rates" }}
               />
               <Stack.Screen
-                name="(settings)/(preferences)/trash-bin"
-                options={{ presentation: "modal", title: "Trash bin" }}
+                name="settings/preferences/trash-bin"
+                options={{ title: "Trash bin" }}
               />
               <Stack.Screen
-                name="(settings)/(preferences)/reminder"
-                options={{ presentation: "modal", title: "Reminder" }}
+                name="settings/preferences/reminder"
+                options={{ title: "Reminder" }}
               />
               <Stack.Screen
-                name="(settings)/(preferences)/numpad"
-                options={{ presentation: "modal", title: "Numpad" }}
-              />
-              <Stack.Screen
-                name="(settings)/(preferences)/pending-transactions"
+                name="settings/preferences/pending-transactions"
                 options={{
-                  presentation: "modal",
                   title: "Pending transactions",
                 }}
               />
               <Stack.Screen
-                name="(settings)/(preferences)/privacy"
-                options={{ presentation: "modal", title: "Privacy" }}
+                name="settings/preferences/privacy"
+                options={{ title: "Privacy" }}
               />
               <Stack.Screen
-                name="(settings)/(preferences)/money-formatting"
-                options={{ presentation: "modal", title: "Money Formatting" }}
+                name="settings/preferences/money-formatting"
+                options={{ title: "Money Formatting" }}
               />
               <Stack.Screen
-                name="(settings)/(preferences)/transaction-location"
+                name="settings/preferences/transaction-location"
                 options={{
-                  presentation: "modal",
                   title: "Transaction Location",
                 }}
               />
-            </Stack>
+              <Stack.Screen
+                name="settings/preferences/transfers"
+                options={{ title: "Transfers" }}
+              />
+              <Stack.Screen
+                name="accounts/[accountId]/index"
+                options={{
+                  title: "Account Details",
+                }}
+              />
+              <Stack.Screen
+                name="accounts/[accountId]/modify"
+                options={({ route }) => {
+                  const params = route.params as
+                    | { accountId?: string }
+                    | undefined
+                  return {
+                    title:
+                      params?.accountId === NewEnum.NEW
+                        ? "Create Account"
+                        : "Edit Account",
+                  }
+                }}
+              />
+              <Stack.Screen
+                name="settings/tags/[tagId]"
+                options={({ route }) => {
+                  const params = route.params as { tagId?: string } | undefined
+                  return {
+                    title:
+                      params?.tagId === NewEnum.NEW ? "Create Tag" : "Edit Tag",
+                  }
+                }}
+              />
 
+              <Stack.Screen
+                name="transaction/[id]"
+                options={({ route }) => {
+                  const params = route.params as { id?: string } | undefined
+                  return {
+                    title:
+                      params?.id === NewEnum.NEW
+                        ? "Create Transaction"
+                        : "Edit Transaction",
+                    presentation: "fullScreenModal",
+                  }
+                }}
+              />
+            </Stack>
             <StatusBar style={theme.isDark ? "light" : "dark"} animated />
+
+            {/* <SystemBars style={{
+              navigationBar: "dark",
+              statusBar: "dark",
+
+            }} /> */}
 
             <ToastManager />
           </BottomSheetModalProvider>

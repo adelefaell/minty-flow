@@ -8,14 +8,19 @@ import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import type CategoryModel from "~/database/models/Category"
-import { observeCategoriesByType } from "~/database/services/category-service"
-import type { Category, CategoryType } from "~/types/categories"
+import {
+  observeArchivedCategoryCountByType,
+  observeCategoriesByType,
+} from "~/database/services/category-service"
+import type { Category } from "~/types/categories"
+import { NewEnum } from "~/types/new"
+import type { TransactionType } from "~/types/transactions"
 
+import { Separator } from "../ui/separator"
 import { CategoryRow } from "./category-row"
 
 interface CategoryListProps {
-  type: CategoryType
+  type: TransactionType
   createdCategory?: string
   updatedCategory?: string
   deletedCategory?: string
@@ -23,26 +28,9 @@ interface CategoryListProps {
   searchQuery?: string
 }
 
-/**
- * Convert CategoryModel to Category domain type
- */
-const modelToCategory = (model: CategoryModel): Category => {
-  return {
-    id: model.id,
-    name: model.name,
-    type: model.type,
-    icon: model.icon,
-    colorSchemeName: model.colorSchemeName,
-    colorScheme: model.colorScheme, // Computed getter from model
-    transactionCount: model.transactionCount,
-    isArchived: model.isArchived,
-    createdAt: model.createdAt,
-    updatedAt: model.updatedAt,
-  }
-}
-
 interface CategoryListInnerProps extends CategoryListProps {
-  categoryModels: CategoryModel[]
+  categories: Category[]
+  archivedCount: number
 }
 
 const CategoryListInner = ({
@@ -50,17 +38,12 @@ const CategoryListInner = ({
   createdCategory,
   updatedCategory,
   deletedCategory,
-  categoryModels,
+  categories,
+  archivedCount,
   includeArchived = false,
   searchQuery = "",
-}: CategoryListInnerProps & {
-  includeArchived?: boolean
-  searchQuery?: string
-}) => {
+}: CategoryListInnerProps) => {
   const router = useRouter()
-
-  // Convert models to domain types
-  const categories = categoryModels.map(modelToCategory)
 
   // Clear URL params when screen comes into focus
   // The reactive observe will automatically update the list
@@ -80,9 +63,9 @@ const CategoryListInner = ({
 
   const handleAddCategory = () => {
     router.push({
-      pathname: "/(settings)/(categories)/[categoryId]",
+      pathname: "/settings/categories/[categoryId]/modify",
       params: {
-        categoryId: "add-category",
+        categoryId: NewEnum.NEW,
         initialType: type,
       },
     })
@@ -90,7 +73,16 @@ const CategoryListInner = ({
 
   const handleAddFromPresets = () => {
     router.push({
-      pathname: "/(settings)/(categories)/presets",
+      pathname: "/settings/categories/presets",
+      params: {
+        type,
+      },
+    })
+  }
+
+  const handleViewArchived = () => {
+    router.push({
+      pathname: "/settings/categories/archived",
       params: {
         type,
       },
@@ -108,31 +100,65 @@ const CategoryListInner = ({
     }
 
     return (
-      <View style={styles.headerContainer}>
-        <Button
-          variant="secondary"
-          size="default"
-          onPress={handleAddCategory}
-          style={styles.headerButton}
-        >
-          <IconSymbol name="plus" size={20} />
-          <Text variant="default" style={styles.headerButtonText}>
-            Add New Category
-          </Text>
-        </Button>
-        <Button
-          variant="secondary"
-          size="default"
-          onPress={handleAddFromPresets}
-          style={styles.headerButton}
-        >
-          <IconSymbol name="shape-plus-outline" size={20} />
-          <Text variant="default" style={styles.headerButtonText}>
-            Add From Presets
-          </Text>
-        </Button>
-        <View style={styles.separator} />
-      </View>
+      <>
+        <View style={styles.headerContainer}>
+          <Button
+            variant="secondary"
+            size="default"
+            onPress={handleAddCategory}
+            style={styles.headerButton}
+          >
+            <IconSymbol name="plus" size={20} />
+            <Text variant="default" style={styles.headerButtonText}>
+              Add New Category
+            </Text>
+          </Button>
+          <Button
+            variant="secondary"
+            size="default"
+            onPress={handleAddFromPresets}
+            style={styles.headerButton}
+          >
+            <IconSymbol name="shape-plus" size={20} />
+            <Text variant="default" style={styles.headerButtonText}>
+              Add From Presets
+            </Text>
+          </Button>
+        </View>
+
+        <Separator />
+      </>
+    )
+  }
+
+  const renderFooter = () => {
+    if (includeArchived || archivedCount === 0) {
+      return null
+    }
+
+    return (
+      <>
+        <Separator style={styles.footerSeparator} />
+        <View style={styles.footerContainer}>
+          <Button
+            variant="secondary"
+            size="default"
+            onPress={handleViewArchived}
+          >
+            <View style={styles.archivedEntryLeft} variant="muted">
+              <IconSymbol
+                name="archive"
+                size={20}
+                style={styles.archivedIcon}
+              />
+              <Text style={styles.archivedText}>
+                View Archived {type.charAt(0).toUpperCase() + type.slice(1)}s (
+                {archivedCount})
+              </Text>
+            </View>
+          </Button>
+        </View>
+      </>
     )
   }
 
@@ -140,7 +166,15 @@ const CategoryListInner = ({
   // When viewing active, show ONLY active categories
   const allCategories = includeArchived ? archivedCategories : activeCategories
 
-  if (allCategories.length === 0) {
+  // Filter categories based on search query
+  const filteredCategories = allCategories.filter((category) => {
+    if (searchQuery.trim().length === 0) return true
+    return category.name
+      .toLowerCase()
+      .includes(searchQuery.trim().toLowerCase())
+  })
+
+  if (filteredCategories.length === 0) {
     if (searchQuery) {
       return (
         <View style={styles.emptyWrapper}>
@@ -162,7 +196,7 @@ const CategoryListInner = ({
       return (
         <View style={styles.emptyWrapper}>
           <View style={styles.emptyContainer}>
-            <IconSymbol name="tag-outline" size={40} style={styles.emptyIcon} />
+            <IconSymbol name="shape" size={40} style={styles.emptyIcon} />
             <Text variant="h4" style={styles.emptyTitle}>
               No archived {type} categories
             </Text>
@@ -174,26 +208,50 @@ const CategoryListInner = ({
       )
     }
 
+    // SMART EMPTY STATE HANDLER:
+    // If no active categories but archivedCount > 0, showScenario B
+    if (!includeArchived && archivedCount > 0) {
+      return (
+        <View style={styles.emptyWrapper}>
+          {renderHeader()}
+          <View style={styles.emptyContainer}>
+            <IconSymbol
+              name="shape"
+              size={40}
+              style={[styles.emptyIcon, { opacity: 0.3 }]}
+            />
+            <Text variant="h4" style={styles.emptyTitle}>
+              No active {type}s
+            </Text>
+            <Text variant="small" style={styles.emptyDescription}>
+              You have archived all your {type} categories.
+            </Text>
+            <Button
+              variant="default"
+              onPress={handleViewArchived}
+              style={styles.emptyButton}
+            >
+              <Text variant="default" style={styles.emptyButtonText}>
+                View Archived {type.charAt(0).toUpperCase() + type.slice(1)}s (
+                {archivedCount})
+              </Text>
+            </Button>
+          </View>
+        </View>
+      )
+    }
+
     return (
       <View style={styles.emptyWrapper}>
         {renderHeader()}
         <View style={styles.emptyContainer}>
-          <IconSymbol name="tag-outline" size={40} style={styles.emptyIcon} />
+          <IconSymbol name="shape" size={40} style={styles.emptyIcon} />
           <Text variant="h4" style={styles.emptyTitle}>
             No {type} categories yet
           </Text>
           <Text variant="small" style={styles.emptyDescription}>
             Create your first category to start organizing your transactions
           </Text>
-          <Button
-            variant="default"
-            onPress={handleAddFromPresets}
-            style={styles.emptyButton}
-          >
-            <Text variant="default" style={styles.emptyButtonText}>
-              Add Recommended Categories
-            </Text>
-          </Button>
         </View>
       </View>
     )
@@ -201,47 +259,38 @@ const CategoryListInner = ({
 
   return (
     <FlatList
-      data={allCategories}
+      data={filteredCategories}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => (
         <CategoryRow category={item} transactionCount={item.transactionCount} />
       )}
       contentContainerStyle={styles.listContent}
       ListHeaderComponent={renderHeader()}
+      ListFooterComponent={renderFooter()}
     />
   )
 }
 
 const styles = StyleSheet.create((theme) => ({
   listContent: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
     paddingBottom: 100,
-    gap: 8,
+    gap: 10,
   },
   headerContainer: {
     paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 8,
-    gap: 12,
+    paddingVertical: 10,
+    gap: 10,
   },
   headerButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
+    gap: 10,
     width: "100%",
   },
   headerButtonText: {
     fontSize: 16,
     fontWeight: "600",
-  },
-  separator: {
-    height: 1,
-    backgroundColor: theme.colors.onSurface,
-    opacity: 0.1,
-    marginTop: 4,
-    marginBottom: 8,
   },
   emptyWrapper: {
     flex: 1,
@@ -255,36 +304,59 @@ const styles = StyleSheet.create((theme) => ({
   },
   emptyIcon: {
     opacity: 0.5,
-    marginBottom: 16,
+    marginBottom: 20,
   },
   emptyTitle: {
     fontSize: 20,
     fontWeight: "600",
     color: theme.colors.onSurface,
-    marginBottom: 8,
+    marginBottom: 10,
     textAlign: "center",
   },
   emptyDescription: {
     fontSize: 14,
     color: theme.colors.onSecondary,
     textAlign: "center",
-    marginBottom: 24,
+    marginBottom: 20,
     lineHeight: 20,
   },
   emptyButton: {
     minWidth: 200,
+    marginTop: 10,
   },
   emptyButtonText: {
     fontWeight: "600",
     color: theme.colors.onPrimary,
+  },
+  footerContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 40,
+  },
+  footerSeparator: {
+    marginVertical: 20,
+  },
+  archivedEntryLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  archivedIcon: {
+    color: theme.colors.onSecondary,
+  },
+  archivedText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: theme.colors.onSecondary,
   },
 }))
 
 // Enhance component with WatermelonDB observables
 // This follows WatermelonDB best practices: https://watermelondb.dev/docs/Query
 export const CategoryList = withObservables(
-  ["type", "includeArchived", "searchQuery"],
-  ({ type, includeArchived = false, searchQuery = "" }: CategoryListProps) => ({
-    categoryModels: observeCategoriesByType(type, includeArchived, searchQuery),
+  ["type", "includeArchived"],
+  ({ type, includeArchived = false }: CategoryListProps) => ({
+    categories: observeCategoriesByType(type, includeArchived),
+    archivedCount: observeArchivedCategoryCountByType(type),
   }),
 )(CategoryListInner)

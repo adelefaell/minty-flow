@@ -25,17 +25,17 @@ export interface MintyColorScheme {
   surface: string // Background color
   onSurface: string // Text color on surface
   primary: string // Primary brand color
-  onPrimary?: string // Text color on primary
+  onPrimary: string // Text color on primary
   secondary: string // Secondary/card background
-  onSecondary?: string // Text color on secondary
-  error?: string // Error color
-  onError?: string // Text color on error
+  onSecondary: string // Text color on secondary
+  error: string // Error color
+  onError: string // Text color on error
   customColors: MintyCustomColors
   // Utility colors
-  rippleColor?: string // Ripple effect color
-  shadow?: string // Shadow color
-  boxShadow?: string // Box shadow for web
-  radius?: number // Border radius
+  rippleColor: string // Ripple effect color
+  shadow: string // Shadow color
+  boxShadow: string // Box shadow for web
+  radius: number // Border radius
 }
 
 /**

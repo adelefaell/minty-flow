@@ -1,6 +1,10 @@
 import { StyleSheet } from "react-native-unistyles"
 
-import { themeStorage } from "~/stores/theme.store"
+import {
+  DEFAULT_THEME,
+  THEME_PERSIST_STORE_KEY,
+  themeStorage,
+} from "~/stores/theme.store"
 
 import { breakpoints } from "./breakpoints"
 import { ALL_THEMES } from "./theme/registry"
@@ -20,7 +24,7 @@ export type ThemeKey = keyof typeof ALL_THEMES
 StyleSheet.configure({
   settings: {
     initialTheme: () => {
-      const storedPreferences = themeStorage.getString("theme-preferences")
+      const storedPreferences = themeStorage.getString(THEME_PERSIST_STORE_KEY)
       if (storedPreferences) {
         try {
           // Zustand persist stores data as JSON: {"state":{"themeMode":"..."},"version":0}
@@ -36,7 +40,7 @@ StyleSheet.configure({
           }
         }
       }
-      return "electricLavender"
+      return DEFAULT_THEME
     },
   },
   themes: unistylesThemes,

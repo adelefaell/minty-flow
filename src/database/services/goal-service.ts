@@ -168,15 +168,6 @@ export const addToGoal = async (
 }
 
 /**
- * Delete goal (mark as deleted for sync)
- */
-export const deleteGoal = async (goal: GoalModel): Promise<void> => {
-  await database.write(async () => {
-    await goal.markAsDeleted()
-  })
-}
-
-/**
  * Permanently destroy goal
  */
 export const destroyGoal = async (goal: GoalModel): Promise<void> => {

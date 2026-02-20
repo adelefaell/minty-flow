@@ -16,7 +16,7 @@ export const ProfileSection = () => {
   const initials = getInitials(displayName)
 
   const handlePress = () => {
-    router.push("/(settings)/edit-profile")
+    router.push("/settings/edit-profile")
   }
 
   return (

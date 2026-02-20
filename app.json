@@ -1,8 +1,15 @@
 {
   "expo": {
-    "name": "minty-flow-native",
-    "slug": "minty-flow-native",
     "version": "1.0.0",
+    "name": "minty-flow",
+    "slug": "mint-flow",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "7aafeeea-8f93-4fa3-b074-febd59362696"
+      }
+    },
+    "owner": "adelefaells-organization",
     "orientation": "portrait",
     "icon": "./src/assets/images/icon.png",
     "scheme": "mintyflownative",
@@ -10,9 +17,18 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.mintyflownative"
+      "bundleIdentifier": "com.anonymous.mintyflownative",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
+      "permissions": [
+        "READ_CONTACTS",
+        "WRITE_CONTACTS",
+        "android.permission.READ_CONTACTS",
+        "android.permission.WRITE_CONTACTS"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./src/assets/images/android-icon-foreground.png",
@@ -42,7 +58,15 @@
         }
       ],
       "expo-localization",
-      "./plugins/withWatermelonDBJSI.js"
+      "./plugins/withWatermelonDBJSI.js",
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "Allow $(PRODUCT_NAME) to access your contacts."
+        }
+      ],
+      "@react-native-community/datetimepicker",
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true,

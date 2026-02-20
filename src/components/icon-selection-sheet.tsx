@@ -1,10 +1,5 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons"
-import {
-  BottomSheetFlatList,
-  BottomSheetFooter,
-  type BottomSheetFooterProps,
-  BottomSheetTextInput,
-} from "@gorhom/bottom-sheet"
+import { BottomSheetFlatList, BottomSheetTextInput } from "@gorhom/bottom-sheet"
 import type { ComponentProps } from "react"
 import { memo, useCallback, useMemo, useState } from "react"
 import { Pressable, View } from "react-native"
@@ -246,40 +241,37 @@ export const IconSelectionSheet = ({
     setSearchQuery("")
   }, [])
 
-  const renderFooter = useCallback(
-    (props: BottomSheetFooterProps) => {
-      return (
-        <BottomSheetFooter {...props}>
-          <View style={styles.footer}>
-            <View style={styles.footerLeft}>
-              {selectedIcon && (
-                <View style={styles.selectedPreview}>
-                  <DynamicIcon
-                    icon={selectedIcon}
-                    size={20}
-                    colorScheme={colorScheme}
-                  />
-                </View>
-              )}
+  const renderFooter = useMemo(() => {
+    return (
+      <View style={styles.footer}>
+        <View style={styles.footerLeft}>
+          {selectedIcon && (
+            <View style={styles.selectedPreview}>
+              <DynamicIcon
+                icon={selectedIcon}
+                size={20}
+                colorScheme={colorScheme}
+              />
+
+              <Text style={styles.selectedIconName}>{selectedIcon}</Text>
             </View>
-            <Pressable
-              onPress={handleDone}
-              disabled={!selectedIcon}
-              style={({ pressed }) => [
-                styles.doneButton,
-                pressed && styles.doneButtonPressed,
-                !selectedIcon && styles.doneButtonDisabled,
-              ]}
-            >
-              <IconSymbol name="check" size={20} />
-              <Text style={styles.doneButtonText}>Done</Text>
-            </Pressable>
-          </View>
-        </BottomSheetFooter>
-      )
-    },
-    [handleDone, selectedIcon, colorScheme],
-  )
+          )}
+        </View>
+        <Pressable
+          onPress={handleDone}
+          disabled={!selectedIcon}
+          style={({ pressed }) => [
+            styles.doneButton,
+            pressed && styles.doneButtonPressed,
+            !selectedIcon && styles.doneButtonDisabled,
+          ]}
+        >
+          <IconSymbol name="check" size={20} />
+          <Text style={styles.doneButtonText}>Done</Text>
+        </Pressable>
+      </View>
+    )
+  }, [handleDone, selectedIcon, colorScheme])
 
   return (
     <BottomSheetModalComponent
@@ -318,7 +310,7 @@ export const IconSelectionSheet = ({
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <IconSymbol
-              name="alert-circle-outline"
+              name="alert-circle"
               size={48}
               color={theme.colors.onSecondary}
             />
@@ -339,13 +331,7 @@ const styles = StyleSheet.create((theme) => ({
   flatListContent: {
     paddingHorizontal: 20,
     paddingTop: 8,
-    paddingBottom: 300,
-  },
-  titleContainer: {
-    marginBottom: 16,
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingBottom: 400,
   },
   searchContainer: {
     flexDirection: "row",
@@ -404,7 +390,8 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 16,
+    paddingTop: 16,
+
     paddingHorizontal: 20,
     borderTopWidth: 1,
     borderTopColor: `${theme.colors.onSurface}20`,
@@ -422,8 +409,8 @@ const styles = StyleSheet.create((theme) => ({
     gap: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: theme.colors.radius,
-    backgroundColor: `${theme.colors.secondary}30`,
+    // borderRadius: theme.colors.radius,
+    // backgroundColor: `${theme.colors.secondary}30`,
   },
   selectedIconName: {
     fontSize: 14,

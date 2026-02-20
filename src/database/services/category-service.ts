@@ -1,9 +1,17 @@
 import { Q } from "@nozbe/watermelondb"
 import type { Observable } from "@nozbe/watermelondb/utils/rx"
+import { filter, map } from "rxjs/operators"
 
-import type { CategoryType } from "../../types/categories"
+import type {
+  AddCategoriesFormSchema,
+  UpdateCategoriesFormSchema,
+} from "~/schemas/categories.schema"
+import type { Category } from "~/types/categories"
+import type { TransactionType } from "~/types/transactions"
+
 import { database } from "../index"
 import type CategoryModel from "../models/Category"
+import { modelToCategory } from "../utils/model-to-category"
 import { getTransactionModels } from "./transaction-service"
 
 /**
@@ -47,19 +55,6 @@ export const findCategory = async (
 }
 
 /**
- * Observe all categories reactively
- */
-export const observeCategories = (
-  includeArchived = false,
-): Observable<CategoryModel[]> => {
-  const categories = getCategoryCollection()
-  if (includeArchived) {
-    return categories.query().observe()
-  }
-  return categories.query(Q.where("is_archived", false)).observe()
-}
-
-/**
  * Observe categories filtered by type
  * Follows WatermelonDB best practices for reactive queries
  *
@@ -67,10 +62,9 @@ export const observeCategories = (
  * not just record additions/deletions. This ensures the list updates when categories are edited.
  */
 export const observeCategoriesByType = (
-  type: CategoryType,
+  type: TransactionType,
   includeArchived = false,
-  searchQuery = "",
-): Observable<CategoryModel[]> => {
+): Observable<Category[]> => {
   const categories = getCategoryCollection()
   let query = categories.query(Q.where("type", type), Q.sortBy("name", Q.asc))
 
@@ -78,22 +72,33 @@ export const observeCategoriesByType = (
     query = query.extend(Q.where("is_archived", false))
   }
 
-  if (searchQuery.trim().length > 0) {
-    query = query.extend(
-      Q.where("name", Q.like(`%${Q.sanitizeLikeString(searchQuery.trim())}%`)),
-    )
-  }
-
   // Observe specific columns that can change when editing
   // This makes the query reactive to column changes, not just record additions/deletions
-  return query.observeWithColumns([
-    "name",
-    "icon",
-    "color_scheme_name",
-    "transaction_count",
-    "is_archived",
-    "updated_at",
-  ])
+  return query
+    .observeWithColumns([
+      "name",
+      "icon",
+      "type",
+      "color_scheme_name",
+      "transaction_count",
+      "is_archived",
+    ])
+    .pipe(
+      map((results) => {
+        return results.map(modelToCategory) // convert to immutable plain object here
+      }),
+    )
+}
+
+/**
+ * Observe count of archived categories by type
+ */
+export const observeArchivedCategoryCountByType = (
+  type: TransactionType,
+): Observable<number> => {
+  return getCategoryCollection()
+    .query(Q.where("type", type), Q.where("is_archived", true))
+    .observeCount()
 }
 
 /**
@@ -104,14 +109,37 @@ export const observeCategoryById = (id: string): Observable<CategoryModel> => {
 }
 
 /**
+ * Observe a specific category by ID
+ * Observes specific columns to ensure reactivity to field changes
+ */
+export const observeCategoryDetailsById = (
+  id: string,
+): Observable<Category> => {
+  return getCategoryCollection()
+    .query(Q.where("id", id))
+    .observeWithColumns([
+      "name",
+      "icon",
+      "type",
+      "color_scheme_name",
+      "transaction_count",
+      "is_archived",
+    ])
+    .pipe(
+      filter((results) => results.length > 0),
+      map((results) => {
+        const model = results[0]
+        return modelToCategory(model) // convert to immutable plain object here
+      }),
+    )
+}
+
+/**
  * Create a new category
  */
-export const createCategory = async (data: {
-  name: string
-  type: CategoryType
-  icon?: string
-  colorSchemeName?: string
-}): Promise<CategoryModel> => {
+export const createCategory = async (
+  data: AddCategoriesFormSchema,
+): Promise<CategoryModel> => {
   return await database.write(async () => {
     return await getCategoryCollection().create((category) => {
       category.name = data.name
@@ -133,12 +161,7 @@ export const createCategory = async (data: {
  */
 export const updateCategory = async (
   category: CategoryModel,
-  updates: Partial<{
-    name: string
-    icon: string | undefined
-    colorSchemeName: string | undefined
-    isArchived: boolean
-  }>,
+  updates: Partial<UpdateCategoriesFormSchema>,
 ): Promise<CategoryModel> => {
   return await database.write(async () => {
     return await category.update((c) => {
@@ -173,12 +196,10 @@ export const updateCategoryById = async (
 
 /**
  * Delete category completely. All transactions that belonged to this category
- * are updated to have no category (uncategorized). The category is then
+ * are updated to the target category (or uncategorized). The category is then
  * permanently removed.
- *
- * Uses batch operations for performance and atomicity.
  */
-export const deleteCategory = async (
+export const destroyCategory = async (
   category: CategoryModel,
   targetCategoryId: string | null = null,
 ): Promise<void> => {
@@ -188,23 +209,13 @@ export const deleteCategory = async (
   })
 
   await database.write(async () => {
-    // Prepare transaction updates
-    const transactionOps = transactions.map((transaction) =>
-      transaction.prepareUpdate((t) => {
-        // Move to target category or set to null for "no category"
+    for (const transaction of transactions) {
+      await transaction.update((t) => {
         t.categoryId = targetCategoryId
         t.updatedAt = new Date()
-      }),
-    )
-
-    // Prepare category deletion
-    const categoryOp = category.prepareDestroyPermanently()
-
-    // Execute all operations atomically
-    await database.batch(...transactionOps, categoryOp)
-
-    // If we moved to a target category, we should recalculate its count
-    // (Note: This might be better handled reactively or by also fetching target category)
+      })
+    }
+    await category.destroyPermanently()
   })
 
   if (targetCategoryId) {

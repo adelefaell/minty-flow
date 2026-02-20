@@ -19,9 +19,9 @@ export const CategoryRow = ({
 }: CategoryRowProps) => {
   const router = useRouter()
 
-  const handleEdit = () => {
+  const handleView = () => {
     router.push({
-      pathname: "/(settings)/(categories)/[categoryId]",
+      pathname: "/settings/categories/[categoryId]",
       params: {
         categoryId: category.id,
       },
@@ -29,7 +29,7 @@ export const CategoryRow = ({
   }
 
   return (
-    <Pressable style={styles.row} onPress={handleEdit}>
+    <Pressable style={styles.row} onPress={handleView}>
       <View style={styles.rowContent}>
         {/* Icon/Color indicator */}
         <DynamicIcon
@@ -62,23 +62,21 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingRight: 16,
+    paddingRight: 20,
     backgroundColor: theme.colors.secondary,
     borderRadius: theme.colors.radius,
-    minHeight: 60,
+    marginHorizontal: 20,
   },
   rowContent: {
     backgroundColor: theme.colors.secondary,
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
-    gap: 12,
+    gap: 10,
   },
   nameContainer: {
     backgroundColor: theme.colors.secondary,
-
     flex: 1,
-    gap: 4,
   },
   name: {
     fontSize: 16,

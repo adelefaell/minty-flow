@@ -1,8 +1,12 @@
 import { Q } from "@nozbe/watermelondb"
 import type { Observable } from "@nozbe/watermelondb/utils/rx"
+import { map } from "rxjs/operators"
 
+import type { Tag, TagKindType } from "../../types/tags"
 import { database } from "../index"
 import type TagModel from "../models/Tag"
+import { modelToTag } from "../utils/model-to-tag"
+import { unlinkTagFromAllTransactions } from "./transaction-service"
 
 /**
  * Tag Service
@@ -21,12 +25,9 @@ const getTagCollection = () => {
 /**
  * Get all tags
  */
-export const getTags = async (includeArchived = false): Promise<TagModel[]> => {
+export const getTags = async (): Promise<TagModel[]> => {
   const tags = getTagCollection()
-  if (includeArchived) {
-    return await tags.query().fetch()
-  }
-  return await tags.query(Q.where("is_archived", false)).fetch()
+  return await tags.query().fetch()
 }
 
 /**
@@ -41,16 +42,32 @@ export const findTag = async (id: string): Promise<TagModel | null> => {
 }
 
 /**
+ * Find a tag by name (first match). Used e.g. for recurring extension tags.
+ */
+export const findTagByName = async (name: string): Promise<TagModel | null> => {
+  const rows = await getTagCollection().query(Q.where("name", name)).fetch()
+  return rows[0] ?? null
+}
+
+/**
  * Observe all tags reactively
  */
-export const observeTags = (
-  includeArchived = false,
-): Observable<TagModel[]> => {
+export const observeTags = (): Observable<Tag[]> => {
   const tags = getTagCollection()
-  if (includeArchived) {
-    return tags.query().observe()
-  }
-  return tags.query(Q.where("is_archived", false)).observe()
+  return tags
+    .query(Q.sortBy("name", Q.asc))
+    .observeWithColumns([
+      "name",
+      "type",
+      "color_scheme_name",
+      "icon",
+      "transaction_count",
+    ])
+    .pipe(
+      map((results) => {
+        return results.map(modelToTag) // convert to immutable plain object here
+      }),
+    )
 }
 
 /**
@@ -65,16 +82,17 @@ export const observeTagById = (id: string): Observable<TagModel> => {
  */
 export const createTag = async (data: {
   name: string
-  color?: string
+  type: TagKindType
+  colorSchemeName?: string
   icon?: string
 }): Promise<TagModel> => {
   return await database.write(async () => {
     return await getTagCollection().create((tag) => {
       tag.name = data.name
-      tag.color = data.color
+      tag.type = data.type
+      tag.colorSchemeName = data.colorSchemeName
       tag.icon = data.icon
-      tag.usageCount = 0
-      tag.isArchived = false
+      tag.transactionCount = 0
       tag.createdAt = new Date()
       tag.updatedAt = new Date()
     })
@@ -88,19 +106,21 @@ export const updateTag = async (
   tag: TagModel,
   updates: Partial<{
     name: string
-    color: string | undefined
+    type: TagKindType
+    colorSchemeName: string | undefined
     icon: string | undefined
-    usageCount: number
-    isArchived: boolean
+    transactionCount: number
   }>,
 ): Promise<TagModel> => {
   return await database.write(async () => {
     return await tag.update((t) => {
       if (updates.name !== undefined) t.name = updates.name
-      if (updates.color !== undefined) t.color = updates.color
+      if (updates.type !== undefined) t.type = updates.type
+      if (updates.colorSchemeName !== undefined)
+        t.colorSchemeName = updates.colorSchemeName
       if (updates.icon !== undefined) t.icon = updates.icon
-      if (updates.usageCount !== undefined) t.usageCount = updates.usageCount
-      if (updates.isArchived !== undefined) t.isArchived = updates.isArchived
+      if (updates.transactionCount !== undefined)
+        t.transactionCount = updates.transactionCount
       t.updatedAt = new Date()
     })
   })
@@ -113,40 +133,37 @@ export const updateTagById = async (
   id: string,
   updates: Partial<{
     name: string
-    color: string | undefined
+    type: TagKindType
+    colorSchemeName: string | undefined
     icon: string | undefined
-    usageCount: number
-    isArchived: boolean
+    transactionCount: number
   }>,
 ): Promise<TagModel> => {
-  const tag = await findTag(id)
-  if (!tag) {
-    throw new Error(`Tag with id ${id} not found`)
-  }
+  const tag = await findTag(id).then((tag) => {
+    if (!tag) {
+      throw new Error(`Tag with id ${id} not found`)
+    }
+    return tag
+  })
   return await updateTag(tag, updates)
 }
 
 /**
- * Increment tag usage count
- */
-export const incrementTagUsage = async (tag: TagModel): Promise<TagModel> => {
-  return await updateTag(tag, { usageCount: tag.usageCount + 1 })
-}
-
-/**
- * Delete tag (mark as deleted for sync)
+ * Delete tag permanently.
+ * Unlinks this tag from all transactions first, then permanently destroys the tag.
  */
 export const deleteTag = async (tag: TagModel): Promise<void> => {
-  await database.write(async () => {
-    await tag.markAsDeleted()
+  await unlinkTagFromAllTransactions(tag.id).then(() => {
+    return database.write(async () => {
+      await tag.destroyPermanently()
+    })
   })
 }
 
 /**
- * Permanently destroy tag
+ * Permanently destroy tag (same as deleteTag).
+ * Unlinks this tag from all transactions first, then permanently destroys the tag.
  */
 export const destroyTag = async (tag: TagModel): Promise<void> => {
-  await database.write(async () => {
-    await tag.destroyPermanently()
-  })
+  await deleteTag(tag)
 }

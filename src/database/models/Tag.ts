@@ -1,7 +1,9 @@
 import { Model } from "@nozbe/watermelondb"
 import { date, field } from "@nozbe/watermelondb/decorators"
 
-import type { Tag as TagType } from "../../types/tags"
+import { getThemeStrict } from "~/styles/theme"
+
+import type { Tag, TagKindType } from "../../types/tags"
 
 /**
  * Tag model representing tags for categorizing transactions.
@@ -14,14 +16,31 @@ import type { Tag as TagType } from "../../types/tags"
  * - Boolean fields start with is_
  * - Date fields end with _at and use number type (Unix timestamps)
  */
-export default class TagModel extends Model implements TagType {
+export default class TagModel extends Model implements Tag {
   static table = "tags"
 
   @field("name") name!: string
-  @field("color") color?: string
+  @field("type") type!: TagKindType
+  @field("color_scheme_name") colorSchemeName?: string
   @field("icon") icon?: string
-  @field("usage_count") usageCount!: number
-  @field("is_archived") isArchived!: boolean
+  @field("transaction_count") transactionCount!: number
   @date("created_at") createdAt!: Date
   @date("updated_at") updatedAt!: Date
+
+  /**
+   * Gets the color scheme object from the theme registry.
+   * This is computed at runtime, not stored in the database.
+   * Similar to Flutter's @Transient() getter.
+   */
+  get colorScheme() {
+    return getThemeStrict(this.colorSchemeName)
+  }
+
+  /**
+   * Sets the color scheme by name.
+   * Only the name is stored in the database.
+   */
+  setColorScheme(schemeName: string | undefined) {
+    this.colorSchemeName = schemeName
+  }
 }

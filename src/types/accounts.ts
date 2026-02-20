@@ -6,12 +6,17 @@
  * The WatermelonDB model implements these types, not the other way around.
  */
 
-export type AccountType =
-  | "checking"
-  | "savings"
-  | "credit"
-  | "investment"
-  | "other"
+import type { MintyColorScheme } from "~/styles/theme"
+
+export const AccountTypeEnum = {
+  CHECKING: "checking",
+  SAVINGS: "savings",
+  CREDIT: "credit",
+  INVESTMENT: "investment",
+  OTHER: "other",
+} as const
+
+export type AccountType = (typeof AccountTypeEnum)[keyof typeof AccountTypeEnum]
 
 /**
  * Account domain type for UI/API usage.
@@ -33,17 +38,29 @@ export interface Account {
   balance: number
   currencyCode: string
   icon?: string
-  color?: string
+  colorSchemeName?: string
+  colorScheme?: MintyColorScheme // Computed from colorSchemeName via registry
   isArchived?: boolean
+  isPrimary?: boolean
+  excludeFromBalance?: boolean
   createdAt: Date
   updatedAt: Date
 }
 
-export interface AccountFormData {
-  name: string
-  type: AccountType
-  balance?: number
-  currencyCode: string
-  icon?: string
-  color?: string
-}
+/**
+ * Account summary type for list views and cards.
+ * Includes calculated fields like monthly stats.
+ */
+// export interface AccountSummary {
+//   id: string
+//   name: string
+//   type: string
+//   icon: IconSymbolName
+//   iconColor: string
+//   balance: number
+//   currency: string
+//   currencySymbol: string
+//   monthlyIn: number
+//   monthlyOut: number
+//   monthlyNet: number
+// }

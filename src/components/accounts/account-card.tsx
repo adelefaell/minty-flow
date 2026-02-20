@@ -1,113 +1,154 @@
-import { StyleSheet, useUnistyles } from "react-native-unistyles"
+import { useRouter } from "expo-router"
+import { StyleSheet } from "react-native-unistyles"
 
-import type { IconSymbolName } from "~/components/ui/icon-symbol"
 import { IconSymbol } from "~/components/ui/icon-symbol"
+import type { Account } from "~/types/accounts"
+import { TransactionTypeEnum } from "~/types/transactions"
 
+import { DynamicIcon } from "../dynamic-icon"
+import { Money } from "../money"
 import { Pressable } from "../ui/pressable"
 import { Text } from "../ui/text"
 import { View } from "../ui/view"
 
-interface Account {
-  id: string
-  name: string
-  type: string
-  icon: IconSymbolName
-  iconColor: string
-  balance: number
-  currency: string
-  currencySymbol: string
-  monthlyIn: number
-  monthlyOut: number
-  monthlyNet: number
-}
-
-interface AccountCardProps {
+export interface AccountCardProps {
   account: Account
+  monthIn?: number
+  monthOut?: number
+  monthNet?: number
+  isReorderMode: boolean
 }
 
-export const AccountCard = ({ account }: AccountCardProps) => {
-  const { theme } = useUnistyles()
+export const AccountCard = ({
+  account,
+  monthIn = 0,
+  monthOut = 0,
+  monthNet = 0,
+  isReorderMode,
+}: AccountCardProps) => {
+  const router = useRouter()
+
+  const handleViewAccount = () => {
+    if (!isReorderMode) {
+      router.push({
+        pathname: "/accounts/[accountId]",
+        params: {
+          accountId: account.id,
+        },
+      })
+    }
+  }
+
+  const isArchived = account.isArchived
   return (
-    <Pressable style={styles.card}>
+    <Pressable
+      style={[styles.card, isArchived && styles.archivedCard]}
+      onPress={handleViewAccount}
+    >
       <View variant="muted" style={styles.cardHeader}>
-        <View
-          variant="muted"
-          style={[
-            styles.iconContainer,
-            { backgroundColor: `${account.iconColor}20` },
-          ]}
-        >
-          <IconSymbol name={account.icon} size={24} color={account.iconColor} />
-        </View>
+        <DynamicIcon
+          icon={account.icon}
+          size={48}
+          variant="raw"
+          colorScheme={account.colorScheme}
+        />
         <View variant="muted" style={styles.accountInfo}>
-          <Text variant="h3" style={styles.accountName}>
-            {account.name}
-          </Text>
-          <Text variant="small" style={styles.accountType}>
-            {account.type}
-          </Text>
+          <View variant="muted" style={styles.accountNameRow}>
+            <Text variant="h3" style={styles.accountName}>
+              {account.name}
+            </Text>
+            {isArchived && (
+              <IconSymbol
+                name="archive"
+                size={16}
+                color={styles.semiColor.color}
+              />
+            )}
+          </View>
+          <View style={styles.accountTypeRow} variant="muted">
+            <Text variant="small" style={styles.accountType}>
+              {account.type}
+            </Text>
+            {account.isPrimary && (
+              <View style={styles.primaryBadge}>
+                <IconSymbol name="star" size={12} />
+                <Text style={styles.primaryBadgeText}>Primary</Text>
+              </View>
+            )}
+          </View>
         </View>
-        <Text variant="h2" style={styles.balance}>
-          {account.currencySymbol}
-          {account.balance.toFixed(2)}
-        </Text>
+
+        <Money
+          value={account.balance}
+          variant="h2"
+          style={styles.balance}
+          currency={account.currencyCode}
+        />
       </View>
 
-      <View variant="muted" style={styles.monthlySummary}>
-        <Text variant="small" style={styles.summaryLabel}>
-          THIS MONTH
-        </Text>
-        <View variant="muted" style={styles.summaryRow}>
-          <View variant="muted" style={styles.summaryItem}>
-            <View variant="muted" style={styles.summaryItemHeader}>
-              <IconSymbol
-                name="arrow-down"
-                size={12}
-                color={theme.colors.customColors.income}
+      {!isArchived && (
+        <View variant="muted" style={styles.monthlySummary}>
+          <Text variant="small" style={styles.summaryLabel}>
+            THIS MONTH
+          </Text>
+          <View variant="muted" style={styles.summaryRow}>
+            <View variant="muted" style={styles.summaryItem}>
+              <View variant="muted" style={styles.summaryItemHeader}>
+                <IconSymbol
+                  name="arrow-bottom-left"
+                  size={12}
+                  color={styles.incomeColor.color}
+                />
+                <Text style={styles.summaryItemLabel}>IN</Text>
+              </View>
+
+              <Money
+                value={monthIn}
+                variant="default"
+                style={styles.summaryAmount}
+                currency={account.currencyCode}
+                tone={TransactionTypeEnum.INCOME}
               />
-              <Text style={styles.summaryItemLabel}>IN</Text>
             </View>
-            <Text
-              variant="default"
-              style={[styles.summaryAmount, styles.incomeAmount]}
-            >
-              {account.currencySymbol}
-              {account.monthlyIn.toFixed(2)}
-            </Text>
-          </View>
-          <View variant="muted" style={styles.summaryItem}>
-            <View variant="muted" style={styles.summaryItemHeader}>
-              <IconSymbol
-                name="arrow-up"
-                size={12}
-                color={theme.colors.customColors.expense}
+            <View variant="muted" style={styles.summaryItem}>
+              <View variant="muted" style={styles.summaryItemHeader}>
+                <IconSymbol
+                  name="arrow-top-right"
+                  size={12}
+                  color={styles.expenseColor.color}
+                />
+                <Text style={styles.summaryItemLabel}>OUT</Text>
+              </View>
+
+              <Money
+                value={monthOut}
+                variant="default"
+                style={styles.summaryAmount}
+                currency={account.currencyCode}
+                // tone={TransactionTypeEnum.EXPENSE}
+                showSign
               />
-              <Text style={styles.summaryItemLabel}>OUT</Text>
             </View>
-            <Text
-              variant="default"
-              style={[styles.summaryAmount, styles.expenseAmount]}
-            >
-              {account.currencySymbol}
-              {account.monthlyOut.toFixed(2)}
-            </Text>
-          </View>
-          <View variant="muted" style={styles.summaryItem}>
-            <View variant="muted" style={styles.summaryItemHeader}>
-              <IconSymbol
-                name="chart-timeline-variant"
-                size={12}
-                color={theme.colors.customColors.semi}
+            <View variant="muted" style={styles.summaryItem}>
+              <View variant="muted" style={styles.summaryItemHeader}>
+                <IconSymbol
+                  name="chart-timeline-variant"
+                  size={12}
+                  color={styles.semiColor.color}
+                />
+                <Text style={styles.summaryItemLabel}>NET</Text>
+              </View>
+
+              <Money
+                value={monthNet}
+                variant="default"
+                style={styles.summaryAmount}
+                currency={account.currencyCode}
               />
-              <Text style={styles.summaryItemLabel}>NET</Text>
             </View>
-            <Text variant="default" style={styles.summaryAmount}>
-              {account.currencySymbol}
-              {account.monthlyNet.toFixed(2)}
-            </Text>
           </View>
         </View>
-      </View>
+      )}
     </Pressable>
   )
 }
@@ -121,26 +162,33 @@ const styles = StyleSheet.create((theme) => ({
     padding: 16,
     gap: 12,
   },
+  archivedCard: {
+    borderStyle: "dashed",
+    borderColor: theme.colors.customColors.semi,
+  },
   cardHeader: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
   },
-  iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-  },
   accountInfo: {
     flex: 1,
     gap: 2,
+  },
+  accountNameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
   accountName: {
     fontSize: 16,
     fontWeight: "600",
     color: theme.colors.onSecondary,
+  },
+  accountTypeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
   accountType: {
     fontSize: 11,
@@ -148,6 +196,22 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.customColors.semi,
     textTransform: "uppercase",
     letterSpacing: 0.5,
+  },
+  primaryBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    backgroundColor: theme.colors.surface,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 4,
+  },
+  primaryBadgeText: {
+    fontSize: 9,
+    fontWeight: "600",
+    color: theme.colors.onSurface,
+    textTransform: "uppercase",
+    letterSpacing: 0.2,
   },
   balance: {
     fontSize: 20,
@@ -192,10 +256,13 @@ const styles = StyleSheet.create((theme) => ({
     fontWeight: "600",
     color: theme.colors.onSecondary,
   },
-  incomeAmount: {
+  semiColor: {
+    color: theme.colors.customColors.semi,
+  },
+  incomeColor: {
     color: theme.colors.customColors.income,
   },
-  expenseAmount: {
+  expenseColor: {
     color: theme.colors.customColors.expense,
   },
 }))

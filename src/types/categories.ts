@@ -8,7 +8,7 @@
 
 import type { MintyColorScheme } from "~/styles/theme/types"
 
-export type CategoryType = "expense" | "income" | "transfer"
+import type { TransactionType } from "./transactions"
 
 /**
  * Category domain type for UI/API usage.
@@ -29,7 +29,7 @@ export type CategoryType = "expense" | "income" | "transfer"
 export interface Category {
   id: string
   name: string
-  type: CategoryType
+  type: TransactionType
   icon?: string
   colorSchemeName?: string
   colorScheme?: MintyColorScheme // Computed from colorSchemeName via registry
@@ -37,10 +37,4 @@ export interface Category {
   isArchived?: boolean
   createdAt: Date
   updatedAt: Date
-}
-
-export interface CategoryFormData {
-  name: string
-  icon?: string
-  colorSchemeName?: string
 }

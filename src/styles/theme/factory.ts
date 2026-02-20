@@ -30,36 +30,20 @@ export class ThemeFactory {
    * Get colors for Unistyles
    */
   get colors(): UnistylesTheme["colors"] {
-    const isDark = this.mintyColorScheme.isDark
-
-    const shadow =
-      this.mintyColorScheme.shadow ||
-      (isDark ? "rgba(0, 0, 0, 0.6)" : "rgba(0, 0, 0, 0.08)")
-
-    const boxShadow =
-      this.mintyColorScheme.boxShadow ||
-      (isDark ? "0 1px 3px rgba(0, 0, 0, 0.3)" : "0 1px 3px rgba(0, 0, 0, 0.1)")
-
-    const rippleColor =
-      this.mintyColorScheme.rippleColor ||
-      (isDark ? "rgba(255, 255, 255, 0.25)" : "rgba(0, 0, 0, 0.25)")
-
     return {
       primary: this.mintyColorScheme.primary,
-      onPrimary:
-        this.mintyColorScheme.onPrimary || this.mintyColorScheme.surface,
+      onPrimary: this.mintyColorScheme.onPrimary,
       secondary: this.mintyColorScheme.secondary,
-      onSecondary:
-        this.mintyColorScheme.onSecondary || this.mintyColorScheme.onSurface,
+      onSecondary: this.mintyColorScheme.onSecondary,
       surface: this.mintyColorScheme.surface,
       onSurface: this.mintyColorScheme.onSurface,
-      error: this.mintyColorScheme.error || "#FF4040",
-      onError: this.mintyColorScheme.onError || "#ffffff",
+      error: this.mintyColorScheme.error,
+      onError: this.mintyColorScheme.onError,
       customColors: this.mintyColorScheme.customColors,
-      rippleColor,
-      shadow,
-      boxShadow,
-      radius: this.mintyColorScheme.radius || 10,
+      rippleColor: this.mintyColorScheme.rippleColor,
+      shadow: this.mintyColorScheme.shadow,
+      boxShadow: this.mintyColorScheme.boxShadow,
+      radius: this.mintyColorScheme.radius,
     }
   }
 

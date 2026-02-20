@@ -25,82 +25,127 @@ export function defineValidIcons<T extends readonly MaterialName[]>(
  * TypeScript will ensure all names are valid MaterialCommunityIcons names.
  */
 export const VALID_ICON_NAMES = defineValidIcons([
-  // outline
-  "circle-outline",
-  "chevron-right",
-  "backspace-outline",
-  "chart-box-outline",
-  "palette-swatch-outline",
-  "bell-outline",
-  "tag-outline",
-  "trash-can-outline",
-  "server-outline",
-  "check-circle-outline",
-  "alert-outline",
-  "information-outline",
-  "close",
-  "camera-outline",
-  "check",
+  // UI & Navigation
+  "arrow-bottom-left",
   "arrow-left",
-  // Calculator icons
+  "arrow-top-right",
+  "chevron-down",
+  "chevron-up",
+  "chevron-left",
+  "chevron-right",
+  "close",
+  "close-circle",
+  "magnify",
+  "swap-vertical",
+  "swap-horizontal",
+
+  "eye",
+  "eye-off",
+  // Status & Alerts
+  "alert",
+  "alert-circle",
+  "check",
+  "check-circle",
+  "information",
+  // Shapes & Layout
+  "circle",
+  "shape",
+  "shape-plus",
+  "triangle",
+  "chart-box",
+  "chart-line",
+  "chart-pie",
+  "chart-timeline",
+  "chart-timeline-variant",
+  "format-page-split",
+  // Media & Visual
+  "camera",
+  "image",
+  "image-multiple",
+  // File types
+  "file",
+  "file-document",
+  "file-image",
+  "file-video",
+  "file-chart",
+  "file-pdf-box",
+  "file-presentation-box",
+  "palette",
+  "palette-swatch",
+  // Text & Editing
+  "clipboard",
+  "pencil",
+  "eraser",
+  "puzzle-edit",
+  // Math & Calculator
+  "calculator",
   "plus",
   "minus",
   "percent",
   "division",
   "equal",
-  "eraser",
   "plus-minus-variant",
-  // Settings icons
-  "target",
-  "clock-outline",
-  "format-page-split",
-  "toaster",
-  "wallet-bifold-outline",
-  "credit-card-outline",
-  "tag-multiple-outline",
-  // Additional icons used in the app
-  "arrow-up",
-  "arrow-down",
-  "swap-vertical",
-  "shape-outline",
-  "shape-plus-outline",
-  // Additional icons for settings and preferences
-  "handshake-outline",
-  "chart-pie-outline",
-  "dialpad",
-  "chart-timeline-variant",
-  "alert-circle-outline",
-  "eye-off",
-  "eye-outline",
-  "eye-off-outline",
-  "lock-outline",
-  "lock-open-outline",
-  "pound",
-  "map-marker-outline",
-  "image-outline",
-  "palette-outline",
-  "triangle-outline",
-  "clipboard-outline",
-  "image-multiple-outline",
-  // Category preset icons
-  "basket-outline",
-  "car-outline",
-  "heart-outline",
-  "school-outline",
-  "shopping-outline",
-  "briefcase-outline",
-  "trending-up",
-  "office-building-outline",
-  "gift-outline",
-  "piggy-bank-outline",
-  "chart-line",
-  // filled
+  // Finance & Commerce
   "wallet",
+  "wallet-bifold",
+  "credit-card",
+  "currency-usd",
+  "piggy-bank",
+  "tag",
+  "tag-multiple",
+  "pound",
+  "shopping",
+  "gift",
+  "basket",
+  // Devices & System
+  "server",
+  "dialpad",
+  "toaster",
   "cog",
-  "puzzle-edit",
-  "shape",
-  "magnify",
+  // Security
+  "lock",
+  "lock-open",
+  // People & Social
+  "handshake",
+  "heart",
+  // Places
+  "map-marker",
+  "office-building",
+  "school",
+  "car",
+  // Misc
+  "backspace",
+  "bell",
+  "trash-can",
+  "target",
+  "clock",
+  "clock-fast",
+  "calendar",
+  "calendar-sync",
+  "progress-clock",
   "anchor",
+  "archive",
+  "archive-arrow-up",
+  "archive-arrow-down",
+  "star",
+  "trending-up",
+  "trending-down",
+  "filter-variant",
+  "account-details",
+  "map",
+  "account",
+  "open-in-new",
+  "asterisk",
+  "shield-alert",
+  "vibrate",
+  "vibrate-off",
+  "tag-plus",
+  "adjust",
+  "dots-triangle",
+  "attachment",
+  "delete-restore",
+  "check-all",
+  "repeat",
 ] as const)
 
 /**
@@ -159,6 +204,10 @@ type IconSymbolProps = {
    */
   name: IconSymbolName
   /**
+   * Use outline style
+   */
+  outline?: boolean
+  /**
    * The size of the icon in pixels.
    * @default 24
    */
@@ -181,7 +230,7 @@ type IconSymbolProps = {
  *
  * @example
  * ```tsx
- * <IconSymbol name="cog" size={32} color="#007AFF" />
+ * <IconSymbol name="cog" outline size={32} color="#007AFF" />
  * ```
  *
  * @param props - The component props
@@ -190,13 +239,32 @@ type IconSymbolProps = {
  * @see {@link https://icons.expo.fyi | Material Icons Directory}
  * @see {@link https://docs.expo.dev/versions/latest/sdk/vector-icons/ | Expo Vector Icons Documentation}
  */
-export function IconSymbol({ name, size = 24, color, style }: IconSymbolProps) {
+export function IconSymbol({
+  name,
+  outline,
+  size = 24,
+  color,
+  style,
+}: IconSymbolProps) {
   const { theme } = useUnistyles()
+
+  // Normalize the icon name based on the outline flag
+  const iconName = (
+    outline
+      ? name.endsWith("-outline")
+        ? name
+        : `${name}-outline`
+      : name.replace("-outline", "")
+  ) as IconSymbolName
+
+  // Verify the icon exists in Expo's MaterialCommunityIcons set
+  //const exists = MaterialCommunityIcons.glyphMap[iconName] !== undefined;
+
   return (
     <MaterialCommunityIcons
       color={color ?? theme.colors.primary}
       size={size}
-      name={name || "anchor"}
+      name={iconName || "anchor"}
       style={style}
     />
   )

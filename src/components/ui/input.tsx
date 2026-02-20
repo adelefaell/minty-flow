@@ -7,6 +7,7 @@ import { StyleSheet } from "react-native-unistyles"
 
 export interface InputProps extends RNTextInputProps {
   error?: boolean
+  native?: boolean
 }
 
 export const Input = ({
@@ -15,6 +16,7 @@ export const Input = ({
   style,
   onFocus,
   onBlur,
+  native,
   ...props
 }: InputProps) => {
   const [isFocused, setIsFocused] = useState(false)
@@ -35,6 +37,17 @@ export const Input = ({
     [onBlur],
   )
 
+  if (native)
+    return (
+      <RNTextInput
+        editable={editable}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        style={style}
+        {...props}
+      />
+    )
+
   return (
     <RNTextInput
       style={[
@@ -44,7 +57,9 @@ export const Input = ({
         !editable && styles.disabled,
         typeof style === "function" ? undefined : style,
       ]}
-      placeholderTextColor={styles.placeholder.color}
+      placeholderTextColor={
+        props.placeholderTextColor ?? styles.placeholder.color
+      }
       selectionColor={styles.selectionColor.color}
       editable={editable}
       onFocus={handleFocus}
