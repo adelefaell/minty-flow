@@ -6,6 +6,7 @@ import { IconSymbol, type IconSymbolName } from "~/components/ui/icon-symbol"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import type { TransactionWithRelations } from "~/database/services/transaction-service"
+import { useTransfersPreferencesStore } from "~/stores/transfers-preferences.store"
 import type { TransactionType } from "~/types/transactions"
 import { TransactionTypeEnum } from "~/types/transactions"
 
@@ -16,10 +17,15 @@ interface SummarySectionProps {
 /**
  * SummarySection component provides a unified view for transaction totals.
  * Currency is derived from each transaction's account; type explains meaning.
+ * When excludeFromTotals is false, transfer amounts are included (credits → income, debits → expense).
  */
 export const SummarySection = ({
   transactionsWithRelations,
 }: SummarySectionProps) => {
+  const excludeFromTotals = useTransfersPreferencesStore(
+    (s) => s.excludeFromTotals,
+  )
+
   const incomeRows = useMemo(
     () =>
       transactionsWithRelations.filter(
@@ -35,17 +41,53 @@ export const SummarySection = ({
     [transactionsWithRelations],
   )
 
+  const transferRows = useMemo(
+    () =>
+      transactionsWithRelations.filter(
+        (row) =>
+          row.transaction.type === TransactionTypeEnum.TRANSFER ||
+          row.transaction.isTransfer,
+      ),
+    [transactionsWithRelations],
+  )
+
+  const extraIncomeByCurrency = useMemo(() => {
+    if (excludeFromTotals || transferRows.length === 0) return {}
+    const byCurrency: Record<string, number> = {}
+    transferRows.forEach((row) => {
+      const amount = row.transaction.amount
+      if (amount <= 0) return
+      const currency = row.account.currencyCode
+      byCurrency[currency] = (byCurrency[currency] ?? 0) + amount
+    })
+    return byCurrency
+  }, [excludeFromTotals, transferRows])
+
+  const extraExpenseByCurrency = useMemo(() => {
+    if (excludeFromTotals || transferRows.length === 0) return {}
+    const byCurrency: Record<string, number> = {}
+    transferRows.forEach((row) => {
+      const amount = row.transaction.amount
+      if (amount >= 0) return
+      const currency = row.account.currencyCode
+      byCurrency[currency] = (byCurrency[currency] ?? 0) + Math.abs(amount)
+    })
+    return byCurrency
+  }, [excludeFromTotals, transferRows])
+
   return (
     <View style={styles.sectionContainer}>
       <Card
         type={TransactionTypeEnum.INCOME}
         label="Income"
         rows={incomeRows}
+        extraByCurrency={extraIncomeByCurrency}
       />
       <Card
         type={TransactionTypeEnum.EXPENSE}
         label="Expense"
         rows={expenseRows}
+        extraByCurrency={extraExpenseByCurrency}
       />
     </View>
   )
@@ -55,9 +97,11 @@ interface CardProps {
   type: TransactionType
   rows: TransactionWithRelations[]
   label: string
+  /** Extra amounts to add per currency (e.g. transfer contributions when excludeFromTotals is false). */
+  extraByCurrency?: Record<string, number>
 }
 
-const Card = ({ type, rows, label }: CardProps) => {
+const Card = ({ type, rows, label, extraByCurrency = {} }: CardProps) => {
   const { theme } = useUnistyles()
   const isIncome = type === TransactionTypeEnum.INCOME
   const icon: IconSymbolName = isIncome
@@ -65,15 +109,18 @@ const Card = ({ type, rows, label }: CardProps) => {
     : "arrow-top-right"
   const colorStyle = isIncome ? styles.incomeText : styles.expenseText
 
-  // Sum by currency (from account)
+  // Sum by currency (from account), then add extra (e.g. transfer amounts when not excluded)
   const currencyTotals = useMemo(() => {
     const totals: Record<string, number> = {}
     rows.forEach((row) => {
       const currency = row.account.currencyCode
       totals[currency] = (totals[currency] || 0) + (row.transaction.amount || 0)
     })
+    Object.entries(extraByCurrency).forEach(([currency, amount]) => {
+      if (amount !== 0) totals[currency] = (totals[currency] ?? 0) + amount
+    })
     return Object.entries(totals).sort(([a], [b]) => a.localeCompare(b))
-  }, [rows])
+  }, [rows, extraByCurrency])
 
   return (
     <View style={styles.card}>

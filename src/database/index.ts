@@ -11,6 +11,7 @@ import RecurringTransactionModel from "./models/RecurringTransaction"
 import TagModel from "./models/Tag"
 import TransactionModel from "./models/Transaction"
 import TransactionTagModel from "./models/TransactionTag"
+import TransferModel from "./models/Transfer"
 import { schema } from "./schema"
 
 /**
@@ -51,6 +52,7 @@ export const database = new Database({
     TagModel,
     TransactionModel,
     TransactionTagModel,
+    TransferModel,
   ],
 })
 
@@ -63,3 +65,4 @@ export type { default as RecurringTransactionModel } from "./models/RecurringTra
 export type { default as TagModel } from "./models/Tag"
 export type { default as TransactionModel } from "./models/Transaction"
 export type { default as TransactionTagModel } from "./models/TransactionTag"
+export type { default as TransferModel } from "./models/Transfer"

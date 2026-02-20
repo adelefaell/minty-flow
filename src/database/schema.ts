@@ -7,7 +7,7 @@ import { appSchema, tableSchema } from "@nozbe/watermelondb"
  * Each table represents a collection of models that can be queried and manipulated.
  */
 export const schema = appSchema({
-  version: 4,
+  version: 1,
   tables: [
     // Categories table - stores transaction categories
     tableSchema({
@@ -61,6 +61,15 @@ export const schema = appSchema({
         },
         // Currency comes from account (account_id); type explains meaning.
         { name: "type", type: "string", isIndexed: true }, // "expense" | "income" | "transfer"
+        { name: "is_transfer", type: "boolean" }, // true on BOTH debit and credit rows of a transfer
+        {
+          name: "transfer_id",
+          type: "string",
+          isOptional: true,
+          isIndexed: true,
+        }, // shared UUID linking the two halves
+        { name: "related_account_id", type: "string", isOptional: true }, // the other account in the transfer
+        { name: "account_balance_before", type: "number" }, // balance of account_id BEFORE this tx was applied (snapshot)
         { name: "subtype", type: "string", isOptional: true }, // "recurring" | "one-time" | "subscription" etc.
         { name: "extra", type: "string", isOptional: true }, // JSON for custom metadata
         { name: "has_attachments", type: "boolean", isIndexed: true }, // derived from extra.attachments, kept in sync on write
@@ -109,6 +118,20 @@ export const schema = appSchema({
       columns: [
         { name: "transaction_id", type: "string", isIndexed: true },
         { name: "attachment_id", type: "string", isIndexed: true },
+      ],
+    }),
+
+    // Transfers table — first-class transfer metadata (replaces conversionRate in transaction.extra)
+    tableSchema({
+      name: "transfers",
+      columns: [
+        { name: "from_transaction_id", type: "string", isIndexed: true },
+        { name: "to_transaction_id", type: "string", isIndexed: true },
+        { name: "from_account_id", type: "string", isIndexed: true },
+        { name: "to_account_id", type: "string", isIndexed: true },
+        { name: "conversion_rate", type: "number" },
+        { name: "created_at", type: "number" },
+        { name: "updated_at", type: "number" },
       ],
     }),
 

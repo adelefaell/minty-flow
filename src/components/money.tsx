@@ -139,7 +139,7 @@ export const Money: FC<MoneyProps> = ({
   return (
     <Text
       variant={variant}
-      style={[style, toneStyles, { fontWeight: "600" }]}
+      style={[toneStyles, { fontWeight: "600" }, style]}
       native={native}
     >
       {shouldHide ? privacyMasked : formatted}

@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-02-18T21:44:32.434Z
+Generated on: 2026-02-20T21:20:22.914Z
 
 ```
 ./
@@ -73,6 +73,7 @@ Generated on: 2026-02-18T21:44:32.434Z
 │   │   │   │   ├── 📄 theme.tsx
 │   │   │   │   ├── 📄 toast-style.tsx
 │   │   │   │   ├── 📄 transaction-location.tsx
+│   │   │   │   ├── 📄 transfers.tsx
 │   │   │   │   └── 📄 trash-bin.tsx
 │   │   │   ├── 📁 tags/
 │   │   │   │   ├── 📄 [tagId].tsx
@@ -151,6 +152,7 @@ Generated on: 2026-02-18T21:44:32.434Z
 │   │   ├── 📄 external-link.tsx
 │   │   ├── 📄 haptic-tab.tsx
 │   │   ├── 📄 icon-selection-sheet.tsx
+│   │   ├── 📄 info-modal.tsx
 │   │   ├── 📄 keyboard-sticky-view-minty.tsx
 │   │   ├── 📄 money.tsx
 │   │   ├── 📄 month-year-picker.tsx
@@ -177,9 +179,11 @@ Generated on: 2026-02-18T21:44:32.434Z
 │   │   │   ├── 📄 RecurringTransaction.ts
 │   │   │   ├── 📄 Tag.ts
 │   │   │   ├── 📄 Transaction.ts
-│   │   │   └── 📄 TransactionTag.ts
+│   │   │   ├── 📄 TransactionTag.ts
+│   │   │   └── 📄 Transfer.ts
 │   │   ├── 📁 services/
 │   │   │   ├── 📄 account-service.ts
+│   │   │   ├── 📄 balance-service.ts
 │   │   │   ├── 📄 budget-service.ts
 │   │   │   ├── 📄 category-service.ts
 │   │   │   ├── 📄 goal-service.ts
@@ -188,15 +192,18 @@ Generated on: 2026-02-18T21:44:32.434Z
 │   │   │   ├── 📄 README.md
 │   │   │   ├── 📄 recurring-transaction-service.ts
 │   │   │   ├── 📄 tag-service.ts
-│   │   │   └── 📄 transaction-service.ts
+│   │   │   ├── 📄 transaction-service.ts
+│   │   │   └── 📄 transfer-service.ts
 │   │   ├── 📁 utils/
 │   │   │   ├── 📄 model-to-account.ts
 │   │   │   ├── 📄 model-to-category.ts
-│   │   │   └── 📄 model-to-tag.ts
+│   │   │   ├── 📄 model-to-tag.ts
+│   │   │   └── 📄 model-to-transfer.ts
 │   │   ├── 📄 index.ts
 │   │   ├── 📄 migrations.ts
 │   │   └── 📄 schema.ts
 │   ├── 📁 hooks/
+│   │   ├── 📄 use-balance-before.ts
 │   │   ├── 📄 use-boolean.ts
 │   │   ├── 📄 use-color-scheme.ts
 │   │   ├── 📄 use-navigation-guard.ts
@@ -218,6 +225,7 @@ Generated on: 2026-02-18T21:44:32.434Z
 │   │   └── 📄 pending-transaction-notifications.ts
 │   ├── 📁 stores/
 │   │   ├── 📄 android-sound.store.ts
+│   │   ├── 📄 exchange-rates-preferences.store.ts
 │   │   ├── 📄 letter-emoji.store.ts
 │   │   ├── 📄 money-formatting.store.ts
 │   │   ├── 📄 notification.store.ts
@@ -228,6 +236,7 @@ Generated on: 2026-02-18T21:44:32.434Z
 │   │   ├── 📄 toast.store.ts
 │   │   ├── 📄 transaction-item-appearance.store.ts
 │   │   ├── 📄 transaction-sheet-controls.store.ts
+│   │   ├── 📄 transfers-preferences.store.ts
 │   │   ├── 📄 trash-bin.store.ts
 │   │   └── 📄 upcoming-section.store.ts
 │   ├── 📁 styles/
@@ -258,7 +267,8 @@ Generated on: 2026-02-18T21:44:32.434Z
 │   │   ├── 📄 new.ts
 │   │   ├── 📄 tags.ts
 │   │   ├── 📄 transaction-filters.ts
-│   │   └── 📄 transactions.ts
+│   │   ├── 📄 transactions.ts
+│   │   └── 📄 transfers.ts
 │   └── 📁 utils/
 │       ├── 📄 account-types-list.ts
 │       ├── 📄 file-icon.ts

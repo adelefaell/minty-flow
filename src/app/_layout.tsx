@@ -180,6 +180,10 @@ export default function RootLayout() {
                 }}
               />
               <Stack.Screen
+                name="settings/preferences/transfers"
+                options={{ title: "Transfers" }}
+              />
+              <Stack.Screen
                 name="accounts/[accountId]/index"
                 options={{
                   title: "Account Details",

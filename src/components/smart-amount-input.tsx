@@ -68,7 +68,7 @@ export function SmartAmountInput({
 
   const currencySymbol = currencyCode
     ? currencyRegistryService.getCurrencySymbol(currencyCode)
-    : "$"
+    : "#"
 
   // Derived display value: editing buffer or controlled value from parent
   const displayValue = isEditing

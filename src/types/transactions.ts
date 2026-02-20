@@ -66,6 +66,15 @@ export interface Transaction {
   subtype?: string // More specific classification
   extra?: Record<string, string> // Custom metadata object (stored as JSON)
 
+  /** True on both debit and credit rows of a transfer. */
+  isTransfer?: boolean
+  /** Shared UUID linking the two halves of a transfer. */
+  transferId?: string | null
+  /** The other account in the transfer. */
+  relatedAccountId?: string | null
+  /** Balance of account before this transaction was applied (snapshot at creation). */
+  accountBalanceBefore?: number
+
   categoryId?: string | null
   accountId: string
   location?: string

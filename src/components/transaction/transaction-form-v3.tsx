@@ -16,7 +16,14 @@ import DateTimePicker, {
 import * as DocumentPicker from "expo-document-picker"
 import * as ImagePicker from "expo-image-picker"
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router"
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react"
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 import { Controller, type Resolver, useForm } from "react-hook-form"
 import {
   ActivityIndicator,
@@ -56,12 +63,21 @@ import {
   restoreTransactionModel,
   updateTransactionModel,
 } from "~/database/services/transaction-service"
+import {
+  createTransfer,
+  deleteTransfer,
+  editTransfer,
+  getConversionRateForTransaction,
+} from "~/database/services/transfer-service"
+import { useBalanceAtTransaction } from "~/hooks/use-balance-before"
 import { useNavigationGuard } from "~/hooks/use-navigation-guard"
 import { useRecurringRule } from "~/hooks/use-recurring-rule"
 import {
   type TransactionFormValues,
   transactionSchema,
 } from "~/schemas/transactions.schema"
+import { exchangeRatesService } from "~/services"
+import { useExchangeRatesPreferencesStore } from "~/stores/exchange-rates-preferences.store"
 import { usePendingTransactionsStore } from "~/stores/pending-transactions.store"
 import { getThemeStrict } from "~/styles/theme/registry"
 import type { Account } from "~/types/accounts"
@@ -138,18 +154,36 @@ function getDefaultValues(
       type: transactionType,
       transactionDate: new Date(),
       accountId: defaultAccountId,
+      toAccountId: transactionType === "transfer" ? "" : undefined,
       categoryId: null,
-      title: "",
+      title: transactionType === "transfer" ? "Transfer" : "",
       description: "",
       isPending: false,
       tags: [],
     }
   }
+  const isTransfer =
+    (transaction.type as TransactionType) === "transfer" &&
+    transaction.isTransfer &&
+    transaction.transferId
+  const fromId =
+    isTransfer && transaction.amount < 0
+      ? transaction.accountId
+      : isTransfer && transaction.relatedAccountId
+        ? transaction.relatedAccountId
+        : transaction.accountId
+  const toId =
+    isTransfer && transaction.amount > 0
+      ? transaction.accountId
+      : isTransfer && transaction.relatedAccountId
+        ? transaction.relatedAccountId
+        : ""
   return {
-    amount: transaction.amount,
+    amount: Math.abs(transaction.amount),
     type: (transaction.type as TransactionType) ?? transactionType,
     transactionDate: transaction.transactionDate,
-    accountId: transaction.accountId,
+    accountId: fromId,
+    toAccountId: isTransfer ? toId : undefined,
     categoryId: transaction.categoryId,
     title: transaction.title ?? "",
     description: transaction.description ?? "",
@@ -249,6 +283,7 @@ export function TransactionFormV3({
 
   const amount = watch("amount")
   const accountId = watch("accountId")
+  const toAccountId = watch("toAccountId")
   const categoryId = watch("categoryId")
   const date = watch("transactionDate")
   const description = watch("description")
@@ -269,6 +304,11 @@ export function TransactionFormV3({
   const [tagSearchQuery, setTagSearchQuery] = useState("")
   const [accountPickerOpen, setAccountPickerOpen] = useState(false)
   const [accountSearchQuery, setAccountSearchQuery] = useState("")
+  const [toAccountPickerOpen, setToAccountPickerOpen] = useState(false)
+  const [toAccountSearchQuery, setToAccountSearchQuery] = useState("")
+  const [conversionRate, setConversionRate] = useState<number | null>(null)
+  const [conversionRateOpen, setConversionRateOpen] = useState(false)
+  const accountSelectionInitialMount = useRef(true)
 
   const [recurringFrequency, setRecurringFrequency] =
     useState<RecurringFrequency>("daily")
@@ -358,6 +398,161 @@ export function TransactionFormV3({
     return accounts.filter((a) => a.name.toLowerCase().includes(lower))
   }, [accounts, accountSearchQuery])
 
+  const filteredToAccountsForPicker = useMemo(() => {
+    let list = accounts
+    if (toAccountSearchQuery.trim()) {
+      const lower = toAccountSearchQuery.toLowerCase()
+      list = list.filter((a) => a.name.toLowerCase().includes(lower))
+    }
+    return list
+  }, [accounts, toAccountSearchQuery])
+
+  const selectedToAccount =
+    transactionType === "transfer" && toAccountId
+      ? accounts.find((a) => a.id === toAccountId)
+      : null
+
+  const balanceAtTransaction = useBalanceAtTransaction(transaction)
+
+  // Default transfer title: "From [From account] to [To account]" when both are selected
+  const title = watch("title")
+  useLayoutEffect(() => {
+    if (
+      transactionType !== "transfer" ||
+      !selectedAccount ||
+      !selectedToAccount ||
+      !isNew
+    )
+      return
+    const derivedTitle = `From ${selectedAccount.name} to ${selectedToAccount.name}`
+    if (title === "" || title === "Transfer" || title === derivedTitle) {
+      setValue("title", derivedTitle, { shouldDirty: false })
+    }
+  }, [
+    transactionType,
+    isNew,
+    selectedAccount,
+    selectedToAccount,
+    title,
+    setValue,
+  ])
+
+  // Load saved conversion rate when editing a transfer (from transfers table or legacy extra)
+  useEffect(() => {
+    if (!transaction || transactionType !== "transfer") return
+    let cancelled = false
+    getConversionRateForTransaction(transaction).then((rate) => {
+      if (!cancelled && rate != null) setConversionRate(rate)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [transaction?.id, transactionType, transaction])
+
+  // Clear conversion rate when user changes from/to account so we refetch
+  useEffect(() => {
+    if (transactionType !== "transfer") return
+    if (accountSelectionInitialMount.current) {
+      accountSelectionInitialMount.current = false
+      return
+    }
+    setConversionRate(null)
+  }, [transactionType])
+
+  const conversionRatePairRef = useRef<{
+    from: string
+    to: string
+  } | null>(null)
+
+  // When the currency pair (from/to) changes, clear rate so we refetch for the new pair
+  useEffect(() => {
+    if (
+      transactionType !== "transfer" ||
+      !selectedAccount ||
+      !selectedToAccount
+    )
+      return
+    const fromCurrency = selectedAccount.currencyCode
+    const toCurrency = selectedToAccount.currencyCode
+    if (fromCurrency === toCurrency) return
+    const prev = conversionRatePairRef.current
+    conversionRatePairRef.current = { from: fromCurrency, to: toCurrency }
+    if (prev && (prev.from !== fromCurrency || prev.to !== toCurrency)) {
+      setConversionRate(null)
+    }
+  }, [
+    transactionType,
+    selectedAccount?.id,
+    selectedToAccount?.id,
+    selectedAccount?.currencyCode,
+    selectedToAccount?.currencyCode,
+    selectedAccount,
+    selectedToAccount,
+  ])
+
+  // Fetch conversion rate when transfer has different currencies (rate is null or pair changed)
+  const getCustomRate = useExchangeRatesPreferencesStore((s) => s.getCustomRate)
+  useEffect(() => {
+    if (
+      transactionType !== "transfer" ||
+      !selectedAccount ||
+      !selectedToAccount ||
+      conversionRate !== null
+    )
+      return
+    const fromCurrency = selectedAccount.currencyCode
+    const toCurrency = selectedToAccount.currencyCode
+    if (fromCurrency === toCurrency) return
+
+    let cancelled = false
+    const resolve = async () => {
+      // Custom rates are stored as "amount per 1 USD". So 1 USD = getCustomRate(X) of X.
+      // We need: rate = toCurrency per 1 fromCurrency (same as Flutter: creditAmount = amount * conversionRate).
+      const fromUpper = fromCurrency.toUpperCase()
+      const toUpper = toCurrency.toUpperCase()
+      const fromPerUsd = getCustomRate(fromCurrency)
+      const toPerUsd = getCustomRate(toCurrency)
+
+      let custom: number | undefined
+      if (fromUpper === "USD") {
+        custom = toPerUsd
+      } else if (toUpper === "USD") {
+        custom =
+          fromPerUsd != null && fromPerUsd !== 0 ? 1 / fromPerUsd : undefined
+      } else if (fromPerUsd != null && toPerUsd != null && fromPerUsd !== 0) {
+        // Pivot through USD: (1/fromPerUsd) = USD per 1 from; × toPerUsd = to per 1 from
+        custom = toPerUsd / fromPerUsd
+      } else if (fromPerUsd != null || toPerUsd != null) {
+        logger.warn(
+          "Custom rate only set for one side of the pair; falling back to API",
+          { fromCurrency, toCurrency },
+        )
+      }
+
+      if (cancelled) return
+      if (custom !== undefined) {
+        setConversionRate(custom)
+        return
+      }
+      const rate = await exchangeRatesService.getRate(fromCurrency, toCurrency)
+      if (!cancelled && rate != null) setConversionRate(rate)
+    }
+    resolve()
+    return () => {
+      cancelled = true
+    }
+  }, [
+    transactionType,
+    selectedAccount?.id,
+    selectedToAccount?.id,
+    selectedAccount?.currencyCode,
+    selectedToAccount?.currencyCode,
+    conversionRate,
+    getCustomRate,
+    selectedAccount,
+    selectedToAccount,
+  ])
+
   const openDatePicker = useCallback(
     (target: DatePickerTarget = "transaction") => {
       datePickerTargetRef.current = target
@@ -439,6 +634,75 @@ export function TransactionFormV3({
     if (isSaving) return
     setIsSaving(true)
     try {
+      // ─── Transfer: create or edit both legs via transfer service ─────────
+      if (data.type === "transfer") {
+        const fromId = data.accountId
+        const toId = data.toAccountId ?? ""
+        if (!toId) {
+          Toast.error({ title: "Please select a destination account" })
+          setIsSaving(false)
+          return
+        }
+        if (fromId === toId) {
+          Toast.error({ title: "From and To accounts must be different" })
+          setIsSaving(false)
+          return
+        }
+        const fromAccount = accounts.find((a) => a.id === fromId)
+        const toAccount = accounts.find((a) => a.id === toId)
+        const differentCurrencies =
+          fromAccount &&
+          toAccount &&
+          fromAccount.currencyCode !== toAccount.currencyCode
+        if (differentCurrencies) {
+          if (
+            conversionRate == null ||
+            conversionRate <= 0 ||
+            conversionRate === 1
+          ) {
+            Toast.error({
+              title:
+                conversionRate === 1
+                  ? "Rate is still loading, please wait"
+                  : "Please set the converted amount for different currencies",
+            })
+            setIsSaving(false)
+            return
+          }
+        }
+        const effectiveDate = data.transactionDate
+        const transferPayload = {
+          fromAccountId: fromId,
+          toAccountId: toId,
+          amount: data.amount,
+          ...(differentCurrencies &&
+          conversionRate != null &&
+          conversionRate > 0 &&
+          conversionRate !== 1
+            ? { conversionRate }
+            : {}),
+          transactionDate: isNew ? effectiveDate.getTime() : effectiveDate,
+          title: data.title?.trim() || "Transfer",
+          notes: data.description?.trim() || null,
+        }
+        if (isNew) {
+          await createTransfer({
+            ...transferPayload,
+            transactionDate: effectiveDate.getTime(),
+          })
+          Toast.success({ title: "Transfer created" })
+        } else if (transaction) {
+          await editTransfer(transaction, {
+            ...transferPayload,
+            transactionDate: effectiveDate,
+          })
+          Toast.success({ title: "Transfer updated" })
+        }
+        allowNavigation()
+        router.back()
+        return
+      }
+
       // Build extra: on edit merge with existing so we don't wipe other keys
       const builtExtra: Record<string, string> = isNew
         ? {}
@@ -565,21 +829,26 @@ export function TransactionFormV3({
     }
   }, [isDirty, handleGoBack, allowNavigation])
 
-  const handleDeleteConfirm = useCallback(async () => {
+  const handleDeleteConfirm = useCallback(() => {
     if (!transaction) return
     if (transaction.recurringId && recurringRule) {
       setDeleteRecurringModalVisible(true)
       return
     }
-    try {
-      await deleteTransactionModel(transaction)
-      Toast.success({ title: "Moved to trash" })
-      allowNavigation()
-      router.back()
-    } catch (error) {
-      logger.error("Failed to move transaction to trash", { error })
-      Toast.error({ title: "Failed to move to trash" })
-    }
+    const promise =
+      transaction.isTransfer && transaction.transferId
+        ? deleteTransfer(transaction)
+        : deleteTransactionModel(transaction)
+    promise
+      .then(() => {
+        Toast.success({ title: "Moved to trash" })
+        allowNavigation()
+        router.back()
+      })
+      .catch((error) => {
+        logger.error("Failed to move transaction to trash", { error })
+        Toast.error({ title: "Failed to move to trash" })
+      })
   }, [transaction, recurringRule, router, allowNavigation])
 
   const handleRestore = useCallback(async () => {
@@ -866,7 +1135,11 @@ export function TransactionFormV3({
                       {selectedAccount.name}
                     </Text>
                     <Money
-                      value={selectedAccount.balance}
+                      value={
+                        transaction && balanceAtTransaction !== null
+                          ? balanceAtTransaction
+                          : selectedAccount.balance
+                      }
                       currency={selectedAccount.currencyCode}
                       style={styles.accountTriggerBalance}
                     />
@@ -926,6 +1199,9 @@ export function TransactionFormV3({
                       ]}
                       onPress={() => {
                         setValue("accountId", account.id, { shouldDirty: true })
+                        if (toAccountId === account.id) {
+                          setValue("toAccountId", "", { shouldDirty: true })
+                        }
                         setAccountPickerOpen(false)
                       }}
                     >
@@ -959,86 +1235,335 @@ export function TransactionFormV3({
             ) : null}
           </View>
 
-          {/* Category: horizontal scroll with 2-row grid (same as v2) + Clear */}
-          <View style={styles.fieldBlock}>
-            <View style={styles.sectionLabelRow}>
-              <Text variant="small" style={styles.sectionLabelInRow}>
-                Category
-              </Text>
-              <Pressable
-                onPress={() =>
-                  categoryId &&
-                  setValue("categoryId", null, { shouldDirty: true })
-                }
-                style={[
-                  styles.clearButton,
-                  !categoryId && styles.clearButtonDisabled,
-                ]}
-                pointerEvents={categoryId ? "auto" : "none"}
-                accessibilityLabel="Clear category"
-                accessibilityState={{ disabled: !categoryId }}
-              >
-                <Text variant="small" style={styles.clearButtonText}>
-                  Clear
+          {/* To account: only for transfers (create or edit) */}
+          {transactionType === "transfer" && (
+            <View style={styles.fieldBlock}>
+              <View style={styles.sectionLabelRow}>
+                <Text variant="small" style={styles.sectionLabelInRow}>
+                  To account
                 </Text>
-              </Pressable>
-            </View>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.categoryScrollContent}
-            >
-              <View
+                <Pressable
+                  onPress={() =>
+                    toAccountId &&
+                    setValue("toAccountId", "", { shouldDirty: true })
+                  }
+                  style={[
+                    styles.clearButton,
+                    !toAccountId && styles.clearButtonDisabled,
+                  ]}
+                  pointerEvents={toAccountId ? "auto" : "none"}
+                  accessibilityLabel="Clear to account"
+                  accessibilityState={{ disabled: !toAccountId }}
+                >
+                  <Text variant="small" style={styles.clearButtonText}>
+                    Clear
+                  </Text>
+                </Pressable>
+              </View>
+              <Pressable
                 style={[
-                  styles.categoryGrid,
-                  {
-                    width: Math.max(
-                      Dimensions.get("window").width - H_PAD * 2,
-                      Math.ceil(categories.length / 2) *
-                        (CATEGORY_CELL_SIZE + CATEGORY_GAP) -
-                        CATEGORY_GAP,
-                    ),
-                  },
+                  styles.accountTrigger,
+                  selectedToAccount && styles.accountTriggerSelected,
                 ]}
+                onPress={() => {
+                  setToAccountPickerOpen((o) => !o)
+                  if (!toAccountPickerOpen) setToAccountSearchQuery("")
+                }}
+                accessibilityLabel={
+                  toAccountPickerOpen ? "Cancel" : "Select to account"
+                }
               >
-                {categories.map((category) => {
-                  const isSelected = category.id === categoryId
-                  return (
-                    <Pressable
-                      key={category.id}
-                      style={[
-                        styles.categoryCell,
-                        isSelected && styles.categoryCellSelected,
-                      ]}
-                      onPress={() =>
-                        setValue("categoryId", category.id, {
-                          shouldDirty: true,
-                        })
-                      }
-                      accessible
-                      accessibilityRole="button"
-                      accessibilityLabel={`Select ${category.name} category`}
-                      accessibilityState={{ selected: isSelected }}
-                    >
-                      <DynamicIcon
-                        icon={category.icon || "shape"}
-                        size={32}
-                        colorScheme={getThemeStrict(category.colorSchemeName)}
-                        variant="badge"
-                      />
+                {selectedToAccount ? (
+                  <>
+                    <DynamicIcon
+                      icon={selectedToAccount.icon || "wallet-bifold"}
+                      size={24}
+                      colorScheme={getThemeStrict(
+                        selectedToAccount.colorSchemeName,
+                      )}
+                      variant="badge"
+                    />
+                    <View style={styles.accountTriggerContent}>
                       <Text
-                        variant="small"
-                        style={styles.categoryCellLabel}
+                        variant="default"
+                        style={styles.accountTriggerName}
                         numberOfLines={1}
                       >
-                        {category.name}
+                        {selectedToAccount.name}
                       </Text>
-                    </Pressable>
-                  )
-                })}
+                      <Money
+                        value={selectedToAccount.balance}
+                        currency={selectedToAccount.currencyCode}
+                        style={styles.accountTriggerBalance}
+                      />
+                    </View>
+                    <IconSymbol
+                      name={
+                        toAccountPickerOpen ? "chevron-up" : "chevron-right"
+                      }
+                      size={20}
+                      style={styles.chevronIcon}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <DynamicIcon
+                      icon="wallet-bifold"
+                      size={24}
+                      color={theme.colors.primary}
+                      variant="badge"
+                    />
+                    <Text
+                      variant="default"
+                      style={styles.accountTriggerPlaceholder}
+                      numberOfLines={1}
+                    >
+                      Select to account
+                    </Text>
+                    <IconSymbol
+                      name={toAccountPickerOpen ? "close" : "chevron-down"}
+                      size={20}
+                      style={styles.chevronIcon}
+                    />
+                  </>
+                )}
+              </Pressable>
+              {toAccountPickerOpen && (
+                <View style={styles.inlineAccountPicker}>
+                  <Input
+                    placeholder="Search accounts..."
+                    value={toAccountSearchQuery}
+                    onChangeText={setToAccountSearchQuery}
+                    placeholderTextColor={theme.colors.customColors.semi}
+                    style={styles.pickerSearchInput}
+                  />
+                  <ScrollView
+                    style={styles.pickerList}
+                    contentContainerStyle={styles.pickerListContent}
+                    keyboardShouldPersistTaps="handled"
+                    nestedScrollEnabled
+                    showsVerticalScrollIndicator
+                  >
+                    {filteredToAccountsForPicker.map((account) => (
+                      <Pressable
+                        key={account.id}
+                        style={[
+                          styles.accountPickerRow,
+                          account.id === toAccountId &&
+                            styles.inlinePickerRowSelected,
+                        ]}
+                        onPress={() => {
+                          setValue("toAccountId", account.id, {
+                            shouldDirty: true,
+                          })
+                          if (accountId === account.id) {
+                            setValue("accountId", "", { shouldDirty: true })
+                          }
+                          setToAccountPickerOpen(false)
+                        }}
+                      >
+                        <DynamicIcon
+                          icon={account.icon || "wallet-bifold"}
+                          size={24}
+                          colorScheme={getThemeStrict(account.colorSchemeName)}
+                          variant="badge"
+                        />
+                        <View style={styles.accountPickerRowContent} native>
+                          <Text
+                            variant="default"
+                            style={styles.accountPickerRowName}
+                            numberOfLines={1}
+                          >
+                            {account.name}
+                          </Text>
+                          <Money
+                            value={account.balance}
+                            currency={account.currencyCode}
+                            style={styles.accountPickerRowBalance}
+                          />
+                        </View>
+                      </Pressable>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+            </View>
+          )}
+
+          {/* Conversion: converted amount on its own row; rate toggleable above/below. */}
+          {transactionType === "transfer" &&
+            selectedAccount &&
+            selectedToAccount &&
+            selectedAccount.currencyCode !== selectedToAccount.currencyCode && (
+              <View style={styles.fieldBlock}>
+                <View style={styles.sectionLabelRow}>
+                  <Text variant="small" style={styles.sectionLabelInRow}>
+                    Conversion
+                  </Text>
+                </View>
+                {/* Toggleable: rate row (1 from = rate to) and when open the formula (amount × rate =) */}
+                <Pressable
+                  style={[
+                    styles.conversionRateRow,
+                    conversionRateOpen && styles.conversionRateRowSelected,
+                  ]}
+                  onPress={() => setConversionRateOpen((open) => !open)}
+                >
+                  <Money
+                    value={1}
+                    currency={selectedAccount.currencyCode}
+                    style={styles.conversionRateAmount}
+                  />
+                  <Text style={styles.conversionRateEquals}>=</Text>
+                  <Money
+                    value={conversionRate ?? 0}
+                    currency={selectedToAccount.currencyCode}
+                    style={styles.conversionRateAmount}
+                  />
+                </Pressable>
+                {conversionRateOpen && (
+                  <>
+                    <View style={styles.conversionOutcomeRow}>
+                      {(() => {
+                        const amountNum =
+                          typeof amount === "number"
+                            ? amount
+                            : Number.parseFloat(String(amount ?? "")) || 0
+                        return (
+                          <>
+                            <View style={styles.conversionOutcomeLeft}>
+                              <Money
+                                value={amountNum}
+                                currency={selectedAccount.currencyCode}
+                                style={styles.conversionOutcomeAmount}
+                              />
+                            </View>
+                            <Text style={styles.conversionRateEquals}>×</Text>
+                            <Text style={styles.conversionOutcomeRate}>
+                              {(conversionRate ?? 0).toLocaleString(undefined, {
+                                maximumFractionDigits: 6,
+                              })}
+                            </Text>
+                            <Text style={styles.conversionRateEquals}>=</Text>
+                            <Money
+                              value={(conversionRate ?? 0) * amountNum}
+                              currency={selectedToAccount.currencyCode}
+                              style={styles.conversionOutcomeAmount}
+                            />
+                          </>
+                        )
+                      })()}
+                    </View>
+                    {/* Converted amount input inside the toggle */}
+                    {(() => {
+                      const amountNum =
+                        typeof amount === "number"
+                          ? amount
+                          : Number.parseFloat(String(amount ?? "")) || 0
+                      const convertedDisplay = (conversionRate ?? 0) * amountNum
+                      return (
+                        <View style={styles.conversionInputRow}>
+                          <SmartAmountInput
+                            value={convertedDisplay}
+                            onChange={(value) => {
+                              if (amountNum > 0 && typeof value === "number") {
+                                setConversionRate(value / amountNum)
+                              }
+                            }}
+                            currencyCode={selectedToAccount.currencyCode}
+                            label=""
+                            placeholder="0"
+                          />
+                        </View>
+                      )
+                    })()}
+                  </>
+                )}
               </View>
-            </ScrollView>
-          </View>
+            )}
+
+          {/* Category: hidden for transfer (transfers have no category) */}
+          {transactionType !== "transfer" && (
+            <View style={styles.fieldBlock}>
+              <View style={styles.sectionLabelRow}>
+                <Text variant="small" style={styles.sectionLabelInRow}>
+                  Category
+                </Text>
+                <Pressable
+                  onPress={() =>
+                    categoryId &&
+                    setValue("categoryId", null, { shouldDirty: true })
+                  }
+                  style={[
+                    styles.clearButton,
+                    !categoryId && styles.clearButtonDisabled,
+                  ]}
+                  pointerEvents={categoryId ? "auto" : "none"}
+                  accessibilityLabel="Clear category"
+                  accessibilityState={{ disabled: !categoryId }}
+                >
+                  <Text variant="small" style={styles.clearButtonText}>
+                    Clear
+                  </Text>
+                </Pressable>
+              </View>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.categoryScrollContent}
+              >
+                <View
+                  style={[
+                    styles.categoryGrid,
+                    {
+                      width: Math.max(
+                        Dimensions.get("window").width - H_PAD * 2,
+                        Math.ceil(categories.length / 2) *
+                          (CATEGORY_CELL_SIZE + CATEGORY_GAP) -
+                          CATEGORY_GAP,
+                      ),
+                    },
+                  ]}
+                >
+                  {categories.map((category) => {
+                    const isSelected = category.id === categoryId
+                    return (
+                      <Pressable
+                        key={category.id}
+                        style={[
+                          styles.categoryCell,
+                          isSelected && styles.categoryCellSelected,
+                        ]}
+                        onPress={() =>
+                          setValue("categoryId", category.id, {
+                            shouldDirty: true,
+                          })
+                        }
+                        accessible
+                        accessibilityRole="button"
+                        accessibilityLabel={`Select ${category.name} category`}
+                        accessibilityState={{ selected: isSelected }}
+                      >
+                        <DynamicIcon
+                          icon={category.icon || "shape"}
+                          size={32}
+                          colorScheme={getThemeStrict(category.colorSchemeName)}
+                          variant="badge"
+                        />
+                        <Text
+                          variant="small"
+                          style={styles.categoryCellLabel}
+                          numberOfLines={1}
+                        >
+                          {category.name}
+                        </Text>
+                      </Pressable>
+                    )
+                  })}
+                </View>
+              </ScrollView>
+            </View>
+          )}
 
           {/* Tags: chips + inline dropdown */}
           <View style={styles.fieldBlock}>
@@ -2053,6 +2578,23 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.customColors.semi,
     marginTop: SMALL_GAP,
   },
+  currencyConversionPlaceholder: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.secondary,
+    backgroundColor: theme.colors.secondary,
+  },
+  currencyConversionIcon: {
+    marginRight: 10,
+    opacity: 0.7,
+  },
+  currencyConversionText: {
+    flex: 1,
+    color: theme.colors.customColors.semi,
+  },
   fieldError: {
     fontSize: 13,
     color: theme.colors.error,
@@ -2075,7 +2617,8 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: H_PAD,
+    paddingLeft: H_PAD,
+    paddingRight: H_PAD + 8,
     marginBottom: SECTION_GAP,
   },
   sectionLabelInRow: {
@@ -2115,6 +2658,65 @@ const styles = StyleSheet.create((theme) => ({
   accountTriggerSelected: {
     borderStyle: "solid",
     borderColor: theme.colors.primary,
+  },
+  conversionRateRow: {
+    marginHorizontal: H_PAD,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: ELEMENT_GAP,
+    paddingVertical: TRIGGER_PAD + 4,
+    paddingHorizontal: H_PAD,
+    borderRadius: theme.colors.radius,
+    borderWidth: 2,
+    borderColor: theme.colors.secondary,
+    borderStyle: "dashed",
+  },
+  conversionRateRowSelected: {
+    borderStyle: "solid",
+    borderColor: theme.colors.primary,
+    backgroundColor: theme.colors.secondary,
+  },
+  conversionRateAmount: {
+    fontSize: 16,
+
+    fontWeight: "600",
+    color: theme.colors.onSurface,
+  },
+  conversionRateEquals: {
+    fontSize: 16,
+    color: theme.colors.onSurface,
+  },
+  conversionOutcomeRow: {
+    marginHorizontal: H_PAD,
+
+    flexDirection: "row",
+    alignItems: "center",
+    gap: ELEMENT_GAP,
+    paddingVertical: TRIGGER_PAD,
+    paddingHorizontal: H_PAD,
+    marginTop: SECTION_GAP + 4,
+  },
+  conversionOutcomeLeft: {
+    minWidth: 0,
+  },
+  conversionOutcomeAmount: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: theme.colors.onSurface,
+  },
+  conversionOutcomeRate: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: theme.colors.customColors?.semi ?? theme.colors.onSecondary,
+  },
+  conversionEqualsRight: {
+    minWidth: 0,
+    flex: 1,
+  },
+  conversionInputRow: {
+    marginTop: SECTION_GAP + 4,
+    marginHorizontal: H_PAD,
+    marginBottom: 0,
   },
   accountTriggerError: {
     borderColor: theme.colors.error,

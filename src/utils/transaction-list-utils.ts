@@ -6,6 +6,10 @@
 import { addDays, endOfMonth, startOfMonth, startOfWeek } from "date-fns"
 
 import type { TransactionWithRelations } from "~/database/services/transaction-service"
+import {
+  TransferLayoutEnum,
+  type TransferLayoutType,
+} from "~/stores/transfers-preferences.store"
 import type {
   GroupByOption,
   TransactionListFilterState,
@@ -15,6 +19,23 @@ import type {
   TransactionType,
 } from "~/types/transactions"
 import { TransactionTypeEnum } from "~/types/transactions"
+
+/**
+ * Apply transfer layout preference: when "combine", show one row per transfer (the source/debit row).
+ * When "separate", show both debit and credit rows.
+ */
+export function applyTransferLayout(
+  list: TransactionWithRelations[],
+  layout: TransferLayoutType,
+): TransactionWithRelations[] {
+  if (layout === TransferLayoutEnum.SEPARATE) return list
+  return list.filter((row) => {
+    const t = row.transaction
+    if (!t.isTransfer || !t.transferId) return true
+    return t.amount < 0
+  })
+}
+
 import {
   formatDateKey,
   formatHourKey,

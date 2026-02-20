@@ -10,6 +10,7 @@
 import { useCallback, useState } from "react"
 import {
   ActivityIndicator,
+  Alert,
   Modal,
   Pressable,
   Text,
@@ -115,7 +116,10 @@ export function DeleteRecurringModal({
   const maxCardWidth = Math.min(width - 48, 400)
   const { theme } = useUnistyles()
 
-  const handleDelete = useCallback(
+  const CONFIRM_MESSAGE =
+    "This action will delete all related transactions, and stop new transactions from being created. Recovering the transactions from trash bin wouldn't cause it to create new transactions."
+
+  const performDelete = useCallback(
     async (scope: DeleteScope) => {
       if (loadingScope) return
       setLoadingScope(scope)
@@ -160,6 +164,24 @@ export function DeleteRecurringModal({
       }
     },
     [loadingScope, transaction, recurringRule, onRequestClose, onDeleted],
+  )
+
+  const handleDelete = useCallback(
+    (scope: DeleteScope) => {
+      if (scope === "all" || scope === "this_and_future") {
+        Alert.alert("Are you sure?", CONFIRM_MESSAGE, [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: () => performDelete(scope),
+          },
+        ])
+      } else {
+        void performDelete(scope)
+      }
+    },
+    [performDelete],
   )
 
   return (

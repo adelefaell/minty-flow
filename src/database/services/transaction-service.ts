@@ -17,6 +17,11 @@ import type CategoryModel from "../models/Category"
 import type TagModel from "../models/Tag"
 import type TransactionModel from "../models/Transaction"
 import type TransactionTagModel from "../models/TransactionTag"
+import {
+  deleteTransfer,
+  getConversionRateForTransaction,
+  getPairedTransaction,
+} from "./transfer-service"
 
 /* ------------------------------------------------------------------ */
 /* Types */
@@ -27,6 +32,10 @@ export interface TransactionWithRelations {
   account: AccountModel
   category: CategoryModel | null
   tags: TagModel[]
+  /** Set for transfer rows: the other account in the transfer (from related_account_id). */
+  relatedAccount?: AccountModel | null
+  /** Set for cross-currency transfer rows: rate = to-currency per 1 from-currency (for showing other account amount). */
+  conversionRate?: number | null
 }
 
 /* ------------------------------------------------------------------ */
@@ -52,31 +61,48 @@ const hydrateTransaction = async (
 ): Promise<TransactionWithRelations> => {
   const accounts = database.get<AccountModel>("accounts")
   const categories = database.get<CategoryModel>("categories")
-  const [account, category, tags] = await Promise.all([
-    accounts.find(transaction.accountId),
-    transaction.categoryId
-      ? categories.find(transaction.categoryId)
-      : Promise.resolve(null),
-    loadTransactionTags(transaction.id),
-  ])
+  const [account, category, tags, relatedAccount, conversionRate] =
+    await Promise.all([
+      accounts.find(transaction.accountId),
+      transaction.categoryId
+        ? categories.find(transaction.categoryId)
+        : Promise.resolve(null),
+      loadTransactionTags(transaction.id),
+      transaction.relatedAccountId
+        ? accounts
+            .find(transaction.relatedAccountId)
+            .catch(() => null as AccountModel | null)
+        : Promise.resolve(null),
+      transaction.isTransfer
+        ? getConversionRateForTransaction(transaction)
+        : Promise.resolve(null),
+    ])
 
   return {
     transaction,
     account,
     category,
     tags,
+    ...(transaction.relatedAccountId ? { relatedAccount } : {}),
+    ...(transaction.isTransfer && conversionRate != null
+      ? { conversionRate }
+      : {}),
   }
 }
 
 /**
- * Balance delta for the account: expense/transfer = -amount, income = +amount.
+ * Balance delta for the account.
+ * - Income: amount is positive → delta = amount.
+ * - Expense: amount is positive → delta = -amount.
+ * - Transfer: amount is signed (debit negative, credit positive) → delta = amount.
  *
  * Balance rule (Flutter parity): we only apply this when the transaction is
  * confirmed (!isPending). Pending transactions must never affect account balance.
  */
 const getBalanceDelta = (amount: number, type: TransactionType): number => {
   if (type === TransactionTypeEnum.INCOME) return amount
-  return -amount // expense or transfer (money out of account)
+  if (type === TransactionTypeEnum.TRANSFER) return amount // signed amount on row
+  return -amount // expense (money out of account)
 }
 
 const loadTransactionTags = async (
@@ -314,17 +340,21 @@ export const confirmTransactionSync = async (
   if (shouldConfirm && !transaction.isPending) return
   if (!shouldConfirm && transaction.isPending) return
 
+  // Resolve transfer pair: we use transfer_id + getPairedTransaction (not extra.transferPairId).
+  let pair: TransactionModel | null = null
+  if (transaction.isTransfer && transaction.transferId) {
+    pair = await getPairedTransaction(transaction)
+  }
   const transferPairId = transaction.extra?.transferPairId
+  if (!pair && transferPairId) {
+    pair = await findTransactionModel(transferPairId)
+  }
 
   return database.write(async () => {
     const toUpdate: TransactionModel[] = [transaction]
-    if (transferPairId) {
-      const pair = await findTransactionModel(transferPairId)
-      if (pair) {
-        // Only include pair if it's in the opposite state from what we want
-        if (shouldConfirm && pair.isPending) toUpdate.push(pair)
-        if (!shouldConfirm && !pair.isPending) toUpdate.push(pair)
-      }
+    if (pair) {
+      if (shouldConfirm && pair.isPending) toUpdate.push(pair)
+      if (!shouldConfirm && !pair.isPending) toUpdate.push(pair)
     }
 
     const now = new Date()
@@ -439,6 +469,9 @@ const TRANSACTION_OBSERVE_COLUMNS = [
   "updated_at",
   "is_deleted",
   "has_attachments",
+  "is_transfer",
+  "transfer_id",
+  "related_account_id",
 ] as const
 
 export const observeTransactionModels = (
@@ -577,7 +610,6 @@ export const createTransactionModel = async (
 ): Promise<TransactionModel> => {
   const transactions = transactionsCollection()
   const categories = database.get<CategoryModel>("categories")
-  // const accounts = database.get<AccountModel>("accounts")
 
   return database.write(async () => {
     const category = data.categoryId
@@ -604,6 +636,12 @@ export const createTransactionModel = async (
       t.hasAttachments = hasAttachmentsFromExtra(data.extra)
       t.subtype = data.subtype
       t.location = data.location
+      // Transfer link fields: single-row (income/expense or legacy transfer) have no pair
+      t.isTransfer = data.type === TransactionTypeEnum.TRANSFER
+      t.transferId = null
+      t.relatedAccountId = null
+      // Balance before is computed at read time (source-verified: Flow does not store it)
+      t.accountBalanceBefore = 0
     })
 
     const account = await accountsCollection().find(data.accountId)
@@ -810,6 +848,11 @@ export const updateTransactionModelById = async (
 export const deleteTransactionModel = async (
   transaction: TransactionModel,
 ): Promise<void> => {
+  // Transfers: soft-delete both legs and restore both account balances (matches Flow moveToBinSync).
+  if (transaction.isTransfer && transaction.transferId) {
+    return deleteTransfer(transaction)
+  }
+
   const categories = database.get<CategoryModel>("categories")
 
   return database.write(async () => {

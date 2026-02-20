@@ -1,11 +1,12 @@
 import { withObservables } from "@nozbe/watermelondb/react"
 import { useRouter } from "expo-router"
-import { useCallback, useMemo, useRef } from "react"
-import { Alert, FlatList } from "react-native"
+import { useCallback, useMemo, useRef, useState } from "react"
+import { FlatList } from "react-native"
 import type { SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable"
 import { StyleSheet } from "react-native-unistyles"
 import { startWith } from "rxjs"
 
+import { ConfirmModal } from "~/components/confirm-modal"
 import { TransactionItem } from "~/components/transaction/transaction-item"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
@@ -23,6 +24,8 @@ function TrashScreenInner({
 }) {
   const router = useRouter()
   const openSwipeableRef = useRef<SwipeableMethods | null>(null)
+  const [pendingDestroyItem, setPendingDestroyItem] =
+    useState<TransactionWithRelations | null>(null)
 
   const sorted = useMemo(
     () =>
@@ -42,74 +45,82 @@ function TrashScreenInner({
 
   const handleDestroy = useCallback(
     (item: TransactionWithRelations) => () => {
-      Alert.alert(
-        "Delete permanently?",
-        "This transaction will be removed forever and cannot be restored.",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Delete",
-            style: "destructive",
-            onPress: () =>
-              destroyTransactionModel(item.transaction)
-                .then(() => {
-                  Toast.success({
-                    title: "Deleted",
-                    description: "Transaction permanently removed.",
-                  })
-                })
-                .catch(() => {
-                  Toast.error({
-                    title: "Error",
-                    description: "Failed to delete transaction.",
-                  })
-                }),
-          },
-        ],
-      )
+      setPendingDestroyItem(item)
     },
     [],
   )
 
+  const handleConfirmDestroy = useCallback(async () => {
+    if (!pendingDestroyItem) return
+    const item = pendingDestroyItem
+    try {
+      await destroyTransactionModel(item.transaction)
+      setPendingDestroyItem(null)
+      Toast.success({
+        title: "Deleted",
+        description: "Transaction permanently removed.",
+      })
+    } catch (e) {
+      Toast.error({
+        title: "Error",
+        description: "Failed to delete transaction.",
+      })
+      throw e
+    }
+  }, [pendingDestroyItem])
+
   return (
-    <FlatList
-      style={styles.container}
-      contentContainerStyle={[
-        styles.content,
-        sorted.length === 0 && styles.contentEmpty,
-      ]}
-      ListHeaderComponent={
-        <>
-          <Text variant="h2" style={styles.title}>
-            Trash
-          </Text>
-          <Text variant="p" style={styles.description}>
-            Tap to open. Swipe left to delete permanently.
-          </Text>
-        </>
-      }
-      ListEmptyComponent={
-        <View style={styles.placeholder}>
-          <Text variant="small" style={styles.placeholderText}>
-            No deleted transactions
-          </Text>
-        </View>
-      }
-      data={sorted}
-      keyExtractor={(item) => item.transaction.id}
-      renderItem={({ item }) => (
-        <TransactionItem
-          transactionWithRelations={item}
-          onPress={handlePress(item)}
-          onDelete={handleDestroy(item)}
-          onWillOpen={(methods) => {
-            openSwipeableRef.current?.close()
-            openSwipeableRef.current = methods
-          }}
-          rightActionAccessibilityLabel="Delete permanently"
-        />
-      )}
-    />
+    <>
+      <FlatList
+        style={styles.container}
+        contentContainerStyle={[
+          styles.content,
+          sorted.length === 0 && styles.contentEmpty,
+        ]}
+        ListHeaderComponent={
+          <>
+            <Text variant="h2" style={styles.title}>
+              Trash
+            </Text>
+            <Text variant="p" style={styles.description}>
+              Tap to open. Swipe left to delete permanently.
+            </Text>
+          </>
+        }
+        ListEmptyComponent={
+          <View style={styles.placeholder}>
+            <Text variant="small" style={styles.placeholderText}>
+              No deleted transactions
+            </Text>
+          </View>
+        }
+        data={sorted}
+        keyExtractor={(item) => item.transaction.id}
+        renderItem={({ item }) => (
+          <TransactionItem
+            transactionWithRelations={item}
+            onPress={handlePress(item)}
+            onDelete={handleDestroy(item)}
+            onWillOpen={(methods) => {
+              openSwipeableRef.current?.close()
+              openSwipeableRef.current = methods
+            }}
+            rightActionAccessibilityLabel="Delete permanently"
+          />
+        )}
+      />
+      <ConfirmModal
+        visible={pendingDestroyItem !== null}
+        onRequestClose={() => setPendingDestroyItem(null)}
+        onConfirm={handleConfirmDestroy}
+        title="Delete permanently?"
+        description="This transaction will be removed forever and cannot be restored."
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        variant="destructive"
+        icon="trash-can"
+      />
+    </>
   )
 }
 

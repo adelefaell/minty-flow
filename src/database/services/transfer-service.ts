@@ -1,0 +1,394 @@
+import { Q } from "@nozbe/watermelondb"
+
+import type {
+  CreateTransferParams,
+  EditTransferFields,
+} from "~/schemas/transactions.schema"
+
+import { database } from "../index"
+import type AccountModel from "../models/Account"
+import type TransactionModel from "../models/Transaction"
+import type TransferModel from "../models/Transfer"
+
+/* ------------------------------------------------------------------ */
+/* UUID */
+/* ------------------------------------------------------------------ */
+
+function toDateMs(v: number | Date | undefined, fallback: number): number {
+  if (v === undefined) return fallback
+  return typeof v === "number" ? v : v.getTime()
+}
+
+/* ------------------------------------------------------------------ */
+/* Collections */
+/* ------------------------------------------------------------------ */
+
+const transactionsCollection = () =>
+  database.get<TransactionModel>("transactions")
+const accountsCollection = () => database.get<AccountModel>("accounts")
+const transfersCollection = () => database.get<TransferModel>("transfers")
+
+/* ------------------------------------------------------------------ */
+/* Paired row */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Given one half of a transfer, return the other half.
+ */
+export async function getPairedTransaction(
+  transaction: TransactionModel,
+): Promise<TransactionModel | null> {
+  if (!transaction.transferId) return null
+
+  const results = await transactionsCollection()
+    .query(
+      Q.where("transfer_id", transaction.transferId),
+      Q.where("id", Q.notEq(transaction.id)),
+      Q.where("is_deleted", false),
+    )
+    .fetch()
+
+  return results[0] ?? null
+}
+
+/**
+ * Get the conversion rate for a transfer transaction (either leg).
+ * Prefers the transfers table; falls back to transaction.extra.conversionRate for legacy data.
+ * Rate is always "to-currency per 1 from-currency" (same as Flutter); stored once on the
+ * Transfer record, so either debit or credit transaction id yields the same rate.
+ */
+export async function getConversionRateForTransaction(
+  transaction: TransactionModel,
+): Promise<number | null> {
+  if (!transaction.isTransfer) return null
+
+  const transfers = transfersCollection()
+  const byFrom = await transfers
+    .query(Q.where("from_transaction_id", transaction.id))
+    .fetch()
+  const byTo = await transfers
+    .query(Q.where("to_transaction_id", transaction.id))
+    .fetch()
+  const transfer = byFrom[0] ?? byTo[0]
+  if (transfer) return transfer.conversionRate
+
+  const extra = transaction.extra?.conversionRate
+  if (extra != null) {
+    const parsed = parseFloat(extra)
+    if (Number.isFinite(parsed)) return parsed
+  }
+  return null
+}
+
+/* ------------------------------------------------------------------ */
+/* Queries */
+/* ------------------------------------------------------------------ */
+
+/** All transfers for an account (both debit and credit rows), sorted by date desc. */
+export function transfersQuery(accountId: string) {
+  return transactionsCollection().query(
+    Q.where("account_id", accountId),
+    Q.where("is_transfer", true),
+    Q.where("is_deleted", false),
+    Q.sortBy("transaction_date", Q.desc),
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Create */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Create a transfer between two accounts.
+ * Always creates exactly TWO transaction rows linked by shared transfer_id (debit row's id).
+ * Uses prepareCreate + batch for one atomic write. Only creates Transfer record when cross-currency.
+ */
+export async function createTransfer({
+  fromAccountId,
+  toAccountId,
+  amount,
+  conversionRate,
+  transactionDate = Date.now(),
+  title = "Transfer",
+  notes = null,
+}: CreateTransferParams): Promise<void> {
+  if (fromAccountId === toAccountId) {
+    throw new Error("Cannot transfer to the same account.")
+  }
+  if (amount <= 0) {
+    throw new Error("Transfer amount must be positive.")
+  }
+
+  const accounts = accountsCollection()
+  const [fromAccount, toAccount] = await Promise.all([
+    accounts.find(fromAccountId),
+    accounts.find(toAccountId),
+  ])
+
+  const isCrossCurrency = fromAccount.currencyCode !== toAccount.currencyCode
+  const creditAmount =
+    isCrossCurrency && conversionRate != null && conversionRate > 0
+      ? amount * conversionRate
+      : amount
+
+  const dateMs = toDateMs(
+    transactionDate as number | Date | undefined,
+    Date.now(),
+  )
+  const now = new Date()
+  const debitBalanceBefore = fromAccount.balance
+  const creditBalanceBefore = toAccount.balance
+
+  const transactions = transactionsCollection()
+  const transfers = transfersCollection()
+
+  const debit = transactions.prepareCreate((r) => {
+    r.title = title
+    r.amount = -amount
+    r.transactionDate = new Date(dateMs)
+    r.type = "transfer"
+    r.isTransfer = true
+    r.transferId = r.id
+    r.accountId = fromAccountId
+    r.relatedAccountId = toAccountId
+    r.accountBalanceBefore = debitBalanceBefore
+    r.isPending = false
+    r.isDeleted = false
+    r.description = notes ?? ""
+    r.categoryId = null
+    r.createdAt = now
+    r.updatedAt = now
+    r.extra = undefined
+    r.recurringId = null
+    r.hasAttachments = false
+    r.subtype = undefined
+    r.location = undefined
+  })
+
+  const credit = transactions.prepareCreate((r) => {
+    r.title = title
+    r.amount = creditAmount
+    r.transactionDate = new Date(dateMs)
+    r.type = "transfer"
+    r.isTransfer = true
+    r.transferId = debit.id
+    r.accountId = toAccountId
+    r.relatedAccountId = fromAccountId
+    r.accountBalanceBefore = creditBalanceBefore
+    r.isPending = false
+    r.isDeleted = false
+    r.description = notes ?? ""
+    r.categoryId = null
+    r.createdAt = now
+    r.updatedAt = now
+    r.extra = undefined
+    r.recurringId = null
+    r.hasAttachments = false
+    r.subtype = undefined
+    r.location = undefined
+  })
+
+  const updateFrom = fromAccount.prepareUpdate((a) => {
+    a.balance = a.balance - amount
+    a.updatedAt = now
+  })
+  const updateTo = toAccount.prepareUpdate((a) => {
+    a.balance = a.balance + creditAmount
+    a.updatedAt = now
+  })
+
+  const batchOps: Parameters<typeof database.batch>[0] = [
+    debit,
+    credit,
+    updateFrom,
+    updateTo,
+  ]
+
+  if (
+    isCrossCurrency &&
+    conversionRate != null &&
+    conversionRate > 0 &&
+    conversionRate !== 1
+  ) {
+    const transferRecord = transfers.prepareCreate((t) => {
+      t.fromTransactionId = debit.id
+      t.toTransactionId = credit.id
+      t.fromAccountId = fromAccountId
+      t.toAccountId = toAccountId
+      t.conversionRate = conversionRate
+      t.createdAt = now
+      t.updatedAt = now
+    })
+    batchOps.push(transferRecord)
+  }
+
+  await database.write(async () => {
+    await database.batch(...batchOps)
+  })
+}
+
+/* ------------------------------------------------------------------ */
+/* Edit */
+/* ------------------------------------------------------------------ */
+
+export type { EditTransferFields } from "~/schemas/transactions.schema"
+
+/**
+ * Edit both halves of a transfer atomically.
+ * Pass either half of the transfer; the pair is resolved internally.
+ * Fetches accounts once before the write; reverses balance using accountBalanceBefore.
+ */
+export async function editTransfer(
+  transaction: TransactionModel,
+  fields: EditTransferFields,
+): Promise<void> {
+  const paired = await getPairedTransaction(transaction)
+  if (!paired) throw new Error("Paired transfer row not found.")
+
+  const debitRow = transaction.amount < 0 ? transaction : paired
+  const creditRow = transaction.amount > 0 ? transaction : paired
+
+  const newFromAccountId = fields.fromAccountId ?? debitRow.accountId
+  const newToAccountId = fields.toAccountId ?? creditRow.accountId
+  const newDateMs = toDateMs(
+    fields.transactionDate as number | Date | undefined,
+    debitRow.transactionDate.getTime(),
+  )
+  const newDebitAmount = fields.amount ?? Math.abs(debitRow.amount)
+  const newConversionRate = fields.conversionRate
+  const newCreditAmount =
+    newConversionRate != null && newConversionRate > 0
+      ? newDebitAmount * newConversionRate
+      : newDebitAmount
+  const newDate = new Date(newDateMs)
+  const now = new Date()
+
+  const accounts = accountsCollection()
+  const oldFromAccount = await accounts.find(debitRow.accountId)
+  const oldToAccount = await accounts.find(creditRow.accountId)
+  const newFromAccount =
+    newFromAccountId === debitRow.accountId
+      ? oldFromAccount
+      : await accounts.find(newFromAccountId)
+  const newToAccount =
+    newToAccountId === creditRow.accountId
+      ? oldToAccount
+      : await accounts.find(newToAccountId)
+
+  await database.write(async () => {
+    const transfers = transfersCollection()
+
+    if (!debitRow.isPending) {
+      await oldFromAccount.update((a) => {
+        a.balance = debitRow.accountBalanceBefore
+        a.updatedAt = now
+      })
+    }
+    if (!creditRow.isPending) {
+      await oldToAccount.update((a) => {
+        a.balance = creditRow.accountBalanceBefore
+        a.updatedAt = now
+      })
+    }
+
+    const fromBalanceBeforeApply = newFromAccount.balance
+    const toBalanceBeforeApply = newToAccount.balance
+
+    await debitRow.update((r) => {
+      r.amount = -newDebitAmount
+      r.transactionDate = newDate
+      r.accountId = newFromAccountId
+      r.relatedAccountId = newToAccountId
+      r.accountBalanceBefore = fromBalanceBeforeApply
+      if (fields.title !== undefined) r.title = fields.title
+      if (fields.notes !== undefined) r.description = fields.notes ?? ""
+      r.extra = undefined
+      r.updatedAt = now
+    })
+
+    await creditRow.update((r) => {
+      r.amount = newCreditAmount
+      r.transactionDate = newDate
+      r.accountId = newToAccountId
+      r.relatedAccountId = newFromAccountId
+      r.accountBalanceBefore = toBalanceBeforeApply
+      if (fields.title !== undefined) r.title = fields.title
+      if (fields.notes !== undefined) r.description = fields.notes ?? ""
+      r.extra = undefined
+      r.updatedAt = now
+    })
+
+    const transferRows = await transfers
+      .query(Q.where("from_transaction_id", debitRow.id))
+      .fetch()
+    const transferRow = transferRows[0]
+    if (transferRow) {
+      await transferRow.update((t) => {
+        t.conversionRate =
+          newConversionRate != null && newConversionRate > 0
+            ? newConversionRate
+            : 1
+        t.fromAccountId = newFromAccountId
+        t.toAccountId = newToAccountId
+        t.updatedAt = now
+      })
+    }
+
+    if (!debitRow.isPending) {
+      await newFromAccount.update((a) => {
+        a.balance = a.balance - newDebitAmount
+        a.updatedAt = now
+      })
+    }
+    if (!creditRow.isPending) {
+      await newToAccount.update((a) => {
+        a.balance = a.balance + newCreditAmount
+        a.updatedAt = now
+      })
+    }
+  })
+}
+
+/* ------------------------------------------------------------------ */
+/* Delete */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Delete both halves of a transfer atomically (soft-delete).
+ * Safe to call with either the debit or credit row.
+ * Restores account balance using stored accountBalanceBefore so deleting a stale tx doesn't corrupt balance.
+ */
+export async function deleteTransfer(
+  transaction: TransactionModel,
+): Promise<void> {
+  const paired = await getPairedTransaction(transaction)
+  const toDelete = paired ? [transaction, paired] : [transaction]
+
+  const accounts = accountsCollection()
+  const accountIds = [...new Set(toDelete.map((t) => t.accountId))]
+  const accountMap = new Map<string, AccountModel>()
+  for (const id of accountIds) {
+    accountMap.set(id, await accounts.find(id))
+  }
+
+  const now = new Date()
+
+  await database.write(async () => {
+    for (const t of toDelete) {
+      if (!t.isDeleted && !t.isPending) {
+        const account = accountMap.get(t.accountId)
+        if (account) {
+          await account.update((a) => {
+            a.balance = t.accountBalanceBefore
+            a.updatedAt = now
+          })
+        }
+      }
+      await t.update((r) => {
+        r.isDeleted = true
+        r.deletedAt = now
+        r.updatedAt = now
+      })
+    }
+  })
+}

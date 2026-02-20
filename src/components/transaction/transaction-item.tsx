@@ -1,4 +1,4 @@
-import { useRef } from "react"
+import { useCallback, useRef } from "react"
 import Swipeable, {
   type SwipeableMethods,
 } from "react-native-gesture-handler/ReanimatedSwipeable"
@@ -15,9 +15,14 @@ import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import type { TransactionWithRelations } from "~/database/services/transaction-service"
+import { deleteTransactionModel } from "~/database/services/transaction-service"
+import { deleteTransfer } from "~/database/services/transfer-service"
 import { useIsConfirmable } from "~/hooks/use-time-reactivity"
 import { usePendingTransactionsStore } from "~/stores/pending-transactions.store"
+import { useTransfersPreferencesStore } from "~/stores/transfers-preferences.store"
+import { TransactionTypeEnum } from "~/types/transactions"
 import { formatFriendlyDate, formatReadableTime } from "~/utils/time-utils"
+import { Toast } from "~/utils/toast"
 
 import { DynamicIcon } from "../dynamic-icon"
 
@@ -29,6 +34,8 @@ interface TransactionItemProps {
   transactionWithRelations: TransactionWithRelations
   onPress?: () => void
   onDelete?: () => void
+  /** If provided and returns true, parent handles delete (e.g. shows recurring modal); item will not delete and only close swipe. */
+  onBeforeDelete?: (row: TransactionWithRelations) => boolean | Promise<boolean>
   onConfirm?: () => void
   onWillOpen?: (methods: SwipeableMethods) => void
   rightActionAccessibilityLabel?: string
@@ -100,6 +107,7 @@ export const TransactionItem = ({
   transactionWithRelations,
   onPress,
   onDelete,
+  onBeforeDelete,
   onConfirm,
   onWillOpen,
   rightActionAccessibilityLabel,
@@ -107,9 +115,34 @@ export const TransactionItem = ({
 }: TransactionItemProps) => {
   const swipeableRef = useRef<SwipeableMethods | null>(null)
   const { theme } = useUnistyles()
-  const { transaction, account, category } = transactionWithRelations
-  const icon = category?.icon
+  const { transaction, account, category, relatedAccount, conversionRate } =
+    transactionWithRelations
   const colorScheme = category?.colorScheme ?? account.colorScheme
+  const isTransfer =
+    transaction.isTransfer || transaction.type === TransactionTypeEnum.TRANSFER
+  const transferLayout = useTransfersPreferencesStore((s) => s.layout)
+  const isCombinedTransfer = Boolean(
+    isTransfer && transferLayout === "combine" && relatedAccount,
+  )
+  const isCrossCurrencyTransfer =
+    isTransfer &&
+    relatedAccount &&
+    conversionRate != null &&
+    conversionRate > 0 &&
+    account.currencyCode !== relatedAccount.currencyCode
+  const otherCurrencyAmount =
+    isCrossCurrencyTransfer && conversionRate
+      ? transaction.amount < 0
+        ? Math.abs(transaction.amount) * conversionRate
+        : transaction.amount / conversionRate
+      : null
+  const icon = isTransfer ? "swap-horizontal" : category?.icon
+  // For transfers: debit (source) = negative → show as expense; credit (destination) = positive → show as income
+  const amountTone = isTransfer
+    ? transaction.amount < 0
+      ? TransactionTypeEnum.EXPENSE
+      : TransactionTypeEnum.INCOME
+    : transaction.type
 
   const globalRequireConfirmation = usePendingTransactionsStore(
     (s) => s.requireConfirmation,
@@ -125,6 +158,54 @@ export const TransactionItem = ({
   const showRecurringBadge = isUpcoming && isAutoRecurring
   const showPendingBadge = isUpcoming && !isAutoRecurring
 
+  // When isDeleted is false: move to trash (soft delete). When isDeleted is true: parent handles (e.g. confirm then destroy).
+  const handleTrashPress = useCallback(
+    async (closeSwipe: () => void) => {
+      if (onBeforeDelete) {
+        const handled = await Promise.resolve(
+          onBeforeDelete(transactionWithRelations),
+        )
+        if (handled) {
+          closeSwipe()
+          return
+        }
+      }
+      if (transaction.isDeleted) {
+        // Already in trash: delegate to parent (e.g. show confirm modal then destroy).
+        closeSwipe()
+        onDelete?.()
+        return
+      }
+      // Move to trash (soft delete).
+      const promise =
+        transaction.isTransfer && transaction.transferId
+          ? deleteTransfer(transaction)
+          : deleteTransactionModel(transaction)
+      promise
+        .then(() =>
+          Toast.success({
+            title: isUpcoming ? "Transaction canceled" : "Moved to trash",
+          }),
+        )
+        .catch(() =>
+          Toast.error({
+            title: isUpcoming ? "Failed to delete" : "Failed to move to trash",
+          }),
+        )
+        .finally(() => {
+          closeSwipe()
+          onDelete?.()
+        })
+    },
+    [
+      transaction,
+      transactionWithRelations,
+      isUpcoming,
+      onDelete,
+      onBeforeDelete,
+    ],
+  )
+
   const renderRightActions = (
     progress: SharedValue<number>,
     translation: SharedValue<number>,
@@ -133,10 +214,7 @@ export const TransactionItem = ({
     <RightAction
       progress={progress}
       translation={translation}
-      onTrashPress={() => {
-        onDelete?.()
-        swipeableMethods.close()
-      }}
+      onTrashPress={() => handleTrashPress(swipeableMethods.close)}
       accessibilityLabel={rightActionAccessibilityLabel}
     />
   )
@@ -158,85 +236,45 @@ export const TransactionItem = ({
             </Text>
             <View style={styles.subtitleRow}>
               <Text style={styles.subtitle} numberOfLines={1}>
-                {account.name}
+                {isCombinedTransfer && relatedAccount
+                  ? `${account.name} → ${relatedAccount.name}`
+                  : account.name}
                 {isUpcoming
                   ? ` · ${formatFriendlyDate(transaction.transactionDate)}, ${formatReadableTime(transaction.transactionDate)}`
                   : ` · ${formatReadableTime(transaction.transactionDate)}`}
               </Text>
-
-              {/* Recurring badge */}
-              {/* {showRecurringBadge && (
-                <View
-                  style={[
-                    styles.statusBadge,
-                    {
-                      backgroundColor: `${theme.colors.customColors.info}18`,
-                    },
-                  ]}
-                >
-                  <IconSymbol
-                    name="repeat"
-                    size={12}
-                    color={theme.colors.customColors.info}
-                  />
-                  <Text
-                    style={[
-                      styles.statusBadgeText,
-                      { color: theme.colors.customColors.info },
-                    ]}
-                  >
-                    Recurring
-                  </Text>
-                </View>
-              )} */}
-
-              {/* Pending badge */}
-              {/* {showPendingBadge && (
-                <View
-                  style={[
-                    styles.statusBadge,
-                    {
-                      backgroundColor: `${theme.colors.customColors.warning}18`,
-                    },
-                  ]}
-                >
-                  <IconSymbol
-                    name="progress-clock"
-                    size={12}
-                    color={theme.colors.customColors.warning}
-                  />
-                  <Text
-                    style={[
-                      styles.statusBadgeText,
-                      { color: theme.colors.customColors.warning },
-                    ]}
-                  >
-                    Pending
-                  </Text>
-                </View>
-              )} */}
             </View>
           </View>
         </View>
 
         <View style={styles.rightSection}>
-          <Money
-            value={transaction.amount}
-            currency={account.currencyCode}
-            tone={transaction.type}
-            native
-          />
+          <View style={styles.amountBlock}>
+            <Money
+              value={transaction.amount}
+              currency={account.currencyCode}
+              tone={amountTone}
+              visualTone={isTransfer ? TransactionTypeEnum.TRANSFER : undefined}
+              hideSign={isCombinedTransfer}
+              native
+              style={styles.amount}
+            />
+            {isCrossCurrencyTransfer &&
+              otherCurrencyAmount != null &&
+              relatedAccount && (
+                <Money
+                  value={otherCurrencyAmount}
+                  currency={relatedAccount.currencyCode}
+                  style={styles.secondaryAmount}
+                  variant="small"
+                  tone="transfer"
+                  native
+                />
+              )}
+          </View>
 
           {/* Recurring badge */}
           {showRecurringBadge && (
-            <View
-              style={[
-                styles.statusBadge,
-                // {
-                //   backgroundColor: `${theme.colors.customColors.info}18`,
-                // },
-              ]}
-            >
+            <View style={styles.statusBadge}>
               <IconSymbol
                 name="repeat"
                 size={12}
@@ -255,14 +293,7 @@ export const TransactionItem = ({
 
           {/* Pending badge */}
           {showPendingBadge && (
-            <View
-              style={[
-                styles.statusBadge,
-                // {
-                //   backgroundColor: `${theme.colors.customColors.warning}18`,
-                // },
-              ]}
-            >
+            <View style={styles.statusBadge}>
               <IconSymbol
                 name="progress-clock"
                 size={12}
@@ -367,6 +398,15 @@ const styles = StyleSheet.create((theme) => ({
   },
   rightSection: {
     alignItems: "flex-end",
+  },
+  amountBlock: {
+    alignItems: "flex-end",
+    gap: 2,
+  },
+  amount: {},
+  secondaryAmount: {
+    fontSize: 12,
+    color: theme.colors.customColors?.semi,
   },
   statusBadge: {
     flexDirection: "row",

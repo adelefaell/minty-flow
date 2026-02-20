@@ -18,12 +18,14 @@ import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import type { TransactionWithRelations } from "~/database/services/transaction-service"
-import { deleteTransactionModel } from "~/database/services/transaction-service"
 import { useMinuteTick } from "~/hooks/use-time-reactivity"
+import { useTransfersPreferencesStore } from "~/stores/transfers-preferences.store"
 import type { TransactionListFilterState } from "~/types/transaction-filters"
 import { effectiveIsPending } from "~/utils/pending-transactions"
-import { Toast } from "~/utils/toast"
-import { buildTransactionSections } from "~/utils/transaction-list-utils"
+import {
+  applyTransferLayout,
+  buildTransactionSections,
+} from "~/utils/transaction-list-utils"
 
 export interface TransactionSectionListProps {
   /** All transactions including pending/upcoming. Used for filtering + upcoming section. */
@@ -47,6 +49,7 @@ export function TransactionSectionList({
 
   const list = useMemo(() => transactionsFull ?? [], [transactionsFull])
   const tick = useMinuteTick()
+  const transferLayout = useTransfersPreferencesStore((s) => s.layout)
 
   // Today/history sections show only CONFIRMED and not future-dated.
   // Use effective pending (date > now || isPending) so future txs never appear here.
@@ -56,9 +59,14 @@ export function TransactionSectionList({
     return list.filter((r) => !effectiveIsPending(r.transaction, now))
   }, [list, tick])
 
+  const listForSections = useMemo(
+    () => applyTransferLayout(confirmedOnly, transferLayout),
+    [confirmedOnly, transferLayout],
+  )
+
   const sections = useMemo(
-    () => buildTransactionSections(confirmedOnly, filterState.groupBy),
-    [confirmedOnly, filterState.groupBy],
+    () => buildTransactionSections(listForSections, filterState.groupBy),
+    [listForSections, filterState.groupBy],
   )
 
   const handleOnTransactionPress = useCallback(
@@ -71,17 +79,10 @@ export function TransactionSectionList({
     [router],
   )
 
-  const handleDeleteTransaction = useCallback(
-    async (row: TransactionWithRelations) => {
-      try {
-        await deleteTransactionModel(row.transaction)
-        Toast.success({ title: "Moved to trash" })
-      } catch {
-        Toast.error({ title: "Failed to move to trash" })
-      }
-    },
-    [],
-  )
+  // TransactionItem handles transfer vs non-transfer delete (modal + deleteTransfer or deleteTransactionModel); we only close the swipeable.
+  const handleDeleteDone = useCallback(() => {
+    openSwipeableRef.current?.close()
+  }, [])
 
   const renderHeader = useCallback(
     () => (
@@ -133,9 +134,7 @@ export function TransactionSectionList({
         <TransactionItem
           transactionWithRelations={item as TransactionWithRelations}
           onPress={() => handleOnTransactionPress(item.transaction.id)}
-          onDelete={() =>
-            handleDeleteTransaction(item as TransactionWithRelations)
-          }
+          onDelete={handleDeleteDone}
           onWillOpen={(methods) => {
             openSwipeableRef.current?.close()
             openSwipeableRef.current = methods

@@ -24,6 +24,13 @@ export default class TransactionModel extends Model implements Transaction {
   @field("is_pending") isPending!: boolean
   @field("requires_manual_confirmation") requiresManualConfirmation?: boolean
 
+  // Transfer-linked pair (shared transfer_id; debit = negative amount, credit = positive)
+  @field("is_transfer") isTransfer!: boolean
+  @field("transfer_id") transferId!: string | null
+  @field("related_account_id") relatedAccountId!: string | null
+  /** Balance of account_id BEFORE this transaction was applied (snapshot at creation). */
+  @field("account_balance_before") accountBalanceBefore!: number
+
   // Additional fields
   @field("subtype") subtype?: string
   @field("extra") private extraJson!: string | null
@@ -111,5 +118,20 @@ export default class TransactionModel extends Model implements Transaction {
    */
   get isPlanned(): boolean {
     return this.transactionDate.getTime() > Date.now()
+  }
+
+  /** True when this row is the debit (source) leg of a transfer (negative amount). */
+  get isDebit(): boolean {
+    return this.isTransfer && this.amount < 0
+  }
+
+  /** True when this row is the credit (destination) leg of a transfer (positive amount). */
+  get isCredit(): boolean {
+    return this.isTransfer && this.amount > 0
+  }
+
+  /** Balance of account after this transaction (account_balance_before + amount). */
+  get accountBalanceAfter(): number {
+    return this.accountBalanceBefore + this.amount
   }
 }

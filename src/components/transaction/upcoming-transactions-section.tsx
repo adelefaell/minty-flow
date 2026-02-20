@@ -9,10 +9,8 @@ import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import type { TransactionWithRelations } from "~/database/services/transaction-service"
-import {
-  confirmTransactionSync,
-  deleteTransactionModel,
-} from "~/database/services/transaction-service"
+import { confirmTransactionSync } from "~/database/services/transaction-service"
+import { useRecurringRule } from "~/hooks/use-recurring-rule"
 import { useMinuteTick } from "~/hooks/use-time-reactivity"
 import {
   autoConfirmationService,
@@ -20,10 +18,13 @@ import {
   useAutoConfirmVersion,
 } from "~/services/auto-confirmation-service"
 import { usePendingTransactionsStore } from "~/stores/pending-transactions.store"
+import { useTransfersPreferencesStore } from "~/stores/transfers-preferences.store"
 import { useUpcomingSectionStore } from "~/stores/upcoming-section.store"
 import { confirmable } from "~/utils/pending-transactions"
 import { Toast } from "~/utils/toast"
+import { applyTransferLayout } from "~/utils/transaction-list-utils"
 
+import { DeleteRecurringModal } from "./delete-recurring-modal"
 import { TransactionItem } from "./transaction-item"
 
 /* ------------------------------------------------------------------ */
@@ -98,6 +99,7 @@ export function UpcomingTransactionsSection({
   const updateDateUponConfirmation = usePendingTransactionsStore(
     (s) => s.updateDateUponConfirmation,
   )
+  const transferLayout = useTransfersPreferencesStore((s) => s.layout)
 
   // Reactive ticks: minute boundary + auto-confirm version + app foreground
   const tick = useMinuteTick()
@@ -115,6 +117,11 @@ export function UpcomingTransactionsSection({
     )
   }, [transactions, tick, autoConfirmVersion, foregroundVersion])
 
+  const upcomingForDisplay = useMemo(
+    () => applyTransferLayout(upcoming, transferLayout),
+    [upcoming, transferLayout],
+  )
+
   // ---------- Group + auto-confirm past-due ----------
   //
   // Two groups only: recurring and pending.
@@ -129,7 +136,7 @@ export function UpcomingTransactionsSection({
     const toAutoConfirm: string[] = []
     const now = Date.now()
 
-    for (const row of upcoming) {
+    for (const row of upcomingForDisplay) {
       const canConfirm = confirmable(row.transaction, now)
       const preapproved = isPreapproved(row, requireConfirmation)
 
@@ -155,7 +162,7 @@ export function UpcomingTransactionsSection({
 
     return { recurring: recurringList, pending: pendingList }
   }, [
-    upcoming,
+    upcomingForDisplay,
     tick,
     requireConfirmation,
     autoConfirmVersion,
@@ -173,6 +180,11 @@ export function UpcomingTransactionsSection({
 
   const { collapsed, setCollapsed } = useUpcomingSectionStore()
   const [confirmAllModalVisible, setConfirmAllModalVisible] = useState(false)
+  const [recurringToDelete, setRecurringToDelete] =
+    useState<TransactionWithRelations | null>(null)
+  const recurringRule = useRecurringRule(
+    recurringToDelete?.transaction.recurringId ?? null,
+  )
 
   const handleConfirm = useCallback(
     async (transactionId: string) => {
@@ -212,14 +224,18 @@ export function UpcomingTransactionsSection({
     [],
   )
 
-  const handleDelete = useCallback(async (row: TransactionWithRelations) => {
-    try {
-      autoConfirmationService.cancelSchedule(row.transaction.id)
-      await deleteTransactionModel(row.transaction)
-      Toast.success({ title: "Transaction canceled" })
-    } catch {
-      Toast.error({ title: "Failed to delete" })
+  // When parent handles delete (e.g. recurring modal), item won't delete; we show DeleteRecurringModal. Same as transaction-form-v3.
+  const handleBeforeDelete = useCallback((row: TransactionWithRelations) => {
+    if (row.transaction.recurringId) {
+      setRecurringToDelete(row)
+      return true
     }
+    return false
+  }, [])
+
+  // TransactionItem handles delete (deleteTransfer or deleteTransactionModel) and toast; we only cancel auto-confirm schedule when delete completes.
+  const handleDeleteDone = useCallback((row: TransactionWithRelations) => {
+    autoConfirmationService.cancelSchedule(row.transaction.id)
   }, [])
 
   const totalVisible = recurring.length + pending.length
@@ -243,6 +259,21 @@ export function UpcomingTransactionsSection({
         variant="default"
         icon="check-circle"
       />
+
+      {recurringToDelete && recurringRule && (
+        <DeleteRecurringModal
+          visible={true}
+          transaction={recurringToDelete.transaction}
+          recurringRule={recurringRule}
+          onRequestClose={() => setRecurringToDelete(null)}
+          onDeleted={() => {
+            autoConfirmationService.cancelSchedule(
+              recurringToDelete.transaction.id,
+            )
+            setRecurringToDelete(null)
+          }}
+        />
+      )}
 
       {/* Header row */}
       <Pressable
@@ -353,7 +384,8 @@ export function UpcomingTransactionsSection({
                   variant="upcoming"
                   onPress={() => onTransactionPress(row.transaction.id)}
                   onConfirm={() => handleConfirm(row.transaction.id)}
-                  onDelete={() => handleDelete(row)}
+                  onBeforeDelete={handleBeforeDelete}
+                  onDelete={() => handleDeleteDone(row)}
                   rightActionAccessibilityLabel="Cancel transaction"
                 />
               ))}
@@ -395,7 +427,8 @@ export function UpcomingTransactionsSection({
                   variant="upcoming"
                   onPress={() => onTransactionPress(row.transaction.id)}
                   onConfirm={() => handleConfirm(row.transaction.id)}
-                  onDelete={() => handleDelete(row)}
+                  onBeforeDelete={handleBeforeDelete}
+                  onDelete={() => handleDeleteDone(row)}
                   rightActionAccessibilityLabel="Cancel transaction"
                 />
               ))}

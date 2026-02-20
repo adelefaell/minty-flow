@@ -43,6 +43,13 @@ const appearanceItems: PreferenceItem[] = [
 
 const otherPreferenceItems: PreferenceItem[] = [
   {
+    id: "transfers",
+    title: "Transfers",
+    description: "Layout and totals for transfers",
+    route: "/settings/preferences/transfers",
+    icon: "swap-horizontal",
+  },
+  {
     id: "pending-transactions",
     title: "Pending transactions",
     description: "Configure pending transaction settings",
