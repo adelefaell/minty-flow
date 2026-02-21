@@ -1,12 +1,41 @@
 # Project Structure
 
-Generated on: 2026-02-21T15:13:02.452Z
+Generated on: 2026-02-21T16:33:48.339Z
 
 ```
 ./
-├── 📁 .cursor/
-│   └── 📁 rules/
-│       └── 📄 expo-react-native.mdc
+├── 📁 .agents/
+│   └── 📁 skills/
+│       ├── 📁 building-native-ui/
+│       │   ├── 📁 references/
+│       │   │   ├── 📄 animations.md
+│       │   │   ├── 📄 controls.md
+│       │   │   ├── 📄 form-sheet.md
+│       │   │   ├── 📄 gradients.md
+│       │   │   ├── 📄 icons.md
+│       │   │   ├── 📄 media.md
+│       │   │   ├── 📄 route-structure.md
+│       │   │   ├── 📄 search.md
+│       │   │   ├── 📄 storage.md
+│       │   │   ├── 📄 tabs.md
+│       │   │   ├── 📄 toolbar-and-headers.md
+│       │   │   ├── 📄 visual-effects.md
+│       │   │   ├── 📄 webgpu-three.md
+│       │   │   └── 📄 zoom-transitions.md
+│       │   └── 📄 SKILL.md
+│       └── 📁 upgrading-expo/
+│           ├── 📁 references/
+│           │   ├── 📄 expo-av-to-audio.md
+│           │   ├── 📄 expo-av-to-video.md
+│           │   ├── 📄 native-tabs.md
+│           │   ├── 📄 new-architecture.md
+│           │   ├── 📄 react-19.md
+│           │   └── 📄 react-compiler.md
+│           └── 📄 SKILL.md
+├── 📁 .claude/
+│   └── 📁 skills/
+│       ├── 📄 building-native-ui
+│       └── 📄 upgrading-expo
 ├── 📁 .github/
 │   └── 📄 CODEOWNERS
 ├── 📁 .husky/
@@ -30,12 +59,8 @@ Generated on: 2026-02-21T15:13:02.452Z
 │   │   └── 📄 prepare-commit-msg
 │   └── 📄 pre-commit
 ├── 📁 .vscode/
-│   ├── 📄 extensions.json
-│   └── 📄 settings.json
-├── 📁 .zed/
 │   └── 📄 settings.json
 ├── 📁 docs/
-│   └── 📄 front-end-claude-skill.md
 ├── 📁 plugins/
 │   ├── 📄 index.js
 │   ├── 📄 README.md
@@ -298,6 +323,7 @@ Generated on: 2026-02-21T15:13:02.452Z
 ├── 📄 pnpm-lock.yaml
 ├── 📄 pnpm-workspace.yaml
 ├── 📄 README.md
+├── 📄 skills-lock.json
 ├── 📄 STRUCTURE.md
 └── 📄 tsconfig.json
 

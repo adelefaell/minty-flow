@@ -147,6 +147,7 @@ export default function ExchangeRatesScreen() {
 
   const handleSaveRate = useCallback(
     (code: string, value: number) => {
+      if (value <= 0) return
       setCustomRate(code, value)
       setEditingCurrencyCode(null)
       setDraftRates((prev) => {
@@ -181,6 +182,7 @@ export default function ExchangeRatesScreen() {
       )
       const displayRate = rate ?? 0
       const draftValue = draftRates[item.displayCode] ?? displayRate
+      const isInvalidRate = draftValue <= 0
 
       return (
         <View style={styles.entryWrapper}>
@@ -205,6 +207,9 @@ export default function ExchangeRatesScreen() {
                 currencyCode={item.displayCode}
                 label={`1 USD = ${draftValue.toLocaleString(undefined, { maximumFractionDigits: 6 })} ${item.displayCode}`}
                 placeholder="0"
+                error={
+                  isInvalidRate ? "Rate must be greater than 0" : undefined
+                }
               />
               <View style={styles.saveButtonRow}>
                 <Button
@@ -218,6 +223,7 @@ export default function ExchangeRatesScreen() {
                   variant="default"
                   onPress={() => handleSaveRate(item.displayCode, draftValue)}
                   style={styles.saveButton}
+                  disabled={isInvalidRate}
                 >
                   <Text>Save</Text>
                 </Button>

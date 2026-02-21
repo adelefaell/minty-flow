@@ -24,6 +24,7 @@ import { observeCategoriesByType } from "~/database/services/category-service"
 import { observeTags } from "~/database/services/tag-service"
 import type { TransactionWithRelations } from "~/database/services/transaction-service"
 import { observeTransactionModelsFull } from "~/database/services/transaction-service"
+import { useTransfersPreferencesStore } from "~/stores/transfers-preferences.store"
 import type { Category } from "~/types/categories"
 import type { Tag } from "~/types/tags"
 import type {
@@ -483,19 +484,28 @@ const styles = StyleSheet.create((theme) => ({
 }))
 
 const EnhancedAccountDetailsScreen = withObservables(
-  ["accountId", "selectedYear", "selectedMonth", "filterState", "searchQuery"],
+  [
+    "accountId",
+    "selectedYear",
+    "selectedMonth",
+    "filterState",
+    "searchQuery",
+    "excludeFromTotals",
+  ],
   ({
     accountId,
     selectedYear,
     selectedMonth,
     filterState,
     searchQuery,
+    excludeFromTotals = true,
   }: {
     accountId: string
     selectedYear: number
     selectedMonth: number
     filterState: TransactionListFilterState
     searchQuery: string
+    excludeFromTotals?: boolean
   }) => {
     const { fromDate, toDate } = getMonthRange(selectedYear, selectedMonth)
     const queryFilters = buildTransactionListFilters(filterState, {
@@ -509,6 +519,7 @@ const EnhancedAccountDetailsScreen = withObservables(
         accountId,
         fromDate,
         toDate,
+        excludeFromTotals,
       ),
       transactionsFull: observeTransactionModelsFull(queryFilters, [
         observeAccountModels(false),
@@ -539,6 +550,9 @@ export default function AccountDetailsScreen() {
     DEFAULT_TRANSACTION_LIST_FILTER_STATE,
   )
   const [searchQuery, setSearchQuery] = useState("")
+  const excludeFromTotals = useTransfersPreferencesStore(
+    (s) => s.excludeFromTotals,
+  )
 
   const handleMonthYearChange = (year: number, month: number) => {
     setSelectedYear(year)
@@ -557,6 +571,7 @@ export default function AccountDetailsScreen() {
       onFilterChange={setFilterState}
       searchQuery={searchQuery}
       onSearchApply={setSearchQuery}
+      excludeFromTotals={excludeFromTotals}
     />
   )
 }
