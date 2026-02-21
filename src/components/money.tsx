@@ -34,7 +34,7 @@ export const Money: FC<MoneyProps> = ({
   hideSign = false,
   showSign = false,
   hideSymbol = false,
-  tone = TransactionTypeEnum.TRANSFER,
+  tone = "auto",
   visualTone,
   style,
   addParentheses = false,
