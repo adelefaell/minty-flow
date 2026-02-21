@@ -8,30 +8,64 @@ import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import {
   TransferLayoutEnum,
+  type TransferLayoutType,
   useTransfersPreferencesStore,
 } from "~/stores/transfers-preferences.store"
+
+const HORIZONTAL_PADDING = 20
+
+function LayoutPreview({ variant }: { variant: TransferLayoutType }) {
+  return (
+    <View style={styles.layoutPreview}>
+      <IconSymbol
+        name="swap-horizontal"
+        size={20}
+        color={styles.layoutIconColor.color}
+      />
+      <View style={styles.slidersPreview}>
+        {variant === TransferLayoutEnum.COMBINE ? (
+          <View style={[styles.sliderBar, styles.sliderBarCombined]} />
+        ) : (
+          <>
+            <View style={[styles.sliderBar, styles.sliderBarGreen]} />
+            <View style={[styles.sliderBar, styles.sliderBarRed]} />
+          </>
+        )}
+      </View>
+    </View>
+  )
+}
 
 function LayoutOption({
   label,
   selected,
+  variant,
   onPress,
 }: {
   label: string
   selected: boolean
+  variant: TransferLayoutType
   onPress: () => void
 }) {
   return (
-    <Pressable
-      style={styles.radioRow}
-      onPress={onPress}
-      accessibilityRole="radio"
-      accessibilityState={{ checked: selected }}
-    >
-      <View style={[styles.radioOuter, selected && styles.radioOuterSelected]}>
-        {selected && <View style={styles.radioInner} />}
-      </View>
-      <Text style={styles.radioLabel}>{label}</Text>
-    </Pressable>
+    <View style={styles.optionBlock}>
+      <Pressable
+        style={styles.radioRow}
+        onPress={onPress}
+        accessibilityRole="radio"
+        accessibilityState={{ checked: selected }}
+      >
+        <View style={styles.radioRowInner}>
+          <View
+            style={[styles.radioOuter, selected && styles.radioOuterSelected]}
+          >
+            {selected && <View style={styles.radioInner} />}
+          </View>
+          <Text style={styles.radioLabel}>{label}</Text>
+        </View>
+      </Pressable>
+      <LayoutPreview variant={variant} />
+    </View>
   )
 }
 
@@ -49,38 +83,26 @@ export default function TransfersPreferencesScreen() {
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
+      contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
     >
       {/* Layout section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Layout</Text>
-        <View style={styles.layoutPreview}>
-          <IconSymbol
-            name="swap-horizontal"
-            size={24}
-            color={styles.layoutIconColor.color}
+        <View style={styles.radioGroup}>
+          <LayoutOption
+            label="Combine"
+            selected={layout === TransferLayoutEnum.COMBINE}
+            variant={TransferLayoutEnum.COMBINE}
+            onPress={() => setLayout(TransferLayoutEnum.COMBINE)}
           />
-          <View style={styles.slidersPreview}>
-            {layout === TransferLayoutEnum.COMBINE ? (
-              <View style={[styles.sliderBar, styles.sliderBarCombined]} />
-            ) : (
-              <>
-                <View style={[styles.sliderBar, styles.sliderBarGreen]} />
-                <View style={[styles.sliderBar, styles.sliderBarRed]} />
-              </>
-            )}
-          </View>
+          <LayoutOption
+            label="Separate"
+            selected={layout === TransferLayoutEnum.SEPARATE}
+            variant={TransferLayoutEnum.SEPARATE}
+            onPress={() => setLayout(TransferLayoutEnum.SEPARATE)}
+          />
         </View>
-        <LayoutOption
-          label="Combine"
-          selected={layout === TransferLayoutEnum.COMBINE}
-          onPress={() => setLayout(TransferLayoutEnum.COMBINE)}
-        />
-        <LayoutOption
-          label="Separate"
-          selected={layout === TransferLayoutEnum.SEPARATE}
-          onPress={() => setLayout(TransferLayoutEnum.SEPARATE)}
-        />
         <View style={styles.infoRow}>
           <IconSymbol
             name="information"
@@ -122,21 +144,27 @@ const styles = StyleSheet.create((theme) => ({
     paddingBottom: 40,
   },
   section: {
-    paddingHorizontal: 20,
     paddingTop: 24,
+    marginBottom: 8,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 12,
     fontWeight: "600",
-    color: theme.colors.onSurface,
+    letterSpacing: 0.5,
+    color: theme.colors.onSecondary,
     marginBottom: 12,
+    paddingHorizontal: HORIZONTAL_PADDING,
+  },
+  optionBlock: {
+    marginBottom: 16,
   },
   layoutPreview: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 16,
-    marginBottom: 16,
-    paddingVertical: 8,
+    gap: 12,
+    paddingVertical: 6,
+    paddingHorizontal: HORIZONTAL_PADDING,
+    paddingLeft: HORIZONTAL_PADDING + 22 + 12,
   },
   layoutIconColor: {
     color: theme.colors.customColors?.semi,
@@ -159,11 +187,18 @@ const styles = StyleSheet.create((theme) => ({
   sliderBarCombined: {
     backgroundColor: theme.colors.primary,
   },
+  radioGroup: {
+    width: "100%",
+  },
   radioRow: {
+    width: "100%",
+    paddingVertical: 14,
+  },
+  radioRowInner: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
     gap: 12,
+    paddingHorizontal: HORIZONTAL_PADDING,
   },
   radioOuter: {
     width: 22,
@@ -192,7 +227,8 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     alignItems: "flex-start",
     gap: 8,
-    marginTop: 8,
+    marginTop: 4,
+    paddingHorizontal: HORIZONTAL_PADDING,
   },
   infoIconColor: {
     color: theme.colors.customColors?.semi,
@@ -204,16 +240,20 @@ const styles = StyleSheet.create((theme) => ({
     lineHeight: 18,
   },
   excludeRow: {
+    width: "100%",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 12,
-    gap: 16,
+    paddingVertical: 15,
+    paddingHorizontal: HORIZONTAL_PADDING,
+    minHeight: 56,
   },
   excludeLabel: {
     flex: 1,
     fontSize: 15,
+    fontWeight: "500",
     color: theme.colors.onSurface,
     lineHeight: 20,
+    marginRight: 16,
   },
 }))
