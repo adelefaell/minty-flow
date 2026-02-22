@@ -1,4 +1,4 @@
-import type TransactionModel from "~/database/models/Transaction"
+import type TransactionModel from "~/database/models/transaction"
 import type { Account } from "~/types/accounts"
 import type { Category } from "~/types/categories"
 import type { Tag } from "~/types/tags"

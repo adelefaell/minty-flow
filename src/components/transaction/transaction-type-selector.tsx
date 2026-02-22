@@ -26,6 +26,7 @@ export const TransactionTypeSelector = ({
   value,
   onChange,
 }: TransactionTypeSelectorProps) => {
+  // TODO: add proper icon on each segment
   return (
     <View style={styles.segmented}>
       {TYPES.map((type) => {

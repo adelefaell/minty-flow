@@ -6,10 +6,10 @@ import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import type { SearchMatchType } from "~/types/transaction-filters"
 
-import { Chip } from "../Chip"
+import { Chip } from "../chip"
 import { filterHeaderStyles } from "../filter-header.styles"
-import { PanelClearButton } from "../PanelClearButton"
-import { PanelDoneButton } from "../PanelDoneButton"
+import { PanelClearButton } from "../panel-clear-button"
+import { PanelDoneButton } from "../panel-done-button"
 import { SEARCH_MATCH_OPTIONS } from "../types"
 
 interface SearchPanelProps {

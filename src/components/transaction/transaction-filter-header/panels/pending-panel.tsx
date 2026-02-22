@@ -1,24 +1,23 @@
 import { View } from "react-native"
 
-import type { GroupByOption } from "~/types/transaction-filters"
-import { GROUP_BY_OPTIONS } from "~/types/transaction-filters"
+import { PENDING_OPTIONS } from "~/types/transaction-filters"
 
-import { Chip } from "../Chip"
+import { Chip } from "../chip"
 import { filterHeaderStyles } from "../filter-header.styles"
-import { PanelDoneButton } from "../PanelDoneButton"
+import { PanelDoneButton } from "../panel-done-button"
 import { CHIPS_PER_ROW } from "../types"
 import { chunk } from "../utils"
 
-interface GroupByPanelProps {
-  value: GroupByOption
-  onSelect: (v: GroupByOption) => void
+interface PendingPanelProps {
+  value: "all" | "pending" | "notPending"
+  onSelect: (v: "all" | "pending" | "notPending") => void
   onDone: () => void
 }
 
-export function GroupByPanel({ value, onSelect, onDone }: GroupByPanelProps) {
+export function PendingPanel({ value, onSelect, onDone }: PendingPanelProps) {
   return (
     <View>
-      {chunk(GROUP_BY_OPTIONS, CHIPS_PER_ROW).map((row) => (
+      {chunk(PENDING_OPTIONS, CHIPS_PER_ROW).map((row) => (
         <View
           key={row.map((o) => o.id).join(",")}
           style={[

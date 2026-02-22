@@ -1,9 +1,20 @@
 // ============================================================================
-// Minty Theming System - React Native + Unistyles Implementation
+// Minty Theming System - Color Tokens
 // ============================================================================
 
 /**
- * Color entry with associated theme names
+ * Light theme entry: primary, secondary, and onSecondary all change per variant
+ */
+export interface MintyLightColorEntry {
+  primary: string
+  secondary: string
+  onSecondary: string
+  lightThemeName: string
+  darkThemeName: string
+}
+
+/**
+ * Dark/OLED: only primary changes; surface/secondary from base
  */
 export interface ColorEntry {
   color: string
@@ -12,169 +23,165 @@ export interface ColorEntry {
 }
 
 /**
- * Primary colors (16 colors) - darker, saturated for light themes
- * Generated with hue rotation pattern around color wheel
- * Each entry includes the color and its corresponding theme names
+ * Minty Light accent variants — primary + secondary + onSecondary
  */
-export const PRIMARY_COLORS: readonly ColorEntry[] = [
+export const MINTY_LIGHT_COLORS: readonly MintyLightColorEntry[] = [
   {
-    color: "#8600a5",
+    primary: "#8600A5",
+    secondary: "#F5CCFF",
+    onSecondary: "#33004F",
     lightThemeName: "shadeOfViolet",
     darkThemeName: "electricLavender",
   },
   {
-    color: "#a50086",
+    primary: "#A50086",
+    secondary: "#FFCCF5",
+    onSecondary: "#4F004C",
     lightThemeName: "blissfulBerry",
     darkThemeName: "pinkQuartz",
   },
   {
-    color: "#a50048",
+    primary: "#A50048",
+    secondary: "#FFCCE2",
+    onSecondary: "#4F002E",
     lightThemeName: "cherryPlum",
     darkThemeName: "cottonCandy",
   },
   {
-    color: "#a50024",
+    primary: "#A5000A",
+    secondary: "#FFCCCF",
+    onSecondary: "#4F0011",
     lightThemeName: "crispChristmasCranberries",
     darkThemeName: "piglet",
   },
   {
-    color: "#a52400",
+    primary: "#A53300",
+    secondary: "#FFDBCC",
+    onSecondary: "#4F0C00",
     lightThemeName: "burntSienna",
     darkThemeName: "simplyDelicious",
   },
   {
-    color: "#a54800",
+    primary: "#845A00",
+    secondary: "#FFEFCC",
+    onSecondary: "#4F2900",
     lightThemeName: "soilOfAvagddu",
     darkThemeName: "creamyApricot",
   },
   {
-    color: "#a58600",
+    primary: "#747B00",
+    secondary: "#FBFFCC",
+    onSecondary: "#4F4700",
     lightThemeName: "flagGreen",
     darkThemeName: "yellYellow",
   },
-  { color: "#86a500", lightThemeName: "tropicana", darkThemeName: "fallGreen" },
   {
-    color: "#48a500",
+    primary: "#457B00",
+    secondary: "#E8FFCC",
+    onSecondary: "#384F00",
+    lightThemeName: "tropicana",
+    darkThemeName: "fallGreen",
+  },
+  {
+    primary: "#177B00",
+    secondary: "#D5FFCC",
+    onSecondary: "#1B4F00",
     lightThemeName: "toyCamouflage",
     darkThemeName: "frostedMintHills",
   },
   {
-    color: "#24a500",
+    primary: "#007B17",
+    secondary: "#CCFFD5",
+    onSecondary: "#004F02",
     lightThemeName: "spreadsheetGreen",
     darkThemeName: "coastalTrim",
   },
   {
-    color: "#00a524",
+    primary: "#007B45",
+    secondary: "#CCFFE8",
+    onSecondary: "#004F20",
     lightThemeName: "tokiwaGreen",
     darkThemeName: "seafairGreen",
   },
   {
-    color: "#00a548",
+    primary: "#007B73",
+    secondary: "#CCFFFB",
+    onSecondary: "#004F3D",
     lightThemeName: "hydraTurquoise",
     darkThemeName: "crushedIce",
   },
   {
-    color: "#00a586",
+    primary: "#006694",
+    secondary: "#CCEFFF",
+    onSecondary: "#00424F",
     lightThemeName: "peacockBlue",
     darkThemeName: "iceEffect",
   },
   {
-    color: "#0086a5",
+    primary: "#0033A5",
+    secondary: "#CCDBFF",
+    onSecondary: "#00254F",
     lightThemeName: "egyptianBlue",
     darkThemeName: "arcLight",
   },
   {
-    color: "#0048a5",
+    primary: "#0A00A5",
+    secondary: "#CFCCFF",
+    onSecondary: "#00074F",
     lightThemeName: "bohemianBlue",
     darkThemeName: "driedLilac",
   },
   {
-    color: "#0024a5",
+    primary: "#4800A5",
+    secondary: "#E2CCFF",
+    onSecondary: "#16004F",
     lightThemeName: "spaceBattleBlue",
     darkThemeName: "neonBoneyard",
   },
 ] as const
 
 /**
- * Accent colors (16 colors) - lighter, pastel versions
- * Each has 1:1 correspondence with primary colors at same index
- * Used as secondary colors in light themes
+ * Minty Dark / OLED primary accent colors (only primary changes from base)
  */
-export const ACCENT_COLORS: readonly ColorEntry[] = [
-  {
-    color: "#f5ccff",
-    lightThemeName: "shadeOfViolet",
-    darkThemeName: "electricLavender",
-  },
-  {
-    color: "#ffccf5",
-    lightThemeName: "blissfulBerry",
-    darkThemeName: "pinkQuartz",
-  },
-  {
-    color: "#ffcce2",
-    lightThemeName: "cherryPlum",
-    darkThemeName: "cottonCandy",
-  },
-  {
-    color: "#ffccd4",
-    lightThemeName: "crispChristmasCranberries",
-    darkThemeName: "piglet",
-  },
-  {
-    color: "#ffd4cc",
-    lightThemeName: "burntSienna",
-    darkThemeName: "simplyDelicious",
-  },
-  {
-    color: "#ffe2cc",
-    lightThemeName: "soilOfAvagddu",
-    darkThemeName: "creamyApricot",
-  },
-  {
-    color: "#fff5cc",
-    lightThemeName: "flagGreen",
-    darkThemeName: "yellYellow",
-  },
-  { color: "#f5ffcc", lightThemeName: "tropicana", darkThemeName: "fallGreen" },
-  {
-    color: "#e2ffcc",
-    lightThemeName: "toyCamouflage",
-    darkThemeName: "frostedMintHills",
-  },
-  {
-    color: "#d4ffcc",
-    lightThemeName: "spreadsheetGreen",
-    darkThemeName: "coastalTrim",
-  },
-  {
-    color: "#ccffd4",
-    lightThemeName: "tokiwaGreen",
-    darkThemeName: "seafairGreen",
-  },
-  {
-    color: "#ccffe2",
-    lightThemeName: "hydraTurquoise",
-    darkThemeName: "crushedIce",
-  },
-  {
-    color: "#ccfff5",
-    lightThemeName: "peacockBlue",
-    darkThemeName: "iceEffect",
-  },
-  {
-    color: "#ccf5ff",
-    lightThemeName: "egyptianBlue",
-    darkThemeName: "arcLight",
-  },
-  {
-    color: "#cce2ff",
-    lightThemeName: "bohemianBlue",
-    darkThemeName: "driedLilac",
-  },
-  {
-    color: "#ccd4ff",
-    lightThemeName: "spaceBattleBlue",
-    darkThemeName: "neonBoneyard",
-  },
+export const MINTY_DARK_PRIMARY_COLORS: readonly string[] = [
+  "#F2C0FF", // electricLavender
+  "#FFC0F4", // pinkQuartz
+  "#FFC0DC", // cottonCandy
+  "#FFC0C5", // piglet
+  "#FFD2C0", // simplyDelicious
+  "#FFEAC0", // creamyApricot
+  "#FCFFC0", // yellYellow
+  "#E4FFC0", // fallGreen
+  "#CDFFC0", // frostedMintHills
+  "#C0FFCA", // coastalTrim
+  "#C0FFE2", // seafairGreen
+  "#C0FFF9", // crushedIce
+  "#C0ECFF", // iceEffect
+  "#C0D4FF", // arcLight
+  "#C2C0FF", // driedLilac
+  "#DAC0FF", // neonBoneyard
 ] as const
+
+/**
+ * Primary colors (light theme primary hex) — for backward compatibility
+ * @deprecated Prefer MINTY_LIGHT_COLORS for full primary/secondary/onSecondary
+ */
+export const PRIMARY_COLORS: readonly ColorEntry[] = MINTY_LIGHT_COLORS.map(
+  (entry) => ({
+    color: entry.primary,
+    lightThemeName: entry.lightThemeName,
+    darkThemeName: entry.darkThemeName,
+  }),
+)
+
+/**
+ * Accent colors (light theme secondary hex) — for backward compatibility
+ * @deprecated Prefer MINTY_LIGHT_COLORS
+ */
+export const ACCENT_COLORS: readonly ColorEntry[] = MINTY_LIGHT_COLORS.map(
+  (entry) => ({
+    color: entry.secondary,
+    lightThemeName: entry.lightThemeName,
+    darkThemeName: entry.darkThemeName,
+  }),
+)

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 
-import type TransactionModel from "~/database/models/Transaction"
+import type TransactionModel from "~/database/models/transaction"
 import {
   getBalanceAtTransaction,
   getBalanceBeforeTransaction,

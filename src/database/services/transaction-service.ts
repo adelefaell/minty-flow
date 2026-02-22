@@ -12,11 +12,11 @@ import {
 import { startOfNextMinute } from "~/utils/pending-transactions"
 
 import { database } from "../index"
-import type AccountModel from "../models/Account"
-import type CategoryModel from "../models/Category"
-import type TagModel from "../models/Tag"
-import type TransactionModel from "../models/Transaction"
-import type TransactionTagModel from "../models/TransactionTag"
+import type AccountModel from "../models/account"
+import type CategoryModel from "../models/category"
+import type TagModel from "../models/tag"
+import type TransactionModel from "../models/transaction"
+import type TransactionTagModel from "../models/transaction-tag"
 import {
   deleteTransfer,
   getConversionRateForTransaction,

@@ -5,7 +5,7 @@ import type {
   Loan as LoanType,
   LoanType as LoanTypeEnum,
 } from "../../types/loans"
-import type AccountModel from "./Account"
+import type AccountModel from "./account"
 
 /**
  * Loan model representing borrowed and lent money.

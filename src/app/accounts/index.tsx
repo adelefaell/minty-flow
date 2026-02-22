@@ -14,7 +14,7 @@ import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import type AccountModel from "~/database/models/Account"
+import type AccountModel from "~/database/models/account"
 import type { AccountWithMonthTotals } from "~/database/services/account-service"
 import {
   observeAccountModels,

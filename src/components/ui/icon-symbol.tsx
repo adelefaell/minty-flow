@@ -148,6 +148,8 @@ export const VALID_ICON_NAMES = defineValidIcons([
   "repeat",
   "arrow-up",
   "arrow-down",
+  "chevron-double-down",
+  "chevron-double-up",
 ] as const)
 
 /**

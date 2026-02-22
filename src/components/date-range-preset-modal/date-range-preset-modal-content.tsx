@@ -1,8 +1,3 @@
-/**
- * Date range picker modal with presets and collapsible By month, By year, Custom range.
- * Uses @react-native-community/datetimepicker for custom start/end dates.
- */
-
 import DateTimePicker, {
   DateTimePickerAndroid,
   type DateTimePickerEvent,
@@ -32,22 +27,17 @@ import { dateRangePresetModalStyles as styles } from "./date-range-preset-modal.
 import { PRESETS } from "./presets"
 import type {
   ActiveSource,
-  DateRangePresetModalProps,
+  DateRangePresetModalContentProps,
   ExpandedSection,
   PresetOption,
 } from "./types"
 
-function DateRangePresetModalContent({
+export const DateRangePresetModalContent = ({
   initialStart,
   initialEnd,
   onSave,
   onRequestClose,
-}: {
-  initialStart?: Date
-  initialEnd?: Date
-  onSave: (start: Date, end: Date) => void
-  onRequestClose: () => void
-}) {
+}: DateRangePresetModalContentProps) => {
   const { theme } = useUnistyles()
   const insets = useSafeAreaInsets()
   const now = new Date()
@@ -489,32 +479,5 @@ function DateRangePresetModalContent({
         </Modal>
       )}
     </View>
-  )
-}
-
-export function DateRangePresetModal({
-  visible,
-  initialStart,
-  initialEnd,
-  onSave,
-  onRequestClose,
-}: DateRangePresetModalProps) {
-  return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="fullScreen"
-      onRequestClose={onRequestClose}
-    >
-      {visible ? (
-        <DateRangePresetModalContent
-          key={`${initialStart?.getTime() ?? 0}-${initialEnd?.getTime() ?? 0}`}
-          initialStart={initialStart}
-          initialEnd={initialEnd}
-          onSave={onSave}
-          onRequestClose={onRequestClose}
-        />
-      ) : null}
-    </Modal>
   )
 }

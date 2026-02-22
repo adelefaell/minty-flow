@@ -1,4 +1,4 @@
-import type TransactionModel from "~/database/models/Transaction"
+import type TransactionModel from "~/database/models/transaction"
 
 /**
  * Utility functions for pending transactions.

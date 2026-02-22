@@ -1,6 +1,6 @@
 import type { Transfer } from "~/types/transfers"
 
-import type TransferModel from "../models/Transfer"
+import type TransferModel from "../models/transfer"
 
 /**
  * Convert TransferModel to Transfer domain type

@@ -4,7 +4,7 @@ import { map } from "rxjs/operators"
 
 import type { Tag, TagKindType } from "../../types/tags"
 import { database } from "../index"
-import type TagModel from "../models/Tag"
+import type TagModel from "../models/tag"
 import { modelToTag } from "../utils/model-to-tag"
 import { unlinkTagFromAllTransactions } from "./transaction-service"
 

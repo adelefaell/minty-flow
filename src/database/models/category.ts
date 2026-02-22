@@ -18,7 +18,7 @@ import type { Category } from "../../types/categories"
  * - Date fields end with _at and use number type (Unix timestamps)
  *
  * Color scheme is stored as a name (color_scheme_name) and resolved at runtime
- * from the theme registry, similar to Flutter's @Transient() getter pattern.
+ * from the theme registry.
  */
 export default class CategoryModel extends Model implements Category {
   static table = "categories"

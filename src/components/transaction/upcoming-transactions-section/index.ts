@@ -1,2 +1,2 @@
 export type { UpcomingTransactionsSectionProps } from "./types"
-export { UpcomingTransactionsSection } from "./UpcomingTransactionsSection"
+export { UpcomingTransactionsSection } from "./upcoming-transactions-section"

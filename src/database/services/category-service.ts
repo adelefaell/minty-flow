@@ -10,7 +10,7 @@ import type { Category } from "~/types/categories"
 import type { TransactionType } from "~/types/transactions"
 
 import { database } from "../index"
-import type CategoryModel from "../models/Category"
+import type CategoryModel from "../models/category"
 import { modelToCategory } from "../utils/model-to-category"
 import { getTransactionModels } from "./transaction-service"
 

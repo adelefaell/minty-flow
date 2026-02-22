@@ -2,62 +2,63 @@ import { ScrollView, View } from "react-native"
 
 import { DynamicIcon } from "~/components/dynamic-icon"
 import { IconSymbol } from "~/components/ui/icon-symbol"
-import type { Tag } from "~/types/tags"
+import type { Account } from "~/types/accounts"
 
-import { Chip } from "../Chip"
+import { Chip } from "../chip"
 import { filterHeaderStyles } from "../filter-header.styles"
-import { PanelClearButton } from "../PanelClearButton"
-import { PanelDoneButton } from "../PanelDoneButton"
+import { PanelClearButton } from "../panel-clear-button"
+import { PanelDoneButton } from "../panel-done-button"
 import { CHIPS_PER_ROW } from "../types"
 import { chunk } from "../utils"
 
-interface TagsPanelProps {
-  tags: Tag[]
+interface AccountsPanelProps {
+  accounts: Account[]
   selectedIds: string[]
   onToggle: (id: string) => void
   onClear: () => void
   onDone: () => void
 }
 
-export function TagsPanel({
-  tags,
+export function AccountsPanel({
+  accounts,
   selectedIds,
   onToggle,
   onClear,
   onDone,
-}: TagsPanelProps) {
+}: AccountsPanelProps) {
   return (
     <View>
-      {chunk(tags, CHIPS_PER_ROW).map((row) => (
+      {chunk(accounts, CHIPS_PER_ROW).map((row) => (
         <ScrollView
-          key={row.map((t) => t.id).join(",")}
+          key={row.map((a) => a.id).join(",")}
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={filterHeaderStyles.chipScrollRow}
           style={filterHeaderStyles.categoryRow}
         >
-          {row.map((tag) => (
+          {row.map((account) => (
             <Chip
-              key={tag.id}
-              label={tag.name}
-              selected={selectedIds.includes(tag.id)}
-              onPress={() => onToggle(tag.id)}
+              key={account.id}
+              label={account.name}
+              selected={selectedIds.includes(account.id)}
+              onPress={() => onToggle(account.id)}
               leading={
-                tag.icon ? (
+                account.icon ? (
                   <DynamicIcon
-                    icon={tag.icon}
+                    icon={account.icon}
                     size={18}
-                    colorScheme={tag.colorScheme}
+                    colorScheme={account.colorScheme}
                     variant="raw"
                   />
                 ) : (
-                  <IconSymbol name="tag" size={18} />
+                  <IconSymbol name="wallet" size={18} />
                 )
               }
             />
           ))}
         </ScrollView>
       ))}
+
       <View style={filterHeaderStyles.panelHeader}>
         <View />
         <View style={filterHeaderStyles.panelHeaderActions}>

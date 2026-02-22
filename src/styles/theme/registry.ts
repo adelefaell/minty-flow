@@ -115,7 +115,7 @@ export const validateThemeName = (themeName: string): boolean => {
 
 /**
  * Get a theme by name without fallback (strict - returns undefined if not found)
- * Similar to Flutter's getThemeStrict()
+ * Get theme by name without fallback (strict — returns undefined if not found)
  */
 export const getThemeStrict = (
   themeName?: string | null,
