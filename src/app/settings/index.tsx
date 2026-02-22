@@ -154,7 +154,7 @@ const styles = StyleSheet.create((theme) => ({
   container: {
     flex: 1,
     backgroundColor: theme.colors.surface,
-    marginTop: 40,
+    paddingTop: 40,
   },
   content: {
     paddingBottom: 100,

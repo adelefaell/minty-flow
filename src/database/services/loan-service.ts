@@ -2,8 +2,8 @@ import { Q } from "@nozbe/watermelondb"
 import type { Observable } from "@nozbe/watermelondb/utils/rx"
 
 import { database } from "../index"
-import type AccountModel from "../models/Account"
-import type LoanModel from "../models/Loan"
+import type AccountModel from "../models/account"
+import type LoanModel from "../models/loan"
 
 /**
  * LoanModel Service

@@ -16,6 +16,8 @@ export {
 export type {
   MintyColorScheme,
   MintyCustomColors,
+  MintyDerivedColors,
   ThemeGroup,
   UnistylesTheme,
 } from "./types"
+export type { MintyTextStyle, MintyTypographyTokens } from "./typography"

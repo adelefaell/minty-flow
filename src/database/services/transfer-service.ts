@@ -6,9 +6,9 @@ import type {
 } from "~/schemas/transactions.schema"
 
 import { database } from "../index"
-import type AccountModel from "../models/Account"
-import type TransactionModel from "../models/Transaction"
-import type TransferModel from "../models/Transfer"
+import type AccountModel from "../models/account"
+import type TransactionModel from "../models/transaction"
+import type TransferModel from "../models/transfer"
 
 /* ------------------------------------------------------------------ */
 /* UUID */

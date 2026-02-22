@@ -17,7 +17,7 @@ export interface ViewProps extends RNViewProps {
 }
 
 export const View = ({
-  variant = "default",
+  variant = "transparent",
   style,
   native,
   ...props

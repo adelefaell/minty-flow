@@ -5,20 +5,20 @@
 import type { MintyColorScheme } from "./types"
 
 /**
- * Default light theme base
- * Used as foundation for all light theme variants
+ * Minty Light base (Minty Light theme group default)
+ * surface #F5F6FA, primary #8600A5 (shadeOfViolet), secondary #F5CCFF
  */
 export const DEFAULT_LIGHT_BASE: MintyColorScheme = {
   name: "defaultLightBase",
   isDark: false,
-  surface: "#f5f6fa",
-  onSurface: "#0a000d",
-  primary: "#8500a6",
-  onPrimary: "#f5f6fa",
-  secondary: "#f5ccff",
-  onSecondary: "#33004f",
+  surface: "#F5F6FA",
+  onSurface: "#111111",
+  primary: "#8600A5",
+  onPrimary: "#F5F6FA",
+  secondary: "#F5CCFF",
+  onSecondary: "#33004F",
   error: "#FF4040",
-  onError: "#ffffff",
+  onError: "#F5F6FA",
   customColors: {
     income: "#32CC70",
     expense: "#FF4040",
@@ -27,52 +27,56 @@ export const DEFAULT_LIGHT_BASE: MintyColorScheme = {
     warning: "#FFA500",
     info: "#4A90E2",
   },
-  rippleColor: "rgba(0, 0, 0, 0.25)",
+  rippleColor: "rgba(0, 0, 0, 0.086)",
   shadow: "rgba(0, 0, 0, 0.08)",
   boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
-  radius: 10,
+  radius: 8,
 }
 
 /**
- * Default dark theme base
- * Used as foundation for all dark theme variants
+ * Minty Dark base (default dark mode)
+ * surface #141414, secondary #050505 — distinct from OLED
+ * primary #F2C0FF (electricLavender)
  */
 export const DEFAULT_DARK_BASE: MintyColorScheme = {
   name: "defaultDarkBase",
   isDark: true,
-  surface: "#222222",
-  onSurface: "#f5f6fa",
-  primary: "#f2c0ff",
-  onPrimary: "#222222",
-  secondary: "#111111",
-  onSecondary: "#f5f6fa",
-  error: "#FF6B6B",
-  onError: "#f5f6fa",
+  surface: "#141414",
+  onSurface: "#F5F6FA",
+  primary: "#F2C0FF",
+  onPrimary: "#141414",
+  secondary: "#050505",
+  onSecondary: "#F5F6FA",
+  error: "#FF4040",
+  onError: "#F5F6FA",
   customColors: {
-    income: "#4ADE80",
-    expense: "#FF6B6B",
-    semi: "#9CA3AF",
-    success: "#4ADE80",
-    warning: "#FBBF24",
-    info: "#60A5FA",
+    income: "#32CC70",
+    expense: "#FF4040",
+    semi: "#97919B",
+    success: "#32CC70",
+    warning: "#FFA500",
+    info: "#4A90E2",
   },
-  rippleColor: "rgba(255, 255, 255, 0.25)",
+  rippleColor: "rgba(245, 246, 250, 0.086)",
   shadow: "rgba(0, 0, 0, 0.6)",
   boxShadow: "0 1px 3px rgba(0, 0, 0, 0.3)",
-  radius: 10,
+  radius: 8,
 }
 
 /**
- * Default OLED theme base
- * True black for OLED displays
- * Note: secondary is #101010 (very dark gray) to provide contrast for navbar/tab bar
+ * Minty OLED base — true black for OLED
+ * surface #000000, secondary #101010
  */
 export const DEFAULT_OLED_BASE: MintyColorScheme = {
   ...DEFAULT_DARK_BASE,
   name: "defaultOledBase",
   surface: "#000000",
+  onPrimary: "#000000",
   secondary: "#101010",
-  error: DEFAULT_DARK_BASE.error,
-  onError: DEFAULT_DARK_BASE.onError,
+  onSecondary: "#F5F6FA",
+  customColors: {
+    ...DEFAULT_DARK_BASE.customColors,
+    semi: "#606060",
+  },
   shadow: "rgba(0, 0, 0, 0.7)",
 }

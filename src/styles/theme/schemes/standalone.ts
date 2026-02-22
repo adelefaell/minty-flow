@@ -1,72 +1,72 @@
 // ============================================================================
 // Minty Theming System - Standalone Theme Schemes
+// Palenight & Monochrome
 // ============================================================================
 
 import type { MintyColorScheme } from "../types"
 
 /**
- * Palenight theme
- * Inspired by Material Theme Palenight
+ * Palenight — dark (Material Theme Palenight)
+ * Exact from guide: surface #292D3E, primary #F5F6FA, onPrimary #444267
  */
 export const palenight: MintyColorScheme = {
   name: "palenight",
   iconName: "palenight",
   isDark: true,
-  surface: "#292d3e",
-  onSurface: "#a6accd",
-  primary: "#c792ea",
-  onPrimary: "#292d3e",
-  secondary: "#1f2233",
-  onSecondary: "#a6accd",
-  error: "#f07178",
-  onError: "#f5f6fa",
+  surface: "#292D3E",
+  onSurface: "#F5F6FA",
+  primary: "#F5F6FA",
+  onPrimary: "#444267",
+  secondary: "#202331",
+  onSecondary: "#F5F6FA",
+  error: "#FF4040",
+  onError: "#F5F6FA",
   customColors: {
-    income: "#c3e88d",
-    expense: "#f07178",
-    semi: "#676e95",
-    success: "#c3e88d",
-    warning: "#ffcb6b",
-    info: "#82aaff",
+    income: "#C3E88D",
+    expense: "#F07178",
+    semi: "#676E95",
+    success: "#C3E88D",
+    warning: "#FFCB6B",
+    info: "#82AAFF",
   },
-  rippleColor: "rgba(255, 255, 255, 0.25)",
+  rippleColor: "rgba(245, 246, 250, 0.086)",
   shadow: "rgba(0, 0, 0, 0.6)",
   boxShadow: "0 1px 3px rgba(0, 0, 0, 0.3)",
-  radius: 10,
+  radius: 8,
 }
 
 /**
- * Monochrome theme
- * Pure black and white design
+ * Monochrome — light (pure B&W style)
+ * Exact from guide: surface #F7F8FA, onSurface #101828, primary #444444
  */
 export const monochrome: MintyColorScheme = {
   name: "monochrome",
   iconName: "monochrome",
   isDark: false,
-  surface: "#ffffff",
-  onSurface: "#000000",
-  primary: "#000000",
-  onPrimary: "#ffffff",
-  secondary: "#f5f5f5",
-  onSecondary: "#000000",
-  error: "#000000",
-  onError: "#ffffff",
+  surface: "#F7F8FA",
+  onSurface: "#101828",
+  primary: "#444444",
+  onPrimary: "#F7F8FA",
+  secondary: "#F1F2F4",
+  onSecondary: "#101828",
+  error: "#FF4040",
+  onError: "#F5F6FA",
   customColors: {
-    income: "#2d2d2d",
-    expense: "#000000",
-    semi: "#666666",
-    success: "#2d2d2d",
-    warning: "#666666",
-    info: "#4d4d4d",
+    income: "#32CC70",
+    expense: "#FF4040",
+    semi: "#6A666D",
+    success: "#32CC70",
+    warning: "#FFA500",
+    info: "#4A90E2",
   },
-  rippleColor: "rgba(0, 0, 0, 0.25)",
+  rippleColor: "rgba(0, 0, 0, 0.086)",
   shadow: "rgba(0, 0, 0, 0.08)",
   boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
-  radius: 10,
+  radius: 8,
 }
 
 /**
- * Nord theme
- * Based on the Nord color palette
+ * Nord — kept for compatibility
  */
 export const nord: MintyColorScheme = {
   name: "nord",
@@ -91,5 +91,5 @@ export const nord: MintyColorScheme = {
   rippleColor: "rgba(255, 255, 255, 0.25)",
   shadow: "rgba(0, 0, 0, 0.6)",
   boxShadow: "0 1px 3px rgba(0, 0, 0, 0.3)",
-  radius: 10,
+  radius: 8,
 }

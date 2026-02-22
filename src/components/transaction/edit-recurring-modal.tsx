@@ -25,8 +25,8 @@ import {
 } from "react-native-unistyles"
 
 import { IconSymbol } from "~/components/ui/icon-symbol"
-import type RecurringTransactionModel from "~/database/models/RecurringTransaction"
-import type TransactionModel from "~/database/models/Transaction"
+import type RecurringTransactionModel from "~/database/models/recurring-transaction"
+import type TransactionModel from "~/database/models/transaction"
 import { updateRecurringRuleTemplate } from "~/database/services/recurring-transaction-service"
 import type { RecurringEditPayload } from "~/database/services/transaction-service"
 import {

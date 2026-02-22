@@ -3,10 +3,10 @@ import { View } from "react-native"
 import { TYPE_OPTIONS } from "~/types/transaction-filters"
 import type { TransactionType } from "~/types/transactions"
 
-import { Chip } from "../Chip"
+import { Chip } from "../chip"
 import { filterHeaderStyles } from "../filter-header.styles"
-import { PanelClearButton } from "../PanelClearButton"
-import { PanelDoneButton } from "../PanelDoneButton"
+import { PanelClearButton } from "../panel-clear-button"
+import { PanelDoneButton } from "../panel-done-button"
 import { CHIPS_PER_ROW } from "../types"
 import { chunk } from "../utils"
 

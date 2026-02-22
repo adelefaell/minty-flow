@@ -2,7 +2,7 @@ import { Model } from "@nozbe/watermelondb"
 import { date, field, relation } from "@nozbe/watermelondb/decorators"
 
 import type { BudgetPeriod, Budget as BudgetType } from "../../types/budgets"
-import type CategoryModel from "./Category"
+import type CategoryModel from "./category"
 
 /**
  * Budget model representing budget limits.

@@ -1,7 +1,7 @@
 import { Q } from "@nozbe/watermelondb"
 
 import { database } from "../index"
-import type TransactionModel from "../models/Transaction"
+import type TransactionModel from "../models/transaction"
 
 /**
  * Compute the account balance at the moment BEFORE a given transaction.

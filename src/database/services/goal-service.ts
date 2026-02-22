@@ -2,7 +2,7 @@ import { Q } from "@nozbe/watermelondb"
 import type { Observable } from "@nozbe/watermelondb/utils/rx"
 
 import { database } from "../index"
-import type GoalModel from "../models/Goal"
+import type GoalModel from "../models/goal"
 
 /**
  * Goal Service

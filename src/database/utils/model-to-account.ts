@@ -1,6 +1,6 @@
 import type { Account } from "~/types/accounts"
 
-import type AccountModel from "../models/Account"
+import type AccountModel from "../models/account"
 
 /**
  * Convert AccountModel to Account domain type

@@ -17,7 +17,7 @@ import { Input } from "~/components/ui/input"
 import { Separator } from "~/components/ui/separator"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import type TagModel from "~/database/models/Tag"
+import type TagModel from "~/database/models/tag"
 import {
   createTag,
   deleteTag,

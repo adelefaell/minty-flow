@@ -1,6 +1,6 @@
 import type { Category } from "~/types/categories"
 
-import type CategoryModel from "../models/Category"
+import type CategoryModel from "../models/category"
 
 /**
  * Convert CategoryModel to Category domain type

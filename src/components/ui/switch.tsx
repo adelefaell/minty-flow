@@ -20,7 +20,7 @@ export const Switch = ({
   const { theme } = useUnistyles()
 
   const finalThumbColor =
-    thumbColor ?? (value ? theme.colors.onPrimary : theme.colors.onSecondary)
+    thumbColor ?? (value ? theme.colors.secondary : theme.colors.primary)
 
   const finalTrackColor = {
     false: trackColor?.false ?? theme.colors.secondary,

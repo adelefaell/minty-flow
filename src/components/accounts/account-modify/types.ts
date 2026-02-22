@@ -1,4 +1,4 @@
-import type AccountModel from "~/database/models/Account"
+import type AccountModel from "~/database/models/account"
 import type { Account } from "~/types/accounts"
 
 export interface AccountModifyContentProps {

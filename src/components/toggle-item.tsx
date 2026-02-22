@@ -54,6 +54,7 @@ const styles = StyleSheet.create((theme) => ({
     marginRight: 12,
   },
   toggleItemContent: {
+    backgroundColor: "transparent",
     flex: 1,
     gap: 2,
   },

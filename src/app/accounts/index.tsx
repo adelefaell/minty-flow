@@ -14,7 +14,7 @@ import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import type AccountModel from "~/database/models/Account"
+import type AccountModel from "~/database/models/account"
 import type { AccountWithMonthTotals } from "~/database/services/account-service"
 import {
   observeAccountModels,
@@ -246,7 +246,7 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
     backgroundColor: theme.colors.surface,
     paddingHorizontal: 20,
-    marginTop: 40,
+    paddingTop: 40,
   },
   scrollView: { flex: 1 },
   scrollContent: {
