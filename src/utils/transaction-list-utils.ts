@@ -94,11 +94,20 @@ export function buildTransactionListFilters(
     fromDate: number
     toDate: number
     search?: string
+    searchMatchType?: "smart" | "partial" | "exact" | "untitled"
+    searchIncludeNotes?: boolean
     /** When on account detail, scope to this account. */
     accountId?: string
   },
 ): TransactionListFilters {
-  const { fromDate, toDate, search, accountId } = options
+  const {
+    fromDate,
+    toDate,
+    search,
+    searchMatchType,
+    searchIncludeNotes,
+    accountId,
+  } = options
   const filters: TransactionListFilters = {
     fromDate,
     toDate,
@@ -122,8 +131,11 @@ export function buildTransactionListFilters(
     filters.isPending = false
   }
   const searchTrimmed = search?.trim()
+  if (searchMatchType) filters.searchMatchType = searchMatchType
   if (searchTrimmed && searchTrimmed.length > 0) {
     filters.search = searchTrimmed
+    if (searchIncludeNotes !== undefined)
+      filters.searchIncludeNotes = searchIncludeNotes
   }
   if (filterState.tagIds.length > 0) {
     filters.tagIds = filterState.tagIds

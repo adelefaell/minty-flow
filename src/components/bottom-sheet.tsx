@@ -10,8 +10,8 @@ import type { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescrip
 import {
   type ReactNode,
   useCallback,
+  useEffect,
   useLayoutEffect,
-  useMemo,
   useRef,
   useState,
 } from "react"
@@ -203,10 +203,11 @@ export function BottomSheetModalComponent({
   const sheetIdRef = useRef(id)
   const wasKeyboardVisibleRef = useRef(false)
 
-  // Update refs when props change
-  shouldRestoreRef.current =
-    keyboardBlurBehavior === "restore" && snapPoints && snapPoints.length > 0
-  sheetIdRef.current = id
+  useEffect(() => {
+    shouldRestoreRef.current =
+      keyboardBlurBehavior === "restore" && Boolean(snapPoints?.length)
+    sheetIdRef.current = id
+  }, [id, keyboardBlurBehavior, snapPoints])
 
   // Create a stable restore callback
   const restoreSheet = useCallback(() => {
@@ -258,9 +259,6 @@ export function BottomSheetModalComponent({
     },
     [id, registerSheet, unregisterSheet, restoreSheet],
   )
-
-  // Memoize snap points
-  const memoizedSnapPoints = useMemo(() => snapPoints, [snapPoints])
 
   // Handle sheet changes
   const handleSheetChanges = useCallback(
@@ -324,7 +322,7 @@ export function BottomSheetModalComponent({
   return (
     <BottomSheetModal
       ref={bottomSheetModalRef}
-      snapPoints={memoizedSnapPoints}
+      snapPoints={snapPoints}
       enableDynamicSizing={enableDynamicSizing}
       onChange={handleSheetChanges}
       onDismiss={onDismiss}

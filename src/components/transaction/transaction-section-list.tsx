@@ -53,11 +53,12 @@ export function TransactionSectionList({
 
   // Today/history sections show only CONFIRMED and not future-dated.
   // Use effective pending (date > now || isPending) so future txs never appear here.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: tick triggers re-group at minute boundary
-  const confirmedOnly = useMemo(() => {
-    const now = Date.now()
-    return list.filter((r) => !effectiveIsPending(r.transaction, now))
-  }, [list, tick])
+  // Use tick (minute boundary) to derive "now" without calling Date.now() during render (React purity).
+  const nowMs = tick * 60_000
+  const confirmedOnly = useMemo(
+    () => list.filter((r) => !effectiveIsPending(r.transaction, nowMs)),
+    [list, nowMs],
+  )
 
   const listForSections = useMemo(
     () => applyTransferLayout(confirmedOnly, transferLayout),

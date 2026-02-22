@@ -144,9 +144,8 @@ const EditCategoryScreenInner = ({
         title: "Error",
         description: `Failed to ${isAddMode ? "create" : "update"} category. Please try again.`,
       })
-    } finally {
-      setIsSubmitting(false)
     }
+    setIsSubmitting(false)
   }
 
   const handleSubmit = handleFormSubmit(onSubmit)

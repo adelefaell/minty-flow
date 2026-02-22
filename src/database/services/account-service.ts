@@ -225,11 +225,13 @@ export const getMonthRange = (
 /**
  * Observe a single account with transaction totals for a given date range.
  * Use for account detail when user selects a specific month.
+ * When excludeFromTotals is false, transfer amounts are included (credits → in, debits → out).
  */
 export const observeAccountWithMonthTotalsByIdAndRange = (
   id: string,
   fromDate: number,
   toDate: number,
+  excludeFromTotals = true,
 ): Observable<AccountWithMonthTotals> => {
   const account$ = observeAccountDetailsById(id)
   const transactions$ = observeTransactionModels({
@@ -244,8 +246,17 @@ export const observeAccountWithMonthTotalsByIdAndRange = (
       let in_ = 0
       let out = 0
       for (const t of transactions) {
-        if (t.type === TransactionTypeEnum.INCOME) in_ += t.amount
-        else if (t.type === TransactionTypeEnum.EXPENSE) out += t.amount
+        if (t.type === TransactionTypeEnum.INCOME) {
+          in_ += t.amount
+        } else if (t.type === TransactionTypeEnum.EXPENSE) {
+          out += t.amount
+        } else if (
+          !excludeFromTotals &&
+          (t.type === TransactionTypeEnum.TRANSFER || t.isTransfer)
+        ) {
+          if (t.amount > 0) in_ += t.amount
+          else out += Math.abs(t.amount)
+        }
       }
       return {
         ...account,
@@ -269,9 +280,11 @@ export interface AccountWithMonthTotals extends Account {
 /**
  * Observe accounts with their transaction totals for the current month.
  * IN = sum of income transactions, OUT = sum of expense transactions, NET = IN - OUT.
+ * When excludeFromTotals is false, transfer amounts are included (credits → in, debits → out).
  */
 export const observeAccountsWithMonthTotals = (
   includeArchived = false,
+  excludeFromTotals = true,
 ): Observable<AccountWithMonthTotals[]> => {
   const { fromDate, toDate } = getCurrentMonthRange()
   const accounts$ = observeAccountModels(includeArchived)
@@ -299,6 +312,12 @@ export const observeAccountsWithMonthTotals = (
           cur.in += t.amount
         } else if (t.type === TransactionTypeEnum.EXPENSE) {
           cur.out += t.amount
+        } else if (
+          !excludeFromTotals &&
+          (t.type === TransactionTypeEnum.TRANSFER || t.isTransfer)
+        ) {
+          if (t.amount > 0) cur.in += t.amount
+          else cur.out += Math.abs(t.amount)
         }
         cur.net = cur.in - cur.out
         totalsByAccount.set(t.accountId, cur)

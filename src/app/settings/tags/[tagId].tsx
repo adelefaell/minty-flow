@@ -115,9 +115,8 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
         title: "Error",
         description: `Failed to ${isAddMode ? "create" : "update"} tag.`,
       })
-    } finally {
-      setIsSubmitting(false)
     }
+    setIsSubmitting(false)
   }
 
   const handleDelete = async () => {

@@ -4,7 +4,7 @@
  */
 
 import * as Contacts from "expo-contacts"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { Suspense, use, useCallback, useMemo, useState } from "react"
 import {
   ActivityIndicator,
   FlatList,
@@ -24,6 +24,37 @@ const LAYOUT_ANIM = LayoutAnimation.Presets.easeInEaseOut
 
 const LIST_MAX_HEIGHT = 280
 
+function createContactsPromise(
+  onPermissionDenied?: () => void,
+): Promise<{ contacts: Contacts.Contact[]; hasPermission: boolean }> {
+  return (async () => {
+    try {
+      const { status } = await Contacts.requestPermissionsAsync()
+      const granted = status === "granted"
+      if (!granted) {
+        onPermissionDenied?.()
+        Toast.warn({
+          title: "Permission Required",
+          description:
+            "Please grant permission to access your contacts in order to select a contact from your phone.",
+        })
+        return { contacts: [], hasPermission: false }
+      }
+      const { data } = await Contacts.getContactsAsync({
+        fields: [
+          Contacts.Fields.PhoneNumbers,
+          Contacts.Fields.Emails,
+          Contacts.Fields.FirstName,
+        ],
+        sort: Contacts.SortTypes.FirstName,
+      })
+      return { contacts: data, hasPermission: true }
+    } catch {
+      return { contacts: [], hasPermission: false }
+    }
+  })()
+}
+
 export interface ContactSelectorInlineProps {
   /** Called when user selects a contact (select and close). */
   onContactSelected: (contact: Contacts.Contact) => void
@@ -33,53 +64,27 @@ export interface ContactSelectorInlineProps {
   editable?: boolean
 }
 
-export function ContactSelectorInline({
-  onContactSelected,
-  onPermissionDenied,
-  editable = true,
-}: ContactSelectorInlineProps) {
-  const [expanded, setExpanded] = useState(false)
-  const [contacts, setContacts] = useState<Contacts.Contact[]>([])
-  const [loading, setLoading] = useState(false)
-  const [hasPermission, setHasPermission] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedContact, setSelectedContact] =
-    useState<Contacts.Contact | null>(null)
+interface ContactsPanelContentProps {
+  contactsPromise: Promise<{
+    contacts: Contacts.Contact[]
+    hasPermission: boolean
+  }>
+  searchQuery: string
+  setSearchQuery: (q: string) => void
+  selectedContact: Contacts.Contact | null
+  setSelectedContact: (c: Contacts.Contact | null) => void
+  onDone: () => void
+}
 
-  const loadContacts = useCallback(async () => {
-    setLoading(true)
-    try {
-      const { status } = await Contacts.requestPermissionsAsync()
-      const granted = status === "granted"
-      setHasPermission(granted)
-
-      if (!granted) {
-        onPermissionDenied?.()
-        Toast.warn({
-          title: "Permission Required",
-          description:
-            "Please grant permission to access your contacts in order to select a contact from your phone.",
-        })
-        return
-      }
-
-      const { data } = await Contacts.getContactsAsync({
-        fields: [
-          Contacts.Fields.PhoneNumbers,
-          Contacts.Fields.Emails,
-          Contacts.Fields.FirstName,
-        ],
-        sort: Contacts.SortTypes.FirstName,
-      })
-      setContacts(data)
-    } finally {
-      setLoading(false)
-    }
-  }, [onPermissionDenied])
-
-  useEffect(() => {
-    if (expanded) loadContacts()
-  }, [expanded, loadContacts])
+function ContactsPanelContent({
+  contactsPromise,
+  searchQuery,
+  setSearchQuery,
+  selectedContact,
+  setSelectedContact,
+  onDone,
+}: ContactsPanelContentProps) {
+  const { contacts, hasPermission } = use(contactsPromise)
 
   const filteredContacts = useMemo(() => {
     if (!searchQuery.trim()) return contacts
@@ -92,17 +97,90 @@ export function ContactSelectorInline({
     )
   }, [contacts, searchQuery])
 
+  const handleSelectContact = useCallback(
+    (contact: Contacts.Contact) => {
+      setSelectedContact(contact)
+    },
+    [setSelectedContact],
+  )
+
+  return (
+    <View style={styles.panel}>
+      <View style={styles.searchContainer}>
+        <SearchInput
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          onClear={() => setSearchQuery("")}
+          placeholder="Search contacts..."
+        />
+      </View>
+      <View style={styles.listWrapper}>
+        <FlatList
+          data={filteredContacts}
+          keyExtractor={(item, index) =>
+            `${item.firstName ?? ""}-${item.phoneNumbers?.[0]?.number ?? ""}-${index}`
+          }
+          renderItem={({ item }) => (
+            <ContactItem
+              contact={item}
+              selected={selectedContact === item}
+              onPress={handleSelectContact}
+            />
+          )}
+          contentContainerStyle={styles.listContent}
+          style={styles.list}
+          showsVerticalScrollIndicator
+          keyboardShouldPersistTaps="always"
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <Text variant="muted">
+                {!hasPermission
+                  ? "Contacts permission not granted"
+                  : "No contacts found"}
+              </Text>
+            </View>
+          }
+        />
+      </View>
+      <Button
+        variant="default"
+        onPress={onDone}
+        disabled={!selectedContact}
+        style={styles.doneButton}
+      >
+        <Text>Done</Text>
+      </Button>
+    </View>
+  )
+}
+
+export function ContactSelectorInline({
+  onContactSelected,
+  onPermissionDenied,
+  editable = true,
+}: ContactSelectorInlineProps) {
+  const [expanded, setExpanded] = useState(false)
+  const [contactsPromise, setContactsPromise] = useState<Promise<{
+    contacts: Contacts.Contact[]
+    hasPermission: boolean
+  }> | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedContact, setSelectedContact] =
+    useState<Contacts.Contact | null>(null)
+
   const handleToggle = useCallback(() => {
     if (!editable) return
     LayoutAnimation.configureNext(LAYOUT_ANIM)
     setSearchQuery("")
     setSelectedContact(null)
-    setExpanded((v) => !v)
-  }, [editable])
-
-  const handleSelectContact = useCallback((contact: Contacts.Contact) => {
-    setSelectedContact(contact)
-  }, [])
+    if (expanded) {
+      setContactsPromise(null)
+      setExpanded(false)
+    } else {
+      setContactsPromise(createContactsPromise(onPermissionDenied))
+      setExpanded(true)
+    }
+  }, [editable, expanded, onPermissionDenied])
 
   const handleDone = useCallback(() => {
     if (!selectedContact) return
@@ -110,12 +188,9 @@ export function ContactSelectorInline({
     LayoutAnimation.configureNext(LAYOUT_ANIM)
     setSearchQuery("")
     setSelectedContact(null)
+    setContactsPromise(null)
     setExpanded(false)
   }, [selectedContact, onContactSelected])
-
-  const triggerLabel = loading
-    ? "Loading contacts..."
-    : "Select contact from phone"
 
   return (
     <View style={styles.wrapper}>
@@ -125,13 +200,9 @@ export function ContactSelectorInline({
         disabled={!editable}
       >
         <View style={styles.triggerLeft}>
-          {loading ? (
-            <ActivityIndicator size="small" />
-          ) : (
-            <IconSymbol name="account-details" size={24} />
-          )}
+          <IconSymbol name="account-details" size={24} />
           <Text variant="default" style={styles.triggerLabel}>
-            {triggerLabel}
+            Select contact from phone
           </Text>
         </View>
         {editable && (
@@ -143,59 +214,28 @@ export function ContactSelectorInline({
         )}
       </Pressable>
 
-      {editable && expanded && (
-        <View style={styles.panel}>
-          <View style={styles.searchContainer}>
-            <SearchInput
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              onClear={() => setSearchQuery("")}
-              placeholder="Search contacts..."
-            />
-          </View>
-          <View style={styles.listWrapper}>
-            {loading ? (
-              <View style={styles.emptyState}>
-                <ActivityIndicator size="small" />
+      {editable && expanded && contactsPromise && (
+        <Suspense
+          fallback={
+            <View style={styles.panel}>
+              <View style={styles.searchContainer} />
+              <View style={styles.listWrapper}>
+                <View style={styles.emptyState}>
+                  <ActivityIndicator size="small" />
+                </View>
               </View>
-            ) : (
-              <FlatList
-                data={filteredContacts}
-                keyExtractor={(item, index) =>
-                  `${item.firstName ?? ""}-${item.phoneNumbers?.[0]?.number ?? ""}-${index}`
-                }
-                renderItem={({ item }) => (
-                  <ContactItem
-                    contact={item}
-                    selected={selectedContact === item}
-                    onPress={handleSelectContact}
-                  />
-                )}
-                contentContainerStyle={styles.listContent}
-                style={styles.list}
-                showsVerticalScrollIndicator
-                keyboardShouldPersistTaps="always"
-                ListEmptyComponent={
-                  <View style={styles.emptyState}>
-                    <Text variant="muted">
-                      {!hasPermission
-                        ? "Contacts permission not granted"
-                        : "No contacts found"}
-                    </Text>
-                  </View>
-                }
-              />
-            )}
-          </View>
-          <Button
-            variant="default"
-            onPress={handleDone}
-            disabled={!selectedContact}
-            style={styles.doneButton}
-          >
-            Done
-          </Button>
-        </View>
+            </View>
+          }
+        >
+          <ContactsPanelContent
+            contactsPromise={contactsPromise}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            selectedContact={selectedContact}
+            setSelectedContact={setSelectedContact}
+            onDone={handleDone}
+          />
+        </Suspense>
       )}
     </View>
   )

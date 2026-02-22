@@ -1,6 +1,22 @@
 import type { TransactionType } from "./transactions"
 import { TransactionTypeEnum } from "./transactions"
 
+/** How search text is matched: smart/partial = substring, exact = full string, untitled = no title. */
+export type SearchMatchType = "smart" | "partial" | "exact" | "untitled"
+
+/** Search panel state: query + match type + whether to include notes. */
+export interface SearchState {
+  query: string
+  matchType: SearchMatchType
+  includeNotes: boolean
+}
+
+export const DEFAULT_SEARCH_STATE: SearchState = {
+  query: "",
+  matchType: "smart",
+  includeNotes: true,
+}
+
 /** UI filter state for the transaction list header. */
 export interface TransactionListFilterState {
   /** Selected account IDs; empty = all accounts. */

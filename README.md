@@ -1,50 +1,73 @@
-# Welcome to your Expo app 👋
+# Minty Flow (Native)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A React Native app built with [Expo](https://expo.dev), using file-based routing and a local-first stack (WatermelonDB, MMKV).
 
-## Get started
+## Prerequisites
 
-1. Install dependencies
+- **Node.js** 18+ (LTS recommended)
+- **pnpm** (or npm/yarn)
+- For **Android**: [Android Studio](https://developer.android.com/studio) with an AVD, or a physical device via USB (Expo Go is not supported — native modules require a dev build)
+- For **iOS**: macOS with Xcode and iOS Simulator, or a physical device
 
-   ```bash
-   npm install
-   ```
+## Install & setup
 
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+### 1. Clone the repo
 
 ```bash
-npm run reset-project
+git clone <repository-url>
+cd minty-flow
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 2. Install dependencies
+
+```bash
+pnpm install
+```
+
+### 3. Generate native projects (first time only)
+
+```bash
+pnpm prebuild
+```
+
+This creates the `ios/` and `android/` folders and applies native config (including WatermelonDB JSI). Required before your first `pnpm android` or `pnpm ios`.
+
+### 4. Run the app
+
+This app uses **native modules** (e.g. WatermelonDB, MMKV), so you cannot use `pnpm start` with Expo Go. You must run on an **Android emulator**, **iOS simulator**, or a **physical device** connected via USB:
+
+```bash
+pnpm android
+# or (macOS only)
+pnpm ios
+```
+
+Make sure you've run prebuild first (step 3) so the native project includes WatermelonDB. The first run can take a few minutes.
+
+## Scripts
+
+| Command | Description |
+|--------|-------------|
+| `pnpm android` | Run on Android (dev build) |
+| `pnpm ios` | Run on iOS (dev build) |
+| `pnpm web` | Run in the browser |
+| `pnpm prebuild` | Generate `ios/` and `android/` (required for first-time dev build, incl. WatermelonDB) |
+| `pnpm types` | Type-check with TypeScript |
+| `pnpm lint` | Run Biome linter |
+| `pnpm lint:fix` | Lint and auto-fix |
+
+## Project structure
+
+- **`src/app/`** — Screens and routes (Expo Router file-based routing)
+- **`src/components/`** — Reusable UI and logic
+- **`app.json`** — Expo app config (name, slug, plugins, etc.)
+
+## Environment
+
+Local overrides go in `.env.local` (or `.env.*.local`). These files are gitignored. Copy from any `.env.example` in the repo if one exists.
 
 ## Learn more
 
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- [Expo docs](https://docs.expo.dev/) — fundamentals and guides
+- [Expo Router](https://docs.expo.dev/router/introduction/) — file-based routing
+- [EAS Build](https://docs.expo.dev/build/introduction/) — cloud builds (this project has `eas.json` configured)

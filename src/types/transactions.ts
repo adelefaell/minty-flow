@@ -105,8 +105,12 @@ export interface TransactionListFilters {
   fromDate?: number
   /** End of range (inclusive), Unix timestamp. */
   toDate?: number
-  /** Search in title and description (DB-side). */
+  /** Search in title (and optionally description). */
   search?: string
+  /** How to match: smart/partial = substring, exact = full string, untitled = empty title. */
+  searchMatchType?: "smart" | "partial" | "exact" | "untitled"
+  /** When true, search also in notes (description); when false, title only. */
+  searchIncludeNotes?: boolean
   /** Min amount (inclusive). */
   minAmount?: number
   /** Max amount (inclusive). */

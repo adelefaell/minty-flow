@@ -4,7 +4,7 @@
  * No bottom sheets — filters are shown directly in the view.
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { LayoutAnimation, ScrollView, TextInput, View } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
@@ -18,10 +18,13 @@ import type { Category } from "~/types/categories"
 import type { Tag } from "~/types/tags"
 import type {
   GroupByOption,
+  SearchMatchType,
+  SearchState,
   TransactionListFilterState,
 } from "~/types/transaction-filters"
 import {
   ATTACHMENT_OPTIONS,
+  DEFAULT_SEARCH_STATE,
   DEFAULT_TRANSACTION_LIST_FILTER_STATE,
   GROUP_BY_OPTIONS,
   PENDING_OPTIONS,
@@ -112,35 +115,117 @@ function chunk<T>(arr: T[], size: number): T[][] {
   return result
 }
 
+const SEARCH_MATCH_OPTIONS: { id: SearchMatchType; label: string }[] = [
+  { id: "smart", label: "Smart" },
+  { id: "partial", label: "Partial match" },
+  { id: "exact", label: "Exact match" },
+  { id: "untitled", label: "Untitled" },
+]
+
 function SearchPanel({
   value,
   onChange,
   onClear,
+  matchType,
+  onMatchTypeChange,
+  includeNotes,
+  onIncludeNotesChange,
 }: {
   value: string
   onChange: (text: string) => void
   onClear: () => void
+  matchType: SearchMatchType
+  onMatchTypeChange: (type: SearchMatchType) => void
+  includeNotes: boolean
+  onIncludeNotesChange: (value: boolean) => void
 }) {
   const { theme } = useUnistyles()
+  const borderColor = `${theme.colors.onSurface}30`
+  const selectedBg = theme.colors.secondary ?? `${theme.colors.onSurface}15`
   return (
-    <View style={styles.searchRow}>
-      <IconSymbol name="magnify" size={20} />
-      <TextInput
-        value={value}
-        onChangeText={onChange}
-        placeholder="Memo, amount, category…"
-        placeholderTextColor={`${theme.colors.onSurface}50`}
-        style={[styles.searchInput, { color: theme.colors.onSurface }]}
-        returnKeyType="search"
-        autoCapitalize="none"
-        autoCorrect={false}
-        autoFocus
-      />
-      {value.length > 0 ? (
-        <Pressable onPress={onClear} style={styles.clearHit}>
-          <IconSymbol name="close-circle" size={20} />
-        </Pressable>
-      ) : null}
+    <View>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.searchMatchRow}
+        style={styles.searchMatchScroll}
+      >
+        {SEARCH_MATCH_OPTIONS.map((opt) => (
+          <Pressable
+            key={opt.id}
+            style={[
+              styles.chip,
+              {
+                backgroundColor:
+                  matchType === opt.id ? selectedBg : "transparent",
+                borderColor: matchType === opt.id ? "transparent" : borderColor,
+                borderWidth: 1,
+              },
+            ]}
+            onPress={() => onMatchTypeChange(opt.id)}
+          >
+            <Text
+              style={[
+                styles.chipLabel,
+                {
+                  color:
+                    matchType === opt.id
+                      ? theme.colors.primary
+                      : theme.colors.onSurface,
+                  fontWeight: matchType === opt.id ? "600" : "400",
+                },
+              ]}
+              numberOfLines={1}
+            >
+              {opt.label}
+            </Text>
+            {matchType === opt.id ? (
+              <IconSymbol name="check" size={14} />
+            ) : null}
+          </Pressable>
+        ))}
+      </ScrollView>
+      <View style={styles.searchRow}>
+        <IconSymbol name="magnify" size={20} />
+        <TextInput
+          value={value}
+          onChangeText={onChange}
+          placeholder="Search by title..."
+          placeholderTextColor={`${theme.colors.onSurface}50`}
+          style={[styles.searchInput, { color: theme.colors.onSurface }]}
+          returnKeyType="search"
+          autoCapitalize="none"
+          autoCorrect={false}
+          autoFocus
+        />
+        {value.length > 0 ? (
+          <Pressable onPress={onClear} style={styles.clearHit}>
+            <IconSymbol name="close-circle" size={20} />
+          </Pressable>
+        ) : null}
+      </View>
+      <Pressable
+        style={styles.includeNotesRow}
+        onPress={() => onIncludeNotesChange(!includeNotes)}
+      >
+        <Text
+          style={[styles.includeNotesLabel, { color: theme.colors.onSurface }]}
+        >
+          Include notes
+        </Text>
+        {includeNotes ? (
+          <IconSymbol name="check" size={20} color={theme.colors.primary} />
+        ) : null}
+      </Pressable>
+      <View style={styles.panelHeader}>
+        <View />
+        <Button variant="ghost" onPress={onClear} style={styles.clearHit}>
+          <IconSymbol name="close-circle" size={18} />
+          <Text style={[styles.clearText, { color: theme.colors.primary }]}>
+            Clear
+          </Text>
+        </Button>
+      </View>
     </View>
   )
 }
@@ -520,8 +605,9 @@ export interface TransactionFilterHeaderProps {
   onFilterChange: (state: TransactionListFilterState) => void
   selectedRange?: { start: Date; end: Date } | null
   onDateRangeChange?: (range: { start: Date; end: Date } | null) => void
-  searchQuery?: string
-  onSearchApply?: (query: string) => void
+  /** Search state (query + match type + include notes). */
+  searchState?: SearchState
+  onSearchApply?: (state: SearchState) => void
   /** Filter panel keys to hide from the pill bar (e.g. ["accounts"] on account detail). */
   hiddenFilters?: FilterPanelKey[]
 }
@@ -534,20 +620,18 @@ export function TransactionFilterHeader({
   onFilterChange,
   selectedRange = null,
   onDateRangeChange,
-  searchQuery = "",
+  searchState: propSearchState,
   onSearchApply,
   hiddenFilters = [],
 }: TransactionFilterHeaderProps) {
+  const searchState = propSearchState ?? DEFAULT_SEARCH_STATE
   const [expandedPanel, setExpandedPanel] = useState<FilterPanelKey | null>(
     null,
   )
   const [dateModalVisible, setDateModalVisible] = useState(false)
-  const [localSearch, setLocalSearch] = useState(searchQuery)
+  const [localSearchState, setLocalSearchState] = useState(searchState)
   const { theme } = useUnistyles()
-
-  useEffect(() => {
-    setLocalSearch(searchQuery)
-  }, [searchQuery])
+  // When parent updates searchState (e.g. after Apply), pass key so this component remounts with fresh local state; see call sites.
 
   // ── Panel toggling ──
 
@@ -566,15 +650,35 @@ export function TransactionFilterHeader({
 
   const handleSearchChange = useCallback(
     (text: string) => {
-      setLocalSearch(text)
-      onSearchApply?.(text)
+      const next = { ...localSearchState, query: text }
+      setLocalSearchState(next)
+      onSearchApply?.(next)
     },
-    [onSearchApply],
+    [localSearchState, onSearchApply],
+  )
+
+  const handleSearchMatchTypeChange = useCallback(
+    (matchType: SearchMatchType) => {
+      const next = { ...localSearchState, matchType }
+      setLocalSearchState(next)
+      onSearchApply?.(next)
+    },
+    [localSearchState, onSearchApply],
+  )
+
+  const handleSearchIncludeNotesChange = useCallback(
+    (includeNotes: boolean) => {
+      const next = { ...localSearchState, includeNotes }
+      setLocalSearchState(next)
+      onSearchApply?.(next)
+    },
+    [localSearchState, onSearchApply],
   )
 
   const handleSearchClear = useCallback(() => {
-    setLocalSearch("")
-    onSearchApply?.("")
+    const next = DEFAULT_SEARCH_STATE
+    setLocalSearchState(next)
+    onSearchApply?.(next)
   }, [onSearchApply])
 
   // ── Filter handlers (apply immediately) ──
@@ -659,15 +763,16 @@ export function TransactionFilterHeader({
   const handleClearAll = useCallback(() => {
     LayoutAnimation.configureNext(LAYOUT_ANIM)
     setExpandedPanel(null)
-    setLocalSearch("")
+    setLocalSearchState(DEFAULT_SEARCH_STATE)
     onFilterChange(DEFAULT_TRANSACTION_LIST_FILTER_STATE)
-    onSearchApply?.("")
+    onSearchApply?.(DEFAULT_SEARCH_STATE)
     onDateRangeChange?.(null)
   }, [onFilterChange, onSearchApply, onDateRangeChange])
 
   // ── Derived state ──
 
-  const isSearchActive = searchQuery.length > 0
+  const isSearchActive =
+    searchState.query.length > 0 || searchState.matchType === "untitled"
   const isDateActive = selectedRange !== null
   const isAccountsActive = filterState.accountIds.length > 0
   const isCategoriesActive = filterState.categoryIds.length > 0
@@ -740,7 +845,7 @@ export function TransactionFilterHeader({
     {
       key: "search",
       icon: "magnify",
-      label: isSearchActive ? searchQuery : "Search",
+      label: isSearchActive ? searchState.query || "Untitled" : "Search",
       active: isSearchActive,
     },
     { key: "date", icon: "calendar", label: dateLabel, active: isDateActive },
@@ -879,9 +984,13 @@ export function TransactionFilterHeader({
         >
           {expandedPanel === "search" ? (
             <SearchPanel
-              value={localSearch}
+              value={localSearchState.query}
               onChange={handleSearchChange}
               onClear={handleSearchClear}
+              matchType={localSearchState.matchType}
+              onMatchTypeChange={handleSearchMatchTypeChange}
+              includeNotes={localSearchState.includeNotes}
+              onIncludeNotesChange={handleSearchIncludeNotesChange}
             />
           ) : null}
           {expandedPanel === "accounts" ? (
@@ -991,8 +1100,8 @@ const styles = StyleSheet.create((theme) => ({
   /* Expanded panel */
   panel: {
     marginTop: 10,
-    borderRadius: theme.colors.radius ?? 12,
-    padding: 12,
+    borderRadius: theme.colors.radius,
+    padding: 10,
     borderWidth: 1,
   },
   panelHeader: {
@@ -1045,6 +1154,14 @@ const styles = StyleSheet.create((theme) => ({
   },
 
   /* Search */
+  searchMatchScroll: {
+    marginBottom: 10,
+  },
+  searchMatchRow: {
+    flexDirection: "row",
+    gap: 8,
+    paddingVertical: 2,
+  },
   searchRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -1058,5 +1175,16 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
     fontSize: 15,
     paddingVertical: 0,
+  },
+  includeNotesRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 10,
+    marginTop: 10,
+    paddingHorizontal: 4,
+  },
+  includeNotesLabel: {
+    fontSize: 15,
   },
 }))

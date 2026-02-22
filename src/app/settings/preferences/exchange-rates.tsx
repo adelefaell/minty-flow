@@ -1,7 +1,9 @@
 import { useNavigation } from "expo-router"
+import type { Dispatch, SetStateAction } from "react"
 import {
+  Suspense,
+  use,
   useCallback,
-  useEffect,
   useLayoutEffect,
   useMemo,
   useState,
@@ -29,6 +31,22 @@ import { useExchangeRatesPreferencesStore } from "~/stores/exchange-rates-prefer
 
 const EXCHANGE_API_URL = "https://github.com/fawazahmed0/exchange-api"
 
+function createRatesPromise(): Promise<{
+  rates: ExchangeRates | null
+  error: string | null
+}> {
+  return exchangeRatesService
+    .tryFetchRates("usd")
+    .then((result) => ({
+      rates: result ?? null,
+      error: result ? null : "Could not load rates. Check your connection.",
+    }))
+    .catch((e) => ({
+      rates: null,
+      error: e instanceof Error ? e.message : "Failed to load rates",
+    }))
+}
+
 function getEffectiveRate(
   code: string,
   apiRates: Record<string, number> | null,
@@ -52,55 +70,34 @@ interface RateEntry {
   isCustom: boolean
 }
 
-export default function ExchangeRatesScreen() {
-  const navigation = useNavigation()
-  const customRates = useExchangeRatesPreferencesStore((s) => s.customRates)
-  const setCustomRate = useExchangeRatesPreferencesStore((s) => s.setCustomRate)
-  const removeCustomRate = useExchangeRatesPreferencesStore(
-    (s) => s.removeCustomRate,
-  )
+interface ExchangeRatesContentProps {
+  ratesPromise: Promise<{ rates: ExchangeRates | null; error: string | null }>
+  onRetry: () => void
+  customRates: Record<string, number>
+  setCustomRate: (code: string, rate: number) => void
+  removeCustomRate: (code: string) => void
+  searchQuery: string
+  setSearchQuery: (q: string) => void
+  editingCurrencyCode: string | null
+  setEditingCurrencyCode: Dispatch<SetStateAction<string | null>>
+  draftRates: Record<string, number>
+  setDraftRates: Dispatch<SetStateAction<Record<string, number>>>
+}
 
-  const [searchQuery, setSearchQuery] = useState("")
-  const [rates, setRates] = useState<ExchangeRates | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [editingCurrencyCode, setEditingCurrencyCode] = useState<string | null>(
-    null,
-  )
-  const [draftRates, setDraftRates] = useState<Record<string, number>>({})
-  const [infoModalVisible, setInfoModalVisible] = useState(false)
-
-  const fetchRates = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const result = await exchangeRatesService.tryFetchRates("usd")
-      setRates(result ?? null)
-      if (!result) setError("Could not load rates. Check your connection.")
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load rates")
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    fetchRates()
-  }, [fetchRates])
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <Button
-          variant="ghost"
-          onPress={() => setInfoModalVisible(true)}
-          accessibilityLabel="Information about exchange rates"
-        >
-          <IconSymbol name="information" size={24} />
-        </Button>
-      ),
-    })
-  }, [navigation])
+function ExchangeRatesContent({
+  ratesPromise,
+  onRetry,
+  customRates,
+  setCustomRate,
+  removeCustomRate,
+  searchQuery,
+  setSearchQuery,
+  editingCurrencyCode,
+  setEditingCurrencyCode,
+  draftRates,
+  setDraftRates,
+}: ExchangeRatesContentProps) {
+  const { rates, error } = use(ratesPromise)
 
   const entries = useMemo((): RateEntry[] => {
     if (!rates?.rates) return []
@@ -136,17 +133,24 @@ export default function ExchangeRatesScreen() {
     return entries.filter((e) => e.displayCode.includes(q))
   }, [entries, searchQuery])
 
-  const handleSelectEntry = useCallback((code: string, currentRate: number) => {
-    setEditingCurrencyCode((prev) => (prev === code ? null : code))
-    setDraftRates((d) => ({ ...d, [code]: currentRate }))
-  }, [])
+  const handleSelectEntry = useCallback(
+    (code: string, currentRate: number) => {
+      setEditingCurrencyCode((prev) => (prev === code ? null : code))
+      setDraftRates((d) => ({ ...d, [code]: currentRate }))
+    },
+    [setEditingCurrencyCode, setDraftRates],
+  )
 
-  const handleDraftChange = useCallback((code: string, value: number) => {
-    setDraftRates((prev) => ({ ...prev, [code]: value }))
-  }, [])
+  const handleDraftChange = useCallback(
+    (code: string, value: number) => {
+      setDraftRates((prev) => ({ ...prev, [code]: value }))
+    },
+    [setDraftRates],
+  )
 
   const handleSaveRate = useCallback(
     (code: string, value: number) => {
+      if (value <= 0) return
       setCustomRate(code, value)
       setEditingCurrencyCode(null)
       setDraftRates((prev) => {
@@ -155,7 +159,7 @@ export default function ExchangeRatesScreen() {
         return next
       })
     },
-    [setCustomRate],
+    [setCustomRate, setEditingCurrencyCode, setDraftRates],
   )
 
   const handleResetToApiRate = useCallback(
@@ -168,7 +172,7 @@ export default function ExchangeRatesScreen() {
         return next
       })
     },
-    [removeCustomRate],
+    [removeCustomRate, setEditingCurrencyCode, setDraftRates],
   )
 
   const renderItem = useCallback(
@@ -181,6 +185,7 @@ export default function ExchangeRatesScreen() {
       )
       const displayRate = rate ?? 0
       const draftValue = draftRates[item.displayCode] ?? displayRate
+      const isInvalidRate = draftValue <= 0
 
       return (
         <View style={styles.entryWrapper}>
@@ -205,6 +210,9 @@ export default function ExchangeRatesScreen() {
                 currencyCode={item.displayCode}
                 label={`1 USD = ${draftValue.toLocaleString(undefined, { maximumFractionDigits: 6 })} ${item.displayCode}`}
                 placeholder="0"
+                error={
+                  isInvalidRate ? "Rate must be greater than 0" : undefined
+                }
               />
               <View style={styles.saveButtonRow}>
                 <Button
@@ -218,6 +226,7 @@ export default function ExchangeRatesScreen() {
                   variant="default"
                   onPress={() => handleSaveRate(item.displayCode, draftValue)}
                   style={styles.saveButton}
+                  disabled={isInvalidRate}
                 >
                   <Text>Save</Text>
                 </Button>
@@ -262,20 +271,11 @@ export default function ExchangeRatesScreen() {
     </View>
   )
 
-  if (loading && !rates) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" />
-        <Text style={styles.loadingText}>Loading exchange rates…</Text>
-      </View>
-    )
-  }
-
   if (error && !rates) {
     return (
       <View style={styles.centered}>
         <Text style={styles.errorText}>{error}</Text>
-        <Pressable style={styles.retryButton} onPress={fetchRates}>
+        <Pressable style={styles.retryButton} onPress={onRetry}>
           <Text style={styles.retryButtonText}>Retry</Text>
         </Pressable>
       </View>
@@ -283,22 +283,82 @@ export default function ExchangeRatesScreen() {
   }
 
   return (
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={100}
+    >
+      {fixedHeader}
+      <FlatList
+        data={filteredEntries}
+        keyExtractor={(item) => item.displayCode}
+        renderItem={renderItem}
+        contentContainerStyle={styles.listContent}
+        keyboardShouldPersistTaps="handled"
+        style={styles.list}
+      />
+    </KeyboardAvoidingView>
+  )
+}
+
+export default function ExchangeRatesScreen() {
+  const navigation = useNavigation()
+  const customRates = useExchangeRatesPreferencesStore((s) => s.customRates)
+  const setCustomRate = useExchangeRatesPreferencesStore((s) => s.setCustomRate)
+  const removeCustomRate = useExchangeRatesPreferencesStore(
+    (s) => s.removeCustomRate,
+  )
+
+  const [ratesPromise, setRatesPromise] = useState(createRatesPromise)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [editingCurrencyCode, setEditingCurrencyCode] = useState<string | null>(
+    null,
+  )
+  const [draftRates, setDraftRates] = useState<Record<string, number>>({})
+  const [infoModalVisible, setInfoModalVisible] = useState(false)
+
+  const handleRetry = useCallback(() => {
+    setRatesPromise(createRatesPromise())
+  }, [])
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Button
+          variant="ghost"
+          onPress={() => setInfoModalVisible(true)}
+          accessibilityLabel="Information about exchange rates"
+        >
+          <IconSymbol name="information" size={24} />
+        </Button>
+      ),
+    })
+  }, [navigation])
+
+  return (
     <>
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={100}
+      <Suspense
+        fallback={
+          <View style={styles.centered}>
+            <ActivityIndicator size="large" />
+            <Text style={styles.loadingText}>Loading exchange rates…</Text>
+          </View>
+        }
       >
-        {fixedHeader}
-        <FlatList
-          data={filteredEntries}
-          keyExtractor={(item) => item.displayCode}
-          renderItem={renderItem}
-          contentContainerStyle={styles.listContent}
-          keyboardShouldPersistTaps="handled"
-          style={styles.list}
+        <ExchangeRatesContent
+          ratesPromise={ratesPromise}
+          onRetry={handleRetry}
+          customRates={customRates}
+          setCustomRate={setCustomRate}
+          removeCustomRate={removeCustomRate}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          editingCurrencyCode={editingCurrencyCode}
+          setEditingCurrencyCode={setEditingCurrencyCode}
+          draftRates={draftRates}
+          setDraftRates={setDraftRates}
         />
-      </KeyboardAvoidingView>
+      </Suspense>
       <InfoModal
         visible={infoModalVisible}
         onRequestClose={() => setInfoModalVisible(false)}

@@ -159,9 +159,8 @@ export function DeleteRecurringModal({
           error: error instanceof Error ? error.message : String(error),
         })
         Toast.error({ title: "Failed to delete transaction" })
-      } finally {
-        setLoadingScope(null)
       }
+      setLoadingScope(null)
     },
     [loadingScope, transaction, recurringRule, onRequestClose, onDeleted],
   )

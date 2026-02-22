@@ -24,13 +24,18 @@ import { observeCategoriesByType } from "~/database/services/category-service"
 import { observeTags } from "~/database/services/tag-service"
 import type { TransactionWithRelations } from "~/database/services/transaction-service"
 import { observeTransactionModelsFull } from "~/database/services/transaction-service"
+import { useTransfersPreferencesStore } from "~/stores/transfers-preferences.store"
 import type { Category } from "~/types/categories"
 import type { Tag } from "~/types/tags"
 import type {
   GroupByOption,
+  SearchState,
   TransactionListFilterState,
 } from "~/types/transaction-filters"
-import { DEFAULT_TRANSACTION_LIST_FILTER_STATE } from "~/types/transaction-filters"
+import {
+  DEFAULT_SEARCH_STATE,
+  DEFAULT_TRANSACTION_LIST_FILTER_STATE,
+} from "~/types/transaction-filters"
 import { TransactionTypeEnum } from "~/types/transactions"
 import { MONTH_NAMES } from "~/utils/time-utils"
 import { buildTransactionListFilters } from "~/utils/transaction-list-utils"
@@ -56,8 +61,8 @@ interface AccountDetailsProps {
   onMonthYearChange: (year: number, month: number) => void
   filterState: TransactionListFilterState
   onFilterChange: (state: TransactionListFilterState) => void
-  searchQuery: string
-  onSearchApply: (query: string) => void
+  searchState: SearchState
+  onSearchApply: (state: SearchState) => void
 }
 
 const AccountDetailsScreenInner = ({
@@ -72,7 +77,7 @@ const AccountDetailsScreenInner = ({
   onMonthYearChange,
   filterState,
   onFilterChange,
-  searchQuery,
+  searchState,
   onSearchApply,
 }: AccountDetailsProps) => {
   const router = useRouter()
@@ -250,6 +255,7 @@ const AccountDetailsScreenInner = ({
       {monthPickerOpen && (
         <View style={styles.monthPickerContainer}>
           <MonthYearPicker
+            key={`${selectedYear}-${selectedMonth}`}
             year={selectedYear}
             month={selectedMonth}
             onSelect={(y, m) => {
@@ -278,12 +284,13 @@ const AccountDetailsScreenInner = ({
       {/* Filter header (when More options is on) */}
       {showFilters && (
         <TransactionFilterHeader
+          key={JSON.stringify(searchState)}
           accounts={[]}
           categoriesByType={categoriesByType}
           tags={tags}
           filterState={filterState}
           onFilterChange={onFilterChange}
-          searchQuery={searchQuery}
+          searchState={searchState}
           onSearchApply={onSearchApply}
           hiddenFilters={["accounts"]}
         />
@@ -483,25 +490,36 @@ const styles = StyleSheet.create((theme) => ({
 }))
 
 const EnhancedAccountDetailsScreen = withObservables(
-  ["accountId", "selectedYear", "selectedMonth", "filterState", "searchQuery"],
+  [
+    "accountId",
+    "selectedYear",
+    "selectedMonth",
+    "filterState",
+    "searchState",
+    "excludeFromTotals",
+  ],
   ({
     accountId,
     selectedYear,
     selectedMonth,
     filterState,
-    searchQuery,
+    searchState,
+    excludeFromTotals = true,
   }: {
     accountId: string
     selectedYear: number
     selectedMonth: number
     filterState: TransactionListFilterState
-    searchQuery: string
+    searchState: SearchState
+    excludeFromTotals?: boolean
   }) => {
     const { fromDate, toDate } = getMonthRange(selectedYear, selectedMonth)
     const queryFilters = buildTransactionListFilters(filterState, {
       fromDate,
       toDate,
-      search: searchQuery,
+      search: searchState.query,
+      searchMatchType: searchState.matchType,
+      searchIncludeNotes: searchState.includeNotes,
       accountId,
     })
     return {
@@ -509,6 +527,7 @@ const EnhancedAccountDetailsScreen = withObservables(
         accountId,
         fromDate,
         toDate,
+        excludeFromTotals,
       ),
       transactionsFull: observeTransactionModelsFull(queryFilters, [
         observeAccountModels(false),
@@ -538,7 +557,11 @@ export default function AccountDetailsScreen() {
   const [filterState, setFilterState] = useState<TransactionListFilterState>(
     DEFAULT_TRANSACTION_LIST_FILTER_STATE,
   )
-  const [searchQuery, setSearchQuery] = useState("")
+  const [searchState, setSearchState] =
+    useState<SearchState>(DEFAULT_SEARCH_STATE)
+  const excludeFromTotals = useTransfersPreferencesStore(
+    (s) => s.excludeFromTotals,
+  )
 
   const handleMonthYearChange = (year: number, month: number) => {
     setSelectedYear(year)
@@ -555,8 +578,9 @@ export default function AccountDetailsScreen() {
       onMonthYearChange={handleMonthYearChange}
       filterState={filterState}
       onFilterChange={setFilterState}
-      searchQuery={searchQuery}
-      onSearchApply={setSearchQuery}
+      searchState={searchState}
+      onSearchApply={setSearchState}
+      excludeFromTotals={excludeFromTotals}
     />
   )
 }

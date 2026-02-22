@@ -22,6 +22,7 @@ import {
   updateAccountsOrder,
 } from "~/database/services/account-service"
 import { modelToAccount } from "~/database/utils/model-to-account"
+import { useTransfersPreferencesStore } from "~/stores/transfers-preferences.store"
 import { NewEnum } from "~/types/new"
 import { logger } from "~/utils/logger"
 
@@ -218,12 +219,27 @@ const AccountsScreenInner = ({
 }
 
 // Watermelon binding: models for order/search, with month totals for cards
-const enhance = withObservables([], () => ({
-  accountModels: observeAccountModels(false),
-  accountsWithMonthTotals: observeAccountsWithMonthTotals(false),
-}))
+const enhance = withObservables(
+  ["excludeFromTotals"],
+  ({ excludeFromTotals = true }: { excludeFromTotals?: boolean }) => ({
+    accountModels: observeAccountModels(false),
+    accountsWithMonthTotals: observeAccountsWithMonthTotals(
+      false,
+      excludeFromTotals,
+    ),
+  }),
+)
 
-export default enhance(AccountsScreenInner)
+const EnhancedAccountsScreen = enhance(AccountsScreenInner)
+
+function AccountsScreen() {
+  const excludeFromTotals = useTransfersPreferencesStore(
+    (s) => s.excludeFromTotals,
+  )
+  return <EnhancedAccountsScreen excludeFromTotals={excludeFromTotals} />
+}
+
+export default AccountsScreen
 
 const styles = StyleSheet.create((theme) => ({
   container: {

@@ -815,9 +815,8 @@ export function TransactionFormV3({
         message: error instanceof Error ? error.message : String(error),
       })
       Toast.error({ title: "Failed to save transaction" })
-    } finally {
-      setIsSaving(false)
     }
+    setIsSaving(false)
   }
 
   const handleCancelPress = useCallback(() => {
@@ -1227,6 +1226,37 @@ export function TransactionFormV3({
                       </View>
                     </Pressable>
                   ))}
+                  {filteredAccountsForPicker.length === 0 && (
+                    <Pressable
+                      style={styles.accountPickerRowAdd}
+                      onPress={() => {
+                        router.push({
+                          pathname: "/accounts/[accountId]/modify",
+                          params: { accountId: NewEnum.NEW },
+                        })
+                        setAccountPickerOpen(false)
+                      }}
+                      accessible
+                      accessibilityRole="button"
+                      accessibilityLabel="Add account"
+                    >
+                      <DynamicIcon
+                        icon="plus"
+                        size={24}
+                        colorScheme={
+                          theme?.colors as import("~/styles/theme/types").MintyColorScheme
+                        }
+                        variant="badge"
+                      />
+                      <Text
+                        variant="default"
+                        style={styles.accountPickerRowAddLabel}
+                        numberOfLines={1}
+                      >
+                        Add account
+                      </Text>
+                    </Pressable>
+                  )}
                 </ScrollView>
               </View>
             )}
@@ -1384,13 +1414,44 @@ export function TransactionFormV3({
                         </View>
                       </Pressable>
                     ))}
+                    {filteredToAccountsForPicker.length === 0 && (
+                      <Pressable
+                        style={styles.accountPickerRowAdd}
+                        onPress={() => {
+                          router.push({
+                            pathname: "/accounts/[accountId]/modify",
+                            params: { accountId: NewEnum.NEW },
+                          })
+                          setToAccountPickerOpen(false)
+                        }}
+                        accessible
+                        accessibilityRole="button"
+                        accessibilityLabel="Add account"
+                      >
+                        <DynamicIcon
+                          icon="plus"
+                          size={24}
+                          colorScheme={
+                            theme?.colors as import("~/styles/theme/types").MintyColorScheme
+                          }
+                          variant="badge"
+                        />
+                        <Text
+                          variant="default"
+                          style={styles.accountPickerRowAddLabel}
+                          numberOfLines={1}
+                        >
+                          Add account
+                        </Text>
+                      </Pressable>
+                    )}
                   </ScrollView>
                 </View>
               )}
             </View>
           )}
 
-          {/* Conversion: converted amount on its own row; rate toggleable above/below. */}
+          {/* Conversion: toggle shows amount = converted amount; inside toggle: rate (chosen/deduced) + SmartAmountInput to edit converted. */}
           {transactionType === "transfer" &&
             selectedAccount &&
             selectedToAccount &&
@@ -1401,36 +1462,60 @@ export function TransactionFormV3({
                     Conversion
                   </Text>
                 </View>
-                {/* Toggleable: rate row (1 from = rate to) and when open the formula (amount × rate =) */}
-                <Pressable
-                  style={[
-                    styles.conversionRateRow,
-                    conversionRateOpen && styles.conversionRateRowSelected,
-                  ]}
-                  onPress={() => setConversionRateOpen((open) => !open)}
-                >
-                  <Money
-                    value={1}
-                    currency={selectedAccount.currencyCode}
-                    style={styles.conversionRateAmount}
-                  />
-                  <Text style={styles.conversionRateEquals}>=</Text>
-                  <Money
-                    value={conversionRate ?? 0}
-                    currency={selectedToAccount.currencyCode}
-                    style={styles.conversionRateAmount}
-                  />
-                </Pressable>
-                {conversionRateOpen && (
-                  <>
-                    <View style={styles.conversionOutcomeRow}>
-                      {(() => {
-                        const amountNum =
-                          typeof amount === "number"
-                            ? amount
-                            : Number.parseFloat(String(amount ?? "")) || 0
-                        return (
-                          <>
+                {(() => {
+                  const amountNum =
+                    typeof amount === "number"
+                      ? amount
+                      : Number.parseFloat(String(amount ?? "")) || 0
+                  const convertedAmount = (conversionRate ?? 0) * amountNum
+                  return (
+                    <>
+                      {/* Toggle row: amount = converted amount */}
+                      <Pressable
+                        style={[
+                          styles.conversionRateRow,
+                          conversionRateOpen &&
+                            styles.conversionRateRowSelected,
+                        ]}
+                        onPress={() => setConversionRateOpen((open) => !open)}
+                      >
+                        <Money
+                          value={amountNum}
+                          currency={selectedAccount.currencyCode}
+                          style={styles.conversionRateAmount}
+                        />
+                        <Text style={styles.conversionRateEquals}>=</Text>
+                        <Money
+                          value={convertedAmount}
+                          currency={selectedToAccount.currencyCode}
+                          style={styles.conversionRateAmount}
+                        />
+                      </Pressable>
+                      {conversionRateOpen && (
+                        <>
+                          {/* Inside toggle: chosen / deduced rate (1 from = rate to) */}
+                          <View style={styles.conversionRateSummaryRow}>
+                            <Text style={styles.conversionRateSummaryLabel}>
+                              Rate
+                            </Text>
+                            <View style={styles.conversionRateSummaryValues}>
+                              <Money
+                                value={1}
+                                currency={selectedAccount.currencyCode}
+                                style={styles.conversionRateAmount}
+                              />
+                              <Text style={styles.conversionRateEquals}>=</Text>
+                              <Text style={styles.conversionOutcomeRate}>
+                                {(conversionRate ?? 0).toLocaleString(
+                                  undefined,
+                                  { maximumFractionDigits: 6 },
+                                )}{" "}
+                                {selectedToAccount.currencyCode}
+                              </Text>
+                            </View>
+                          </View>
+                          {/* Formula: amount × rate = converted (read-only) */}
+                          <View style={styles.conversionOutcomeRow}>
                             <View style={styles.conversionOutcomeLeft}>
                               <Money
                                 value={amountNum}
@@ -1446,39 +1531,33 @@ export function TransactionFormV3({
                             </Text>
                             <Text style={styles.conversionRateEquals}>=</Text>
                             <Money
-                              value={(conversionRate ?? 0) * amountNum}
+                              value={convertedAmount}
                               currency={selectedToAccount.currencyCode}
                               style={styles.conversionOutcomeAmount}
                             />
-                          </>
-                        )
-                      })()}
-                    </View>
-                    {/* Converted amount input inside the toggle */}
-                    {(() => {
-                      const amountNum =
-                        typeof amount === "number"
-                          ? amount
-                          : Number.parseFloat(String(amount ?? "")) || 0
-                      const convertedDisplay = (conversionRate ?? 0) * amountNum
-                      return (
-                        <View style={styles.conversionInputRow}>
-                          <SmartAmountInput
-                            value={convertedDisplay}
-                            onChange={(value) => {
-                              if (amountNum > 0 && typeof value === "number") {
-                                setConversionRate(value / amountNum)
-                              }
-                            }}
-                            currencyCode={selectedToAccount.currencyCode}
-                            label=""
-                            placeholder="0"
-                          />
-                        </View>
-                      )
-                    })()}
-                  </>
-                )}
+                          </View>
+                          {/* SmartAmountInput to change the converted amount (deduces rate on change) */}
+                          <View style={styles.conversionInputRow}>
+                            <SmartAmountInput
+                              value={convertedAmount}
+                              onChange={(value) => {
+                                if (
+                                  amountNum > 0 &&
+                                  typeof value === "number"
+                                ) {
+                                  setConversionRate(value / amountNum)
+                                }
+                              }}
+                              currencyCode={selectedToAccount.currencyCode}
+                              label="Converted amount"
+                              placeholder="0"
+                            />
+                          </View>
+                        </>
+                      )}
+                    </>
+                  )
+                })()}
               </View>
             )}
 
@@ -1512,55 +1591,87 @@ export function TransactionFormV3({
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.categoryScrollContent}
               >
-                <View
-                  style={[
-                    styles.categoryGrid,
-                    {
-                      width: Math.max(
-                        Dimensions.get("window").width - H_PAD * 2,
-                        Math.ceil(categories.length / 2) *
-                          (CATEGORY_CELL_SIZE + CATEGORY_GAP) -
-                          CATEGORY_GAP,
-                      ),
-                    },
-                  ]}
-                >
-                  {categories.map((category) => {
-                    const isSelected = category.id === categoryId
-                    return (
-                      <Pressable
-                        key={category.id}
-                        style={[
-                          styles.categoryCell,
-                          isSelected && styles.categoryCellSelected,
-                        ]}
-                        onPress={() =>
-                          setValue("categoryId", category.id, {
-                            shouldDirty: true,
-                          })
+                {categories.length === 0 ? (
+                  <View
+                    style={[styles.categoryGrid, { width: CATEGORY_CELL_SIZE }]}
+                  >
+                    <Pressable
+                      style={styles.categoryCell}
+                      onPress={() => router.push("/settings/categories")}
+                      accessible
+                      accessibilityRole="button"
+                      accessibilityLabel="Add categories"
+                    >
+                      <DynamicIcon
+                        icon="plus"
+                        size={32}
+                        colorScheme={
+                          theme?.colors as import("~/styles/theme/types").MintyColorScheme
                         }
-                        accessible
-                        accessibilityRole="button"
-                        accessibilityLabel={`Select ${category.name} category`}
-                        accessibilityState={{ selected: isSelected }}
+                        variant="badge"
+                      />
+                      <Text
+                        variant="small"
+                        style={styles.categoryCellLabel}
+                        numberOfLines={1}
                       >
-                        <DynamicIcon
-                          icon={category.icon || "shape"}
-                          size={32}
-                          colorScheme={getThemeStrict(category.colorSchemeName)}
-                          variant="badge"
-                        />
-                        <Text
-                          variant="small"
-                          style={styles.categoryCellLabel}
-                          numberOfLines={1}
+                        Add categories
+                      </Text>
+                    </Pressable>
+                  </View>
+                ) : (
+                  <View
+                    style={[
+                      styles.categoryGrid,
+                      {
+                        width: Math.max(
+                          Dimensions.get("window").width - H_PAD * 2,
+                          Math.ceil(categories.length / 2) *
+                            (CATEGORY_CELL_SIZE + CATEGORY_GAP) -
+                            CATEGORY_GAP,
+                        ),
+                      },
+                    ]}
+                  >
+                    {categories.map((category) => {
+                      const isSelected = category.id === categoryId
+                      return (
+                        <Pressable
+                          key={category.id}
+                          style={[
+                            styles.categoryCell,
+                            isSelected && styles.categoryCellSelected,
+                          ]}
+                          onPress={() =>
+                            setValue("categoryId", category.id, {
+                              shouldDirty: true,
+                            })
+                          }
+                          accessible
+                          accessibilityRole="button"
+                          accessibilityLabel={`Select ${category.name} category`}
+                          accessibilityState={{ selected: isSelected }}
                         >
-                          {category.name}
-                        </Text>
-                      </Pressable>
-                    )
-                  })}
-                </View>
+                          <DynamicIcon
+                            icon={category.icon || "shape"}
+                            size={32}
+                            colorScheme={getThemeStrict(
+                              category.colorSchemeName,
+                            )}
+                            variant="badge"
+                          />
+                          <Text
+                            variant="small"
+                            style={styles.categoryCellLabel}
+                            numberOfLines={1}
+                          >
+                            {category.name}
+                          </Text>
+                        </Pressable>
+                      )
+                    })}
+                  </View>
+                )}
               </ScrollView>
             </View>
           )}
@@ -2435,9 +2546,10 @@ export function TransactionFormV3({
           if (fileToOpen) {
             try {
               await openFileInExternalApp(fileToOpen.uri, fileToOpen.ext)
-            } finally {
-              setFileToOpen(null)
+            } catch {
+              // ignore
             }
+            setFileToOpen(null)
           }
         }}
         title={`Open ${fileToOpen?.name ?? "file"}?`}
@@ -2676,6 +2788,27 @@ const styles = StyleSheet.create((theme) => ({
     borderColor: theme.colors.primary,
     backgroundColor: theme.colors.secondary,
   },
+  conversionRateSummaryRow: {
+    marginHorizontal: H_PAD,
+    marginTop: SECTION_GAP + 4,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: TRIGGER_PAD,
+    paddingHorizontal: H_PAD,
+  },
+  conversionRateSummaryLabel: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: theme.colors.customColors?.semi ?? theme.colors.onSecondary,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  conversionRateSummaryValues: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: ELEMENT_GAP,
+  },
   conversionRateAmount: {
     fontSize: 16,
 
@@ -2766,6 +2899,25 @@ const styles = StyleSheet.create((theme) => ({
     paddingVertical: TRIGGER_PAD,
     paddingHorizontal: TRIGGER_PAD,
     borderRadius: theme.colors.radius,
+  },
+  accountPickerRowAdd: {
+    marginTop: FORM_GAP,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: ELEMENT_GAP,
+    paddingVertical: TRIGGER_PAD,
+    paddingHorizontal: TRIGGER_PAD,
+    borderRadius: theme.colors.radius,
+    borderWidth: 2,
+    borderStyle: "dashed",
+    borderColor: theme.colors.secondary,
+  },
+  accountPickerRowAddLabel: {
+    fontSize: 15,
+    fontWeight: "500",
+    flex: 1,
+    minWidth: 0,
+    color: theme.colors.primary,
   },
   accountPickerRowContent: {
     flex: 1,
