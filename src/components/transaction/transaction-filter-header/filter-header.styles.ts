@@ -22,7 +22,7 @@ export const filterHeaderStyles = StyleSheet.create((theme) => ({
   },
   pillLabel: {
     fontSize: 13,
-    maxWidth: 100,
+    // maxWidth: 100,
   },
   clearAllPill: {
     flexDirection: "row",

@@ -1,0 +1,17 @@
+import type { IconSize } from "~/components/ui/icon-symbol"
+import type { MintyColorScheme } from "~/styles/theme/types"
+
+export interface ChangeIconInlineProps {
+  /** Unique id for this instance (e.g. change-icon-category-123). Used for nested sheet ids. */
+  id: string
+  /** Currently selected icon (name, emoji, or image uri). */
+  currentIcon?: string
+  /** Called when user selects an icon from any source. */
+  onIconSelected?: (icon: string) => void
+  /** Color scheme for the icon box and icon picker. */
+  colorScheme?: MintyColorScheme
+  /** Icon box size in px. Default 96. Must be a valid IconSize. */
+  iconSize?: IconSize
+}
+
+export type InlineMode = null | "emoji" | "image"

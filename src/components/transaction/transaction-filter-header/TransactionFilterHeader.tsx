@@ -4,7 +4,7 @@
  * No bottom sheets — filters are shown directly in the view.
  */
 
-import { useCallback, useState } from "react"
+import { useCallback, useRef, useState } from "react"
 import { LayoutAnimation, ScrollView, View } from "react-native"
 import { useUnistyles } from "react-native-unistyles"
 
@@ -13,14 +13,21 @@ import { IconSymbol, type IconSymbolName } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import type {
+  AttachmentsOptionsType,
   GroupByOption,
+  PendingOptionsType,
   SearchMatchType,
 } from "~/types/transaction-filters"
 import {
+  ATTACHMENT_OPTIONS,
+  AttachmentsOptionsEnum,
   DEFAULT_SEARCH_STATE,
   DEFAULT_TRANSACTION_LIST_FILTER_STATE,
+  PENDING_OPTIONS,
+  PendingOptionsEnum,
 } from "~/types/transaction-filters"
 import type { TransactionType } from "~/types/transactions"
+import { formatShortMonthDay } from "~/utils/time-utils"
 
 import { filterHeaderStyles } from "./filter-header.styles"
 import {
@@ -60,6 +67,8 @@ export function TransactionFilterHeader({
   )
   const [dateModalVisible, setDateModalVisible] = useState(false)
   const { theme } = useUnistyles()
+  const filterStateRef = useRef(filterState)
+  filterStateRef.current = filterState
 
   const togglePanel = useCallback((key: FilterPanelKey) => {
     LayoutAnimation.configureNext(LAYOUT_ANIM)
@@ -157,7 +166,7 @@ export function TransactionFilterHeader({
   }, [filterState, onFilterChange])
 
   const setPending = useCallback(
-    (value: "all" | "pending" | "notPending") => {
+    (value: PendingOptionsType) => {
       onFilterChange({ ...filterState, pendingFilter: value })
     },
     [filterState, onFilterChange],
@@ -171,10 +180,13 @@ export function TransactionFilterHeader({
   )
 
   const setAttachment = useCallback(
-    (value: "all" | "has" | "none") => {
-      onFilterChange({ ...filterState, attachmentFilter: value })
+    (value: AttachmentsOptionsType) => {
+      onFilterChange({
+        ...filterStateRef.current,
+        attachmentFilter: value,
+      })
     },
-    [filterState, onFilterChange],
+    [onFilterChange],
   )
 
   const handleClearAll = useCallback(() => {
@@ -242,18 +254,24 @@ export function TransactionFilterHeader({
 
   const groupByLabel = GROUP_BY_LABELS[filterState.groupBy]
 
+  const attachmentLabel =
+    filterState.attachmentFilter === AttachmentsOptionsEnum.ALL
+      ? "Attachments"
+      : (ATTACHMENT_OPTIONS.find((o) => o.id === filterState.attachmentFilter)
+          ?.label ?? "Attachments")
+
+  const pendingLabel =
+    filterState.pendingFilter === PendingOptionsEnum.ALL
+      ? "Pending Status"
+      : (PENDING_OPTIONS.find((o) => o.id === filterState.pendingFilter)
+          ?.label ?? "Pending Status")
+
   const dateLabel = selectedRange
-    ? `${selectedRange.start.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      })} – ${selectedRange.end.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      })}`
+    ? `${formatShortMonthDay(selectedRange.start)} – ${formatShortMonthDay(selectedRange.end)}`
     : "This month"
 
   const borderColor = `${theme.colors.onSurface}30`
-  const activeBg = theme.colors.secondary ?? `${theme.colors.onSurface}12`
+  const activeBg = theme.colors.secondary
 
   const pills: {
     key: FilterPanelKey | "date"
@@ -288,8 +306,8 @@ export function TransactionFilterHeader({
     },
     {
       key: "pending",
-      icon: "clock",
-      label: "Pending Status",
+      icon: "progress-clock",
+      label: pendingLabel,
       active: isPendingActive,
     },
     {
@@ -299,16 +317,16 @@ export function TransactionFilterHeader({
       active: isTypeActive,
     },
     {
+      key: "attachments",
+      icon: "attachment",
+      label: attachmentLabel,
+      active: isAttachmentsActive,
+    },
+    {
       key: "groupBy",
       icon: "dots-triangle",
       label: groupByLabel,
       active: isGroupByActive,
-    },
-    {
-      key: "attachments",
-      icon: "attachment",
-      label: "Attachments",
-      active: isAttachmentsActive,
     },
   ]
 

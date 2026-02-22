@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-02-22T17:39:59.489Z
+Generated on: 2026-02-22T18:42:41.145Z
 
 ```
 ./
@@ -148,6 +148,14 @@ Generated on: 2026-02-22T17:39:59.489Z
 │   │   │   ├── 📄 category-row.tsx
 │   │   │   ├── 📄 category-screen-content.tsx
 │   │   │   └── 📄 category-type-inline.tsx
+│   │   ├── 📁 change-icon-inline/
+│   │   │   ├── 📄 change-icon-inline.styles.ts
+│   │   │   ├── 📄 ChangeIconInline.tsx
+│   │   │   ├── 📄 EmojiLetterMode.tsx
+│   │   │   ├── 📄 ImageMode.tsx
+│   │   │   ├── 📄 index.ts
+│   │   │   ├── 📄 ModeSelectorList.tsx
+│   │   │   └── 📄 types.ts
 │   │   ├── 📁 date-range-preset-modal/
 │   │   │   ├── 📄 date-range-preset-modal.styles.ts
 │   │   │   ├── 📄 DateRangePresetModal.tsx
@@ -224,7 +232,6 @@ Generated on: 2026-02-22T17:39:59.489Z
 │   │   │   └── 📄 view.tsx
 │   │   ├── 📄 action-item.tsx
 │   │   ├── 📄 bottom-sheet.tsx
-│   │   ├── 📄 change-icon-inline.tsx
 │   │   ├── 📄 color-variant-inline.tsx
 │   │   ├── 📄 confirm-modal.tsx
 │   │   ├── 📄 currency-selector-inline.tsx
