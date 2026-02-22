@@ -1,5 +1,6 @@
 // ============================================================================
-// Minty Theming System - Minty Theme Schemes
+// Minty Theming System - Minty Dark / Minty Light / Minty OLED Schemes
+// Only primary (dark/OLED) or primary+secondary+onSecondary (light) vary
 // ============================================================================
 
 import {
@@ -7,50 +8,47 @@ import {
   DEFAULT_LIGHT_BASE,
   DEFAULT_OLED_BASE,
 } from "../base"
-import { ACCENT_COLORS, PRIMARY_COLORS } from "../colors"
+import { MINTY_DARK_PRIMARY_COLORS, MINTY_LIGHT_COLORS } from "../colors"
 import type { MintyColorScheme } from "../types"
-import { copyWith, lightenColor } from "../utils"
+import { copyWith } from "../utils"
 
 /**
- * Minty Light themes - 16 variants based on primary colors
- * Pattern: Light surface with colored primary and pastel secondary
- * iconName matches name (descriptive color name)
+ * Minty Dark — 16 variants (Minty Dark theme group)
+ * Surface #141414, secondary #050505; only primary changes
  */
-export const mintyLightSchemes: MintyColorScheme[] = PRIMARY_COLORS.map(
-  (primaryEntry, index) =>
-    copyWith(DEFAULT_LIGHT_BASE, {
-      name: primaryEntry.lightThemeName,
-      iconName: primaryEntry.lightThemeName, // Light themes use their own name as iconName
-      primary: primaryEntry.color,
-      secondary: ACCENT_COLORS[index].color,
-    }),
-)
-
-/**
- * Minty Dark themes - 16 variants with lightened primary colors
- * Pattern: Dark gray surface with lightened primary and very dark secondary
- * iconName references the corresponding light theme
- */
-export const mintyDarkSchemes: MintyColorScheme[] = PRIMARY_COLORS.map(
-  (primaryEntry) =>
+export const mintyDarkSchemes: MintyColorScheme[] =
+  MINTY_DARK_PRIMARY_COLORS.map((primary, index) =>
     copyWith(DEFAULT_DARK_BASE, {
-      name: primaryEntry.darkThemeName,
-      iconName: primaryEntry.lightThemeName, // Dark themes use corresponding light theme name as iconName
-      primary: lightenColor(primaryEntry.color, 40),
+      name: MINTY_LIGHT_COLORS[index].darkThemeName,
+      iconName: MINTY_LIGHT_COLORS[index].lightThemeName,
+      primary,
+    }),
+  )
+
+/**
+ * Minty Light — 16 variants
+ * Primary, secondary, and onSecondary from MINTY_LIGHT_COLORS
+ */
+export const mintyLightSchemes: MintyColorScheme[] = MINTY_LIGHT_COLORS.map(
+  (entry) =>
+    copyWith(DEFAULT_LIGHT_BASE, {
+      name: entry.lightThemeName,
+      iconName: entry.lightThemeName,
+      primary: entry.primary,
+      secondary: entry.secondary,
+      onSecondary: entry.onSecondary,
     }),
 )
 
 /**
- * Minty OLED themes - 16 variants optimized for OLED displays
- * Pattern: True black surface with lightened primary
- * Name is dark theme name + "Oled" suffix
- * iconName matches the dark theme (not the OLED name)
+ * Minty OLED — 16 variants (true black surface #000000, secondary #101010)
+ * Same primary list as Minty Dark; name suffix "Oled"
  */
-export const mintyOledSchemes: MintyColorScheme[] = PRIMARY_COLORS.map(
-  (primaryEntry) =>
+export const mintyOledSchemes: MintyColorScheme[] =
+  MINTY_DARK_PRIMARY_COLORS.map((primary, index) =>
     copyWith(DEFAULT_OLED_BASE, {
-      name: `${primaryEntry.darkThemeName}Oled`,
-      iconName: primaryEntry.lightThemeName, // OLED themes use corresponding light theme name as iconName
-      primary: lightenColor(primaryEntry.color, 40),
+      name: `${MINTY_LIGHT_COLORS[index].darkThemeName}Oled`,
+      iconName: MINTY_LIGHT_COLORS[index].lightThemeName,
+      primary,
     }),
-)
+  )

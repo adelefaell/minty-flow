@@ -1,1 +1,1 @@
-export { TransactionFormV3 } from "./TransactionFormV3"
+export { TransactionFormV3 } from "./transaction-form-v3"

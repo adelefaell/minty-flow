@@ -6,9 +6,9 @@ import type {
   TransactionLocation,
   TransactionType,
 } from "../../types/transactions"
-import type AccountModel from "./Account"
-import type CategoryModel from "./Category"
-import type TransactionTagModel from "./TransactionTag"
+import type AccountModel from "./account"
+import type CategoryModel from "./category"
+import type TransactionTagModel from "./transaction-tag"
 
 export default class TransactionModel extends Model implements Transaction {
   static table = "transactions"

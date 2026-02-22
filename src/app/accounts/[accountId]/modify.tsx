@@ -2,7 +2,7 @@ import { withObservables } from "@nozbe/watermelondb/react"
 import { useLocalSearchParams } from "expo-router"
 
 import { AccountModifyContent } from "~/components/accounts/account-modify"
-import type AccountModel from "~/database/models/Account"
+import type AccountModel from "~/database/models/account"
 import { observeAccountById } from "~/database/services/account-service"
 import { observeTransactionCountByAccountId } from "~/database/services/transaction-service"
 import { modelToAccount } from "~/database/utils/model-to-account"

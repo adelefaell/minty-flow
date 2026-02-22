@@ -12,7 +12,7 @@ import type { Account } from "~/types/accounts"
 import { TransactionTypeEnum } from "~/types/transactions"
 
 import { database } from "../index"
-import type AccountModel from "../models/Account"
+import type AccountModel from "../models/account"
 import { modelToAccount } from "../utils/model-to-account"
 import {
   createTransactionModel,

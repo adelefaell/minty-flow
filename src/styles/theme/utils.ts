@@ -37,7 +37,7 @@ export const darkenColor = (color: string, percent: number = 20): string => {
 
 /**
  * Create a copy of a color scheme with overrides
- * Mirrors Flutter's copyWith pattern
+ * copyWith pattern for theme overrides
  */
 export const copyWith = (
   base: MintyColorScheme,

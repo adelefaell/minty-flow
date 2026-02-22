@@ -1,4 +1,4 @@
-import type CategoryModel from "~/database/models/Category"
+import type CategoryModel from "~/database/models/category"
 import type { Category } from "~/types/categories"
 import type { TransactionType } from "~/types/transactions"
 

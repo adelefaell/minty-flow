@@ -3,8 +3,8 @@ import { date, field, relation } from "@nozbe/watermelondb/decorators"
 
 import type { Transfer } from "~/types/transfers"
 
-import type AccountModel from "./Account"
-import type TransactionModel from "./Transaction"
+import type AccountModel from "./account"
+import type TransactionModel from "./transaction"
 
 /**
  * Transfer model — first-class metadata for a transfer pair.

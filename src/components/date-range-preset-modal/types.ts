@@ -16,3 +16,10 @@ export interface PresetOption {
 
 export type ExpandedSection = "byMonth" | "byYear" | "custom" | null
 export type ActiveSource = "preset" | "byMonth" | "byYear" | "custom"
+
+export interface DateRangePresetModalContentProps {
+  initialStart?: Date
+  initialEnd?: Date
+  onSave: (start: Date, end: Date) => void
+  onRequestClose: () => void
+}

@@ -1,4 +1,4 @@
-import type TransactionModel from "~/database/models/Transaction"
+import type TransactionModel from "~/database/models/transaction"
 import { getPendingTransactionModels } from "~/database/services/transaction-service"
 import { usePendingTransactionsStore } from "~/stores/pending-transactions.store"
 import { startOfNextMinute } from "~/utils/pending-transactions"

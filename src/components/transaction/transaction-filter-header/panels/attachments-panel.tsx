@@ -5,9 +5,9 @@ import {
   type AttachmentsOptionsType,
 } from "~/types/transaction-filters"
 
-import { Chip } from "../Chip"
+import { Chip } from "../chip"
 import { filterHeaderStyles } from "../filter-header.styles"
-import { PanelDoneButton } from "../PanelDoneButton"
+import { PanelDoneButton } from "../panel-done-button"
 
 interface AttachmentsPanelProps {
   value: AttachmentsOptionsType

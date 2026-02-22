@@ -2,8 +2,8 @@ import { Q } from "@nozbe/watermelondb"
 import type { Observable } from "@nozbe/watermelondb/utils/rx"
 
 import { database } from "../index"
-import type BudgetModel from "../models/Budget"
-import type CategoryModel from "../models/Category"
+import type BudgetModel from "../models/budget"
+import type CategoryModel from "../models/category"
 
 /**
  * BudgetModel Service

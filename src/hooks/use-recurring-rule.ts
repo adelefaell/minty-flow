@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 
-import type RecurringTransactionModel from "~/database/models/RecurringTransaction"
+import type RecurringTransactionModel from "~/database/models/recurring-transaction"
 import { findRecurringById } from "~/database/services/recurring-transaction-service"
 
 /**

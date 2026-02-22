@@ -6,9 +6,9 @@ import { logger } from "~/utils/logger"
 import { nextAbsoluteOccurrence } from "~/utils/recurrence"
 
 import { database } from "../index"
-import type RecurringTransactionModel from "../models/RecurringTransaction"
-import type TransactionModel from "../models/Transaction"
-import type TransactionTagModel from "../models/TransactionTag"
+import type RecurringTransactionModel from "../models/recurring-transaction"
+import type TransactionModel from "../models/transaction"
+import type TransactionTagModel from "../models/transaction-tag"
 import {
   createTransactionModel,
   deleteTransactionModel,
@@ -432,7 +432,7 @@ export interface CreateRecurringRuleInput {
 export async function createRecurringRule(
   data: CreateRecurringRuleInput,
 ): Promise<RecurringTransactionModel> {
-  const template: import("../models/RecurringTransaction").RecurringTransactionTemplate =
+  const template: import("../models/recurring-transaction").RecurringTransactionTemplate =
     {
       amount: data.amount,
       type: data.type,
@@ -484,7 +484,7 @@ export async function createRecurringFromTransaction(
     throw new Error(`Transaction with id ${transactionId} not found`)
   }
 
-  const template: import("../models/RecurringTransaction").RecurringTransactionTemplate =
+  const template: import("../models/recurring-transaction").RecurringTransactionTemplate =
     {
       amount: transaction.amount,
       type: transaction.type,

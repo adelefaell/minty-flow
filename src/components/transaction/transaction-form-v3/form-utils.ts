@@ -1,4 +1,4 @@
-import type TransactionModel from "~/database/models/Transaction"
+import type TransactionModel from "~/database/models/transaction"
 import type { TransactionFormValues } from "~/schemas/transactions.schema"
 import type { Account } from "~/types/accounts"
 import type { RecurringFrequency, TransactionType } from "~/types/transactions"

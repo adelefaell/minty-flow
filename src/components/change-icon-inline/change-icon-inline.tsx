@@ -24,9 +24,9 @@ import {
 import { Toast } from "~/utils/toast"
 
 import { changeIconInlineStyles as styles } from "./change-icon-inline.styles"
-import { EmojiLetterMode } from "./EmojiLetterMode"
-import { ImageMode } from "./ImageMode"
-import { ModeSelectorList } from "./ModeSelectorList"
+import { EmojiLetterMode } from "./emoji-letter-mode"
+import { ImageMode } from "./image-mode"
+import { ModeSelectorList } from "./mode-selector-list"
 import type { ChangeIconInlineProps, InlineMode } from "./types"
 
 export function ChangeIconInline({

@@ -1,8 +1,8 @@
 import { Model } from "@nozbe/watermelondb"
 import { field, relation } from "@nozbe/watermelondb/decorators"
 
-import type TagModel from "./Tag"
-import type TransactionModel from "./Transaction"
+import type TagModel from "./tag"
+import type TransactionModel from "./transaction"
 
 export default class TransactionTagModel extends Model {
   static table = "transaction_tags"

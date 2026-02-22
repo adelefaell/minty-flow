@@ -1,6 +1,6 @@
 import type { Tag } from "~/types/tags"
 
-import type TagModel from "../models/Tag"
+import type TagModel from "../models/tag"
 
 /**
  * Convert TagModel to Tag domain type

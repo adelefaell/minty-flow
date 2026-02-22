@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-02-22T19:26:03.176Z
+Generated on: 2026-02-22T21:09:44.787Z
 
 ```
 ./
@@ -132,16 +132,16 @@ Generated on: 2026-02-22T19:26:03.176Z
 │   ├── 📁 components/
 │   │   ├── 📁 accounts/
 │   │   │   ├── 📁 account-modify/
+│   │   │   │   ├── 📄 account-modify-content.tsx
 │   │   │   │   ├── 📄 account-modify.styles.ts
-│   │   │   │   ├── 📄 AccountModifyContent.tsx
 │   │   │   │   ├── 📄 index.ts
 │   │   │   │   └── 📄 types.ts
 │   │   │   ├── 📄 account-card.tsx
 │   │   │   └── 📄 account-type-inline.tsx
 │   │   ├── 📁 categories/
 │   │   │   ├── 📁 category-modify/
+│   │   │   │   ├── 📄 category-modify-content.tsx
 │   │   │   │   ├── 📄 category-modify.styles.ts
-│   │   │   │   ├── 📄 CategoryModifyContent.tsx
 │   │   │   │   ├── 📄 index.ts
 │   │   │   │   └── 📄 types.ts
 │   │   │   ├── 📄 category-list.tsx
@@ -150,15 +150,16 @@ Generated on: 2026-02-22T19:26:03.176Z
 │   │   │   └── 📄 category-type-inline.tsx
 │   │   ├── 📁 change-icon-inline/
 │   │   │   ├── 📄 change-icon-inline.styles.ts
-│   │   │   ├── 📄 ChangeIconInline.tsx
-│   │   │   ├── 📄 EmojiLetterMode.tsx
-│   │   │   ├── 📄 ImageMode.tsx
+│   │   │   ├── 📄 change-icon-inline.tsx
+│   │   │   ├── 📄 emoji-letter-mode.tsx
+│   │   │   ├── 📄 image-mode.tsx
 │   │   │   ├── 📄 index.ts
-│   │   │   ├── 📄 ModeSelectorList.tsx
+│   │   │   ├── 📄 mode-selector-list.tsx
 │   │   │   └── 📄 types.ts
 │   │   ├── 📁 date-range-preset-modal/
+│   │   │   ├── 📄 date-range-preset-modal-content.tsx
 │   │   │   ├── 📄 date-range-preset-modal.styles.ts
-│   │   │   ├── 📄 DateRangePresetModal.tsx
+│   │   │   ├── 📄 date-range-preset-modal.tsx
 │   │   │   ├── 📄 index.ts
 │   │   │   ├── 📄 presets.ts
 │   │   │   └── 📄 types.ts
@@ -177,21 +178,21 @@ Generated on: 2026-02-22T19:26:03.176Z
 │   │   ├── 📁 transaction/
 │   │   │   ├── 📁 transaction-filter-header/
 │   │   │   │   ├── 📁 panels/
-│   │   │   │   │   ├── 📄 AccountsPanel.tsx
-│   │   │   │   │   ├── 📄 AttachmentsPanel.tsx
-│   │   │   │   │   ├── 📄 CategoriesPanel.tsx
-│   │   │   │   │   ├── 📄 GroupByPanel.tsx
+│   │   │   │   │   ├── 📄 accounts-panel.tsx
+│   │   │   │   │   ├── 📄 attachments-panel.tsx
+│   │   │   │   │   ├── 📄 categories-panel.tsx
+│   │   │   │   │   ├── 📄 group-by-panel.tsx
 │   │   │   │   │   ├── 📄 index.ts
-│   │   │   │   │   ├── 📄 PendingPanel.tsx
-│   │   │   │   │   ├── 📄 SearchPanel.tsx
-│   │   │   │   │   ├── 📄 TagsPanel.tsx
-│   │   │   │   │   └── 📄 TypePanel.tsx
-│   │   │   │   ├── 📄 Chip.tsx
+│   │   │   │   │   ├── 📄 pending-panel.tsx
+│   │   │   │   │   ├── 📄 search-panel.tsx
+│   │   │   │   │   ├── 📄 tags-panel.tsx
+│   │   │   │   │   └── 📄 type-panel.tsx
+│   │   │   │   ├── 📄 chip.tsx
 │   │   │   │   ├── 📄 filter-header.styles.ts
 │   │   │   │   ├── 📄 index.ts
-│   │   │   │   ├── 📄 PanelClearButton.tsx
-│   │   │   │   ├── 📄 PanelDoneButton.tsx
-│   │   │   │   ├── 📄 TransactionFilterHeader.tsx
+│   │   │   │   ├── 📄 panel-clear-button.tsx
+│   │   │   │   ├── 📄 panel-done-button.tsx
+│   │   │   │   ├── 📄 transaction-filter-header.tsx
 │   │   │   │   ├── 📄 types.ts
 │   │   │   │   └── 📄 utils.ts
 │   │   │   ├── 📁 transaction-form-v3/
@@ -199,13 +200,13 @@ Generated on: 2026-02-22T19:26:03.176Z
 │   │   │   │   ├── 📄 form-utils.ts
 │   │   │   │   ├── 📄 form.styles.ts
 │   │   │   │   ├── 📄 index.ts
-│   │   │   │   ├── 📄 TransactionFormV3.tsx
+│   │   │   │   ├── 📄 transaction-form-v3.tsx
 │   │   │   │   └── 📄 types.ts
 │   │   │   ├── 📁 upcoming-transactions-section/
 │   │   │   │   ├── 📄 index.ts
 │   │   │   │   ├── 📄 types.ts
 │   │   │   │   ├── 📄 upcoming-transactions-section.styles.ts
-│   │   │   │   ├── 📄 UpcomingTransactionsSection.tsx
+│   │   │   │   ├── 📄 upcoming-transactions-section.tsx
 │   │   │   │   ├── 📄 use-app-foreground.ts
 │   │   │   │   └── 📄 utils.ts
 │   │   │   ├── 📄 attachment-preview-modal.tsx
@@ -259,16 +260,16 @@ Generated on: 2026-02-22T19:26:03.176Z
 │   │   └── 📄 site-data.ts
 │   ├── 📁 database/
 │   │   ├── 📁 models/
-│   │   │   ├── 📄 Account.ts
-│   │   │   ├── 📄 Budget.ts
-│   │   │   ├── 📄 Category.ts
-│   │   │   ├── 📄 Goal.ts
-│   │   │   ├── 📄 Loan.ts
-│   │   │   ├── 📄 RecurringTransaction.ts
-│   │   │   ├── 📄 Tag.ts
-│   │   │   ├── 📄 Transaction.ts
-│   │   │   ├── 📄 TransactionTag.ts
-│   │   │   └── 📄 Transfer.ts
+│   │   │   ├── 📄 account.ts
+│   │   │   ├── 📄 budget.ts
+│   │   │   ├── 📄 category.ts
+│   │   │   ├── 📄 goal.ts
+│   │   │   ├── 📄 loan.ts
+│   │   │   ├── 📄 recurring-transaction.ts
+│   │   │   ├── 📄 tag.ts
+│   │   │   ├── 📄 transaction-tag.ts
+│   │   │   ├── 📄 transaction.ts
+│   │   │   └── 📄 transfer.ts
 │   │   ├── 📁 services/
 │   │   │   ├── 📄 account-service.ts
 │   │   │   ├── 📄 balance-service.ts
@@ -340,6 +341,7 @@ Generated on: 2026-02-22T19:26:03.176Z
 │   │   │   ├── 📄 index.ts
 │   │   │   ├── 📄 registry.ts
 │   │   │   ├── 📄 types.ts
+│   │   │   ├── 📄 typography.ts
 │   │   │   ├── 📄 unistyles-themes.ts
 │   │   │   └── 📄 utils.ts
 │   │   ├── 📄 breakpoints.ts
