@@ -41,6 +41,11 @@ import {
   buildTransactionListFilters,
 } from "~/utils/transaction-list-utils"
 
+const EMPTY_TRANSACTIONS: TransactionWithRelations[] = []
+const EMPTY_ACCOUNTS: Account[] = []
+const EMPTY_CATEGORIES: Category[] = []
+const EMPTY_TAGS: Tag[] = []
+
 interface HomeScreenProps {
   transactionsFull?: TransactionWithRelations[] | null
   accounts?: Account[]
@@ -57,12 +62,12 @@ interface HomeScreenProps {
 }
 
 function HomeScreenInner({
-  transactionsFull = [],
-  accounts = [],
-  categoriesExpense = [],
-  categoriesIncome = [],
-  categoriesTransfer = [],
-  tags = [],
+  transactionsFull = EMPTY_TRANSACTIONS,
+  accounts = EMPTY_ACCOUNTS,
+  categoriesExpense = EMPTY_CATEGORIES,
+  categoriesIncome = EMPTY_CATEGORIES,
+  categoriesTransfer = EMPTY_CATEGORIES,
+  tags = EMPTY_TAGS,
   filterState = DEFAULT_TRANSACTION_LIST_FILTER_STATE,
   onFilterChange,
   selectedRange = null,
@@ -129,7 +134,6 @@ function HomeScreenInner({
       {/* Inline filter header: pill bar + expandable filter panels */}
       {onFilterChange ? (
         <TransactionFilterHeader
-          key={JSON.stringify(searchState)}
           accounts={accounts}
           categoriesByType={categoriesByType}
           tags={tags}

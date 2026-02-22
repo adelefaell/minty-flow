@@ -89,17 +89,18 @@ export const Money: FC<MoneyProps> = ({
 
   // Format
   const formatted = useMemo(() => {
+    const opts = {
+      currency,
+      currencyDisplay: currencyLook,
+      locale,
+      compact,
+      hideSign: resolvedSignTone === TransactionTypeEnum.TRANSFER || hideSign,
+      showSign: resolvedSignTone !== TransactionTypeEnum.TRANSFER && showSign,
+      hideSymbol,
+      addParentheses,
+    }
     try {
-      return formatDisplayValue(signedValue.toString(), {
-        currency,
-        currencyDisplay: currencyLook,
-        locale,
-        compact,
-        hideSign: resolvedSignTone === TransactionTypeEnum.TRANSFER || hideSign,
-        showSign: resolvedSignTone !== TransactionTypeEnum.TRANSFER && showSign,
-        hideSymbol,
-        addParentheses,
-      })
+      return formatDisplayValue(signedValue.toString(), opts)
     } catch {
       return formatDisplayValue(signedValue.toString(), {
         locale,

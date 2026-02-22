@@ -10,276 +10,32 @@ import DateTimePicker, {
 import {
   endOfDay,
   endOfMonth,
-  endOfWeek,
   endOfYear,
   startOfDay,
   startOfMonth,
-  startOfWeek,
   startOfYear,
-  subDays,
 } from "date-fns"
 import { useCallback, useState } from "react"
 import { Modal, Platform, ScrollView, View } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-import { StyleSheet, useUnistyles } from "react-native-unistyles"
+import { useUnistyles } from "react-native-unistyles"
 
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Input } from "~/components/ui/input"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
-import {
-  type DateRangePresetId,
-  formatLoanDate,
-  MONTH_NAMES,
-  WEEK_STARTS_ON,
-} from "~/utils/time-utils"
+import type { DateRangePresetId } from "~/utils/time-utils"
+import { formatLoanDate, MONTH_NAMES } from "~/utils/time-utils"
 
-export interface DateRangePresetModalProps {
-  visible: boolean
-  initialStart?: Date
-  initialEnd?: Date
-  onSave: (start: Date, end: Date) => void
-  onRequestClose: () => void
-}
-
-interface PresetOption {
-  id: DateRangePresetId
-  label: string
-  getRange: () => { start: Date; end: Date }
-}
-
-function getPresetOptions(): PresetOption[] {
-  const now = new Date()
-  return [
-    {
-      id: "last30",
-      label: "Last 30 days",
-      getRange: () => ({
-        start: startOfDay(subDays(now, 29)),
-        end: endOfDay(now),
-      }),
-    },
-    {
-      id: "thisWeek",
-      label: "This week",
-      getRange: () => ({
-        start: startOfWeek(now, { weekStartsOn: WEEK_STARTS_ON }),
-        end: endOfWeek(now, { weekStartsOn: WEEK_STARTS_ON }),
-      }),
-    },
-    {
-      id: "thisMonth",
-      label: "This month",
-      getRange: () => ({
-        start: startOfMonth(now),
-        end: endOfMonth(now),
-      }),
-    },
-    {
-      id: "thisYear",
-      label: "This year",
-      getRange: () => ({
-        start: startOfYear(now),
-        end: endOfYear(now),
-      }),
-    },
-    {
-      id: "allTime",
-      label: "All time",
-      getRange: () => ({
-        start: startOfYear(new Date(2000, 0, 1)),
-        end: endOfDay(now),
-      }),
-    },
-  ]
-}
-
-const PRESETS = getPresetOptions()
-
-type ExpandedSection = "byMonth" | "byYear" | "custom" | null
-type ActiveSource = "preset" | "byMonth" | "byYear" | "custom"
-
-const styles = StyleSheet.create((theme) => {
-  const muted = theme.colors.customColors?.semi ?? theme.colors.onSurface
-  const primary = theme.colors.primary
-  const radius = theme.colors.radius ?? 10
-  const borderColor = `${muted}40`
-
-  return {
-    container: {
-      flex: 1,
-      backgroundColor: theme.colors.surface,
-    },
-    header: {
-      paddingHorizontal: 20,
-    },
-    headerTitle: {
-      color: muted,
-      marginTop: 10,
-    },
-    scrollContent: {
-      paddingTop: 20,
-      paddingBottom: 24,
-    },
-    sectionLabelCommonOptions: {
-      color: muted,
-      marginBottom: 8,
-      marginHorizontal: 20,
-    },
-    sectionLabel: {
-      color: muted,
-    },
-    presetsRow: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      gap: 10,
-      marginBottom: 24,
-      paddingHorizontal: 20,
-    },
-    presetButton: {
-      paddingVertical: 12,
-      paddingHorizontal: 20,
-      borderRadius: radius,
-      borderWidth: 1,
-      borderColor,
-      backgroundColor: "transparent",
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 8,
-      flexShrink: 0,
-    },
-    presetButtonSelected: {
-      borderColor: primary,
-      backgroundColor: `${primary}20`,
-    },
-    presetButtonText: {
-      color: theme.colors.onSurface,
-      fontWeight: "400",
-    },
-    presetButtonTextSelected: {
-      color: primary,
-      fontWeight: "600",
-    },
-    collapsibleSection: {
-      marginBottom: 8,
-    },
-    rowBase: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      paddingVertical: 14,
-      paddingHorizontal: 20,
-      backgroundColor: theme.colors.surface,
-    },
-    rowText: {
-      color: theme.colors.onSurface,
-    },
-    expandedContent: {
-      padding: 20,
-      paddingTop: 0,
-      backgroundColor: theme.colors.surface,
-      gap: 16,
-    },
-    expandedContentCompact: {
-      gap: 0,
-      paddingTop: 0,
-      backgroundColor: theme.colors.surface,
-    },
-    monthYearRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      marginBottom: 8,
-    },
-    monthYearInput: {
-      flex: 1,
-      minWidth: 72,
-      marginHorizontal: 8,
-      textAlign: "center",
-    },
-    monthGrid: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      gap: 8,
-    },
-    monthCell: {
-      width: "30%",
-      paddingVertical: 10,
-      borderRadius: radius,
-      backgroundColor: "transparent",
-      alignItems: "center",
-    },
-    monthCellSelected: {
-      backgroundColor: `${primary}25`,
-    },
-    monthCellText: {
-      color: theme.colors.onSurface,
-      fontWeight: "400",
-    },
-    monthCellTextSelected: {
-      color: primary,
-      fontWeight: "600",
-    },
-    customRangeRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      paddingVertical: 14,
-      paddingHorizontal: 20,
-    },
-    customRangeValue: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 8,
-    },
-    customRangeValueText: {
-      color: muted,
-    },
-    bottomBar: {
-      flexDirection: "row",
-      gap: 12,
-      paddingHorizontal: 16,
-      paddingTop: 12,
-      paddingBottom: 16,
-      backgroundColor: theme.colors.surface,
-    },
-    iosPickerOverlay: {
-      flex: 1,
-      justifyContent: "flex-end",
-      backgroundColor: "rgba(0,0,0,0.5)",
-    },
-    iosPickerSheet: {
-      backgroundColor: theme.colors.surface,
-      borderTopLeftRadius: 16,
-      borderTopRightRadius: 16,
-      paddingBottom: 16,
-    },
-    iosPickerHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      paddingHorizontal: 20,
-      paddingVertical: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: borderColor,
-    },
-    iosPickerHeaderTitle: {
-      color: theme.colors.onSurface,
-      fontWeight: "600",
-    },
-    mutedText: {
-      color: muted,
-    },
-    iosPickerDone: {
-      color: primary,
-      fontWeight: "600",
-    },
-    datePickerWrapper: {
-      paddingHorizontal: 16,
-    },
-  }
-})
+import { dateRangePresetModalStyles as styles } from "./date-range-preset-modal.styles"
+import { PRESETS } from "./presets"
+import type {
+  ActiveSource,
+  DateRangePresetModalProps,
+  ExpandedSection,
+  PresetOption,
+} from "./types"
 
 function DateRangePresetModalContent({
   initialStart,
@@ -475,7 +231,6 @@ function DateRangePresetModalContent({
           })}
         </View>
 
-        {/* By month - collapsible */}
         <View style={styles.collapsibleSection}>
           <Pressable
             onPress={() => toggleSection("byMonth")}
@@ -571,7 +326,6 @@ function DateRangePresetModalContent({
           )}
         </View>
 
-        {/* By year - collapsible */}
         <View style={styles.collapsibleSection}>
           <Pressable
             onPress={() => toggleSection("byYear")}
@@ -614,7 +368,6 @@ function DateRangePresetModalContent({
           )}
         </View>
 
-        {/* Custom range - collapsible */}
         <View style={styles.collapsibleSection}>
           <Pressable
             onPress={() => toggleSection("custom")}
@@ -674,7 +427,6 @@ function DateRangePresetModalContent({
         </View>
       </ScrollView>
 
-      {/* Bottom: Cancel and Save */}
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 16 }]}>
         <Button variant="outline" onPress={onRequestClose} style={{ flex: 1 }}>
           <Text variant="default">Cancel</Text>

@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-02-22T14:05:08.792Z
+Generated on: 2026-02-22T17:39:59.489Z
 
 ```
 ./
@@ -92,6 +92,7 @@ Generated on: 2026-02-22T14:05:08.792Z
 │   │   │   │   ├── 📄 index.tsx
 │   │   │   │   └── 📄 presets.tsx
 │   │   │   ├── 📁 preferences/
+│   │   │   │   ├── 📁 theme/
 │   │   │   │   ├── 📄 exchange-rates.tsx
 │   │   │   │   ├── 📄 index.tsx
 │   │   │   │   ├── 📄 money-formatting.tsx
@@ -130,30 +131,83 @@ Generated on: 2026-02-22T14:05:08.792Z
 │   │       └── 📄 splash-icon.png
 │   ├── 📁 components/
 │   │   ├── 📁 accounts/
+│   │   │   ├── 📁 account-modify/
+│   │   │   │   ├── 📄 account-modify.styles.ts
+│   │   │   │   ├── 📄 AccountModifyContent.tsx
+│   │   │   │   ├── 📄 index.ts
+│   │   │   │   └── 📄 types.ts
 │   │   │   ├── 📄 account-card.tsx
 │   │   │   └── 📄 account-type-inline.tsx
 │   │   ├── 📁 categories/
+│   │   │   ├── 📁 category-modify/
+│   │   │   │   ├── 📄 category-modify.styles.ts
+│   │   │   │   ├── 📄 CategoryModifyContent.tsx
+│   │   │   │   ├── 📄 index.ts
+│   │   │   │   └── 📄 types.ts
 │   │   │   ├── 📄 category-list.tsx
 │   │   │   ├── 📄 category-row.tsx
 │   │   │   ├── 📄 category-screen-content.tsx
 │   │   │   └── 📄 category-type-inline.tsx
+│   │   ├── 📁 date-range-preset-modal/
+│   │   │   ├── 📄 date-range-preset-modal.styles.ts
+│   │   │   ├── 📄 DateRangePresetModal.tsx
+│   │   │   ├── 📄 index.ts
+│   │   │   ├── 📄 presets.ts
+│   │   │   └── 📄 types.ts
 │   │   ├── 📁 profile/
 │   │   │   └── 📄 profile-section.tsx
 │   │   ├── 📁 tags/
 │   │   │   ├── 📄 contact-selector-inline.tsx
 │   │   │   └── 📄 tag-card.tsx
+│   │   ├── 📁 theme/
+│   │   │   ├── 📄 standalone-themes-section.tsx
+│   │   │   ├── 📄 theme-category-segmented-control.tsx
+│   │   │   ├── 📄 theme-color-grid.tsx
+│   │   │   ├── 📄 theme-header.tsx
+│   │   │   ├── 📄 theme-variant-pills.tsx
+│   │   │   └── 📄 theme.styles.ts
 │   │   ├── 📁 transaction/
+│   │   │   ├── 📁 transaction-filter-header/
+│   │   │   │   ├── 📁 panels/
+│   │   │   │   │   ├── 📄 AccountsPanel.tsx
+│   │   │   │   │   ├── 📄 AttachmentsPanel.tsx
+│   │   │   │   │   ├── 📄 CategoriesPanel.tsx
+│   │   │   │   │   ├── 📄 GroupByPanel.tsx
+│   │   │   │   │   ├── 📄 index.ts
+│   │   │   │   │   ├── 📄 PendingPanel.tsx
+│   │   │   │   │   ├── 📄 SearchPanel.tsx
+│   │   │   │   │   ├── 📄 TagsPanel.tsx
+│   │   │   │   │   └── 📄 TypePanel.tsx
+│   │   │   │   ├── 📄 Chip.tsx
+│   │   │   │   ├── 📄 filter-header.styles.ts
+│   │   │   │   ├── 📄 index.ts
+│   │   │   │   ├── 📄 PanelClearButton.tsx
+│   │   │   │   ├── 📄 PanelDoneButton.tsx
+│   │   │   │   ├── 📄 TransactionFilterHeader.tsx
+│   │   │   │   ├── 📄 types.ts
+│   │   │   │   └── 📄 utils.ts
+│   │   │   ├── 📁 transaction-form-v3/
+│   │   │   │   ├── 📄 constants.ts
+│   │   │   │   ├── 📄 form-utils.ts
+│   │   │   │   ├── 📄 form.styles.ts
+│   │   │   │   ├── 📄 index.ts
+│   │   │   │   ├── 📄 TransactionFormV3.tsx
+│   │   │   │   └── 📄 types.ts
+│   │   │   ├── 📁 upcoming-transactions-section/
+│   │   │   │   ├── 📄 index.ts
+│   │   │   │   ├── 📄 types.ts
+│   │   │   │   ├── 📄 upcoming-transactions-section.styles.ts
+│   │   │   │   ├── 📄 UpcomingTransactionsSection.tsx
+│   │   │   │   ├── 📄 use-app-foreground.ts
+│   │   │   │   └── 📄 utils.ts
 │   │   │   ├── 📄 attachment-preview-modal.tsx
 │   │   │   ├── 📄 delete-recurring-modal.tsx
 │   │   │   ├── 📄 edit-recurring-modal.tsx
 │   │   │   ├── 📄 markdown-editor-modal.tsx
 │   │   │   ├── 📄 notes-modal.tsx
-│   │   │   ├── 📄 transaction-filter-header.tsx
-│   │   │   ├── 📄 transaction-form-v3.tsx
 │   │   │   ├── 📄 transaction-item.tsx
 │   │   │   ├── 📄 transaction-section-list.tsx
-│   │   │   ├── 📄 transaction-type-selector.tsx
-│   │   │   └── 📄 upcoming-transactions-section.tsx
+│   │   │   └── 📄 transaction-type-selector.tsx
 │   │   ├── 📁 ui/
 │   │   │   ├── 📄 button.tsx
 │   │   │   ├── 📄 choice-chips.tsx
@@ -174,7 +228,6 @@ Generated on: 2026-02-22T14:05:08.792Z
 │   │   ├── 📄 color-variant-inline.tsx
 │   │   ├── 📄 confirm-modal.tsx
 │   │   ├── 📄 currency-selector-inline.tsx
-│   │   ├── 📄 date-range-preset-modal.tsx
 │   │   ├── 📄 dynamic-icon.tsx
 │   │   ├── 📄 emoji-letter-selection-sheet.tsx
 │   │   ├── 📄 external-link.tsx
@@ -231,6 +284,7 @@ Generated on: 2026-02-22T14:05:08.792Z
 │   │   ├── 📄 migrations.ts
 │   │   └── 📄 schema.ts
 │   ├── 📁 hooks/
+│   │   ├── 📄 exchange-rates-editor.reducer.ts
 │   │   ├── 📄 use-balance-before.ts
 │   │   ├── 📄 use-boolean.ts
 │   │   ├── 📄 use-color-scheme.ts
@@ -284,7 +338,6 @@ Generated on: 2026-02-22T14:05:08.792Z
 │   │   ├── 📄 breakpoints.ts
 │   │   ├── 📄 fonts.ts
 │   │   └── 📄 unistyles.ts
-│   ├── 📁 sync/
 │   ├── 📁 types/
 │   │   ├── 📄 accounts.ts
 │   │   ├── 📄 budgets.ts
@@ -312,6 +365,7 @@ Generated on: 2026-02-22T14:05:08.792Z
 │       ├── 📄 pending-transactions.ts
 │       ├── 📄 recurrence.ts
 │       ├── 📄 string-utils.ts
+│       ├── 📄 theme-utils.ts
 │       ├── 📄 time-utils.ts
 │       ├── 📄 toast.ts
 │       └── 📄 transaction-list-utils.ts

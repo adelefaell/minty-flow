@@ -116,28 +116,30 @@ export function ChangeIconInline({
   }
 
   const handleImagePaste = async () => {
+    let text: string
     try {
-      const text = await Clipboard.getStringAsync()
-      if (!text?.trim()) {
-        Toast.error({
-          title: "No image link",
-          description: "There is no link to copy from clipboard",
-        })
-        return
-      }
-      const trimmed = text.trim()
-      if (isImageUrl(trimmed)) {
-        setImageUri(trimmed)
-      } else {
-        Toast.error({
-          title: "Invalid image link",
-          description: "The clipboard does not contain a valid image URL",
-        })
-      }
+      text = await Clipboard.getStringAsync()
     } catch {
       Toast.error({
         title: "Error",
         description: "Failed to read clipboard content",
+      })
+      return
+    }
+    const trimmed = text ? text.trim() : ""
+    if (!trimmed) {
+      Toast.error({
+        title: "No image link",
+        description: "There is no link to copy from clipboard",
+      })
+      return
+    }
+    if (isImageUrl(trimmed)) {
+      setImageUri(trimmed)
+    } else {
+      Toast.error({
+        title: "Invalid image link",
+        description: "The clipboard does not contain a valid image URL",
       })
     }
   }
@@ -278,7 +280,6 @@ export function ChangeIconInline({
                       placeholder="?"
                       placeholderTextColor={theme.colors.onSecondary}
                       maxLength={10}
-                      autoFocus
                       textAlign="center"
                     />
                     <Text style={styles.emojiPreviewText}>

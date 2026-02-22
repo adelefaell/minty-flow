@@ -49,6 +49,10 @@ const GROUP_BY_DISPLAY: Record<GroupByOption, string> = {
   allTime: "All time",
 }
 
+const EMPTY_TRANSACTIONS: TransactionWithRelations[] = []
+const EMPTY_CATEGORIES: Category[] = []
+const EMPTY_TAGS: Tag[] = []
+
 interface AccountDetailsProps {
   account: AccountWithMonthTotals
   transactionsFull: TransactionWithRelations[]
@@ -67,11 +71,11 @@ interface AccountDetailsProps {
 
 const AccountDetailsScreenInner = ({
   account,
-  transactionsFull = [],
-  categoriesExpense = [],
-  categoriesIncome = [],
-  categoriesTransfer = [],
-  tags = [],
+  transactionsFull = EMPTY_TRANSACTIONS,
+  categoriesExpense = EMPTY_CATEGORIES,
+  categoriesIncome = EMPTY_CATEGORIES,
+  categoriesTransfer = EMPTY_CATEGORIES,
+  tags = EMPTY_TAGS,
   selectedYear,
   selectedMonth,
   onMonthYearChange,
@@ -256,8 +260,8 @@ const AccountDetailsScreenInner = ({
         <View style={styles.monthPickerContainer}>
           <MonthYearPicker
             key={`${selectedYear}-${selectedMonth}`}
-            year={selectedYear}
-            month={selectedMonth}
+            initialYear={selectedYear}
+            initialMonth={selectedMonth}
             onSelect={(y, m) => {
               onMonthYearChange(y, m)
               setMonthPickerOpen(false)
@@ -284,7 +288,6 @@ const AccountDetailsScreenInner = ({
       {/* Filter header (when More options is on) */}
       {showFilters && (
         <TransactionFilterHeader
-          key={JSON.stringify(searchState)}
           accounts={[]}
           categoriesByType={categoriesByType}
           tags={tags}
@@ -551,9 +554,12 @@ const EnhancedAccountDetailsScreen = withObservables(
 
 export default function AccountDetailsScreen() {
   const { accountId } = useLocalSearchParams<{ accountId: string }>()
-  const now = new Date()
-  const [selectedYear, setSelectedYear] = useState(now.getFullYear())
-  const [selectedMonth, setSelectedMonth] = useState(now.getMonth())
+  const [selectedYear, setSelectedYear] = useState(() =>
+    new Date().getFullYear(),
+  )
+  const [selectedMonth, setSelectedMonth] = useState(() =>
+    new Date().getMonth(),
+  )
   const [filterState, setFilterState] = useState<TransactionListFilterState>(
     DEFAULT_TRANSACTION_LIST_FILTER_STATE,
   )

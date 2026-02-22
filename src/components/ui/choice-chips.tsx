@@ -99,12 +99,12 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: "center",
   },
   chipUnselected: {
-    borderColor: theme.colors.rippleColor,
+    borderColor: theme.colors.customColors.semi,
     backgroundColor: "transparent",
   },
   chipSelected: {
-    borderColor: theme.colors.onSurface,
-    backgroundColor: theme.colors.shadow,
+    borderColor: theme.colors.secondary,
+    backgroundColor: theme.colors.secondary,
   },
   chipText: {
     fontSize: 14,

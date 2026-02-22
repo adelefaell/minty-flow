@@ -3,6 +3,7 @@
  * Requests contacts permission and loads list when expanded; same trigger style as AccountTypeInline.
  */
 
+import type { Contact } from "expo-contacts"
 import * as Contacts from "expo-contacts"
 import { Suspense, use, useCallback, useMemo, useState } from "react"
 import {
@@ -104,6 +105,24 @@ function ContactsPanelContent({
     [setSelectedContact],
   )
 
+  const renderItem = useCallback(
+    ({ item }: { item: Contact }) => (
+      <ContactItem
+        contact={item}
+        selected={selectedContact === item}
+        onPress={handleSelectContact}
+      />
+    ),
+    [selectedContact, handleSelectContact],
+  )
+
+  // Also extract keyExtractor
+  const keyExtractor = useCallback(
+    (item: Contact, index: number) =>
+      `${item.firstName ?? ""}-${item.phoneNumbers?.[0]?.number ?? ""}-${index}`,
+    [],
+  )
+
   return (
     <View style={styles.panel}>
       <View style={styles.searchContainer}>
@@ -117,16 +136,8 @@ function ContactsPanelContent({
       <View style={styles.listWrapper}>
         <FlatList
           data={filteredContacts}
-          keyExtractor={(item, index) =>
-            `${item.firstName ?? ""}-${item.phoneNumbers?.[0]?.number ?? ""}-${index}`
-          }
-          renderItem={({ item }) => (
-            <ContactItem
-              contact={item}
-              selected={selectedContact === item}
-              onPress={handleSelectContact}
-            />
-          )}
+          keyExtractor={keyExtractor}
+          renderItem={renderItem}
           contentContainerStyle={styles.listContent}
           style={styles.list}
           showsVerticalScrollIndicator

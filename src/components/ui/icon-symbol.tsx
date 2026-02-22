@@ -146,6 +146,8 @@ export const VALID_ICON_NAMES = defineValidIcons([
   "delete-restore",
   "check-all",
   "repeat",
+  "arrow-up",
+  "arrow-down",
 ] as const)
 
 /**

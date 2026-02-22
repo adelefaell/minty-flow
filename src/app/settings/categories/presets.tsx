@@ -49,6 +49,14 @@ function alreadyAddedPresetIds(
   return added
 }
 
+async function createCategories(
+  toCreate: Parameters<typeof createCategory>[0][],
+) {
+  for (const payload of toCreate) {
+    await createCategory(payload)
+  }
+}
+
 interface CategoryPresetsScreenInnerProps {
   type: TransactionType
   categories: Category[]
@@ -86,21 +94,18 @@ const CategoryPresetsScreenInner = ({
 
     if (selected.length === 0) return
 
+    const toCreate = selected.map((preset) => ({
+      name: preset.name,
+      type: preset.type,
+      icon: preset.icon,
+      colorSchemeName: preset.colorSchemeName,
+      isArchived: false as const,
+    }))
+
+    // Only keep the side-effectful async work inside try/catch
     try {
-      // Save all selected presets to database
-      for (const preset of selected) {
-        await createCategory({
-          name: preset.name,
-          type: preset.type,
-          icon: preset.icon,
-          colorSchemeName: preset.colorSchemeName,
-          isArchived: false,
-        })
-      }
-
+      await createCategories(toCreate)
       setSelectedPresets(new Set())
-
-      // Navigate back
       router.back()
     } catch (error) {
       logger.error("Error creating preset categories", { error })

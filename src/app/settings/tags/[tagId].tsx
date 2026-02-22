@@ -203,7 +203,6 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
                       formType === "contact" ? "John Doe" : "Work, Shopping..."
                     }
                     error={!!errors.name}
-                    autoFocus={isAddMode}
                     editable={true}
                   />
                 )}

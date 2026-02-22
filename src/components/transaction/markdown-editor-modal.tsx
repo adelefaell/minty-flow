@@ -220,7 +220,6 @@ export function MarkdownEditorModal({
                   handleChangeText(newVal, field.onChange)
                 }
                 multiline
-                autoFocus
                 placeholder="Write your notes…"
                 placeholderTextColor={muted}
                 style={[

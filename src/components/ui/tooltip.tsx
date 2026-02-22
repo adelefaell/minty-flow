@@ -9,10 +9,10 @@ import React, {
   useState,
 } from "react"
 import {
-  Dimensions,
   Platform,
   type PressableProps,
   View as RNView,
+  useWindowDimensions,
 } from "react-native"
 import Animated, {
   useAnimatedStyle,
@@ -54,6 +54,7 @@ export const TooltipProvider = ({
 }: {
   children: React.ReactNode
 }) => {
+  const { width: screenWidth } = useWindowDimensions()
   const [tooltip, setTooltip] = useState<TooltipData | null>(null)
   const [tooltipWidth, setTooltipWidth] = useState(0)
 
@@ -78,7 +79,6 @@ export const TooltipProvider = ({
     if (!tooltip || tooltipWidth === 0)
       return { top: 0, left: 0, translateX: 0 }
 
-    const screenWidth = Dimensions.get("window").width
     const targetCenterX = tooltip.x + tooltip.width / 2
     const tooltipPosition = tooltip.position || "top"
 
@@ -107,7 +107,7 @@ export const TooltipProvider = ({
       left,
       translateX: tooltipTranslateX,
     }
-  }, [tooltip, tooltipWidth])
+  }, [tooltip, tooltipWidth, screenWidth])
 
   // Extract tooltip position for use in worklets
   const tooltipPosition = tooltip?.position || "top"

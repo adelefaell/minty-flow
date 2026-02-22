@@ -102,7 +102,6 @@ export default function EditProfileScreen() {
             value={localName}
             onChangeText={setLocalName}
             placeholder="Enter your name"
-            autoFocus={false}
           />
         </View>
       </ScrollView>

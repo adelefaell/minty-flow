@@ -37,10 +37,8 @@ interface ReorderableRowProps<T> {
   item: T
   index: number
   renderItem: ListRenderItem<T>
-  onMoveUp: () => void
-  onMoveDown: () => void
-  isFirst: boolean
-  isLast: boolean
+  dataLength: number
+  onMove: (from: number, to: number) => void
   showButtons: boolean
 }
 
@@ -48,14 +46,14 @@ function ReorderableRow<T>({
   item,
   index,
   renderItem,
-  onMoveUp,
-  onMoveDown,
-  isFirst,
-  isLast,
+  dataLength,
+  onMove,
   showButtons,
 }: ReorderableRowProps<T>) {
   const { theme } = useUnistyles()
   const iconColor = theme.colors.onPrimary
+  const isFirst = index === 0
+  const isLast = index === dataLength - 1
 
   // Create separators object for renderItem (FlatList compatibility)
   const separators = {
@@ -92,7 +90,7 @@ function ReorderableRow<T>({
     itemScale.value = withTiming(0.98, { duration: 150 }, () => {
       itemScale.value = withTiming(1, { duration: 150 })
     })
-    onMoveUp()
+    onMove(index, index - 1)
   }
 
   const handleMoveDown = () => {
@@ -102,7 +100,7 @@ function ReorderableRow<T>({
     itemScale.value = withTiming(0.98, { duration: 150 }, () => {
       itemScale.value = withTiming(1, { duration: 150 })
     })
-    onMoveDown()
+    onMove(index, index + 1)
   }
 
   return (
@@ -129,7 +127,7 @@ function ReorderableRow<T>({
               isFirst && styles.buttonDisabled,
             ]}
           >
-            <IconSymbol name="arrow-top-right" size={18} color={iconColor} />
+            <IconSymbol name="arrow-up" size={18} color={iconColor} />
           </AnimatedPressable>
 
           <AnimatedPressable
@@ -141,7 +139,7 @@ function ReorderableRow<T>({
               isLast && styles.buttonDisabled,
             ]}
           >
-            <IconSymbol name="arrow-bottom-left" size={18} color={iconColor} />
+            <IconSymbol name="arrow-down" size={18} color={iconColor} />
           </AnimatedPressable>
         </AnimatedView>
       )}
@@ -180,10 +178,8 @@ export function ReorderableListV2<T>({
         item={item}
         index={index}
         renderItem={renderItem}
-        onMoveUp={() => move(index, index - 1)}
-        onMoveDown={() => move(index, index + 1)}
-        isFirst={index === 0}
-        isLast={index === data.length - 1}
+        dataLength={data.length}
+        onMove={move}
         showButtons={showButtons}
       />
     ),

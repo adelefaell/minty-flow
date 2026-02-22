@@ -17,8 +17,10 @@ import {
 } from "~/database/services/transaction-service"
 import { Toast } from "~/utils/toast"
 
+const EMPTY_TRANSACTIONS: TransactionWithRelations[] = []
+
 function TrashScreenInner({
-  transactionsFull = [],
+  transactionsFull = EMPTY_TRANSACTIONS,
 }: {
   transactionsFull: TransactionWithRelations[]
 }) {
@@ -69,6 +71,27 @@ function TrashScreenInner({
     }
   }, [pendingDestroyItem])
 
+  const renderItem = useCallback(
+    ({ item }: { item: TransactionWithRelations }) => (
+      <TransactionItem
+        transactionWithRelations={item}
+        onPress={handlePress(item)}
+        onDelete={handleDestroy(item)}
+        onWillOpen={(methods) => {
+          openSwipeableRef.current?.close()
+          openSwipeableRef.current = methods
+        }}
+        rightActionAccessibilityLabel="Delete permanently"
+      />
+    ),
+    [handlePress, handleDestroy],
+  )
+
+  const keyExtractor = useCallback(
+    (item: TransactionWithRelations) => item.transaction.id,
+    [],
+  )
+
   return (
     <>
       <FlatList
@@ -95,19 +118,8 @@ function TrashScreenInner({
           </View>
         }
         data={sorted}
-        keyExtractor={(item) => item.transaction.id}
-        renderItem={({ item }) => (
-          <TransactionItem
-            transactionWithRelations={item}
-            onPress={handlePress(item)}
-            onDelete={handleDestroy(item)}
-            onWillOpen={(methods) => {
-              openSwipeableRef.current?.close()
-              openSwipeableRef.current = methods
-            }}
-            rightActionAccessibilityLabel="Delete permanently"
-          />
-        )}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
       />
       <ConfirmModal
         visible={pendingDestroyItem !== null}
