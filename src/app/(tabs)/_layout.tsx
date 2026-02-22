@@ -166,9 +166,7 @@ const TabLayout = () => {
     <View style={styles.container}>
       <PagerView ref={pagerRef} style={styles.pager} initialPage={0}>
         {tabs.map((tab) => (
-          <View key={tab.key} style={styles.page}>
-            <tab.component />
-          </View>
+          <tab.component key={tab.key} />
         ))}
       </PagerView>
 
@@ -307,9 +305,6 @@ const styles = StyleSheet.create((t) => ({
     flex: 1,
   },
   pager: {
-    flex: 1,
-  },
-  page: {
     flex: 1,
   },
 

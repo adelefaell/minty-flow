@@ -246,7 +246,7 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
     backgroundColor: theme.colors.surface,
     paddingHorizontal: 20,
-    marginTop: 40,
+    paddingTop: 40,
   },
   scrollView: { flex: 1 },
   scrollContent: {
