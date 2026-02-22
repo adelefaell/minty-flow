@@ -1,4 +1,10 @@
-import { useCallback, useMemo, useState, useSyncExternalStore } from "react"
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react"
 import { AppState } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
@@ -106,16 +112,18 @@ export function UpcomingTransactionsSection({
   const autoConfirmVersion = useAutoConfirmVersion()
   const foregroundVersion = useAppForeground()
 
+  // Use tick (minute boundary) to derive "now" without calling Date.now()/new Date() during render (React purity)
+  const nowMs = tick * 60_000
+  const nowDate = useMemo(() => new Date(nowMs), [nowMs])
+
   // ---------- Filter upcoming (structural filters already applied by query) ----------
   const upcoming = useMemo(() => {
-    void tick
     void autoConfirmVersion
     void foregroundVersion
-    const now = new Date()
     return transactions.filter(
-      (r) => !r.transaction.isDeleted && isUpcoming(r, now),
+      (r) => !r.transaction.isDeleted && isUpcoming(r, nowDate),
     )
-  }, [transactions, tick, autoConfirmVersion, foregroundVersion])
+  }, [transactions, nowDate, autoConfirmVersion, foregroundVersion])
 
   const upcomingForDisplay = useMemo(
     () => applyTransferLayout(upcoming, transferLayout),
@@ -127,17 +135,15 @@ export function UpcomingTransactionsSection({
   // Two groups only: recurring and pending.
   // Pre-approved (including all recurring) past-due are auto-confirmed and excluded.
   const { recurring, pending } = useMemo(() => {
-    void tick
     void autoConfirmVersion
     void foregroundVersion
 
     const recurringList: TransactionWithRelations[] = []
     const pendingList: TransactionWithRelations[] = []
     const toAutoConfirm: string[] = []
-    const now = Date.now()
 
     for (const row of upcomingForDisplay) {
-      const canConfirm = confirmable(row.transaction, now)
+      const canConfirm = confirmable(row.transaction, nowMs)
       const preapproved = isPreapproved(row, requireConfirmation)
 
       if (preapproved && canConfirm) {
@@ -154,8 +160,7 @@ export function UpcomingTransactionsSection({
     if (toAutoConfirm.length > 0) {
       for (const txId of toAutoConfirm) {
         void confirmTransactionSync(txId, {
-          updateTransactionDate:
-            usePendingTransactionsStore.getState().updateDateUponConfirmation,
+          updateTransactionDate: updateDateUponConfirmation,
         })
       }
     }
@@ -163,8 +168,9 @@ export function UpcomingTransactionsSection({
     return { recurring: recurringList, pending: pendingList }
   }, [
     upcomingForDisplay,
-    tick,
+    nowMs,
     requireConfirmation,
+    updateDateUponConfirmation,
     autoConfirmVersion,
     foregroundVersion,
   ])
@@ -173,7 +179,7 @@ export function UpcomingTransactionsSection({
   // requireConfirmation and autoConfirmVersion are intentional:
   // re-schedule when setting changes or after a confirmation fires.
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional extra deps
-  useMemo(() => {
+  useEffect(() => {
     autoConfirmationService.start()
     autoConfirmationService.scheduleTransactions(upcoming)
   }, [upcoming, requireConfirmation, autoConfirmVersion])
@@ -241,9 +247,8 @@ export function UpcomingTransactionsSection({
   const totalVisible = recurring.length + pending.length
   if (totalVisible === 0) return null
 
-  const now = Date.now()
   const manualConfirmableCount = pending.filter((r) =>
-    confirmable(r.transaction, now),
+    confirmable(r.transaction, nowMs),
   ).length
 
   return (

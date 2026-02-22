@@ -1,10 +1,13 @@
 # Project Structure
 
-Generated on: 2026-02-22T13:53:14.462Z
+Generated on: 2026-02-22T14:05:08.792Z
 
 ```
 ./
 ├── 📁 .agents/
+│   ├── 📁 react-doctor/
+│   │   ├── 📄 AGENTS.md
+│   │   └── 📄 SKILL.md
 │   └── 📁 skills/
 │       ├── 📁 building-native-ui/
 │       │   ├── 📁 references/

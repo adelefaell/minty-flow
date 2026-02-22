@@ -3,6 +3,7 @@ import React, {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -60,18 +61,16 @@ export const TooltipProvider = ({
   const exitPositionRef = useRef<ExitPositionType>("top")
   const exitPosition = useSharedValue<ExitPositionType>("top")
 
-  // Compute exit position using useMemo and update shared value via scheduleOnUI
-  useMemo(() => {
+  // Track exit position for animation; update ref and shared value when tooltip changes
+  useEffect(() => {
     const currentPosition = tooltip?.position || "top"
     if (tooltip && currentPosition !== exitPositionRef.current) {
       exitPositionRef.current = currentPosition
-      // Update shared value on UI thread to avoid render-time write warning
       scheduleOnUI(() => {
         "worklet"
         exitPosition.value = currentPosition
       })
     }
-    return exitPositionRef.current
   }, [tooltip, exitPosition])
 
   // Memoize position calculation

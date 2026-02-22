@@ -58,15 +58,14 @@ export function ConfirmModal({
   const [loading, setLoading] = useState(false)
 
   const handleConfirm = useCallback(async () => {
+    setLoading(true)
     try {
-      setLoading(true)
       await Promise.resolve(onConfirm())
       onRequestClose()
     } catch (e) {
       logger.error("Error confirming modal", { error: e })
-    } finally {
-      setLoading(false)
     }
+    setLoading(false)
   }, [onConfirm, onRequestClose])
 
   return (

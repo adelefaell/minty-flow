@@ -3,7 +3,7 @@
  * Selection is applied only when the user presses Done. Now sets local selection to current month/year.
  */
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useState } from "react"
 import { Keyboard } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -45,12 +45,7 @@ export function MonthYearPicker({
   const [localYear, setLocalYear] = useState(year)
   const [localMonth, setLocalMonth] = useState(month)
   const [yearInputValue, setYearInputValue] = useState(String(year))
-
-  useEffect(() => {
-    setLocalYear(year)
-    setLocalMonth(month)
-    setYearInputValue(String(year))
-  }, [year, month])
+  // When parent passes new year/month, use key on this component (e.g. key={`${year}-${month}`}) to reset local state instead of syncing in an effect.
 
   const handleMonthPress = useCallback((monthIndex: number) => {
     setLocalMonth(monthIndex)

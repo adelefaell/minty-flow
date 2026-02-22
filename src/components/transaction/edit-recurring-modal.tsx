@@ -151,9 +151,8 @@ export function EditRecurringModal({
           error: error instanceof Error ? error.message : String(error),
         })
         Toast.error({ title: "Failed to save transaction" })
-      } finally {
-        setLoadingScope(null)
       }
+      setLoadingScope(null)
     },
     [
       loadingScope,

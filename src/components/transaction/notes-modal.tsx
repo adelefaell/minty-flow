@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useState } from "react"
 import { KeyboardAvoidingView, Modal, Platform, Pressable } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import {
@@ -19,21 +19,18 @@ interface NotesModalProps {
   onRequestClose: () => void
 }
 
-export function NotesModal({
-  visible,
+function NotesModalContent({
   value,
   onSave,
   onRequestClose,
-}: NotesModalProps) {
+}: {
+  value: string
+  onSave: (notes: string) => void
+  onRequestClose: () => void
+}) {
   const { theme } = useUnistyles()
   const insets = useSafeAreaInsets()
   const [localValue, setLocalValue] = useState(value)
-
-  useEffect(() => {
-    if (visible) {
-      setLocalValue(value)
-    }
-  }, [visible, value])
 
   const handleSave = useCallback(() => {
     onSave(localValue.trim())
@@ -41,64 +38,78 @@ export function NotesModal({
   }, [localValue, onSave, onRequestClose])
 
   return (
+    <KeyboardAvoidingView
+      style={[styles.container, { backgroundColor: theme.colors.surface }]}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={0}
+    >
+      <View
+        style={[
+          styles.header,
+          {
+            paddingTop: Math.max(insets.top, 16),
+            paddingBottom: 16,
+            paddingHorizontal: 20,
+          },
+        ]}
+      >
+        <Pressable
+          onPress={onRequestClose}
+          hitSlop={12}
+          style={styles.cancelButton}
+        >
+          <Text style={styles.cancelText}>Cancel</Text>
+        </Pressable>
+        <Text style={styles.title}>Notes</Text>
+        <Pressable onPress={handleSave} hitSlop={12} style={styles.doneButton}>
+          <Text style={[styles.doneText, { color: theme.colors.primary }]}>
+            Done
+          </Text>
+        </Pressable>
+      </View>
+
+      <View style={[styles.content, { paddingHorizontal: 20 }]}>
+        <Input
+          style={styles.textInput}
+          placeholder="Add notes about this transaction..."
+          placeholderTextColor={theme.colors.customColors.semi}
+          value={localValue}
+          onChangeText={(text) =>
+            setLocalValue(text.slice(0, MAX_NOTES_LENGTH))
+          }
+          multiline
+          numberOfLines={8}
+          textAlignVertical="top"
+        />
+        <Text style={styles.charCount}>
+          {localValue.length}/{MAX_NOTES_LENGTH}
+        </Text>
+      </View>
+    </KeyboardAvoidingView>
+  )
+}
+
+export function NotesModal({
+  visible,
+  value,
+  onSave,
+  onRequestClose,
+}: NotesModalProps) {
+  return (
     <Modal
       visible={visible}
       animationType="slide"
       presentationStyle={Platform.OS === "ios" ? "pageSheet" : "fullScreen"}
       onRequestClose={onRequestClose}
     >
-      <KeyboardAvoidingView
-        style={[styles.container, { backgroundColor: theme.colors.surface }]}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={0}
-      >
-        <View
-          style={[
-            styles.header,
-            {
-              paddingTop: Math.max(insets.top, 16),
-              paddingBottom: 16,
-              paddingHorizontal: 20,
-            },
-          ]}
-        >
-          <Pressable
-            onPress={onRequestClose}
-            hitSlop={12}
-            style={styles.cancelButton}
-          >
-            <Text style={styles.cancelText}>Cancel</Text>
-          </Pressable>
-          <Text style={styles.title}>Notes</Text>
-          <Pressable
-            onPress={handleSave}
-            hitSlop={12}
-            style={styles.doneButton}
-          >
-            <Text style={[styles.doneText, { color: theme.colors.primary }]}>
-              Done
-            </Text>
-          </Pressable>
-        </View>
-
-        <View style={[styles.content, { paddingHorizontal: 20 }]}>
-          <Input
-            style={styles.textInput}
-            placeholder="Add notes about this transaction..."
-            placeholderTextColor={theme.colors.customColors.semi}
-            value={localValue}
-            onChangeText={(text) =>
-              setLocalValue(text.slice(0, MAX_NOTES_LENGTH))
-            }
-            multiline
-            numberOfLines={8}
-            textAlignVertical="top"
-          />
-          <Text style={styles.charCount}>
-            {localValue.length}/{MAX_NOTES_LENGTH}
-          </Text>
-        </View>
-      </KeyboardAvoidingView>
+      {visible ? (
+        <NotesModalContent
+          key={value}
+          value={value}
+          onSave={onSave}
+          onRequestClose={onRequestClose}
+        />
+      ) : null}
     </Modal>
   )
 }

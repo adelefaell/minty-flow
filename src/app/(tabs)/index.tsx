@@ -129,6 +129,7 @@ function HomeScreenInner({
       {/* Inline filter header: pill bar + expandable filter panels */}
       {onFilterChange ? (
         <TransactionFilterHeader
+          key={JSON.stringify(searchState)}
           accounts={accounts}
           categoriesByType={categoriesByType}
           tags={tags}

@@ -815,9 +815,8 @@ export function TransactionFormV3({
         message: error instanceof Error ? error.message : String(error),
       })
       Toast.error({ title: "Failed to save transaction" })
-    } finally {
-      setIsSaving(false)
     }
+    setIsSaving(false)
   }
 
   const handleCancelPress = useCallback(() => {
@@ -2547,9 +2546,10 @@ export function TransactionFormV3({
           if (fileToOpen) {
             try {
               await openFileInExternalApp(fileToOpen.uri, fileToOpen.ext)
-            } finally {
-              setFileToOpen(null)
+            } catch {
+              // ignore
             }
+            setFileToOpen(null)
           }
         }}
         title={`Open ${fileToOpen?.name ?? "file"}?`}

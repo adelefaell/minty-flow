@@ -18,7 +18,7 @@ import {
   startOfYear,
   subDays,
 } from "date-fns"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useState } from "react"
 import { Modal, Platform, ScrollView, View } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
@@ -281,13 +281,17 @@ const styles = StyleSheet.create((theme) => {
   }
 })
 
-export function DateRangePresetModal({
-  visible,
+function DateRangePresetModalContent({
   initialStart,
   initialEnd,
   onSave,
   onRequestClose,
-}: DateRangePresetModalProps) {
+}: {
+  initialStart?: Date
+  initialEnd?: Date
+  onSave: (start: Date, end: Date) => void
+  onRequestClose: () => void
+}) {
   const { theme } = useUnistyles()
   const insets = useSafeAreaInsets()
   const now = new Date()
@@ -313,22 +317,6 @@ export function DateRangePresetModal({
   const [iosPickerTarget, setIosPickerTarget] = useState<
     "start" | "end" | null
   >(null)
-
-  useEffect(() => {
-    if (visible) {
-      const initialNow = new Date()
-      setCustomStart(initialStart ?? initialNow)
-      setCustomEnd(initialEnd ?? initialNow)
-      setByMonthYear(initialNow.getFullYear())
-      setByMonthYearInput(String(initialNow.getFullYear()))
-      setByMonthMonth(initialNow.getMonth())
-      setByYearInput(String(initialNow.getFullYear()))
-      setSelectedPresetId(null)
-      setActiveSource("preset")
-      setExpandedSection(null)
-      setIosPickerTarget(null)
-    }
-  }, [visible, initialStart, initialEnd])
 
   const toggleSection = useCallback((section: ExpandedSection) => {
     setExpandedSection((prev) => (prev === section ? null : section))
@@ -444,334 +432,337 @@ export function DateRangePresetModal({
   const fgColor = theme.colors.onSurface
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      // ios only
-      presentationStyle={"fullScreen"}
-      onRequestClose={onRequestClose}
-    >
-      <View style={styles.container}>
-        <View style={[styles.header, { paddingTop: Math.max(insets.top, 16) }]}>
-          <Text variant="h3" style={styles.headerTitle}>
-            Select range
-          </Text>
-        </View>
+    <View style={styles.container}>
+      <View style={[styles.header, { paddingTop: Math.max(insets.top, 16) }]}>
+        <Text variant="h3" style={styles.headerTitle}>
+          Select range
+        </Text>
+      </View>
 
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator
-        >
-          <Text variant="small" style={styles.sectionLabelCommonOptions}>
-            Common options
-          </Text>
-          <View style={styles.presetsRow}>
-            {PRESETS.map((preset) => {
-              const isSelected =
-                activeSource === "preset" && selectedPresetId === preset.id
-              return (
-                <Pressable
-                  key={preset.id}
-                  onPress={() => handlePresetSelect(preset)}
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator
+      >
+        <Text variant="small" style={styles.sectionLabelCommonOptions}>
+          Common options
+        </Text>
+        <View style={styles.presetsRow}>
+          {PRESETS.map((preset) => {
+            const isSelected =
+              activeSource === "preset" && selectedPresetId === preset.id
+            return (
+              <Pressable
+                key={preset.id}
+                onPress={() => handlePresetSelect(preset)}
+                style={[
+                  styles.presetButton,
+                  isSelected && styles.presetButtonSelected,
+                ]}
+              >
+                <Text
+                  variant="default"
+                  numberOfLines={1}
                   style={[
-                    styles.presetButton,
-                    isSelected && styles.presetButtonSelected,
+                    styles.presetButtonText,
+                    isSelected && styles.presetButtonTextSelected,
                   ]}
                 >
-                  <Text
-                    variant="default"
-                    numberOfLines={1}
-                    style={[
-                      styles.presetButtonText,
-                      isSelected && styles.presetButtonTextSelected,
-                    ]}
-                  >
-                    {preset.label}
-                  </Text>
-                </Pressable>
-              )
-            })}
-          </View>
+                  {preset.label}
+                </Text>
+              </Pressable>
+            )
+          })}
+        </View>
 
-          {/* By month - collapsible */}
-          <View style={styles.collapsibleSection}>
-            <Pressable
-              onPress={() => toggleSection("byMonth")}
-              style={styles.rowBase}
-            >
-              <Text variant="default" style={styles.rowText}>
-                By month
-              </Text>
-              <IconSymbol
-                name={
-                  expandedSection === "byMonth"
-                    ? "chevron-down"
-                    : "chevron-right"
-                }
-                size={20}
-                color={mutedColor}
-              />
-            </Pressable>
-            {expandedSection === "byMonth" && (
-              <View style={styles.expandedContent}>
-                <View style={styles.monthYearRow}>
-                  <Button
-                    variant="secondary"
-                    onPress={() => {
-                      const next = Math.max(1970, byMonthYear - 1)
-                      setByMonthYear(next)
-                      setByMonthYearInput(String(next))
-                    }}
-                    size="icon"
-                    hitSlop={8}
-                  >
-                    <IconSymbol name="chevron-left" size={24} color={fgColor} />
-                  </Button>
-                  <Input
-                    value={byMonthYearInput}
-                    onChangeText={(t) => {
-                      const digits = t.replace(/\D/g, "").slice(0, 4)
-                      setByMonthYearInput(digits)
-                      const num = Number.parseInt(digits, 10)
-                      if (!Number.isNaN(num)) {
-                        setByMonthYear(Math.min(2100, Math.max(1970, num)))
-                      }
-                    }}
-                    keyboardType="number-pad"
-                    maxLength={4}
-                    placeholder="Year"
-                    style={styles.monthYearInput}
-                  />
-                  <Button
-                    variant="secondary"
-                    onPress={() => {
-                      const next = Math.min(2100, byMonthYear + 1)
-                      setByMonthYear(next)
-                      setByMonthYearInput(String(next))
-                    }}
-                    hitSlop={8}
-                    size="icon"
-                  >
-                    <IconSymbol
-                      name="chevron-right"
-                      size={24}
-                      color={fgColor}
-                    />
-                  </Button>
-                </View>
-                <View style={styles.monthGrid}>
-                  {MONTH_NAMES.map((name, idx) => {
-                    const isMonthSelected = byMonthMonth === idx
-                    return (
-                      <Pressable
-                        key={name}
-                        onPress={() => handleByMonthSelect(idx)}
-                        style={[
-                          styles.monthCell,
-                          isMonthSelected && styles.monthCellSelected,
-                        ]}
-                      >
-                        <Text
-                          variant="default"
-                          style={[
-                            styles.monthCellText,
-                            isMonthSelected && styles.monthCellTextSelected,
-                          ]}
-                        >
-                          {name}
-                        </Text>
-                      </Pressable>
-                    )
-                  })}
-                </View>
+        {/* By month - collapsible */}
+        <View style={styles.collapsibleSection}>
+          <Pressable
+            onPress={() => toggleSection("byMonth")}
+            style={styles.rowBase}
+          >
+            <Text variant="default" style={styles.rowText}>
+              By month
+            </Text>
+            <IconSymbol
+              name={
+                expandedSection === "byMonth" ? "chevron-down" : "chevron-right"
+              }
+              size={20}
+              color={mutedColor}
+            />
+          </Pressable>
+          {expandedSection === "byMonth" && (
+            <View style={styles.expandedContent}>
+              <View style={styles.monthYearRow}>
                 <Button
                   variant="secondary"
-                  onPress={handleByMonthNow}
-                  style={{ alignSelf: "flex-end" }}
+                  onPress={() => {
+                    const next = Math.max(1970, byMonthYear - 1)
+                    setByMonthYear(next)
+                    setByMonthYearInput(String(next))
+                  }}
+                  size="icon"
+                  hitSlop={8}
                 >
-                  <Text variant="default">Now</Text>
+                  <IconSymbol name="chevron-left" size={24} color={fgColor} />
                 </Button>
-              </View>
-            )}
-          </View>
-
-          {/* By year - collapsible */}
-          <View style={styles.collapsibleSection}>
-            <Pressable
-              onPress={() => toggleSection("byYear")}
-              style={styles.rowBase}
-            >
-              <Text variant="default" style={styles.rowText}>
-                By year
-              </Text>
-              <IconSymbol
-                name={
-                  expandedSection === "byYear"
-                    ? "chevron-down"
-                    : "chevron-right"
-                }
-                size={20}
-                color={mutedColor}
-              />
-            </Pressable>
-            {expandedSection === "byYear" && (
-              <View style={styles.expandedContent}>
-                <Text variant="small" style={styles.sectionLabel}>
-                  Select a year
-                </Text>
                 <Input
-                  value={byYearInput}
+                  value={byMonthYearInput}
                   onChangeText={(t) => {
                     const digits = t.replace(/\D/g, "").slice(0, 4)
-                    setByYearInput(digits)
+                    setByMonthYearInput(digits)
+                    const num = Number.parseInt(digits, 10)
+                    if (!Number.isNaN(num)) {
+                      setByMonthYear(Math.min(2100, Math.max(1970, num)))
+                    }
                   }}
                   keyboardType="number-pad"
                   maxLength={4}
                   placeholder="Year"
+                  style={styles.monthYearInput}
                 />
                 <Button
                   variant="secondary"
-                  onPress={handleByYearNow}
-                  style={{ alignSelf: "flex-end" }}
+                  onPress={() => {
+                    const next = Math.min(2100, byMonthYear + 1)
+                    setByMonthYear(next)
+                    setByMonthYearInput(String(next))
+                  }}
+                  hitSlop={8}
+                  size="icon"
                 >
-                  <Text variant="default">Now</Text>
+                  <IconSymbol name="chevron-right" size={24} color={fgColor} />
                 </Button>
               </View>
-            )}
-          </View>
-
-          {/* Custom range - collapsible */}
-          <View style={styles.collapsibleSection}>
-            <Pressable
-              onPress={() => toggleSection("custom")}
-              style={styles.rowBase}
-            >
-              <Text variant="default" style={styles.rowText}>
-                Custom range
-              </Text>
-              <IconSymbol
-                name={
-                  expandedSection === "custom"
-                    ? "chevron-down"
-                    : "chevron-right"
-                }
-                size={20}
-                color={mutedColor}
-              />
-            </Pressable>
-            {expandedSection === "custom" && (
-              <View style={styles.expandedContentCompact}>
-                <Pressable
-                  onPress={() => openNativePicker("start")}
-                  style={styles.customRangeRow}
-                >
-                  <Text variant="default" style={styles.rowText}>
-                    Start date
-                  </Text>
-                  <View style={styles.customRangeValue}>
-                    <Text variant="default" style={styles.customRangeValueText}>
-                      {formatLoanDate(customStart)}
-                    </Text>
-                    <IconSymbol
-                      name="chevron-right"
-                      size={18}
-                      color={mutedColor}
-                    />
-                  </View>
-                </Pressable>
-                <Pressable
-                  onPress={() => openNativePicker("end")}
-                  style={styles.customRangeRow}
-                >
-                  <Text variant="default" style={styles.rowText}>
-                    End date
-                  </Text>
-                  <View style={styles.customRangeValue}>
-                    <Text variant="default" style={styles.customRangeValueText}>
-                      {formatLoanDate(customEnd)}
-                    </Text>
-                    <IconSymbol
-                      name="chevron-right"
-                      size={18}
-                      color={mutedColor}
-                    />
-                  </View>
-                </Pressable>
+              <View style={styles.monthGrid}>
+                {MONTH_NAMES.map((name, idx) => {
+                  const isMonthSelected = byMonthMonth === idx
+                  return (
+                    <Pressable
+                      key={name}
+                      onPress={() => handleByMonthSelect(idx)}
+                      style={[
+                        styles.monthCell,
+                        isMonthSelected && styles.monthCellSelected,
+                      ]}
+                    >
+                      <Text
+                        variant="default"
+                        style={[
+                          styles.monthCellText,
+                          isMonthSelected && styles.monthCellTextSelected,
+                        ]}
+                      >
+                        {name}
+                      </Text>
+                    </Pressable>
+                  )
+                })}
               </View>
-            )}
-          </View>
-        </ScrollView>
-
-        {/* Bottom: Cancel and Save */}
-        <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 16 }]}>
-          <Button
-            variant="outline"
-            onPress={onRequestClose}
-            style={{ flex: 1 }}
-          >
-            <Text variant="default">Cancel</Text>
-          </Button>
-          <Button variant="default" onPress={handleSave} style={{ flex: 1 }}>
-            <Text variant="default">Save</Text>
-          </Button>
+              <Button
+                variant="secondary"
+                onPress={handleByMonthNow}
+                style={{ alignSelf: "flex-end" }}
+              >
+                <Text variant="default">Now</Text>
+              </Button>
+            </View>
+          )}
         </View>
 
-        {Platform.OS === "ios" && iosPickerTarget !== null && (
-          <Modal
-            visible
-            transparent
-            animationType="slide"
-            onRequestClose={() => setIosPickerTarget(null)}
+        {/* By year - collapsible */}
+        <View style={styles.collapsibleSection}>
+          <Pressable
+            onPress={() => toggleSection("byYear")}
+            style={styles.rowBase}
           >
-            <Pressable
-              style={styles.iosPickerOverlay}
-              onPress={() => setIosPickerTarget(null)}
-            >
-              <Pressable
-                style={[
-                  styles.iosPickerSheet,
-                  { paddingBottom: insets.bottom + 16 },
-                ]}
-                onPress={(e) => e.stopPropagation()}
+            <Text variant="default" style={styles.rowText}>
+              By year
+            </Text>
+            <IconSymbol
+              name={
+                expandedSection === "byYear" ? "chevron-down" : "chevron-right"
+              }
+              size={20}
+              color={mutedColor}
+            />
+          </Pressable>
+          {expandedSection === "byYear" && (
+            <View style={styles.expandedContent}>
+              <Text variant="small" style={styles.sectionLabel}>
+                Select a year
+              </Text>
+              <Input
+                value={byYearInput}
+                onChangeText={(t) => {
+                  const digits = t.replace(/\D/g, "").slice(0, 4)
+                  setByYearInput(digits)
+                }}
+                keyboardType="number-pad"
+                maxLength={4}
+                placeholder="Year"
+              />
+              <Button
+                variant="secondary"
+                onPress={handleByYearNow}
+                style={{ alignSelf: "flex-end" }}
               >
-                <View style={styles.iosPickerHeader}>
-                  <Pressable
-                    onPress={() => setIosPickerTarget(null)}
-                    hitSlop={12}
-                  >
-                    <Text variant="default" style={styles.mutedText}>
-                      Cancel
-                    </Text>
-                  </Pressable>
-                  <Text variant="default" style={styles.iosPickerHeaderTitle}>
-                    {iosPickerTarget === "start" ? "Start date" : "End date"}
+                <Text variant="default">Now</Text>
+              </Button>
+            </View>
+          )}
+        </View>
+
+        {/* Custom range - collapsible */}
+        <View style={styles.collapsibleSection}>
+          <Pressable
+            onPress={() => toggleSection("custom")}
+            style={styles.rowBase}
+          >
+            <Text variant="default" style={styles.rowText}>
+              Custom range
+            </Text>
+            <IconSymbol
+              name={
+                expandedSection === "custom" ? "chevron-down" : "chevron-right"
+              }
+              size={20}
+              color={mutedColor}
+            />
+          </Pressable>
+          {expandedSection === "custom" && (
+            <View style={styles.expandedContentCompact}>
+              <Pressable
+                onPress={() => openNativePicker("start")}
+                style={styles.customRangeRow}
+              >
+                <Text variant="default" style={styles.rowText}>
+                  Start date
+                </Text>
+                <View style={styles.customRangeValue}>
+                  <Text variant="default" style={styles.customRangeValueText}>
+                    {formatLoanDate(customStart)}
                   </Text>
-                  <Pressable
-                    onPress={() => setIosPickerTarget(null)}
-                    hitSlop={12}
-                  >
-                    <Text variant="default" style={styles.iosPickerDone}>
-                      Done
-                    </Text>
-                  </Pressable>
-                </View>
-                <View style={styles.datePickerWrapper}>
-                  <DateTimePicker
-                    value={
-                      iosPickerTarget === "start" ? customStart : customEnd
-                    }
-                    mode="date"
-                    display="spinner"
-                    onChange={handleIosDateChange(iosPickerTarget)}
-                    textColor={fgColor}
+                  <IconSymbol
+                    name="chevron-right"
+                    size={18}
+                    color={mutedColor}
                   />
                 </View>
               </Pressable>
-            </Pressable>
-          </Modal>
-        )}
+              <Pressable
+                onPress={() => openNativePicker("end")}
+                style={styles.customRangeRow}
+              >
+                <Text variant="default" style={styles.rowText}>
+                  End date
+                </Text>
+                <View style={styles.customRangeValue}>
+                  <Text variant="default" style={styles.customRangeValueText}>
+                    {formatLoanDate(customEnd)}
+                  </Text>
+                  <IconSymbol
+                    name="chevron-right"
+                    size={18}
+                    color={mutedColor}
+                  />
+                </View>
+              </Pressable>
+            </View>
+          )}
+        </View>
+      </ScrollView>
+
+      {/* Bottom: Cancel and Save */}
+      <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 16 }]}>
+        <Button variant="outline" onPress={onRequestClose} style={{ flex: 1 }}>
+          <Text variant="default">Cancel</Text>
+        </Button>
+        <Button variant="default" onPress={handleSave} style={{ flex: 1 }}>
+          <Text variant="default">Save</Text>
+        </Button>
       </View>
+
+      {Platform.OS === "ios" && iosPickerTarget !== null && (
+        <Modal
+          visible
+          transparent
+          animationType="slide"
+          onRequestClose={() => setIosPickerTarget(null)}
+        >
+          <Pressable
+            style={styles.iosPickerOverlay}
+            onPress={() => setIosPickerTarget(null)}
+          >
+            <Pressable
+              style={[
+                styles.iosPickerSheet,
+                { paddingBottom: insets.bottom + 16 },
+              ]}
+              onPress={(e) => e.stopPropagation()}
+            >
+              <View style={styles.iosPickerHeader}>
+                <Pressable
+                  onPress={() => setIosPickerTarget(null)}
+                  hitSlop={12}
+                >
+                  <Text variant="default" style={styles.mutedText}>
+                    Cancel
+                  </Text>
+                </Pressable>
+                <Text variant="default" style={styles.iosPickerHeaderTitle}>
+                  {iosPickerTarget === "start" ? "Start date" : "End date"}
+                </Text>
+                <Pressable
+                  onPress={() => setIosPickerTarget(null)}
+                  hitSlop={12}
+                >
+                  <Text variant="default" style={styles.iosPickerDone}>
+                    Done
+                  </Text>
+                </Pressable>
+              </View>
+              <View style={styles.datePickerWrapper}>
+                <DateTimePicker
+                  value={iosPickerTarget === "start" ? customStart : customEnd}
+                  mode="date"
+                  display="spinner"
+                  onChange={handleIosDateChange(iosPickerTarget)}
+                  textColor={fgColor}
+                />
+              </View>
+            </Pressable>
+          </Pressable>
+        </Modal>
+      )}
+    </View>
+  )
+}
+
+export function DateRangePresetModal({
+  visible,
+  initialStart,
+  initialEnd,
+  onSave,
+  onRequestClose,
+}: DateRangePresetModalProps) {
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="fullScreen"
+      onRequestClose={onRequestClose}
+    >
+      {visible ? (
+        <DateRangePresetModalContent
+          key={`${initialStart?.getTime() ?? 0}-${initialEnd?.getTime() ?? 0}`}
+          initialStart={initialStart}
+          initialEnd={initialEnd}
+          onSave={onSave}
+          onRequestClose={onRequestClose}
+        />
+      ) : null}
     </Modal>
   )
 }

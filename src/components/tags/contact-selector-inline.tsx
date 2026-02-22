@@ -148,7 +148,7 @@ function ContactsPanelContent({
         disabled={!selectedContact}
         style={styles.doneButton}
       >
-        Done
+        <Text>Done</Text>
       </Button>
     </View>
   )

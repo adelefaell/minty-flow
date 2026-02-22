@@ -4,7 +4,7 @@
  * No bottom sheets — filters are shown directly in the view.
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { LayoutAnimation, ScrollView, TextInput, View } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
@@ -631,10 +631,7 @@ export function TransactionFilterHeader({
   const [dateModalVisible, setDateModalVisible] = useState(false)
   const [localSearchState, setLocalSearchState] = useState(searchState)
   const { theme } = useUnistyles()
-
-  useEffect(() => {
-    setLocalSearchState(searchState)
-  }, [searchState])
+  // When parent updates searchState (e.g. after Apply), pass key so this component remounts with fresh local state; see call sites.
 
   // ── Panel toggling ──
 

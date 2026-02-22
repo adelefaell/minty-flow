@@ -255,6 +255,7 @@ const AccountDetailsScreenInner = ({
       {monthPickerOpen && (
         <View style={styles.monthPickerContainer}>
           <MonthYearPicker
+            key={`${selectedYear}-${selectedMonth}`}
             year={selectedYear}
             month={selectedMonth}
             onSelect={(y, m) => {
@@ -283,6 +284,7 @@ const AccountDetailsScreenInner = ({
       {/* Filter header (when More options is on) */}
       {showFilters && (
         <TransactionFilterHeader
+          key={JSON.stringify(searchState)}
           accounts={[]}
           categoriesByType={categoriesByType}
           tags={tags}

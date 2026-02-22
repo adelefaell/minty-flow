@@ -230,12 +230,13 @@ const enhance = withObservables(
   }),
 )
 
+const EnhancedAccountsScreen = enhance(AccountsScreenInner)
+
 function AccountsScreen() {
   const excludeFromTotals = useTransfersPreferencesStore(
     (s) => s.excludeFromTotals,
   )
-  const Enhanced = enhance(AccountsScreenInner)
-  return <Enhanced excludeFromTotals={excludeFromTotals} />
+  return <EnhancedAccountsScreen excludeFromTotals={excludeFromTotals} />
 }
 
 export default AccountsScreen

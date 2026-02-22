@@ -153,9 +153,8 @@ const EditAccountScreenInner = ({
         title: "Error",
         description: `Failed to ${isAddMode ? "create" : "update"} account.`,
       })
-    } finally {
-      setIsSubmitting(false)
     }
+    setIsSubmitting(false)
   }
 
   const handleSubmit = handleFormSubmit(onSubmit)
