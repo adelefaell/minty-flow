@@ -52,6 +52,7 @@ const FORMAT = {
   HOUR_TITLE: "MMM d, yyyy h a",
   WEEK_KEY: "RRRR-'W'II",
   WEEK_TITLE_SHORT: "MMM d",
+  SHORT_MONTH_DAY: "MMM d",
   MONTH_KEY: "yyyy-MM",
   MONTH_TITLE: "MMMM yyyy",
   YEAR: "yyyy",
@@ -206,6 +207,11 @@ export function formatWeekKey(weekStart: DateInput): string {
 /** Week title (e.g. "Week of Feb 15"). Pass week start date. */
 export function formatWeekTitle(weekStart: DateInput): string {
   return `Week of ${formatWithPattern(weekStart, FORMAT.WEEK_TITLE_SHORT)}`
+}
+
+/** Short month and day (e.g. "Feb 15") — for range labels and compact headers. */
+export function formatShortMonthDay(date: DateInput): string {
+  return formatWithPattern(date, FORMAT.SHORT_MONTH_DAY)
 }
 
 /** Month-grouping key (e.g. "2025-02"). */

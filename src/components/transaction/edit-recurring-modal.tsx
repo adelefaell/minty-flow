@@ -125,19 +125,21 @@ export function EditRecurringModal({
           }
 
           case "this_and_future": {
-            await updateFutureRecurringInstances(
-              recurringRule.id,
-              transaction.transactionDate,
-              pendingPayload,
-            )
-            await updateRecurringRuleTemplate(recurringRule.id, {
-              amount: pendingPayload.amount,
-              title: pendingPayload.title,
-              categoryId: pendingPayload.categoryId,
-              accountId: pendingPayload.accountId,
-              type: pendingPayload.type,
-            })
-            await updateTransactionModel(transaction, pendingPayload)
+            await Promise.all([
+              updateFutureRecurringInstances(
+                recurringRule.id,
+                transaction.transactionDate,
+                pendingPayload,
+              ),
+              updateRecurringRuleTemplate(recurringRule.id, {
+                amount: pendingPayload.amount,
+                title: pendingPayload.title,
+                categoryId: pendingPayload.categoryId,
+                accountId: pendingPayload.accountId,
+                type: pendingPayload.type,
+              }),
+              updateTransactionModel(transaction, pendingPayload),
+            ])
             Toast.success({ title: "This and future transactions updated" })
             break
           }

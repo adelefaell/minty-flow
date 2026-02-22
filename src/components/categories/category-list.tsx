@@ -33,6 +33,76 @@ interface CategoryListInnerProps extends CategoryListProps {
   archivedCount: number
 }
 
+interface CategoryListHeaderProps {
+  onAddCategory: () => void
+  onAddFromPresets: () => void
+}
+
+function CategoryListHeader({
+  onAddCategory,
+  onAddFromPresets,
+}: CategoryListHeaderProps) {
+  return (
+    <>
+      <View style={styles.headerContainer}>
+        <Button
+          variant="secondary"
+          size="default"
+          onPress={onAddCategory}
+          style={styles.headerButton}
+        >
+          <IconSymbol name="plus" size={20} />
+          <Text variant="default" style={styles.headerButtonText}>
+            Add New Category
+          </Text>
+        </Button>
+        <Button
+          variant="secondary"
+          size="default"
+          onPress={onAddFromPresets}
+          style={styles.headerButton}
+        >
+          <IconSymbol name="shape-plus" size={20} />
+          <Text variant="default" style={styles.headerButtonText}>
+            Add From Presets
+          </Text>
+        </Button>
+      </View>
+      <Separator />
+    </>
+  )
+}
+
+interface CategoryListFooterProps {
+  type: TransactionType
+  archivedCount: number
+  onViewArchived: () => void
+}
+
+function CategoryListFooter({
+  type,
+  archivedCount,
+  onViewArchived,
+}: CategoryListFooterProps) {
+  if (archivedCount === 0) return null
+  return (
+    <>
+      <Separator style={styles.footerSeparator} />
+      <View style={styles.footerContainer}>
+        <Button variant="secondary" size="default" onPress={onViewArchived}>
+          <View style={styles.archivedEntryLeft} variant="muted">
+            <IconSymbol name="archive" size={20} style={styles.archivedIcon} />
+            <Text style={styles.archivedText}>
+              View Archived {type.charAt(0).toUpperCase() + type.slice(1)}s (
+              {archivedCount})
+            </Text>
+          </View>
+        </Button>
+      </View>
+    </>
+  )
+}
+
 const CategoryListInner = ({
   type,
   createdCategory,
@@ -93,74 +163,21 @@ const CategoryListInner = ({
   const activeCategories = categories.filter((c) => !c.isArchived)
   const archivedCategories = categories.filter((c) => c.isArchived)
 
-  const renderHeader = () => {
-    // Don't show add buttons when viewing archived categories
-    if (includeArchived) {
-      return null
-    }
+  const header = includeArchived ? null : (
+    <CategoryListHeader
+      onAddCategory={handleAddCategory}
+      onAddFromPresets={handleAddFromPresets}
+    />
+  )
 
-    return (
-      <>
-        <View style={styles.headerContainer}>
-          <Button
-            variant="secondary"
-            size="default"
-            onPress={handleAddCategory}
-            style={styles.headerButton}
-          >
-            <IconSymbol name="plus" size={20} />
-            <Text variant="default" style={styles.headerButtonText}>
-              Add New Category
-            </Text>
-          </Button>
-          <Button
-            variant="secondary"
-            size="default"
-            onPress={handleAddFromPresets}
-            style={styles.headerButton}
-          >
-            <IconSymbol name="shape-plus" size={20} />
-            <Text variant="default" style={styles.headerButtonText}>
-              Add From Presets
-            </Text>
-          </Button>
-        </View>
-
-        <Separator />
-      </>
+  const footer =
+    includeArchived || archivedCount === 0 ? null : (
+      <CategoryListFooter
+        type={type}
+        archivedCount={archivedCount}
+        onViewArchived={handleViewArchived}
+      />
     )
-  }
-
-  const renderFooter = () => {
-    if (includeArchived || archivedCount === 0) {
-      return null
-    }
-
-    return (
-      <>
-        <Separator style={styles.footerSeparator} />
-        <View style={styles.footerContainer}>
-          <Button
-            variant="secondary"
-            size="default"
-            onPress={handleViewArchived}
-          >
-            <View style={styles.archivedEntryLeft} variant="muted">
-              <IconSymbol
-                name="archive"
-                size={20}
-                style={styles.archivedIcon}
-              />
-              <Text style={styles.archivedText}>
-                View Archived {type.charAt(0).toUpperCase() + type.slice(1)}s (
-                {archivedCount})
-              </Text>
-            </View>
-          </Button>
-        </View>
-      </>
-    )
-  }
 
   // When viewing archived, show ONLY archived categories
   // When viewing active, show ONLY active categories
@@ -173,6 +190,15 @@ const CategoryListInner = ({
       .toLowerCase()
       .includes(searchQuery.trim().toLowerCase())
   })
+
+  const renderItem = useCallback(
+    ({ item }: { item: Category }) => (
+      <CategoryRow category={item} transactionCount={item.transactionCount} />
+    ),
+    [],
+  )
+
+  const keyExtractor = useCallback((item: Category) => item.id, [])
 
   if (filteredCategories.length === 0) {
     if (searchQuery) {
@@ -213,7 +239,7 @@ const CategoryListInner = ({
     if (!includeArchived && archivedCount > 0) {
       return (
         <View style={styles.emptyWrapper}>
-          {renderHeader()}
+          {header}
           <View style={styles.emptyContainer}>
             <IconSymbol
               name="shape"
@@ -243,7 +269,7 @@ const CategoryListInner = ({
 
     return (
       <View style={styles.emptyWrapper}>
-        {renderHeader()}
+        {header}
         <View style={styles.emptyContainer}>
           <IconSymbol name="shape" size={40} style={styles.emptyIcon} />
           <Text variant="h4" style={styles.emptyTitle}>
@@ -260,13 +286,11 @@ const CategoryListInner = ({
   return (
     <FlatList
       data={filteredCategories}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item }) => (
-        <CategoryRow category={item} transactionCount={item.transactionCount} />
-      )}
+      keyExtractor={keyExtractor}
+      renderItem={renderItem}
       contentContainerStyle={styles.listContent}
-      ListHeaderComponent={renderHeader()}
-      ListFooterComponent={renderFooter()}
+      ListHeaderComponent={header}
+      ListFooterComponent={footer}
     />
   )
 }

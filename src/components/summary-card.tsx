@@ -10,6 +10,8 @@ import { useTransfersPreferencesStore } from "~/stores/transfers-preferences.sto
 import type { TransactionType } from "~/types/transactions"
 import { TransactionTypeEnum } from "~/types/transactions"
 
+const EMPTY_EXTRA_BY_CURRENCY: Record<string, number> = {}
+
 interface SummarySectionProps {
   transactionsWithRelations: TransactionWithRelations[]
 }
@@ -101,7 +103,12 @@ interface CardProps {
   extraByCurrency?: Record<string, number>
 }
 
-const Card = ({ type, rows, label, extraByCurrency = {} }: CardProps) => {
+const Card = ({
+  type,
+  rows,
+  label,
+  extraByCurrency = EMPTY_EXTRA_BY_CURRENCY,
+}: CardProps) => {
   const { theme } = useUnistyles()
   const isIncome = type === TransactionTypeEnum.INCOME
   const icon: IconSymbolName = isIncome

@@ -14,23 +14,23 @@ const MAX_NOTES_LENGTH = 500
 
 interface NotesModalProps {
   visible: boolean
-  value: string
+  initialValue: string
   onSave: (notes: string) => void
   onRequestClose: () => void
 }
 
 function NotesModalContent({
-  value,
+  initialValue,
   onSave,
   onRequestClose,
 }: {
-  value: string
+  initialValue: string
   onSave: (notes: string) => void
   onRequestClose: () => void
 }) {
   const { theme } = useUnistyles()
   const insets = useSafeAreaInsets()
-  const [localValue, setLocalValue] = useState(value)
+  const [localValue, setLocalValue] = useState(initialValue)
 
   const handleSave = useCallback(() => {
     onSave(localValue.trim())
@@ -91,7 +91,7 @@ function NotesModalContent({
 
 export function NotesModal({
   visible,
-  value,
+  initialValue,
   onSave,
   onRequestClose,
 }: NotesModalProps) {
@@ -104,8 +104,8 @@ export function NotesModal({
     >
       {visible ? (
         <NotesModalContent
-          key={value}
-          value={value}
+          key={initialValue}
+          initialValue={initialValue}
           onSave={onSave}
           onRequestClose={onRequestClose}
         />

@@ -16,10 +16,10 @@ import { MONTH_NAMES } from "~/utils/time-utils"
 import { Input } from "./ui/input"
 
 export interface MonthYearPickerProps {
-  /** Current year (e.g. 2026). */
-  year: number
-  /** Current month 0–11. */
-  month: number
+  /** Initial year (e.g. 2026). Parent uses key to reset when this changes. */
+  initialYear: number
+  /** Initial month 0–11. Parent uses key to reset when this changes. */
+  initialMonth: number
   /** Called when user presses Done (commits the current selection). */
   onSelect: (year: number, month: number) => void
   /** Called when user taps "Now" (sets local selection to current month/year). */
@@ -36,16 +36,15 @@ function clampYear(y: number): number {
 }
 
 export function MonthYearPicker({
-  year,
-  month,
+  initialYear,
+  initialMonth,
   onSelect,
   onNow,
   onDone,
 }: MonthYearPickerProps) {
-  const [localYear, setLocalYear] = useState(year)
-  const [localMonth, setLocalMonth] = useState(month)
-  const [yearInputValue, setYearInputValue] = useState(String(year))
-  // When parent passes new year/month, use key on this component (e.g. key={`${year}-${month}`}) to reset local state instead of syncing in an effect.
+  const [localYear, setLocalYear] = useState(initialYear)
+  const [localMonth, setLocalMonth] = useState(initialMonth)
+  const [yearInputValue, setYearInputValue] = useState(String(initialYear))
 
   const handleMonthPress = useCallback((monthIndex: number) => {
     setLocalMonth(monthIndex)
@@ -85,7 +84,7 @@ export function MonthYearPicker({
           }}
           keyboardType="number-pad"
           maxLength={4}
-          placeholder={String(year)}
+          placeholder={String(initialYear)}
           placeholderTextColor={styles.semiColor.color}
           style={styles.yearInput}
           textAlign="center"

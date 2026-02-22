@@ -125,23 +125,33 @@ export function TransactionSectionList({
     [],
   )
 
+  const renderItem = useCallback(
+    ({ item }: { item: TransactionWithRelations }) => (
+      <TransactionItem
+        transactionWithRelations={item as TransactionWithRelations}
+        onPress={() => handleOnTransactionPress(item.transaction.id)}
+        onDelete={handleDeleteDone}
+        onWillOpen={(methods) => {
+          openSwipeableRef.current?.close()
+          openSwipeableRef.current = methods
+        }}
+      />
+    ),
+    [handleOnTransactionPress, handleDeleteDone],
+  )
+
+  const keyExtractor = useCallback(
+    (item: TransactionWithRelations) => item.transaction.id,
+    [],
+  )
+
   return (
     <SectionList
       sections={sections}
       ListHeaderComponent={renderHeader}
       ListEmptyComponent={renderEmptyList}
-      keyExtractor={(item) => (item as TransactionWithRelations).transaction.id}
-      renderItem={({ item }) => (
-        <TransactionItem
-          transactionWithRelations={item as TransactionWithRelations}
-          onPress={() => handleOnTransactionPress(item.transaction.id)}
-          onDelete={handleDeleteDone}
-          onWillOpen={(methods) => {
-            openSwipeableRef.current?.close()
-            openSwipeableRef.current = methods
-          }}
-        />
-      )}
+      keyExtractor={keyExtractor}
+      renderItem={renderItem}
       renderSectionHeader={({ section }) => {
         const s = section as unknown as {
           title: string

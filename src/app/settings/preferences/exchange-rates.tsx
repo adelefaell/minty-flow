@@ -1,11 +1,11 @@
 import { useNavigation } from "expo-router"
-import type { Dispatch, SetStateAction } from "react"
 import {
   Suspense,
   use,
   useCallback,
   useLayoutEffect,
   useMemo,
+  useReducer,
   useState,
 } from "react"
 import {
@@ -28,6 +28,13 @@ import { View } from "~/components/ui/view"
 import { exchangeRatesService } from "~/services"
 import type { ExchangeRates } from "~/services/exchange-rates"
 import { useExchangeRatesPreferencesStore } from "~/stores/exchange-rates-preferences.store"
+
+import {
+  type EditorAction,
+  type EditorState,
+  editorReducer,
+  INITIAL_EDITOR_STATE,
+} from "../../../hooks/exchange-rates-editor.reducer"
 
 const EXCHANGE_API_URL = "https://github.com/fawazahmed0/exchange-api"
 
@@ -76,12 +83,8 @@ interface ExchangeRatesContentProps {
   customRates: Record<string, number>
   setCustomRate: (code: string, rate: number) => void
   removeCustomRate: (code: string) => void
-  searchQuery: string
-  setSearchQuery: (q: string) => void
-  editingCurrencyCode: string | null
-  setEditingCurrencyCode: Dispatch<SetStateAction<string | null>>
-  draftRates: Record<string, number>
-  setDraftRates: Dispatch<SetStateAction<Record<string, number>>>
+  editorState: EditorState
+  dispatch: React.Dispatch<EditorAction>
 }
 
 function ExchangeRatesContent({
@@ -90,14 +93,11 @@ function ExchangeRatesContent({
   customRates,
   setCustomRate,
   removeCustomRate,
-  searchQuery,
-  setSearchQuery,
-  editingCurrencyCode,
-  setEditingCurrencyCode,
-  draftRates,
-  setDraftRates,
+  editorState,
+  dispatch,
 }: ExchangeRatesContentProps) {
   const { rates, error } = use(ratesPromise)
+  const { searchQuery, editingCurrencyCode, draftRates } = editorState
 
   const entries = useMemo((): RateEntry[] => {
     if (!rates?.rates) return []
@@ -135,44 +135,33 @@ function ExchangeRatesContent({
 
   const handleSelectEntry = useCallback(
     (code: string, currentRate: number) => {
-      setEditingCurrencyCode((prev) => (prev === code ? null : code))
-      setDraftRates((d) => ({ ...d, [code]: currentRate }))
+      dispatch({ type: "SELECT_ENTRY", code, rate: currentRate })
     },
-    [setEditingCurrencyCode, setDraftRates],
+    [dispatch],
   )
 
   const handleDraftChange = useCallback(
     (code: string, value: number) => {
-      setDraftRates((prev) => ({ ...prev, [code]: value }))
+      dispatch({ type: "DRAFT_CHANGE", code, value })
     },
-    [setDraftRates],
+    [dispatch],
   )
 
   const handleSaveRate = useCallback(
     (code: string, value: number) => {
       if (value <= 0) return
       setCustomRate(code, value)
-      setEditingCurrencyCode(null)
-      setDraftRates((prev) => {
-        const next = { ...prev }
-        delete next[code]
-        return next
-      })
+      dispatch({ type: "CLEAR_DRAFT", code })
     },
-    [setCustomRate, setEditingCurrencyCode, setDraftRates],
+    [setCustomRate, dispatch],
   )
 
   const handleResetToApiRate = useCallback(
     (code: string) => {
       removeCustomRate(code)
-      setEditingCurrencyCode(null)
-      setDraftRates((prev) => {
-        const next = { ...prev }
-        delete next[code]
-        return next
-      })
+      dispatch({ type: "CLEAR_DRAFT", code })
     },
-    [removeCustomRate, setEditingCurrencyCode, setDraftRates],
+    [removeCustomRate, dispatch],
   )
 
   const renderItem = useCallback(
@@ -258,8 +247,8 @@ function ExchangeRatesContent({
       </ExternalLink>
       <SearchInput
         value={searchQuery}
-        onChangeText={setSearchQuery}
-        onClear={() => setSearchQuery("")}
+        onChangeText={(query) => dispatch({ type: "SET_SEARCH", query })}
+        onClear={() => dispatch({ type: "SET_SEARCH", query: "" })}
         placeholder="Search currencies..."
         containerStyle={styles.searchRow}
       />
@@ -310,11 +299,10 @@ export default function ExchangeRatesScreen() {
   )
 
   const [ratesPromise, setRatesPromise] = useState(createRatesPromise)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [editingCurrencyCode, setEditingCurrencyCode] = useState<string | null>(
-    null,
+  const [editorState, dispatch] = useReducer(
+    editorReducer,
+    INITIAL_EDITOR_STATE,
   )
-  const [draftRates, setDraftRates] = useState<Record<string, number>>({})
   const [infoModalVisible, setInfoModalVisible] = useState(false)
 
   const handleRetry = useCallback(() => {
@@ -351,12 +339,8 @@ export default function ExchangeRatesScreen() {
           customRates={customRates}
           setCustomRate={setCustomRate}
           removeCustomRate={removeCustomRate}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          editingCurrencyCode={editingCurrencyCode}
-          setEditingCurrencyCode={setEditingCurrencyCode}
-          draftRates={draftRates}
-          setDraftRates={setDraftRates}
+          editorState={editorState}
+          dispatch={dispatch}
         />
       </Suspense>
       <InfoModal

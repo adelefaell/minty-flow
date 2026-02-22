@@ -1,6 +1,15 @@
 import type { TransactionType } from "./transactions"
 import { TransactionTypeEnum } from "./transactions"
 
+export const PendingOptionsEnum = {
+  ALL: "all",
+  PENDING: "pending",
+  NOT_PENDING: "notPending",
+} as const
+
+export type PendingOptionsType =
+  (typeof PendingOptionsEnum)[keyof typeof PendingOptionsEnum]
+
 /** How search text is matched: smart/partial = substring, exact = full string, untitled = no title. */
 export type SearchMatchType = "smart" | "partial" | "exact" | "untitled"
 
@@ -26,13 +35,13 @@ export interface TransactionListFilterState {
   /** Selected tag IDs; empty = all tags. */
   tagIds: string[]
   /** Pending filter: all, only pending, or only not pending. */
-  pendingFilter: "all" | "pending" | "notPending"
+  pendingFilter: PendingOptionsType
   /** Selected transaction types; empty = all types. */
   typeFilters: TransactionType[]
   /** How to group sections in the list. */
   groupBy: GroupByOption
   /** Attachment filter: all, has attachments, or has no attachments. */
-  attachmentFilter: "all" | "has" | "none"
+  attachmentFilter: AttachmentsOptionsType
 }
 
 export type GroupByOption =
@@ -42,17 +51,6 @@ export type GroupByOption =
   | "month"
   | "year"
   | "allTime"
-
-export const DEFAULT_TRANSACTION_LIST_FILTER_STATE: TransactionListFilterState =
-  {
-    accountIds: [],
-    categoryIds: [],
-    tagIds: [],
-    pendingFilter: "all",
-    typeFilters: [],
-    groupBy: "day",
-    attachmentFilter: "all",
-  }
 
 export const GROUP_BY_OPTIONS: { id: GroupByOption; label: string }[] = [
   { id: "hour", label: "Hour" },
@@ -64,9 +62,9 @@ export const GROUP_BY_OPTIONS: { id: GroupByOption; label: string }[] = [
 ]
 
 export const PENDING_OPTIONS = [
-  { id: "all" as const, label: "All" },
-  { id: "pending" as const, label: "Pending" },
-  { id: "notPending" as const, label: "Not Pending" },
+  { id: PendingOptionsEnum.ALL, label: "All" },
+  { id: PendingOptionsEnum.PENDING, label: "Pending" },
+  { id: PendingOptionsEnum.NOT_PENDING, label: "Not Pending" },
 ]
 
 export const TYPE_OPTIONS: { id: TransactionType | "all"; label: string }[] = [
@@ -76,8 +74,28 @@ export const TYPE_OPTIONS: { id: TransactionType | "all"; label: string }[] = [
   { id: TransactionTypeEnum.EXPENSE, label: "Expense" },
 ]
 
+export const AttachmentsOptionsEnum = {
+  ALL: "all",
+  HAS: "has",
+  NONE: "none",
+} as const
+
+export type AttachmentsOptionsType =
+  (typeof AttachmentsOptionsEnum)[keyof typeof AttachmentsOptionsEnum]
+
 export const ATTACHMENT_OPTIONS = [
-  { id: "all" as const, label: "Attachments" },
-  { id: "has" as const, label: "Has Attachments" },
-  { id: "none" as const, label: "Has No Attachments" },
+  { id: AttachmentsOptionsEnum.ALL, label: "Attachments" },
+  { id: AttachmentsOptionsEnum.HAS, label: "Has Attachments" },
+  { id: AttachmentsOptionsEnum.NONE, label: "Has No Attachments" },
 ]
+
+export const DEFAULT_TRANSACTION_LIST_FILTER_STATE: TransactionListFilterState =
+  {
+    accountIds: [],
+    categoryIds: [],
+    tagIds: [],
+    pendingFilter: PendingOptionsEnum.ALL,
+    typeFilters: [],
+    groupBy: "day",
+    attachmentFilter: AttachmentsOptionsEnum.ALL,
+  }
