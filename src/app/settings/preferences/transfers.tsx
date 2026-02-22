@@ -185,7 +185,7 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.error,
   },
   sliderBarCombined: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.customColors.success,
   },
   radioGroup: {
     width: "100%",

@@ -27,8 +27,14 @@ import { useProfileStore } from "~/stores/profile.store"
 import type { Account } from "~/types/accounts"
 import type { Category } from "~/types/categories"
 import type { Tag } from "~/types/tags"
-import type { TransactionListFilterState } from "~/types/transaction-filters"
-import { DEFAULT_TRANSACTION_LIST_FILTER_STATE } from "~/types/transaction-filters"
+import type {
+  SearchState,
+  TransactionListFilterState,
+} from "~/types/transaction-filters"
+import {
+  DEFAULT_SEARCH_STATE,
+  DEFAULT_TRANSACTION_LIST_FILTER_STATE,
+} from "~/types/transaction-filters"
 import { TransactionTypeEnum } from "~/types/transactions"
 import {
   buildQueryFilters,
@@ -46,8 +52,8 @@ interface HomeScreenProps {
   onFilterChange?: (state: TransactionListFilterState) => void
   selectedRange?: { start: Date; end: Date } | null
   onDateRangeChange?: (range: { start: Date; end: Date } | null) => void
-  searchQuery?: string
-  onSearchApply?: (query: string) => void
+  searchState?: SearchState
+  onSearchApply?: (state: SearchState) => void
 }
 
 function HomeScreenInner({
@@ -61,7 +67,7 @@ function HomeScreenInner({
   onFilterChange,
   selectedRange = null,
   onDateRangeChange,
-  searchQuery = "",
+  searchState = DEFAULT_SEARCH_STATE,
   onSearchApply,
 }: HomeScreenProps) {
   const categoriesByType = useMemo(
@@ -130,7 +136,7 @@ function HomeScreenInner({
           onFilterChange={onFilterChange}
           selectedRange={selectedRange}
           onDateRangeChange={onDateRangeChange}
-          searchQuery={searchQuery}
+          searchState={searchState}
           onSearchApply={onSearchApply}
         />
       ) : null}
@@ -147,17 +153,17 @@ function HomeScreenInner({
 }
 
 const EnhancedHomeScreen = withObservables(
-  ["selectedRange", "homeTimeframe", "filterState", "searchQuery"],
+  ["selectedRange", "homeTimeframe", "filterState", "searchState"],
   ({
     selectedRange,
     homeTimeframe = 3,
     filterState,
-    searchQuery,
+    searchState,
   }: {
     selectedRange: { start: Date; end: Date } | null
     homeTimeframe?: number
     filterState: TransactionListFilterState
-    searchQuery: string
+    searchState: SearchState
   }) => {
     const { fromDate, toDate } = buildQueryFilters(
       selectedRange ?? null,
@@ -166,7 +172,9 @@ const EnhancedHomeScreen = withObservables(
     const queryFilters = buildTransactionListFilters(filterState, {
       fromDate,
       toDate,
-      search: searchQuery,
+      search: searchState.query,
+      searchMatchType: searchState.matchType,
+      searchIncludeNotes: searchState.includeNotes,
     })
     return {
       transactionsFull: observeTransactionModelsFull(queryFilters, [
@@ -198,7 +206,8 @@ function HomeScreen() {
     start: Date
     end: Date
   } | null>(null)
-  const [searchQuery, setSearchQuery] = useState("")
+  const [searchState, setSearchState] =
+    useState<SearchState>(DEFAULT_SEARCH_STATE)
   const homeTimeframe = usePendingTransactionsStore((s) => s.homeTimeframe)
   return (
     <EnhancedHomeScreen
@@ -207,8 +216,8 @@ function HomeScreen() {
       selectedRange={selectedRange}
       homeTimeframe={homeTimeframe}
       onDateRangeChange={setSelectedRange}
-      searchQuery={searchQuery}
-      onSearchApply={setSearchQuery}
+      searchState={searchState}
+      onSearchApply={setSearchState}
     />
   )
 }

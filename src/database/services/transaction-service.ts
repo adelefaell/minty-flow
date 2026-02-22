@@ -193,15 +193,35 @@ const buildTransactionQuery = (filters?: TransactionListFilters) => {
   if (filters?.maxAmount !== undefined) {
     query = query.extend(Q.where("amount", Q.lte(filters.maxAmount)))
   }
+  const matchType = filters?.searchMatchType ?? "partial"
+  const isUntitled = matchType === "untitled"
+  if (isUntitled) {
+    query = query.extend(Q.or(Q.where("title", null), Q.where("title", "")))
+  }
   const searchTrimmed = filters?.search?.trim()
   if (searchTrimmed && searchTrimmed.length > 0) {
-    const pattern = `%${escapeLike(searchTrimmed)}%`
-    query = query.extend(
-      Q.or(
-        Q.where("title", Q.like(pattern)),
-        Q.where("description", Q.like(pattern)),
-      ),
-    )
+    const includeNotes = filters?.searchIncludeNotes !== false
+    const escaped = escapeLike(searchTrimmed)
+    const isExact = matchType === "exact"
+    const pattern = isExact ? escaped : `%${escaped}%`
+    if (isUntitled) {
+      const notesCondition = isExact
+        ? Q.where("description", searchTrimmed)
+        : Q.where("description", Q.like(pattern))
+      query = query.extend(notesCondition)
+    } else {
+      const titleCondition = isExact
+        ? Q.where("title", searchTrimmed)
+        : Q.where("title", Q.like(pattern))
+      if (includeNotes) {
+        const notesCondition = isExact
+          ? Q.where("description", searchTrimmed)
+          : Q.where("description", Q.like(pattern))
+        query = query.extend(Q.or(titleCondition, notesCondition))
+      } else {
+        query = query.extend(titleCondition)
+      }
+    }
   }
   if (filters?.tagIds?.length) {
     query = query.extend(

@@ -13,6 +13,13 @@ import type TransactionTagModel from "./TransactionTag"
 export default class TransactionModel extends Model implements Transaction {
   static table = "transactions"
 
+  static associations = {
+    transaction_tags: {
+      type: "has_many" as const,
+      foreignKey: "transaction_id",
+    },
+  }
+
   // Core transaction fields
   @field("type") type!: TransactionType // "expense" | "income" | "transfer"
   @date("transaction_date") transactionDate!: Date

@@ -29,9 +29,13 @@ import type { Category } from "~/types/categories"
 import type { Tag } from "~/types/tags"
 import type {
   GroupByOption,
+  SearchState,
   TransactionListFilterState,
 } from "~/types/transaction-filters"
-import { DEFAULT_TRANSACTION_LIST_FILTER_STATE } from "~/types/transaction-filters"
+import {
+  DEFAULT_SEARCH_STATE,
+  DEFAULT_TRANSACTION_LIST_FILTER_STATE,
+} from "~/types/transaction-filters"
 import { TransactionTypeEnum } from "~/types/transactions"
 import { MONTH_NAMES } from "~/utils/time-utils"
 import { buildTransactionListFilters } from "~/utils/transaction-list-utils"
@@ -57,8 +61,8 @@ interface AccountDetailsProps {
   onMonthYearChange: (year: number, month: number) => void
   filterState: TransactionListFilterState
   onFilterChange: (state: TransactionListFilterState) => void
-  searchQuery: string
-  onSearchApply: (query: string) => void
+  searchState: SearchState
+  onSearchApply: (state: SearchState) => void
 }
 
 const AccountDetailsScreenInner = ({
@@ -73,7 +77,7 @@ const AccountDetailsScreenInner = ({
   onMonthYearChange,
   filterState,
   onFilterChange,
-  searchQuery,
+  searchState,
   onSearchApply,
 }: AccountDetailsProps) => {
   const router = useRouter()
@@ -284,7 +288,7 @@ const AccountDetailsScreenInner = ({
           tags={tags}
           filterState={filterState}
           onFilterChange={onFilterChange}
-          searchQuery={searchQuery}
+          searchState={searchState}
           onSearchApply={onSearchApply}
           hiddenFilters={["accounts"]}
         />
@@ -489,7 +493,7 @@ const EnhancedAccountDetailsScreen = withObservables(
     "selectedYear",
     "selectedMonth",
     "filterState",
-    "searchQuery",
+    "searchState",
     "excludeFromTotals",
   ],
   ({
@@ -497,21 +501,23 @@ const EnhancedAccountDetailsScreen = withObservables(
     selectedYear,
     selectedMonth,
     filterState,
-    searchQuery,
+    searchState,
     excludeFromTotals = true,
   }: {
     accountId: string
     selectedYear: number
     selectedMonth: number
     filterState: TransactionListFilterState
-    searchQuery: string
+    searchState: SearchState
     excludeFromTotals?: boolean
   }) => {
     const { fromDate, toDate } = getMonthRange(selectedYear, selectedMonth)
     const queryFilters = buildTransactionListFilters(filterState, {
       fromDate,
       toDate,
-      search: searchQuery,
+      search: searchState.query,
+      searchMatchType: searchState.matchType,
+      searchIncludeNotes: searchState.includeNotes,
       accountId,
     })
     return {
@@ -549,7 +555,8 @@ export default function AccountDetailsScreen() {
   const [filterState, setFilterState] = useState<TransactionListFilterState>(
     DEFAULT_TRANSACTION_LIST_FILTER_STATE,
   )
-  const [searchQuery, setSearchQuery] = useState("")
+  const [searchState, setSearchState] =
+    useState<SearchState>(DEFAULT_SEARCH_STATE)
   const excludeFromTotals = useTransfersPreferencesStore(
     (s) => s.excludeFromTotals,
   )
@@ -569,8 +576,8 @@ export default function AccountDetailsScreen() {
       onMonthYearChange={handleMonthYearChange}
       filterState={filterState}
       onFilterChange={setFilterState}
-      searchQuery={searchQuery}
-      onSearchApply={setSearchQuery}
+      searchState={searchState}
+      onSearchApply={setSearchState}
       excludeFromTotals={excludeFromTotals}
     />
   )

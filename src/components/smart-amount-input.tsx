@@ -42,7 +42,14 @@ export interface SmartAmountInputProps {
   decimalPlaces?: number
 }
 
-const hasMathOperation = (text: string) => /[+\-*/]/.test(text)
+// Leading minus is a sign (negative number), not an operator — so "Entered:" chip can show
+const hasMathOperation = (text: string) => {
+  const trimmed = text.trim()
+  const withoutLeadingMinus = trimmed.startsWith("-")
+    ? trimmed.slice(1).trim()
+    : trimmed
+  return /[+\-*/]/.test(withoutLeadingMinus)
+}
 
 const MATH_OPERATORS = ["+", "-", "*", "/"] as const
 
@@ -187,12 +194,28 @@ export function SmartAmountInput({
         })
       : null
 
+  // Formatted view of the number being typed (no math) — helps avoid mistakes with long numbers
+  const typedNumeric =
+    !hasMathOperation(displayValue) && displayValue.trim() !== ""
+      ? parseFloat(displayValue) || 0
+      : null
+  // Show same value as input, including sign (e.g. -200 → "-$200.00")
+  const formattedTyped =
+    typedNumeric !== null
+      ? formatDisplayValue(typedNumeric.toFixed(decimalPlaces), {
+          currency: currencyCode,
+        })
+      : null
+
   return (
     <View style={styles.container}>
       <View style={styles.labelRow}>
         <Text style={styles.label}>{label}</Text>
         <Pressable
-          style={styles.calcIconBtn}
+          style={[
+            styles.calcIconBtn,
+            showMathToolbar && styles.calcIconBtnActive,
+          ]}
           onPress={() => setShowMathToolbar((v) => !v)}
           accessibilityLabel={
             showMathToolbar ? "Hide math actions" : "Show math actions"
@@ -287,6 +310,13 @@ export function SmartAmountInput({
         </Animated.View>
       ) : null}
 
+      {formattedTyped ? (
+        <View style={styles.formattedChip}>
+          <Text style={styles.formattedChipLabel}>Entered: </Text>
+          <Text style={styles.formattedChipValue}>{formattedTyped}</Text>
+        </View>
+      ) : null}
+
       {displayPreview && !showMathToolbar ? (
         <Pressable
           style={styles.previewContainer}
@@ -379,6 +409,9 @@ const styles = StyleSheet.create((t) => ({
     backgroundColor: `${t.colors.customColors.semi}20`,
     borderRadius: 8,
   },
+  calcIconBtnActive: {
+    backgroundColor: `${t.colors.primary}30`,
+  },
   mathToolbar: {
     marginBottom: 20,
     gap: 10,
@@ -390,7 +423,7 @@ const styles = StyleSheet.create((t) => ({
     gap: 8,
   },
   mathBtn: {
-    backgroundColor: `${t.colors.customColors.semi}25`,
+    backgroundColor: `${t.colors.customColors.semi}20`,
     width: 50,
     height: 50,
     borderRadius: 12,
@@ -411,11 +444,30 @@ const styles = StyleSheet.create((t) => ({
     fontWeight: "bold",
     fontSize: 16,
   },
+  formattedChip: {
+    marginTop: 12,
+    alignSelf: "flex-start",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: `${t.colors.customColors.semi}20`,
+  },
+  formattedChipLabel: {
+    color: t.colors.customColors.semi,
+    fontSize: 13,
+  },
+  formattedChipValue: {
+    color: t.colors.onSurface,
+    fontSize: 15,
+    fontWeight: "600",
+  },
   previewContainer: {
     marginTop: 12,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: `${t.colors.customColors.semi}18`,
+    backgroundColor: t.colors.secondary,
     alignSelf: "flex-start",
     paddingHorizontal: 12,
     paddingVertical: 6,
