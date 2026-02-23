@@ -54,6 +54,7 @@ import { Pressable } from "~/components/ui/pressable"
 import { Switch } from "~/components/ui/switch"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
+import { ScrollIntoViewProvider } from "~/contexts/scroll-into-view-context"
 import { createRecurringRule } from "~/database/services/recurring-transaction-service"
 import {
   createTransactionModel,
@@ -100,6 +101,9 @@ import { Toast } from "~/utils/toast"
 
 import { EMPTY_TAG_IDS, RECURRING_OPTIONS } from "./constants"
 import { CATEGORY_CELL_SIZE, CATEGORY_GAP, H_PAD, styles } from "./form.styles"
+import { FormAccountPicker } from "./form-account-picker"
+import { FormTagsPicker } from "./form-tags-picker"
+import { FormToAccountPicker } from "./form-to-account-picker"
 import {
   getDefaultValues,
   getFieldError,
@@ -183,12 +187,6 @@ export function TransactionFormV3({
   const [datePickerVisible, setDatePickerVisible] = useState(false)
   const [datePickerMode, setDatePickerMode] = useState<"date" | "time">("date")
   const [tempDate, setTempDate] = useState(date)
-  const [tagPickerOpen, setTagPickerOpen] = useState(false)
-  const [tagSearchQuery, setTagSearchQuery] = useState("")
-  const [accountPickerOpen, setAccountPickerOpen] = useState(false)
-  const [accountSearchQuery, setAccountSearchQuery] = useState("")
-  const [toAccountPickerOpen, setToAccountPickerOpen] = useState(false)
-  const [toAccountSearchQuery, setToAccountSearchQuery] = useState("")
   const [conversionRate, setConversionRate] = useState<number | null>(null)
   const [conversionRateOpen, setConversionRateOpen] = useState(false)
   const accountSelectionInitialMount = useRef(true)
@@ -267,29 +265,6 @@ export function TransactionFormV3({
   )
 
   const selectedAccount = accounts.find((a) => a.id === accountId)
-  const selectedTags = tags.filter((t) => (tagIds ?? []).includes(t.id))
-
-  const filteredTagsForPicker = useMemo(() => {
-    if (!tagSearchQuery.trim()) return tags
-    const lower = tagSearchQuery.toLowerCase()
-    return tags.filter((t) => t.name.toLowerCase().includes(lower))
-  }, [tags, tagSearchQuery])
-
-  const filteredAccountsForPicker = useMemo(() => {
-    if (!accountSearchQuery.trim()) return accounts
-    const lower = accountSearchQuery.toLowerCase()
-    return accounts.filter((a) => a.name.toLowerCase().includes(lower))
-  }, [accounts, accountSearchQuery])
-
-  const filteredToAccountsForPicker = useMemo(() => {
-    let list = accounts
-    if (toAccountSearchQuery.trim()) {
-      const lower = toAccountSearchQuery.toLowerCase()
-      list = list.filter((a) => a.name.toLowerCase().includes(lower))
-    }
-    return list
-  }, [accounts, toAccountSearchQuery])
-
   const selectedToAccount =
     transactionType === "transfer" && toAccountId
       ? accounts.find((a) => a.id === toAccountId)
@@ -922,10 +897,12 @@ export function TransactionFormV3({
         />
       </View>
 
-      <ScrollView
+      <ScrollIntoViewProvider
         contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+        scrollViewProps={{
+          keyboardShouldPersistTaps: "handled",
+          showsVerticalScrollIndicator: false,
+        }}
       >
         <View style={styles.form}>
           <View style={styles.nameSection}>
@@ -954,385 +931,33 @@ export function TransactionFormV3({
                 setValue("amount", value, { shouldDirty: true })
               }
               currencyCode={selectedAccount?.currencyCode}
-              error={amountError ?? undefined}
+              error={amountError}
               label="Amount"
               placeholder="0"
               type={transactionType}
             />
           </View>
 
-          {/* Account: dashed trigger → inline list with search (same pattern as tags) */}
-          <View style={styles.fieldBlock}>
-            <View style={styles.sectionLabelRow}>
-              <Text variant="small" style={styles.sectionLabelInRow}>
-                Account
-              </Text>
-              <Pressable
-                onPress={() =>
-                  accountId && setValue("accountId", "", { shouldDirty: true })
-                }
-                style={[
-                  styles.clearButton,
-                  !accountId && styles.clearButtonDisabled,
-                ]}
-                pointerEvents={accountId ? "auto" : "none"}
-                accessibilityLabel="Clear account"
-                accessibilityState={{ disabled: !accountId }}
-              >
-                <Text variant="small" style={styles.clearButtonText}>
-                  Clear
-                </Text>
-              </Pressable>
-            </View>
-            <Pressable
-              style={[
-                styles.accountTrigger,
-                selectedAccount && styles.accountTriggerSelected,
-                accountError && selectedAccount && styles.accountTriggerError,
-              ]}
-              onPress={() => {
-                setAccountPickerOpen((o) => !o)
-                if (!accountPickerOpen) setAccountSearchQuery("")
-              }}
-              accessibilityLabel={
-                accountPickerOpen ? "Cancel" : "Select account"
-              }
-            >
-              {selectedAccount ? (
-                <>
-                  <DynamicIcon
-                    icon={selectedAccount.icon || "wallet-bifold"}
-                    size={24}
-                    colorScheme={getThemeStrict(
-                      selectedAccount.colorSchemeName,
-                    )}
-                    variant="badge"
-                  />
-                  <View style={styles.accountTriggerContent}>
-                    <Text
-                      variant="default"
-                      style={styles.accountTriggerName}
-                      numberOfLines={1}
-                    >
-                      {selectedAccount.name}
-                    </Text>
-                    <Money
-                      value={
-                        transaction && balanceAtTransaction !== null
-                          ? balanceAtTransaction
-                          : selectedAccount.balance
-                      }
-                      currency={selectedAccount.currencyCode}
-                      style={styles.accountTriggerBalance}
-                    />
-                  </View>
-                  <IconSymbol
-                    name={accountPickerOpen ? "chevron-up" : "chevron-right"}
-                    size={20}
-                    style={styles.chevronIcon}
-                  />
-                </>
-              ) : (
-                <>
-                  <DynamicIcon
-                    icon="wallet-bifold"
-                    size={24}
-                    color={theme.colors.primary}
-                    variant="badge"
-                  />
-                  <Text
-                    variant="default"
-                    style={styles.accountTriggerPlaceholder}
-                    numberOfLines={1}
-                  >
-                    Select account
-                  </Text>
-                  <IconSymbol
-                    name={accountPickerOpen ? "close" : "chevron-down"}
-                    size={20}
-                    style={styles.chevronIcon}
-                  />
-                </>
-              )}
-            </Pressable>
-            {accountPickerOpen && (
-              <View style={styles.inlineAccountPicker}>
-                <Input
-                  placeholder="Search accounts..."
-                  value={accountSearchQuery}
-                  onChangeText={setAccountSearchQuery}
-                  placeholderTextColor={theme.colors.customColors.semi}
-                  style={styles.pickerSearchInput}
-                />
-                <ScrollView
-                  style={styles.pickerList}
-                  contentContainerStyle={styles.pickerListContent}
-                  keyboardShouldPersistTaps="handled"
-                  nestedScrollEnabled
-                  showsVerticalScrollIndicator
-                >
-                  {filteredAccountsForPicker.map((account) => (
-                    <Pressable
-                      key={account.id}
-                      style={[
-                        styles.accountPickerRow,
-                        account.id === accountId &&
-                          styles.inlinePickerRowSelected,
-                      ]}
-                      onPress={() => {
-                        setValue("accountId", account.id, { shouldDirty: true })
-                        if (toAccountId === account.id) {
-                          setValue("toAccountId", "", { shouldDirty: true })
-                        }
-                        setAccountPickerOpen(false)
-                      }}
-                    >
-                      <DynamicIcon
-                        icon={account.icon || "wallet-bifold"}
-                        size={24}
-                        colorScheme={getThemeStrict(account.colorSchemeName)}
-                        variant="badge"
-                      />
-                      <View style={styles.accountPickerRowContent} native>
-                        <Text
-                          variant="default"
-                          style={styles.accountPickerRowName}
-                          numberOfLines={1}
-                        >
-                          {account.name}
-                        </Text>
-                        <Money
-                          value={account.balance}
-                          currency={account.currencyCode}
-                          style={styles.accountPickerRowBalance}
-                        />
-                      </View>
-                    </Pressable>
-                  ))}
-                  {filteredAccountsForPicker.length === 0 && (
-                    <Pressable
-                      style={styles.accountPickerRowAdd}
-                      onPress={() => {
-                        router.push({
-                          pathname: "/accounts/[accountId]/modify",
-                          params: { accountId: NewEnum.NEW },
-                        })
-                        setAccountPickerOpen(false)
-                      }}
-                      accessible
-                      accessibilityRole="button"
-                      accessibilityLabel="Add account"
-                    >
-                      <DynamicIcon
-                        icon="plus"
-                        size={24}
-                        colorScheme={
-                          theme?.colors as import("~/styles/theme/types").MintyColorScheme
-                        }
-                        variant="badge"
-                      />
-                      <Text
-                        variant="default"
-                        style={styles.accountPickerRowAddLabel}
-                        numberOfLines={1}
-                      >
-                        Add account
-                      </Text>
-                    </Pressable>
-                  )}
-                </ScrollView>
-              </View>
-            )}
-            {accountError ? (
-              <Text style={styles.fieldError}>{accountError}</Text>
-            ) : null}
-          </View>
+          <FormAccountPicker
+            accounts={accounts}
+            accountId={accountId}
+            toAccountId={toAccountId}
+            setValue={setValue}
+            selectedAccount={selectedAccount}
+            balanceAtTransaction={balanceAtTransaction}
+            transaction={transaction}
+            accountError={accountError}
+            transactionType={transactionType}
+          />
 
-          {/* To account: only for transfers (create or edit) */}
-          {transactionType === "transfer" && (
-            <View style={styles.fieldBlock}>
-              <View style={styles.sectionLabelRow}>
-                <Text variant="small" style={styles.sectionLabelInRow}>
-                  To account
-                </Text>
-                <Pressable
-                  onPress={() =>
-                    toAccountId &&
-                    setValue("toAccountId", "", { shouldDirty: true })
-                  }
-                  style={[
-                    styles.clearButton,
-                    !toAccountId && styles.clearButtonDisabled,
-                  ]}
-                  pointerEvents={toAccountId ? "auto" : "none"}
-                  accessibilityLabel="Clear to account"
-                  accessibilityState={{ disabled: !toAccountId }}
-                >
-                  <Text variant="small" style={styles.clearButtonText}>
-                    Clear
-                  </Text>
-                </Pressable>
-              </View>
-              <Pressable
-                style={[
-                  styles.accountTrigger,
-                  selectedToAccount && styles.accountTriggerSelected,
-                ]}
-                onPress={() => {
-                  setToAccountPickerOpen((o) => !o)
-                  if (!toAccountPickerOpen) setToAccountSearchQuery("")
-                }}
-                accessibilityLabel={
-                  toAccountPickerOpen ? "Cancel" : "Select to account"
-                }
-              >
-                {selectedToAccount ? (
-                  <>
-                    <DynamicIcon
-                      icon={selectedToAccount.icon || "wallet-bifold"}
-                      size={24}
-                      colorScheme={getThemeStrict(
-                        selectedToAccount.colorSchemeName,
-                      )}
-                      variant="badge"
-                    />
-                    <View style={styles.accountTriggerContent}>
-                      <Text
-                        variant="default"
-                        style={styles.accountTriggerName}
-                        numberOfLines={1}
-                      >
-                        {selectedToAccount.name}
-                      </Text>
-                      <Money
-                        value={selectedToAccount.balance}
-                        currency={selectedToAccount.currencyCode}
-                        style={styles.accountTriggerBalance}
-                      />
-                    </View>
-                    <IconSymbol
-                      name={
-                        toAccountPickerOpen ? "chevron-up" : "chevron-right"
-                      }
-                      size={20}
-                      style={styles.chevronIcon}
-                    />
-                  </>
-                ) : (
-                  <>
-                    <DynamicIcon
-                      icon="wallet-bifold"
-                      size={24}
-                      color={theme.colors.primary}
-                      variant="badge"
-                    />
-                    <Text
-                      variant="default"
-                      style={styles.accountTriggerPlaceholder}
-                      numberOfLines={1}
-                    >
-                      Select to account
-                    </Text>
-                    <IconSymbol
-                      name={toAccountPickerOpen ? "close" : "chevron-down"}
-                      size={20}
-                      style={styles.chevronIcon}
-                    />
-                  </>
-                )}
-              </Pressable>
-              {toAccountPickerOpen && (
-                <View style={styles.inlineAccountPicker}>
-                  <Input
-                    placeholder="Search accounts..."
-                    value={toAccountSearchQuery}
-                    onChangeText={setToAccountSearchQuery}
-                    placeholderTextColor={theme.colors.customColors.semi}
-                    style={styles.pickerSearchInput}
-                  />
-                  <ScrollView
-                    style={styles.pickerList}
-                    contentContainerStyle={styles.pickerListContent}
-                    keyboardShouldPersistTaps="handled"
-                    nestedScrollEnabled
-                    showsVerticalScrollIndicator
-                  >
-                    {filteredToAccountsForPicker.map((account) => (
-                      <Pressable
-                        key={account.id}
-                        style={[
-                          styles.accountPickerRow,
-                          account.id === toAccountId &&
-                            styles.inlinePickerRowSelected,
-                        ]}
-                        onPress={() => {
-                          setValue("toAccountId", account.id, {
-                            shouldDirty: true,
-                          })
-                          if (accountId === account.id) {
-                            setValue("accountId", "", { shouldDirty: true })
-                          }
-                          setToAccountPickerOpen(false)
-                        }}
-                      >
-                        <DynamicIcon
-                          icon={account.icon || "wallet-bifold"}
-                          size={24}
-                          colorScheme={getThemeStrict(account.colorSchemeName)}
-                          variant="badge"
-                        />
-                        <View style={styles.accountPickerRowContent} native>
-                          <Text
-                            variant="default"
-                            style={styles.accountPickerRowName}
-                            numberOfLines={1}
-                          >
-                            {account.name}
-                          </Text>
-                          <Money
-                            value={account.balance}
-                            currency={account.currencyCode}
-                            style={styles.accountPickerRowBalance}
-                          />
-                        </View>
-                      </Pressable>
-                    ))}
-                    {filteredToAccountsForPicker.length === 0 && (
-                      <Pressable
-                        style={styles.accountPickerRowAdd}
-                        onPress={() => {
-                          router.push({
-                            pathname: "/accounts/[accountId]/modify",
-                            params: { accountId: NewEnum.NEW },
-                          })
-                          setToAccountPickerOpen(false)
-                        }}
-                        accessible
-                        accessibilityRole="button"
-                        accessibilityLabel="Add account"
-                      >
-                        <DynamicIcon
-                          icon="plus"
-                          size={24}
-                          colorScheme={
-                            theme?.colors as import("~/styles/theme/types").MintyColorScheme
-                          }
-                          variant="badge"
-                        />
-                        <Text
-                          variant="default"
-                          style={styles.accountPickerRowAddLabel}
-                          numberOfLines={1}
-                        >
-                          Add account
-                        </Text>
-                      </Pressable>
-                    )}
-                  </ScrollView>
-                </View>
-              )}
-            </View>
-          )}
+          <FormToAccountPicker
+            accounts={accounts}
+            toAccountId={toAccountId}
+            accountId={accountId}
+            setValue={setValue}
+            selectedToAccount={selectedToAccount}
+            transactionType={transactionType}
+          />
 
           {/* Conversion: toggle shows amount = converted amount; inside toggle: rate (chosen/deduced) + SmartAmountInput to edit converted. */}
           {transactionType === "transfer" &&
@@ -1559,160 +1184,13 @@ export function TransactionFormV3({
             </View>
           )}
 
-          {/* Tags: chips + inline dropdown */}
-          <View style={styles.fieldBlock}>
-            <View style={styles.sectionLabelRow}>
-              <Text variant="small" style={styles.sectionLabelInRow}>
-                Tags
-              </Text>
-              <Pressable
-                onPress={() =>
-                  (tagIds ?? []).length > 0 &&
-                  setValue("tags", [], { shouldDirty: true })
-                }
-                style={[
-                  styles.clearButton,
-                  (tagIds ?? []).length === 0 && styles.clearButtonDisabled,
-                ]}
-                pointerEvents={(tagIds ?? []).length > 0 ? "auto" : "none"}
-                accessibilityLabel="Clear all tags"
-                accessibilityState={{
-                  disabled: (tagIds ?? []).length === 0,
-                }}
-              >
-                <Text variant="small" style={styles.clearButtonText}>
-                  Clear
-                </Text>
-              </Pressable>
-            </View>
-            <View style={styles.tagsWrapGrid}>
-              <Pressable
-                style={[
-                  styles.tagChipBase,
-                  styles.tagChipAdd,
-                  tagPickerOpen && styles.tagChipCancel,
-                ]}
-                onPress={() => {
-                  setTagPickerOpen((o) => !o)
-                  if (!tagPickerOpen) setTagSearchQuery("")
-                }}
-                accessible
-                accessibilityRole="button"
-                accessibilityLabel={tagPickerOpen ? "Cancel" : "Add tag"}
-              >
-                <Text
-                  variant="default"
-                  style={[
-                    styles.tagChipAddText,
-                    tagPickerOpen && { color: theme.colors.customColors.semi },
-                  ]}
-                >
-                  {tagPickerOpen ? "Cancel" : "Add tag"}
-                </Text>
-                <IconSymbol
-                  name={tagPickerOpen ? "close" : "plus"}
-                  size={16}
-                  style={
-                    tagPickerOpen && { color: theme.colors.customColors.semi }
-                  }
-                />
-              </Pressable>
-              {selectedTags.map((tag) => (
-                <Pressable
-                  key={tag.id}
-                  style={[styles.tagChipBase, styles.tagChip]}
-                  onPress={() => removeTag(tag.id)}
-                  accessible
-                  accessibilityRole="button"
-                  accessibilityLabel={`Remove ${tag.name} tag`}
-                >
-                  <DynamicIcon
-                    icon={tag.icon || "tag"}
-                    size={16}
-                    colorScheme={getThemeStrict(tag.colorSchemeName)}
-                    variant="badge"
-                  />
-                  <Text
-                    variant="default"
-                    style={styles.tagChipText}
-                    numberOfLines={1}
-                  >
-                    {tag.name}
-                  </Text>
-                  <IconSymbol
-                    name="close"
-                    size={14}
-                    style={styles.tagChipRemoveIcon}
-                  />
-                </Pressable>
-              ))}
-            </View>
-
-            {tagPickerOpen && (
-              <View style={styles.inlineTagPicker}>
-                <Input
-                  placeholder="Search tags..."
-                  value={tagSearchQuery}
-                  onChangeText={setTagSearchQuery}
-                  placeholderTextColor={theme.colors.customColors.semi}
-                  style={styles.tagSearchInput}
-                />
-                <ScrollView
-                  style={styles.tagPickerList}
-                  contentContainerStyle={styles.pickerListContent}
-                  keyboardShouldPersistTaps="handled"
-                  nestedScrollEnabled
-                  showsVerticalScrollIndicator={true}
-                >
-                  {filteredTagsForPicker.map((tag) => {
-                    const isSelected = (tagIds ?? []).includes(tag.id)
-                    return (
-                      <Pressable
-                        key={tag.id}
-                        style={[
-                          styles.tagPickerRow,
-                          isSelected && styles.inlinePickerRowSelected,
-                        ]}
-                        onPress={() => {
-                          if (isSelected) removeTag(tag.id)
-                          else addTag(tag.id)
-                        }}
-                      >
-                        <DynamicIcon
-                          icon={tag.icon || "tag"}
-                          size={20}
-                          colorScheme={getThemeStrict(tag.colorSchemeName)}
-                          variant="badge"
-                        />
-                        <Text
-                          variant="default"
-                          style={styles.tagPickerRowText}
-                          numberOfLines={1}
-                        >
-                          {tag.name}
-                        </Text>
-                      </Pressable>
-                    )
-                  })}
-                </ScrollView>
-                <Pressable
-                  style={styles.createTagRow}
-                  onPress={() => {
-                    setTagPickerOpen(false)
-                    router.push({
-                      pathname: "/settings/tags/[tagId]",
-                      params: { tagId: NewEnum.NEW },
-                    })
-                  }}
-                >
-                  <IconSymbol name="tag-plus" size={20} />
-                  <Text variant="default" style={styles.createTagRowText}>
-                    Create new tag
-                  </Text>
-                </Pressable>
-              </View>
-            )}
-          </View>
+          <FormTagsPicker
+            tags={tags}
+            tagIds={tagIds}
+            setValue={setValue}
+            addTag={addTag}
+            removeTag={removeTag}
+          />
 
           {/* Transaction date and Pending: hidden when recurring is on (rule controls date and they're always auto-confirmed) */}
           {!recurringEnabled && (
@@ -2323,7 +1801,7 @@ export function TransactionFormV3({
             </View>
           )}
         </View>
-      </ScrollView>
+      </ScrollIntoViewProvider>
 
       {/* <KeyboardStickyViewMinty> */}
       <View style={styles.footer}>

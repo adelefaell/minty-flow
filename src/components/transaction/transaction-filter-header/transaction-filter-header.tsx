@@ -5,7 +5,7 @@
  */
 
 import { useCallback, useRef, useState } from "react"
-import { LayoutAnimation, ScrollView, View } from "react-native"
+import { ScrollView, View } from "react-native"
 import { useUnistyles } from "react-native-unistyles"
 
 import { DateRangePresetModal } from "~/components/date-range-preset-modal"
@@ -34,6 +34,7 @@ import {
   AccountsPanel,
   AttachmentsPanel,
   CategoriesPanel,
+  CurrencyPanel,
   GroupByPanel,
   PendingPanel,
   SearchPanel,
@@ -46,8 +47,6 @@ import {
   GROUP_BY_LABELS,
   type TransactionFilterHeaderProps,
 } from "./types"
-
-const LAYOUT_ANIM = LayoutAnimation.Presets.easeInEaseOut
 
 export function TransactionFilterHeader({
   accounts,
@@ -71,12 +70,10 @@ export function TransactionFilterHeader({
   filterStateRef.current = filterState
 
   const togglePanel = useCallback((key: FilterPanelKey) => {
-    LayoutAnimation.configureNext(LAYOUT_ANIM)
     setExpandedPanel((prev) => (prev === key ? null : key))
   }, [])
 
   const handleDatePress = useCallback(() => {
-    LayoutAnimation.configureNext(LAYOUT_ANIM)
     setExpandedPanel(null)
     setDateModalVisible(true)
   }, [])
@@ -121,6 +118,20 @@ export function TransactionFilterHeader({
 
   const clearAccounts = useCallback(() => {
     onFilterChange({ ...filterState, accountIds: [] })
+  }, [filterState, onFilterChange])
+
+  const toggleCurrency = useCallback(
+    (currencyCode: string) => {
+      const codes = filterState.currencyIds.includes(currencyCode)
+        ? filterState.currencyIds.filter((c) => c !== currencyCode)
+        : [...filterState.currencyIds, currencyCode]
+      onFilterChange({ ...filterState, currencyIds: codes })
+    },
+    [filterState, onFilterChange],
+  )
+
+  const clearCurrencies = useCallback(() => {
+    onFilterChange({ ...filterState, currencyIds: [] })
   }, [filterState, onFilterChange])
 
   const toggleCategory = useCallback(
@@ -190,7 +201,6 @@ export function TransactionFilterHeader({
   )
 
   const handleClearAll = useCallback(() => {
-    LayoutAnimation.configureNext(LAYOUT_ANIM)
     setExpandedPanel(null)
     onFilterChange(DEFAULT_TRANSACTION_LIST_FILTER_STATE)
     onSearchApply?.(DEFAULT_SEARCH_STATE)
@@ -198,7 +208,6 @@ export function TransactionFilterHeader({
   }, [onFilterChange, onSearchApply, onDateRangeChange])
 
   const handleDone = useCallback(() => {
-    LayoutAnimation.configureNext(LAYOUT_ANIM)
     setExpandedPanel(null)
   }, [])
 
@@ -212,6 +221,7 @@ export function TransactionFilterHeader({
   const isTypeActive = filterState.typeFilters.length > 0
   const isGroupByActive = filterState.groupBy !== "day"
   const isAttachmentsActive = filterState.attachmentFilter !== "all"
+  const isCurrencyActive = filterState.currencyIds.length > 0
 
   const hasAnyFilter =
     isSearchActive ||
@@ -222,7 +232,8 @@ export function TransactionFilterHeader({
     isPendingActive ||
     isTypeActive ||
     isGroupByActive ||
-    isAttachmentsActive
+    isAttachmentsActive ||
+    isCurrencyActive
 
   const accountLabel =
     filterState.accountIds.length === 0
@@ -265,6 +276,20 @@ export function TransactionFilterHeader({
       ? "Pending Status"
       : (PENDING_OPTIONS.find((o) => o.id === filterState.pendingFilter)
           ?.label ?? "Pending Status")
+
+  // Derive the unique set of currency codes that appear in the current accounts list.
+  const availableCurrencies = [
+    ...new Set(accounts.map((a) => a.currencyCode)),
+  ].filter(Boolean)
+
+  const currencyLabel =
+    filterState.currencyIds.length === 0
+      ? "Currency"
+      : filterState.currencyIds.length === availableCurrencies.length
+        ? "All currencies"
+        : filterState.currencyIds.length === 1
+          ? filterState.currencyIds[0]
+          : `${filterState.currencyIds.length} currencies`
 
   const dateLabel = selectedRange
     ? `${formatShortMonthDay(selectedRange.start)} – ${formatShortMonthDay(selectedRange.end)}`
@@ -321,6 +346,12 @@ export function TransactionFilterHeader({
       icon: "attachment",
       label: attachmentLabel,
       active: isAttachmentsActive,
+    },
+    {
+      key: "currency",
+      icon: "currency-usd",
+      label: currencyLabel,
+      active: isCurrencyActive,
     },
     {
       key: "groupBy",
@@ -407,7 +438,7 @@ export function TransactionFilterHeader({
           style={[
             filterHeaderStyles.panel,
             {
-              backgroundColor: `${theme.colors.onSurface}06`,
+              backgroundColor: `${theme.colors.onSurface}10`,
               borderColor,
             },
           ]}
@@ -477,6 +508,15 @@ export function TransactionFilterHeader({
             <AttachmentsPanel
               value={filterState.attachmentFilter}
               onSelect={setAttachment}
+              onDone={handleDone}
+            />
+          ) : null}
+          {expandedPanel === "currency" ? (
+            <CurrencyPanel
+              accounts={accounts}
+              selectedCurrencies={filterState.currencyIds}
+              onToggle={toggleCurrency}
+              onClear={clearCurrencies}
               onDone={handleDone}
             />
           ) : null}

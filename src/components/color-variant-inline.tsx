@@ -5,19 +5,18 @@
  */
 
 import { useState } from "react"
-import { LayoutAnimation, View } from "react-native"
+import { View } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
+import { useScrollIntoView } from "~/hooks/use-scroll-into-view"
 import { useThemeStore } from "~/stores/theme.store"
 import { getThemeStrict, THEME_GROUPS } from "~/styles/theme/registry"
 import type { MintyColorScheme } from "~/styles/theme/types"
 
 import { Button } from "./ui/button"
-
-const LAYOUT_ANIM = LayoutAnimation.Presets.easeInEaseOut
 
 export interface ColorVariantInlineProps {
   /** Currently selected scheme name (for controlled component). */
@@ -38,11 +37,12 @@ export function ColorVariantInline({
   onClearSelection,
 }: ColorVariantInlineProps) {
   const { themeMode } = useThemeStore()
+  const { wrapperRef, scrollIntoView } = useScrollIntoView()
   const [expanded, setExpanded] = useState(false)
   const [internalSelectedSchemeName, setInternalSelectedSchemeName] = useState<
     string | null
   >(null)
-  /** Pending selection while panel is open; applied on Done. */
+  /** Selection state while panel is open (for checkmark UI). */
   const [pendingSchemeName, setPendingSchemeName] = useState<string | null>(
     null,
   )
@@ -95,45 +95,41 @@ export function ColorVariantInline({
   const themeInfo = getCurrentThemeInfo()
 
   const handleToggle = () => {
-    LayoutAnimation.configureNext(LAYOUT_ANIM)
     setExpanded((v) => {
       const next = !v
       if (next) {
         setPendingSchemeName(selectedSchemeName ?? null)
+        scrollIntoView()
       }
       return next
     })
   }
 
-  /** Only update pending selection; apply on Done. */
+  /** Apply color immediately on select. */
   const handleColorSelect = (scheme: MintyColorScheme) => {
     setPendingSchemeName(scheme.name)
+    if (controlledSelectedSchemeName === undefined) {
+      setInternalSelectedSchemeName(scheme.name)
+    }
+    onColorSelected?.(scheme.name)
   }
 
-  /** Clear pending selection in the panel. */
+  /** Clear selection immediately. */
   const handleClearPending = () => {
     setPendingSchemeName(null)
+    if (controlledSelectedSchemeName === undefined) {
+      setInternalSelectedSchemeName(null)
+    }
+    onClearSelection?.()
   }
 
-  /** Apply pending selection and close. */
+  /** Just close the inline panel. */
   const handleDone = () => {
-    if (pendingSchemeName === null || pendingSchemeName === undefined) {
-      if (controlledSelectedSchemeName === undefined) {
-        setInternalSelectedSchemeName(null)
-      }
-      onClearSelection?.()
-    } else {
-      if (controlledSelectedSchemeName === undefined) {
-        setInternalSelectedSchemeName(pendingSchemeName)
-      }
-      onColorSelected?.(pendingSchemeName)
-    }
-    LayoutAnimation.configureNext(LAYOUT_ANIM)
     setExpanded(false)
   }
 
   return (
-    <View style={styles.wrapper}>
+    <View ref={wrapperRef} style={styles.wrapper}>
       {/* Trigger row – same look as the previous "Change color" row */}
       <Pressable style={styles.triggerRow} onPress={handleToggle}>
         <View style={styles.triggerLeft}>
@@ -288,8 +284,8 @@ const styles = StyleSheet.create((theme) => ({
     paddingHorizontal: 0,
     paddingTop: 8,
     gap: 24,
-    backgroundColor: `${theme.colors.onSurface}06`,
-    borderRadius: theme.colors.radius ?? 16,
+    backgroundColor: `${theme.colors.onSurface}10`,
+    borderRadius: theme.colors.radius,
     padding: 20,
   },
   header: {

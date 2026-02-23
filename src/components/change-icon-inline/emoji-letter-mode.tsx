@@ -1,8 +1,7 @@
-import type { ComponentRef } from "react"
+import type { ComponentRef, RefObject } from "react"
 import { TextInput as RNTextInput, View } from "react-native"
 
 import { Button } from "~/components/ui/button"
-import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 
@@ -14,7 +13,7 @@ interface EmojiLetterModeProps {
   onDone: () => void
   onCancel: () => void
   isValid: boolean
-  inputRef: React.RefObject<ComponentRef<typeof RNTextInput> | null>
+  inputRef: RefObject<ComponentRef<typeof RNTextInput> | null>
   placeholderTextColor: string
 }
 
@@ -59,8 +58,7 @@ export function EmojiLetterMode({
         <Button variant="outline" onPress={onCancel}>
           <Text>Cancel</Text>
         </Button>
-        <Button variant="ghost" onPress={onDone} disabled={!isValid}>
-          <IconSymbol name="check" size={20} />
+        <Button onPress={onDone} disabled={!isValid}>
           <Text>Done</Text>
         </Button>
       </View>

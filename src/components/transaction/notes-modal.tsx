@@ -123,7 +123,7 @@ const styles = UnistylesSheet.create((theme) => ({
     alignItems: "center",
     justifyContent: "space-between",
     borderBottomWidth: 1,
-    borderBottomColor: `${theme.colors.customColors.semi}20`,
+    borderBottomColor: theme.colors.customColors.semi,
   },
   title: {
     fontSize: 17,

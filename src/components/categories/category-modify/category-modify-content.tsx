@@ -2,7 +2,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useNavigation, useRouter } from "expo-router"
 import { useCallback, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
-import { ScrollView } from "react-native"
 
 import { CategoryTypeInline } from "~/components/categories/category-type-inline"
 import { ChangeIconInline } from "~/components/change-icon-inline"
@@ -16,6 +15,7 @@ import { Separator } from "~/components/ui/separator"
 import { Switch } from "~/components/ui/switch"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
+import { ScrollIntoViewProvider } from "~/contexts/scroll-into-view-context"
 import {
   createCategory,
   destroyCategory,
@@ -195,8 +195,8 @@ export function CategoryModifyContent({
 
   return (
     <View style={categoryModifyStyles.container}>
-      <ScrollView
-        style={categoryModifyStyles.scrollView}
+      <ScrollIntoViewProvider
+        scrollViewStyle={categoryModifyStyles.scrollView}
         contentContainerStyle={categoryModifyStyles.scrollContent}
       >
         <View
@@ -204,7 +204,6 @@ export function CategoryModifyContent({
           key={category?.id || NewEnum.NEW}
         >
           <ChangeIconInline
-            id={`change-icon-category-${categoryModifyId || NewEnum.NEW}`}
             currentIcon={formIcon}
             onIconSelected={handleIconSelected}
             colorScheme={currentColorScheme}
@@ -304,7 +303,7 @@ export function CategoryModifyContent({
             </Button>
           </View>
         )}
-      </ScrollView>
+      </ScrollIntoViewProvider>
 
       <View style={categoryModifyStyles.actions}>
         <Button

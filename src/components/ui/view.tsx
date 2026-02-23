@@ -1,3 +1,4 @@
+import type { ComponentRef, Ref } from "react"
 import { View as RNView, type ViewProps as RNViewProps } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -14,17 +15,19 @@ type ViewVariant =
 export interface ViewProps extends RNViewProps {
   variant?: ViewVariant
   native?: boolean
+  ref?: Ref<ComponentRef<typeof RNView>>
 }
 
 export const View = ({
   variant = "transparent",
   style,
   native,
+  ref,
   ...props
 }: ViewProps) => {
-  if (native) return <RNView style={style} {...props} />
+  if (native) return <RNView ref={ref} style={style} {...props} />
 
-  return <RNView style={[viewStyles[variant], style]} {...props} />
+  return <RNView ref={ref} style={[viewStyles[variant], style]} {...props} />
 }
 
 const viewStyles = StyleSheet.create((theme) => ({

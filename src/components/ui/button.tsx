@@ -1,16 +1,16 @@
-import * as React from "react"
+import { createContext, useContext, useMemo } from "react"
 import type { PressableProps } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
 import { Pressable } from "./pressable"
 
 // Text class context for passing variant styles to child Text components
-const ButtonTextContext = React.createContext<{
+const ButtonTextContext = createContext<{
   variant?: ButtonVariant
   size?: ButtonSize
 }>({})
 
-export const useButtonTextContext = () => React.useContext(ButtonTextContext)
+export const useButtonTextContext = () => useContext(ButtonTextContext)
 
 type ButtonVariant =
   | "default"
@@ -34,7 +34,7 @@ export const Button = ({
   children,
   ...props
 }: ButtonProps) => {
-  const contextValue = React.useMemo(() => ({ variant, size }), [variant, size])
+  const contextValue = useMemo(() => ({ variant, size }), [variant, size])
 
   return (
     <ButtonTextContext.Provider value={contextValue}>

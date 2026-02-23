@@ -1,6 +1,10 @@
 import * as Haptics from "expo-haptics"
-import React, {
+import {
+  cloneElement,
   createContext,
+  type ReactElement,
+  type ReactNode,
+  type Ref,
   useCallback,
   useContext,
   useEffect,
@@ -49,11 +53,7 @@ const TOOLTIP_BOTTOM_SPACING = 30
 const TOOLTIP_TOP_SPACING = 10
 const SCREEN_EDGE_PADDING = 12
 
-export const TooltipProvider = ({
-  children,
-}: {
-  children: React.ReactNode
-}) => {
+export const TooltipProvider = ({ children }: { children: ReactNode }) => {
   const { width: screenWidth } = useWindowDimensions()
   const [tooltip, setTooltip] = useState<TooltipData | null>(null)
   const [tooltipWidth, setTooltipWidth] = useState(0)
@@ -221,7 +221,7 @@ export const TooltipProvider = ({
 
 export type TooltipProps = {
   text: string
-  children: React.ReactElement<PressableProps>
+  children: ReactElement<PressableProps>
   delayLongPress?: number
   hapticFeedback?: boolean
   position?: ExitPositionType
@@ -261,9 +261,9 @@ export const Tooltip = ({
     return children
   }
 
-  const childRef = (children as { ref?: React.Ref<RNView> })?.ref
+  const childRef = (children as { ref?: Ref<RNView> })?.ref
 
-  const childWithHandlers = React.cloneElement(children, {
+  const childWithHandlers = cloneElement(children, {
     ...children.props,
     onLongPress: (e: PressEvent) => {
       handleLongPress()

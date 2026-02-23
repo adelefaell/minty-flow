@@ -2,13 +2,12 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useNavigation, useRouter } from "expo-router"
 import { useCallback, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
-import { ScrollView } from "react-native"
 
 import { AccountTypeInline } from "~/components/accounts/account-type-inline"
 import { ChangeIconInline } from "~/components/change-icon-inline"
 import { ColorVariantInline } from "~/components/color-variant-inline"
 import { ConfirmModal } from "~/components/confirm-modal"
-import { CurrencySelectorInline } from "~/components/currency-selector-inline"
+import { CurrencySelectorModal } from "~/components/selector-modals"
 import { SmartAmountInput } from "~/components/smart-amount-input"
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
@@ -18,6 +17,7 @@ import { Separator } from "~/components/ui/separator"
 import { Switch } from "~/components/ui/switch"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
+import { ScrollIntoViewProvider } from "~/contexts/scroll-into-view-context"
 import {
   createAccount,
   destroyAccount,
@@ -192,13 +192,12 @@ export function AccountModifyContent({
 
   return (
     <View style={accountModifyStyles.container}>
-      <ScrollView
-        style={accountModifyStyles.scrollView}
+      <ScrollIntoViewProvider
+        scrollViewStyle={accountModifyStyles.scrollView}
         contentContainerStyle={accountModifyStyles.scrollContent}
       >
         <View style={accountModifyStyles.form} key={account?.id || NewEnum.NEW}>
           <ChangeIconInline
-            id={`change-icon-account-${accountId || NewEnum.NEW}`}
             currentIcon={formIcon}
             onIconSelected={handleIconSelected}
             colorScheme={currentColorScheme}
@@ -247,7 +246,7 @@ export function AccountModifyContent({
           </View>
 
           <View style={accountModifyStyles.settingsList}>
-            <CurrencySelectorInline
+            <CurrencySelectorModal
               selectedCurrencyCode={formCurrencyCode}
               onCurrencySelected={handleCurrencySelected}
             />
@@ -422,7 +421,7 @@ export function AccountModifyContent({
             )}
           </View>
         )}
-      </ScrollView>
+      </ScrollIntoViewProvider>
 
       <View style={accountModifyStyles.actions}>
         <Button
