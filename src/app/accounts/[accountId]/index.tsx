@@ -360,7 +360,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   metaSeparator: {
     fontSize: 13,
-    color: `${theme.colors.customColors.semi}60`,
+    color: theme.colors.customColors.semi,
     marginHorizontal: 2,
   },
   primaryText: {

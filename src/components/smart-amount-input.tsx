@@ -14,6 +14,7 @@ import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
+import { useScrollIntoView } from "~/hooks/use-scroll-into-view"
 import { currencyRegistryService } from "~/services"
 import { type TransactionType, TransactionTypeEnum } from "~/types/transactions"
 import { CALCULATOR_CONFIG, formatDisplayValue } from "~/utils/number-format"
@@ -67,7 +68,7 @@ export function SmartAmountInput({
   type,
   decimalPlaces = CALCULATOR_CONFIG.MAX_DECIMALS,
 }: SmartAmountInputProps) {
-  // const { theme } = useUnistyles()
+  const { wrapperRef, scrollIntoView } = useScrollIntoView()
   const [isEditing, setIsEditing] = useState(false)
   const [inputValue, setInputValue] = useState("")
   const [showMathToolbar, setShowMathToolbar] = useState(false)
@@ -194,6 +195,14 @@ export function SmartAmountInput({
         })
       : null
 
+  const handleToggleMathToolbar = useCallback(() => {
+    setShowMathToolbar((v) => {
+      const next = !v
+      if (next) scrollIntoView()
+      return next
+    })
+  }, [scrollIntoView])
+
   // Formatted view of the number being typed (no math) — helps avoid mistakes with long numbers
   const typedNumeric =
     !hasMathOperation(displayValue) && displayValue.trim() !== ""
@@ -208,7 +217,7 @@ export function SmartAmountInput({
       : null
 
   return (
-    <View style={styles.container}>
+    <View ref={wrapperRef} style={styles.container}>
       <View style={styles.labelRow}>
         <Text style={styles.label}>{label}</Text>
         <Pressable
@@ -216,7 +225,7 @@ export function SmartAmountInput({
             styles.calcIconBtn,
             showMathToolbar && styles.calcIconBtnActive,
           ]}
-          onPress={() => setShowMathToolbar((v) => !v)}
+          onPress={handleToggleMathToolbar}
           accessibilityLabel={
             showMathToolbar ? "Hide math actions" : "Show math actions"
           }
@@ -406,11 +415,11 @@ const styles = StyleSheet.create((t) => ({
   },
   calcIconBtn: {
     padding: 8,
-    backgroundColor: `${t.colors.customColors.semi}20`,
+    backgroundColor: `${t.colors.onSurface}10`,
     borderRadius: 8,
   },
   calcIconBtnActive: {
-    backgroundColor: `${t.colors.primary}30`,
+    backgroundColor: `${t.colors.primary}20`,
   },
   mathToolbar: {
     marginBottom: 20,
@@ -423,7 +432,7 @@ const styles = StyleSheet.create((t) => ({
     gap: 8,
   },
   mathBtn: {
-    backgroundColor: `${t.colors.customColors.semi}20`,
+    backgroundColor: `${t.colors.onSurface}10`,
     width: 50,
     height: 50,
     borderRadius: 12,
@@ -452,7 +461,7 @@ const styles = StyleSheet.create((t) => ({
     borderRadius: 20,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: `${t.colors.customColors.semi}20`,
+    backgroundColor: `${t.colors.onSurface}10`,
   },
   formattedChipLabel: {
     color: t.colors.customColors.semi,

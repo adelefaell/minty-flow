@@ -5,7 +5,7 @@ export const changeIconInlineStyles = StyleSheet.create((theme) => ({
     width: "100%",
     alignItems: "center",
     paddingVertical: 20,
-    gap: 16,
+    gap: 20,
   },
   iconBox: {
     borderRadius: theme.colors.radius,
@@ -20,9 +20,9 @@ export const changeIconInlineStyles = StyleSheet.create((theme) => ({
     marginTop: 0,
   },
   listWrapper: {
-    borderRadius: theme.colors.radius ?? 12,
+    borderRadius: theme.colors.radius,
     overflow: "hidden",
-    backgroundColor: `${theme.colors.onSurface}08`,
+    backgroundColor: theme.colors.secondary,
   },
   item: {
     flexDirection: "row",
@@ -33,7 +33,6 @@ export const changeIconInlineStyles = StyleSheet.create((theme) => ({
   },
   itemPressed: {
     opacity: 0.7,
-    backgroundColor: `${theme.colors.onSurface}10`,
   },
   itemLeft: {
     flex: 1,

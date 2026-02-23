@@ -133,7 +133,7 @@ export function MarkdownEditorModal({
               paddingTop: Math.max(insets.top, 12),
               paddingBottom: 12,
               paddingHorizontal: 16,
-              borderBottomColor: `${muted}20`,
+              borderBottomColor: muted,
             },
           ]}
         >
@@ -159,7 +159,7 @@ export function MarkdownEditorModal({
         <View
           style={[
             styles.toolbar,
-            { borderBottomColor: `${muted}20`, backgroundColor: toolbarBg },
+            { borderBottomColor: muted, backgroundColor: toolbarBg },
           ]}
         >
           <ToolbarButton

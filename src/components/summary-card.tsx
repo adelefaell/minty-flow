@@ -219,15 +219,15 @@ const styles = StyleSheet.create((theme) => ({
   iconContainer: {
     width: 20,
     height: 20,
-    borderRadius: (theme.colors.radius && theme.colors.radius / 2) || 6,
+    borderRadius: theme.colors.radius / 2,
     alignItems: "center",
     justifyContent: "center",
   },
   incomeBg: {
-    backgroundColor: `${theme.colors.customColors.income}25`,
+    backgroundColor: `${theme.colors.customColors.income}20`,
   },
   expenseBg: {
-    backgroundColor: `${theme.colors.customColors.expense}25`,
+    backgroundColor: `${theme.colors.customColors.expense}20`,
   },
   label: {
     color: theme.colors.onSecondary,

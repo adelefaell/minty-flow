@@ -3,7 +3,7 @@ import { StyleSheet } from "react-native-unistyles"
 export const dateRangePresetModalStyles = StyleSheet.create((theme) => {
   const muted = theme.colors.customColors?.semi ?? theme.colors.onSurface
   const primary = theme.colors.primary
-  const radius = theme.colors.radius ?? 10
+  const radius = theme.colors.radius
   const borderColor = `${muted}40`
 
   return {
@@ -111,7 +111,7 @@ export const dateRangePresetModalStyles = StyleSheet.create((theme) => {
       alignItems: "center",
     },
     monthCellSelected: {
-      backgroundColor: `${primary}25`,
+      backgroundColor: `${primary}20`,
     },
     monthCellText: {
       color: theme.colors.onSurface,

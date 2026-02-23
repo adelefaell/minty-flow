@@ -1,3 +1,4 @@
+import type { ReactNode } from "react"
 import { useUnistyles } from "react-native-unistyles"
 
 import { IconSymbol } from "~/components/ui/icon-symbol"
@@ -10,7 +11,7 @@ interface ChipProps {
   label: string
   selected: boolean
   onPress: () => void
-  leading?: React.ReactNode
+  leading?: ReactNode
 }
 
 export function Chip({ label, selected, onPress, leading }: ChipProps) {

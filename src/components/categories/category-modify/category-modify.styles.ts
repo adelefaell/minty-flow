@@ -17,7 +17,7 @@ export const categoryModifyStyles = StyleSheet.create((theme) => ({
     paddingBottom: 100,
   },
   form: {
-    gap: 32,
+    gap: 10,
   },
   label: {
     fontSize: 12,

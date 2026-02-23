@@ -1,4 +1,4 @@
-import type React from "react"
+import type { ReactNode } from "react"
 import { useMemo } from "react"
 import { KeyboardStickyView } from "react-native-keyboard-controller"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context"
 export const KeyboardStickyViewMinty = ({
   children,
 }: {
-  children?: React.ReactNode | undefined
+  children?: ReactNode | undefined
 }) => {
   const insets = useSafeAreaInsets()
 

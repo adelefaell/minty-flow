@@ -315,8 +315,8 @@ const styles = UnistylesSheet.create((theme) => ({
     overflow: "hidden",
     marginBottom: 12,
     borderWidth: 1,
-    backgroundColor: `${theme.colors.onSurface}08`,
-    borderColor: `${theme.colors.onSurface}12`,
+    backgroundColor: `${theme.colors.onSurface}10`,
+    borderColor: theme.colors.customColors.semi,
   },
   optionRow: {
     flexDirection: "row",
@@ -326,7 +326,7 @@ const styles = UnistylesSheet.create((theme) => ({
   },
   optionRowBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: `${theme.colors.onSurface}12`,
+    borderBottomColor: theme.colors.customColors.semi,
   },
   optionRowPressed: { opacity: 0.7 },
   optionRowContent: { flex: 1, gap: 2 },
@@ -348,8 +348,8 @@ const styles = UnistylesSheet.create((theme) => ({
     paddingVertical: 16,
     alignItems: "center",
     borderWidth: 1,
-    backgroundColor: `${theme.colors.onSurface}08`,
-    borderColor: `${theme.colors.onSurface}12`,
+    backgroundColor: `${theme.colors.onSurface}10`,
+    borderColor: theme.colors.customColors.semi,
   },
   cancelButtonPressed: { opacity: 0.7 },
   cancelText: {

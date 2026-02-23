@@ -19,6 +19,7 @@ export type FilterPanelKey =
   | "type"
   | "groupBy"
   | "attachments"
+  | "currency"
 
 export const EMPTY_HIDDEN_FILTERS: FilterPanelKey[] = []
 

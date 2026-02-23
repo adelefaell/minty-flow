@@ -652,7 +652,7 @@ export const styles = StyleSheet.create((theme) => ({
     paddingVertical: CARD_PAD,
     paddingHorizontal: H_PAD,
     borderBottomWidth: 1,
-    borderBottomColor: `${theme.colors.customColors.semi}20`,
+    borderBottomColor: theme.colors.customColors.semi,
   },
   addFilesOptionRowLast: {
     borderBottomWidth: 0,
@@ -749,7 +749,7 @@ export const styles = StyleSheet.create((theme) => ({
     paddingBottom: 2 * FORM_GAP,
     gap: ELEMENT_GAP,
     borderTopWidth: 1,
-    borderTopColor: `${theme.colors.customColors.semi}20`,
+    borderTopColor: theme.colors.customColors.semi,
   },
   footerButton: {
     flex: 1,

@@ -3,20 +3,20 @@ import { withObservables } from "@nozbe/watermelondb/react"
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router"
 import { useState } from "react"
 import { Controller, useForm } from "react-hook-form"
-import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
 import { ChangeIconInline } from "~/components/change-icon-inline"
 import { ColorVariantInline } from "~/components/color-variant-inline"
 import { ConfirmModal } from "~/components/confirm-modal"
+import { ContactSelectorModal } from "~/components/selector-modals"
 import { TabsMinty } from "~/components/tabs-minty"
-import { ContactSelectorInline } from "~/components/tags/contact-selector-inline"
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Input } from "~/components/ui/input"
 import { Separator } from "~/components/ui/separator"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
+import { ScrollIntoViewProvider } from "~/contexts/scroll-into-view-context"
 import type TagModel from "~/database/models/tag"
 import {
   createTag,
@@ -146,8 +146,8 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        style={styles.scrollView}
+      <ScrollIntoViewProvider
+        scrollViewStyle={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
       >
         {/* Type selector (Tabs) */}
@@ -178,7 +178,6 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
           <View style={styles.form} key={tag?.id || NewEnum.NEW}>
             {/* Icon Selection – inline toggle (Icon / Emoji/Letter / Image) */}
             <ChangeIconInline
-              id={`change-icon-tag-${tagId || NewEnum.NEW}`}
               currentIcon={formIcon}
               onIconSelected={(icon) =>
                 setValue("icon", icon, { shouldDirty: true })
@@ -218,7 +217,7 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
             <View style={styles.settingsList}>
               {/* Person: contact selector – inline with search and scroll */}
               {formType === "contact" && (
-                <ContactSelectorInline
+                <ContactSelectorModal
                   onContactSelected={(contact) => {
                     if (contact.name) {
                       setValue("name", contact.name, { shouldDirty: true })
@@ -242,7 +241,9 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
                   setValue("colorSchemeName", scheme, { shouldDirty: true })
                 }}
                 onClearSelection={() =>
-                  setValue("colorSchemeName", undefined, { shouldDirty: true })
+                  setValue("colorSchemeName", undefined, {
+                    shouldDirty: true,
+                  })
                 }
               />
             </View>
@@ -270,7 +271,7 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
             </Button>
           </View>
         )}
-      </ScrollView>
+      </ScrollIntoViewProvider>
 
       {/* <KeyboardStickyViewMinty> */}
       <View style={styles.actions}>

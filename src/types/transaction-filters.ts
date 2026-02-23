@@ -42,6 +42,8 @@ export interface TransactionListFilterState {
   groupBy: GroupByOption
   /** Attachment filter: all, has attachments, or has no attachments. */
   attachmentFilter: AttachmentsOptionsType
+  /** Selected currency codes; empty = all currencies. */
+  currencyIds: string[]
 }
 
 export type GroupByOption =
@@ -98,4 +100,5 @@ export const DEFAULT_TRANSACTION_LIST_FILTER_STATE: TransactionListFilterState =
     typeFilters: [],
     groupBy: "day",
     attachmentFilter: AttachmentsOptionsEnum.ALL,
+    currencyIds: [],
   }

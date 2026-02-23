@@ -1,0 +1,403 @@
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons"
+import type { ComponentProps } from "react"
+import { memo, useCallback, useMemo, useState } from "react"
+import { FlatList, Modal, Pressable, TextInput, View } from "react-native"
+import { SafeAreaView } from "react-native-safe-area-context"
+import { StyleSheet, useUnistyles } from "react-native-unistyles"
+
+import { Button } from "~/components/ui/button"
+import { Text } from "~/components/ui/text"
+import {
+  MATERIAL_SYMBOLS,
+  type MintyIconData,
+} from "~/constants/minty-icons-selection"
+import type { MintyColorScheme } from "~/styles/theme/types"
+
+import { DynamicIcon } from "../dynamic-icon"
+import { IconSymbol } from "../ui/icon-symbol"
+
+export interface IconSelectionModalProps {
+  visible: boolean
+  onClose: () => void
+  onIconSelected?: (icon: string) => void
+  initialIcon?: string
+  colorScheme?: MintyColorScheme
+}
+
+// Grid layout configuration
+const COLUMNS = 6
+
+const IconItem = memo(
+  ({
+    iconName,
+    isSelected,
+    onPress,
+    color,
+    selectedColor,
+  }: {
+    iconName: string
+    isSelected: boolean
+    onPress: (name: string) => void
+    color: string
+    selectedColor: string
+  }) => {
+    return (
+      <Pressable
+        style={[
+          styles.iconItem,
+          isSelected && { backgroundColor: selectedColor },
+        ]}
+        onPress={() => onPress(iconName)}
+      >
+        <MaterialCommunityIcons
+          name={
+            iconName as ComponentProps<typeof MaterialCommunityIcons>["name"]
+          }
+          size={28}
+          color={color}
+        />
+      </Pressable>
+    )
+  },
+)
+
+/**
+ * SearchHeader - Memoised search input for the icon modal
+ */
+const SearchHeader = memo(
+  ({
+    searchQuery,
+    onSearchChange,
+    onClear,
+    placeholderTextColor,
+  }: {
+    searchQuery: string
+    onSearchChange: (text: string) => void
+    onClear: () => void
+    placeholderTextColor: string
+  }) => {
+    return (
+      <View style={styles.searchContainer}>
+        <IconSymbol name="magnify" size={20} color={styles.searchIcon.color} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search icons..."
+          placeholderTextColor={placeholderTextColor}
+          value={searchQuery}
+          onChangeText={onSearchChange}
+          autoCorrect={false}
+          autoCapitalize="none"
+        />
+        {searchQuery.length > 0 && (
+          <Pressable onPress={onClear}>
+            <IconSymbol name="close" size={20} color={placeholderTextColor} />
+          </Pressable>
+        )}
+      </View>
+    )
+  },
+)
+
+/**
+ * IconSelectionModal – full-screen modal icon picker with fuzzy search.
+ *
+ * Controlled by the `visible` prop; call `onClose` to dismiss.
+ */
+export const IconSelectionModal = ({
+  visible,
+  onClose,
+  colorScheme,
+  onIconSelected,
+  initialIcon,
+}: IconSelectionModalProps) => {
+  const { theme } = useUnistyles()
+  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedIcon, setSelectedIcon] = useState<string | null>(
+    initialIcon || null,
+  )
+
+  // Reset state when modal opens
+  const handleShow = useCallback(() => {
+    setSelectedIcon(initialIcon || null)
+    setSearchQuery("")
+  }, [initialIcon])
+
+  /**
+   * Fuzzy search: scores icons by name / keyword match, returns top 100.
+   */
+  const searchIcons = useCallback(
+    (icons: MintyIconData[], query: string): MintyIconData[] => {
+      if (!query.trim()) {
+        return icons
+      }
+
+      const lowerQuery = query.toLowerCase().trim()
+
+      const scoredIcons = icons.map((icon) => {
+        let score = 0
+        const iconNameLower = icon.name.toLowerCase()
+
+        if (iconNameLower === lowerQuery) {
+          score += 100
+        } else if (iconNameLower.startsWith(lowerQuery)) {
+          score += 50
+        } else if (iconNameLower.includes(lowerQuery)) {
+          score += 25
+        }
+
+        for (const keyword of icon.keywords) {
+          const keywordLower = keyword.toLowerCase()
+          if (keywordLower === lowerQuery) {
+            score += 80
+          } else if (keywordLower.startsWith(lowerQuery)) {
+            score += 40
+          } else if (keywordLower.includes(lowerQuery)) {
+            score += 20
+          }
+        }
+
+        return { icon, score }
+      })
+
+      return scoredIcons
+        .filter(({ score }) => score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 100)
+        .map(({ icon }) => icon)
+    },
+    [],
+  )
+
+  const availableIcons = useMemo(
+    () => searchIcons(MATERIAL_SYMBOLS, searchQuery),
+    [searchQuery, searchIcons],
+  )
+
+  const handleIconSelect = useCallback((iconName: string) => {
+    setSelectedIcon(iconName)
+  }, [])
+
+  const keyExtractor = useCallback((item: MintyIconData) => item.name, [])
+
+  const handleDone = useCallback(() => {
+    if (selectedIcon) {
+      onIconSelected?.(selectedIcon)
+      onClose()
+    }
+  }, [selectedIcon, onIconSelected, onClose])
+
+  const handleSearchChange = useCallback((text: string) => {
+    setSearchQuery(text)
+  }, [])
+
+  const handleClearSearch = useCallback(() => {
+    setSearchQuery("")
+  }, [])
+
+  const renderIconItem = useCallback(
+    ({ item }: { item: MintyIconData }) => (
+      <IconItem
+        iconName={item.name}
+        isSelected={selectedIcon === item.name}
+        onPress={handleIconSelect}
+        color={theme.colors.onSurface}
+        selectedColor={theme.colors.secondary}
+      />
+    ),
+    [selectedIcon, handleIconSelect, theme.colors],
+  )
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      onRequestClose={onClose}
+      onShow={handleShow}
+      statusBarTranslucent
+      accessibilityViewIsModal
+    >
+      <SafeAreaView style={styles.modalContainer} edges={["top", "bottom"]}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Select Icon</Text>
+          <Button variant="secondary" onPress={onClose}>
+            <Text>Cancel</Text>
+          </Button>
+        </View>
+
+        {/* Search */}
+        <View style={styles.searchWrapper}>
+          <SearchHeader
+            searchQuery={searchQuery}
+            onSearchChange={handleSearchChange}
+            onClear={handleClearSearch}
+            placeholderTextColor={theme.colors.onSecondary}
+          />
+        </View>
+
+        {/* Icon grid */}
+        <FlatList
+          data={availableIcons}
+          numColumns={COLUMNS}
+          renderItem={renderIconItem}
+          keyExtractor={keyExtractor}
+          contentContainerStyle={styles.flatListContent}
+          showsVerticalScrollIndicator
+          initialNumToRender={60}
+          maxToRenderPerBatch={60}
+          windowSize={7}
+          removeClippedSubviews={false}
+          bounces
+          keyboardDismissMode="none"
+          keyboardShouldPersistTaps="always"
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <IconSymbol
+                name="alert-circle"
+                size={48}
+                color={theme.colors.onSecondary}
+              />
+              <Text variant="p" style={styles.emptyStateText}>
+                No icons found
+              </Text>
+              <Text variant="p" style={styles.emptyStateSubtext}>
+                Try a different search term
+              </Text>
+            </View>
+          }
+        />
+
+        {/* Footer: preview + Done */}
+        <View style={styles.footer}>
+          <View style={styles.footerLeft}>
+            {selectedIcon && (
+              <View style={styles.selectedPreview}>
+                <DynamicIcon
+                  icon={selectedIcon}
+                  size={20}
+                  colorScheme={colorScheme}
+                />
+                <Text style={styles.selectedIconName}>{selectedIcon}</Text>
+              </View>
+            )}
+          </View>
+          <Button
+            variant="default"
+            onPress={handleDone}
+            disabled={!selectedIcon}
+          >
+            <Text>Done</Text>
+          </Button>
+        </View>
+      </SafeAreaView>
+    </Modal>
+  )
+}
+
+const styles = StyleSheet.create((theme) => ({
+  modalContainer: {
+    flex: 1,
+    backgroundColor: theme.colors.surface,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.customColors.semi,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: theme.colors.onSurface,
+  },
+  searchWrapper: {
+    paddingTop: 12,
+    paddingBottom: 4,
+  },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginHorizontal: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: theme.colors.radius,
+    borderWidth: 1,
+    borderColor: theme.colors.onSurface,
+    backgroundColor: theme.colors.surface,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: theme.colors.onSurface,
+    padding: 0,
+    minHeight: 24,
+  },
+  searchIcon: {
+    color: theme.colors.onSecondary,
+  },
+  flatListContent: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 16,
+  },
+  emptyState: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 60,
+    gap: 12,
+  },
+  emptyStateText: {
+    color: theme.colors.onSecondary,
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  emptyStateSubtext: {
+    color: theme.colors.onSecondary,
+    fontSize: 14,
+    opacity: 0.7,
+  },
+  iconItem: {
+    flex: 1,
+    aspectRatio: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    margin: 4,
+    borderRadius: theme.colors.radius,
+    maxWidth: 56,
+  },
+  footer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingTop: 16,
+    paddingBottom: 8,
+    paddingHorizontal: 20,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.customColors.semi,
+    backgroundColor: theme.colors.surface,
+    gap: 12,
+  },
+  footerLeft: {
+    flex: 1,
+    minHeight: 40,
+    justifyContent: "center",
+  },
+  selectedPreview: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  selectedIconName: {
+    fontSize: 14,
+    color: theme.colors.onSurface,
+    fontWeight: "500",
+    flex: 1,
+  },
+}))
