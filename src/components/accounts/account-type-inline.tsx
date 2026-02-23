@@ -4,16 +4,15 @@
  */
 
 import { useState } from "react"
-import { LayoutAnimation, View } from "react-native"
+import { View } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
+import { useScrollIntoView } from "~/hooks/use-scroll-into-view"
 import type { AccountType } from "~/types/accounts"
 import { accountTypesList } from "~/utils/account-types-list"
-
-const LAYOUT_ANIM = LayoutAnimation.Presets.easeInEaseOut
 
 export interface AccountTypeInlineProps {
   /** Currently selected type. */
@@ -29,17 +28,22 @@ export function AccountTypeInline({
   onTypeSelected,
   editable = true,
 }: AccountTypeInlineProps) {
+  const { wrapperRef, scrollIntoView } = useScrollIntoView()
   const [expanded, setExpanded] = useState(false)
 
   const handleToggle = () => {
     if (!editable) return
-    LayoutAnimation.configureNext(LAYOUT_ANIM)
-    setExpanded((v) => !v)
+
+    setExpanded((v) => {
+      const next = !v
+      if (next) scrollIntoView()
+      return next
+    })
   }
 
   const handleSelect = (type: AccountType) => {
     onTypeSelected(type)
-    LayoutAnimation.configureNext(LAYOUT_ANIM)
+
     setExpanded(false)
   }
 
@@ -47,7 +51,7 @@ export function AccountTypeInline({
     accountTypesList.find((t) => t.type === selectedType)?.label ?? selectedType
 
   return (
-    <View style={styles.wrapper}>
+    <View ref={wrapperRef} style={styles.wrapper}>
       <Pressable
         style={styles.triggerRow}
         onPress={handleToggle}
@@ -152,12 +156,12 @@ const styles = StyleSheet.create((theme) => ({
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderRadius: theme.colors.radius ?? 12,
-    backgroundColor: `${theme.colors.onSurface}08`,
+    backgroundColor: `${theme.colors.onSurface}10`,
     borderWidth: 1,
     borderColor: "transparent",
   },
   optionActive: {
-    backgroundColor: `${theme.colors.primary}12`,
+    backgroundColor: `${theme.colors.primary}20`,
     borderColor: theme.colors.primary,
   },
   optionText: {

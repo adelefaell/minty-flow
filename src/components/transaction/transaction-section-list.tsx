@@ -6,7 +6,14 @@
  */
 
 import { useRouter } from "expo-router"
-import { Fragment, useCallback, useMemo, useRef } from "react"
+import {
+  type ComponentType,
+  Fragment,
+  type ReactElement,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react"
 import { SectionList } from "react-native"
 import type { SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable"
 import { StyleSheet } from "react-native-unistyles"
@@ -35,7 +42,7 @@ export interface TransactionSectionListProps {
   /** Whether to show the upcoming transactions section above the list. */
   showUpcoming?: boolean
   /** Additional content rendered at the top of the list (before upcoming). */
-  ListHeaderComponent?: React.ComponentType<unknown> | React.ReactElement | null
+  ListHeaderComponent?: ComponentType<unknown> | ReactElement | null
 }
 
 export function TransactionSectionList({

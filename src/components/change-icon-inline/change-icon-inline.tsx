@@ -11,9 +11,8 @@ import type { TextInput as RNTextInput } from "react-native"
 import { View } from "react-native"
 import { useUnistyles } from "react-native-unistyles"
 
-import { useBottomSheet } from "~/components/bottom-sheet"
+import { IconSelectionModal } from "~/components/change-icon-inline/icon-selection-modal"
 import { DynamicIcon } from "~/components/dynamic-icon"
-import { IconSelectionSheet } from "~/components/icon-selection-sheet"
 import { Pressable } from "~/components/ui/pressable"
 import type { MintyColorScheme } from "~/styles/theme/types"
 import { isImageUrl } from "~/utils/is-image-url"
@@ -30,7 +29,6 @@ import { ModeSelectorList } from "./mode-selector-list"
 import type { ChangeIconInlineProps, InlineMode } from "./types"
 
 export function ChangeIconInline({
-  id,
   currentIcon,
   onIconSelected,
   colorScheme: colorSchemeProp,
@@ -41,6 +39,7 @@ export function ChangeIconInline({
   const [mode, setMode] = useState<InlineMode>(null)
   const [emojiInputValue, setEmojiInputValue] = useState("")
   const [imageUri, setImageUri] = useState<string | null>(null)
+  const [iconModalVisible, setIconModalVisible] = useState(false)
   const emojiInputRef = useRef<ComponentRef<typeof RNTextInput>>(null)
 
   const colorScheme: MintyColorScheme = colorSchemeProp ?? {
@@ -61,16 +60,13 @@ export function ChangeIconInline({
     radius: theme.colors.radius,
   }
 
-  const iconSheetId = `${id}-icon`
-  const iconSheet = useBottomSheet(iconSheetId)
-
   const handleToggle = () => {
     if (mode !== null) return
     setExpanded((v) => !v)
   }
 
   const handleIconPress = () => {
-    iconSheet.present()
+    setIconModalVisible(true)
   }
 
   const handleEmojiLetterPress = () => {
@@ -94,6 +90,7 @@ export function ChangeIconInline({
       onIconSelected?.(trimmed)
       setMode(null)
       setEmojiInputValue("")
+      setExpanded(false)
     }
   }
 
@@ -156,6 +153,7 @@ export function ChangeIconInline({
       onIconSelected?.(imageUri)
       setMode(null)
       setImageUri(null)
+      setExpanded(false)
     }
   }
 
@@ -221,13 +219,15 @@ export function ChangeIconInline({
         </View>
       )}
 
-      <IconSelectionSheet
-        id={iconSheetId}
+      <IconSelectionModal
+        visible={iconModalVisible}
+        onClose={() => setIconModalVisible(false)}
         colorScheme={colorScheme}
         initialIcon={currentIcon}
         onIconSelected={(selectedIcon) => {
           onIconSelected?.(selectedIcon)
-          iconSheet.dismiss()
+          setIconModalVisible(false)
+          setExpanded(false)
         }}
       />
     </View>

@@ -1,6 +1,7 @@
 export { AccountsPanel } from "./accounts-panel"
 export { AttachmentsPanel } from "./attachments-panel"
 export { CategoriesPanel } from "./categories-panel"
+export { CurrencyPanel } from "./currency-panel"
 export { GroupByPanel } from "./group-by-panel"
 export { PendingPanel } from "./pending-panel"
 export { SearchPanel } from "./search-panel"

@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-02-22T21:09:44.787Z
+Generated on: 2026-02-23T18:08:46.255Z
 
 ```
 ./
@@ -152,6 +152,7 @@ Generated on: 2026-02-22T21:09:44.787Z
 │   │   │   ├── 📄 change-icon-inline.styles.ts
 │   │   │   ├── 📄 change-icon-inline.tsx
 │   │   │   ├── 📄 emoji-letter-mode.tsx
+│   │   │   ├── 📄 icon-selection-modal.tsx
 │   │   │   ├── 📄 image-mode.tsx
 │   │   │   ├── 📄 index.ts
 │   │   │   ├── 📄 mode-selector-list.tsx
@@ -165,8 +166,12 @@ Generated on: 2026-02-22T21:09:44.787Z
 │   │   │   └── 📄 types.ts
 │   │   ├── 📁 profile/
 │   │   │   └── 📄 profile-section.tsx
+│   │   ├── 📁 selector-modals/
+│   │   │   ├── 📄 contact-selector-modal.tsx
+│   │   │   ├── 📄 currency-selector-modal.tsx
+│   │   │   ├── 📄 index.ts
+│   │   │   └── 📄 styles.ts
 │   │   ├── 📁 tags/
-│   │   │   ├── 📄 contact-selector-inline.tsx
 │   │   │   └── 📄 tag-card.tsx
 │   │   ├── 📁 theme/
 │   │   │   ├── 📄 standalone-themes-section.tsx
@@ -181,6 +186,7 @@ Generated on: 2026-02-22T21:09:44.787Z
 │   │   │   │   │   ├── 📄 accounts-panel.tsx
 │   │   │   │   │   ├── 📄 attachments-panel.tsx
 │   │   │   │   │   ├── 📄 categories-panel.tsx
+│   │   │   │   │   ├── 📄 currency-panel.tsx
 │   │   │   │   │   ├── 📄 group-by-panel.tsx
 │   │   │   │   │   ├── 📄 index.ts
 │   │   │   │   │   ├── 📄 pending-panel.tsx
@@ -197,6 +203,9 @@ Generated on: 2026-02-22T21:09:44.787Z
 │   │   │   │   └── 📄 utils.ts
 │   │   │   ├── 📁 transaction-form-v3/
 │   │   │   │   ├── 📄 constants.ts
+│   │   │   │   ├── 📄 form-account-picker.tsx
+│   │   │   │   ├── 📄 form-tags-picker.tsx
+│   │   │   │   ├── 📄 form-to-account-picker.tsx
 │   │   │   │   ├── 📄 form-utils.ts
 │   │   │   │   ├── 📄 form.styles.ts
 │   │   │   │   ├── 📄 index.ts
@@ -232,15 +241,13 @@ Generated on: 2026-02-22T21:09:44.787Z
 │   │   │   ├── 📄 tooltip.tsx
 │   │   │   └── 📄 view.tsx
 │   │   ├── 📄 action-item.tsx
-│   │   ├── 📄 bottom-sheet.tsx
+│   │   ├── 📄 bottom-sheet.tsx.md
 │   │   ├── 📄 color-variant-inline.tsx
 │   │   ├── 📄 confirm-modal.tsx
-│   │   ├── 📄 currency-selector-inline.tsx
 │   │   ├── 📄 dynamic-icon.tsx
 │   │   ├── 📄 emoji-letter-selection-sheet.tsx
 │   │   ├── 📄 external-link.tsx
 │   │   ├── 📄 haptic-tab.tsx
-│   │   ├── 📄 icon-selection-sheet.tsx
 │   │   ├── 📄 info-modal.tsx
 │   │   ├── 📄 keyboard-sticky-view-minty.tsx
 │   │   ├── 📄 money.tsx
@@ -258,6 +265,8 @@ Generated on: 2026-02-22T21:09:44.787Z
 │   │   ├── 📄 minty-icons-selection.ts
 │   │   ├── 📄 pre-sets-categories.ts
 │   │   └── 📄 site-data.ts
+│   ├── 📁 contexts/
+│   │   └── 📄 scroll-into-view-context.tsx
 │   ├── 📁 database/
 │   │   ├── 📁 models/
 │   │   │   ├── 📄 account.ts
@@ -301,6 +310,7 @@ Generated on: 2026-02-22T21:09:44.787Z
 │   │   ├── 📄 use-recurring-rule.ts
 │   │   ├── 📄 use-recurring-transaction-sync.ts
 │   │   ├── 📄 use-retention-cleanup.ts
+│   │   ├── 📄 use-scroll-into-view.ts
 │   │   └── 📄 use-time-reactivity.ts
 │   ├── 📁 schemas/
 │   │   ├── 📄 accounts.schema.ts
@@ -355,6 +365,7 @@ Generated on: 2026-02-22T21:09:44.787Z
 │   │   ├── 📄 goals.ts
 │   │   ├── 📄 loans.ts
 │   │   ├── 📄 new.ts
+│   │   ├── 📄 scroll-into-view.ts
 │   │   ├── 📄 tags.ts
 │   │   ├── 📄 transaction-filters.ts
 │   │   ├── 📄 transactions.ts

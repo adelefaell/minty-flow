@@ -204,7 +204,7 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.surface,
     paddingHorizontal: 4,
     paddingVertical: 1,
-    borderRadius: 4,
+    borderRadius: theme.colors.radius / 2,
   },
   primaryBadgeText: {
     fontSize: 9,
@@ -222,7 +222,7 @@ const styles = StyleSheet.create((theme) => ({
     gap: 8,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: `${theme.colors.customColors.semi}30`,
+    borderTopColor: theme.colors.customColors.semi,
   },
   summaryLabel: {
     fontSize: 10,

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { type ReactNode, useState } from "react"
 import { TouchableOpacity } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -8,7 +8,7 @@ import { View } from "~/components/ui/view"
 
 interface CollapsibleProps {
   title: string
-  children?: React.ReactNode
+  children?: ReactNode
 }
 
 export const Collapsible = ({ children, title }: CollapsibleProps) => {

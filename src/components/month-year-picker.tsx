@@ -171,7 +171,7 @@ const styles = StyleSheet.create((theme) => {
       alignItems: "center" as const,
     },
     monthCellSelected: {
-      backgroundColor: `${primary}25`,
+      backgroundColor: `${primary}20`,
     },
     monthCellText: {
       color: theme.colors.onSurface,
