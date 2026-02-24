@@ -1071,7 +1071,7 @@ export const destroyTransactionModel = async (
   })
 }
 
-export const destroyAllTransactionModel = async (): Promise<void> => {
+export const destroyAllDeletedTransactionMode = async (): Promise<void> => {
   const categories = database.get<CategoryModel>("categories")
 
   const transactions = await getTransactionModels({
