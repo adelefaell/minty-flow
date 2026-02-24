@@ -72,7 +72,7 @@ const chipStyles = StyleSheet.create((theme) => ({
   },
 }))
 
-// --- ChoiceChipsComponent ---
+// --- ChoiceChips ---
 
 interface ChoiceChipsProps<T extends string> {
   title: string
@@ -84,7 +84,7 @@ interface ChoiceChipsProps<T extends string> {
   textStyle?: StyleProp<TextStyle>
 }
 
-export const ChoiceChipsComponent = <T extends string>({
+export const ChoiceChips = <T extends string>({
   title,
   description,
   style,

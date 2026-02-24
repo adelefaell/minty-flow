@@ -2,7 +2,7 @@ import * as Notifications from "expo-notifications"
 import { Linking, Platform, ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
-import { ChoiceChipsComponent } from "~/components/ui/chips"
+import { ChoiceChips } from "~/components/ui/chips"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
@@ -160,7 +160,7 @@ export default function PendingTransactionsPreferencesScreen() {
         </Text>
       </View>
 
-      <ChoiceChipsComponent
+      <ChoiceChips
         title="Show on home"
         choices={SHOW_ON_HOME_CHOICES}
         selectedValue={showOnHomeValue}

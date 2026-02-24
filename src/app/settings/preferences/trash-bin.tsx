@@ -4,7 +4,7 @@ import { ScrollView } from "react-native-gesture-handler"
 import { StyleSheet } from "react-native-unistyles"
 
 import { ConfirmModal } from "~/components/confirm-modal"
-import { ChoiceChipsComponent } from "~/components/ui/chips"
+import { ChoiceChips } from "~/components/ui/chips"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
@@ -53,7 +53,7 @@ export default function TrashBinScreen() {
   return (
     <ScrollView style={styles.container}>
       {/* Retention Period Choices */}
-      <ChoiceChipsComponent
+      <ChoiceChips
         title="Retention Period"
         description="Automatically clear deleted items after a set period"
         style={{
