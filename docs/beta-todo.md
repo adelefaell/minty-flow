@@ -1,257 +1,283 @@
 # Minty Flow — Beta Completion Checklist
 
-> Track every screen, component, and implementation needed to reach a working beta.
+> Accurate status based on actual source code review.
 > Legend: ✅ Done · 🚧 Partial / Needs Polish · ⬜ Not Started
 
 ---
 
 ## 🗂️ Core Navigation & Layout
 
-| Item | Status | Notes |
-|------|--------|-------|
-| Tab layout (`(tabs)/_layout.tsx`) with PagerView + FAB | ✅ | Working with Home, Stats, Accounts, Settings tabs |
-| FAB — Add Expense / Income / Transfer actions | ✅ | Animated, 3 options |
-| Root `_layout.tsx` Stack with all registered screens | ✅ | All routes declared |
-| StatusBar + ToastManager | ✅ | |
-| Theme (light / dark) | ✅ | Unistyles-based |
+
+| Item                                      | Status | Notes                                |
+| ----------------------------------------- | ------ | ------------------------------------ |
+| Tab layout with PagerView + animated FAB  | ✅      | Home, Stats, Accounts, Settings      |
+| FAB — Expense / Income / Transfer actions | ✅      | 3 animated options                   |
+| Root Stack with all registered screens    | ✅      | All routes declared in `_layout.tsx` |
+| StatusBar + ToastManager                  | ✅      |                                      |
+| Theme (light / dark / system)             | ✅      | Unistyles-based                      |
+| Recurring transaction sync on app start   | ✅      | `useRecurringTransactionSync`        |
+| Retention cleanup on app start            | ✅      | `useRetentionCleanup`                |
+
 
 ---
 
 ## 🏠 Tab 1 — Home Screen
 
-| Item | Status | Notes |
-|------|--------|-------|
-| Transaction list with `withObservables` | ✅ | |
-| Summary section (income / expense / net cards) | ✅ | |
-| Filter header (accounts, categories, tags, type, currency, date range, search) | ✅ | |
-| Privacy mode toggle (eye icon) | ✅ | |
-| Profile greeting + avatar tap → edit profile | ✅ | |
-| "Show upcoming" pending transactions | ✅ | |
-| Pull-to-refresh / live reactive updates | ✅ | |
-| Empty state illustration when no transactions | ⬜ | Just an empty list currently |
+
+| Item                                                                                                       | Status | Notes                               |
+| ---------------------------------------------------------------------------------------------------------- | ------ | ----------------------------------- |
+| Transaction section list (reactive)                                                                        | ✅      |                                     |
+| Summary cards (income / expense / net, multi-currency)                                                     | ✅      |                                     |
+| Full filter header (accounts, categories, tags, type, currency, group by, attachments, date range, search) | ✅      |                                     |
+| Privacy mode toggle                                                                                        | ✅      |                                     |
+| Profile greeting + avatar tap → Edit Profile                                                               | ✅      |                                     |
+| Upcoming section (recurring + pending, confirm / confirm-all / cancel)                                     | ✅      |                                     |
+| Empty state when no transactions                                                                           | ⬜      | Just an empty list, no illustration |
+
 
 ---
 
 ## 📊 Tab 2 — Stats Screen
 
-| Item | Status | Notes |
-|------|--------|-------|
-| Stats screen shell (`stats-view.tsx`) | 🚧 | Title only — fully placeholder |
-| Period selector (month / year / custom range) | ⬜ | |
-| Expense vs Income bar/line chart | ⬜ | |
-| Category breakdown pie/donut chart | ⬜ | |
-| Top spending categories list | ⬜ | |
-| Net worth over time chart | ⬜ | |
-| Account balance comparison | ⬜ | |
+
+| Item                                    | Status | Notes                                                    |
+| --------------------------------------- | ------ | -------------------------------------------------------- |
+| Stats screen                            | ⬜      | Completely empty placeholder — entire tab needs building |
+| Period selector (month / year / custom) | ⬜      |                                                          |
+| Income vs Expense chart                 | ⬜      |                                                          |
+| Category breakdown chart                | ⬜      |                                                          |
+| Top spending categories                 | ⬜      |                                                          |
+| Net worth / balance over time           | ⬜      |                                                          |
+
 
 ---
 
 ## 💳 Tab 3 — Accounts Screen
 
-| Item | Status | Notes |
-|------|--------|-------|
-| Accounts list screen | ✅ | `src/app/accounts/index.tsx` |
-| Account card component | ✅ | Balance, currency, type, primary badge |
-| Account detail screen (`[accountId]/index.tsx`) | ✅ | Balance, month in/out, net, transaction list |
-| Account detail — filter + search | ✅ | |
-| Account detail — year/month picker | ✅ | |
-| Create / Edit account (`[accountId]/modify.tsx`) | ✅ | Name, type, currency, icon, color, primary flag |
-| Delete account with confirmation modal | ✅ | |
-| Archive account | ✅  | Can be managed in the settings under All Accounts screen |
-| Reorder accounts | ✅  | |
+
+| Item                                                                                         | Status | Notes                                      |
+| -------------------------------------------------------------------------------------------- | ------ | ------------------------------------------ |
+| Accounts list with total balance (multi-currency)                                            | ✅      |                                            |
+| Search accounts                                                                              | ✅      |                                            |
+| Drag-to-reorder with save / cancel                                                           | ✅      | `ReorderableListV2`, persists `sort_order` |
+| Account card (balance, month in/out, type, primary badge, archived badge)                    | ✅      |                                            |
+| Account detail (balance, month summary, transaction list, filter, search, year/month picker) | ✅      |                                            |
+| Create account                                                                               | ✅      |                                            |
+| Edit account (name, type, currency, icon, color, primary flag)                               | ✅      |                                            |
+| Archive account toggle (in edit screen)                                                      | ✅      | Archived accounts shown grayed out in list |
+| Permanently delete account (only after archiving)                                            | ✅      | Safety guard in place                      |
+
 
 ---
 
 ## ➕ Transaction Form (Full-Screen Modal)
 
-| Item | Status | Notes |
-|------|--------|-------|
-| Transaction form v3 (`transaction/[id].tsx`) | ✅ | |
-| Expense / Income / Transfer type switcher | ✅ | |
-| Amount input with currency | ✅ | |
-| Account picker (inline) | ✅ | |
-| To-account picker for transfers | ✅ | |
-| Category picker | ✅ | |
-| Tag picker (multi-select) | ✅ | |
-| Date / time picker | ✅ | |
-| Title + description fields | ✅ | |
-| Pending toggle | ✅ | |
-| Recurring transaction setup | ✅ | frequency, end date, occurrences |
-| Currency conversion rate for cross-currency transfers | ✅ | |
-| Attachments / photos | ⬜ | Screen registered but not wired |
-| Location tagging | ⬜ | Preference screen exists, form field missing |
-| Balance at transaction display | ✅ | |
-| Edit existing transaction (prefill) | ✅ | |
-| Delete transaction with confirmation | ✅ | |
-| Unsaved changes guard modal | ✅ | |
+
+| Item                                                            | Status | Notes                                          |
+| --------------------------------------------------------------- | ------ | ---------------------------------------------- |
+| Expense / Income / Transfer type switcher                       | ✅      |                                                |
+| Amount input with currency                                      | ✅      |                                                |
+| Account picker (inline)                                         | ✅      |                                                |
+| To-account picker for transfers                                 | ✅      |                                                |
+| Category picker                                                 | ✅      |                                                |
+| Tag picker (multi-select)                                       | ✅      |                                                |
+| Date / time picker                                              | ✅      |                                                |
+| Title + description fields                                      | ✅      |                                                |
+| Pending toggle                                                  | ✅      |                                                |
+| Recurring setup (frequency, start, end date / occurrences)      | ✅      |                                                |
+| Currency conversion rate for cross-currency transfers           | ✅      | Auto-fetched + manual override                 |
+| Balance at transaction display                                  | ✅      |                                                |
+| Attachments (camera, file picker, preview, open in app, remove) | ✅      |                                                |
+| Move to trash                                                   | ✅      |                                                |
+| Restore from trash (shown when opened from Trash screen)        | ✅      |                                                |
+| Permanently delete (when trashed)                               | ✅      |                                                |
+| Edit existing transaction (prefill)                             | ✅      |                                                |
+| Unsaved changes guard modal                                     | ✅      |                                                |
+| Location tagging                                                | ⬜      | Preference toggle exists; form field not wired |
+
 
 ---
 
-## ⚙️ Tab 4 — Settings Screen
+## ⚙️ Tab 4 — Settings
 
-### Settings Index
-| Item | Status | Notes |
-|------|--------|-------|
-| Settings index with section list | ✅ | Profile section + money management + other |
-| Profile section component | ✅ | Avatar, name |
+### Profile
 
-### Edit Profile
-| Item | Status | Notes |
-|------|--------|-------|
-| Edit profile screen | ✅ | Name, avatar/image |
+
+| Item                           | Status | Notes |
+| ------------------------------ | ------ | ----- |
+| Profile section (avatar, name) | ✅      |       |
+| Edit profile screen            | ✅      |       |
+
 
 ### All Accounts
-| Item | Status | Notes |
-|------|--------|-------|
-| All accounts list | ✅ | Links to account detail/modify |
-| Add account button | ✅ | |
-| Archived accounts toggle | ✅ | | have different styles 
+
+
+| Item                                                     | Status | Notes |
+| -------------------------------------------------------- | ------ | ----- |
+| All accounts list (including archived, sorted to bottom) | ✅      |       |
+| Add account button                                       | ✅      |       |
+
 
 ### Categories
-| Item | Status | Notes |
-|------|--------|-------|
-| Categories index (by type tabs) | ✅ | |
-| Category detail (`[categoryId]/index.tsx`) | ✅ | |
-| Create / Edit category (`[categoryId]/modify.tsx`) | ✅ | |
-| Category presets screen | ✅ | |
-| Archived categories screen | ✅ | |
-| Delete category with confirmation | ✅ | |
+
+
+| Item                              | Status | Notes |
+| --------------------------------- | ------ | ----- |
+| Categories list by type           | ✅      |       |
+| Category detail screen            | ✅      |       |
+| Create / Edit category            | ✅      |       |
+| Category presets                  | ✅      |       |
+| Archived categories screen        | ✅      |       |
+| Delete category with confirmation | ✅      |       |
+
 
 ### Tags
-| Item | Status | Notes |
-|------|--------|-------|
-| Tags list screen | ✅ | |
-| Create / Edit tag (`[tagId].tsx`) | ✅ | |
-| Delete tag | ✅ | |
+
+
+| Item                       | Status | Notes |
+| -------------------------- | ------ | ----- |
+| Tags list                  | ✅      |       |
+| Create / Edit / Delete tag | ✅      |       |
+
 
 ### Trash
-| Item | Status | Notes |
-|------|--------|-------|
-| Trash screen (deleted transactions) | 🚧 | Screen exists — verify restore + permanent delete logic |
-| Restore transaction from trash | ⬜ | |
-| Permanent delete from trash | ⬜ | |
-| Empty trash action | ⬜ | |
 
-### Pending Transactions
-| Item | Status | Notes |
-|------|--------|-------|
-| Pending transactions list screen | 🚧 | Screen file exists — needs full implementation |
-| Mark pending as complete | ⬜ | |
-| Delete / dismiss pending | ⬜ | |
 
-### Goals ⬜
-| Item | Status | Notes |
-|------|--------|-------|
-| Goals list | ⬜ | Placeholder screen; DB model + service exist |
-| Create / Edit goal form | ⬜ | |
-| Goal progress bar / visual | ⬜ | |
-| Mark goal as achieved / archive | ⬜ | |
-| Link transactions to a goal | ⬜ | |
+| Item                                                           | Status | Notes                                                         |
+| -------------------------------------------------------------- | ------ | ------------------------------------------------------------- |
+| Trash list (sorted by deleted-at, reactive)                    | ✅      |                                                               |
+| Tap → open trashed transaction → restore or permanently delete | ✅      | Via transaction form                                          |
+| Swipe left → permanently delete with confirm modal             | ✅      |                                                               |
+| Empty state                                                    | ✅      |                                                               |
 
-### Budgets ⬜
-| Item | Status | Notes |
-|------|--------|-------|
-| Budgets list | ⬜ | Placeholder screen |
-| Create / Edit budget form | ⬜ | |
-| Budget period (monthly / weekly / custom) | ⬜ | |
-| Spending progress per budget | ⬜ | |
-| Over-budget alert / indicator | ⬜ | |
 
-### Loans ⬜
-| Item | Status | Notes |
-|------|--------|-------|
-| Loans list | ⬜ | Placeholder screen |
-| Create loan (lent / borrowed) | ⬜ | |
-| Record repayment | ⬜ | |
-| Mark loan as settled | ⬜ | |
+### Pending Transactions *(Settings screen)*
 
-### Bill Splitter ⬜
-| Item | Status | Notes |
-|------|--------|-------|
-| Bill splitter screen | ⬜ | Placeholder screen |
-| Add participants | ⬜ | |
-| Split bill evenly / custom amounts | ⬜ | |
-| Generate split summary | ⬜ | |
 
-### Data Management ⬜
-| Item | Status | Notes |
-|------|--------|-------|
-| Data management screen | ⬜ | "COMING SOON" placeholder |
-| Export to CSV / JSON | ⬜ | |
-| Import from CSV / JSON | ⬜ | |
-| iCloud / local backup | ⬜ | |
-| Restore from backup | ⬜ | |
-| Wipe all data (reset) | ⬜ | |
+| Item                                   | Status | Notes                                                                                                               |
+| -------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------- |
+| Settings > Pending Transactions screen | ⬜      | Static placeholder — the home upcoming section already has the real UI; this dedicated screen needs to be built out |
+
+
+### Goals
+
+
+| Item                    | Status | Notes                                                  |
+| ----------------------- | ------ | ------------------------------------------------------ |
+| Goals list              | ⬜      | Placeholder screen; DB model + full CRUD service exist |
+| Create / Edit goal form | ⬜      |                                                        |
+| Goal progress tracking  | ⬜      |                                                        |
+| Archive / complete goal | ⬜      |                                                        |
+
+
+### Budgets
+
+
+| Item                         | Status | Notes                                        |
+| ---------------------------- | ------ | -------------------------------------------- |
+| Budgets list                 | ⬜      | Placeholder screen; DB model + service exist |
+| Create / Edit budget form    | ⬜      |                                              |
+| Spending progress per budget | ⬜      |                                              |
+
+
+### Loans
+
+
+| Item                           | Status | Notes                                        |
+| ------------------------------ | ------ | -------------------------------------------- |
+| Loans list                     | ⬜      | Placeholder screen; DB model + service exist |
+| Create loan (lent / borrowed)  | ⬜      |                                              |
+| Record repayment / settle loan | ⬜      |                                              |
+
+
+### Bill Splitter
+
+
+| Item          | Status | Notes                                 |
+| ------------- | ------ | ------------------------------------- |
+| Bill splitter | ⬜      | Placeholder screen, no backend at all |
+
+
+### Data Management
+
+
+| Item                   | Status | Notes                     |
+| ---------------------- | ------ | ------------------------- |
+| Data management screen | ⬜      | "COMING SOON" placeholder |
+| Export CSV / JSON      | ⬜      |                           |
+| Import CSV / JSON      | ⬜      |                           |
+| Backup / restore       | ⬜      |                           |
+| Wipe all data          | ⬜      |                           |
+
 
 ---
 
 ## 🎛️ Preferences
 
-| Item | Status | Notes |
-|------|--------|-------|
-| Preferences index | ✅ | |
-| Theme (light / dark / system) | ✅ | |
-| Toast style (position, progress bar, close icon) | ✅ | |
-| Exchange rates | 🚧 | Screen exists — verify live rates fetch + manual override |
-| Trash bin retention (auto-delete after N days) | ✅ | |
-| Reminder notifications | 🚧 | Screen exists — verify scheduling works on both platforms |
-| Pending transactions settings | ✅ | |
-| Privacy mode (blur amounts) | ✅ | |
-| Money formatting (symbol, decimals, grouping) | ✅ | |
-| Transaction location toggle | 🚧 | Screen exists — location capture not wired to form |
-| Transfers settings | ✅ | |
+
+| Item                                                                                       | Status | Notes                                                                           |
+| ------------------------------------------------------------------------------------------ | ------ | ------------------------------------------------------------------------------- |
+| Preferences index                                                                          | ✅      |                                                                                 |
+| Theme                                                                                      | ✅      |                                                                                 |
+| Money formatting                                                                           | ✅      |                                                                                 |
+| Toast style                                                                                | ✅      |                                                                                 |
+| Transfers layout                                                                           | ✅      |                                                                                 |
+| Pending transactions preferences (timeframe, require confirmation, update date on confirm) | ✅      |                                                                                 |
+| Exchange rates (live fetch, Suspense, custom rate per currency, retry)                     | ✅      |                                                                                 |
+| Trash bin retention period                                                                 | ✅      |                                                                                 |
+| Privacy (blur amounts)                                                                     | ✅      |                                                                                 |
+| Transaction location toggle                                                                | 🚧     | Screen + store exist; form-level location capture not implemented               |
+| Reminder notifications                                                                     | 🚧     | Screen + notification service exist; verify scheduling actually fires on device |
+
 
 ---
 
 ## 🔔 System & Cross-Cutting
 
-| Item | Status | Notes |
-|------|--------|-------|
-| Recurring transaction sync (`useRecurringTransactionSync`) | ✅ | |
-| Retention cleanup (`useRetentionCleanup`) | ✅ | |
-| WatermelonDB schema + migrations | ✅ | |
-| MMKV stores (profile, preferences, toast style, etc.) | ✅ | |
-| Toast notification system | ✅ | |
-| Confirm modal (reusable) | ✅ | |
-| Money formatting / privacy mode | ✅ | |
-| Error boundary / crash screen | ⬜ | |
-| Onboarding flow (first launch) | ⬜ | |
-| Push notification support (reminders) | ⬜ | Preference exists; scheduling TBD |
-| App icon + splash screen assets | ✅ | |
-| Android JSI plugin (`withWatermelonDBJSI`) | ✅ | |
+
+| Item                                                            | Status | Notes |
+| --------------------------------------------------------------- | ------ | ----- |
+| WatermelonDB schema + migrations                                | ✅      |       |
+| MMKV stores (profile, toast, preferences, exchange rates, etc.) | ✅      |       |
+| Reusable ConfirmModal                                           | ✅      |       |
+| Toast system                                                    | ✅      |       |
+| Money formatting + privacy mode                                 | ✅      |       |
+| Auto-confirmation service                                       | ✅      |       |
+| Android JSI plugin                                              | ✅      |       |
+| Error boundary / crash screen                                   | ⬜      |       |
+| Onboarding / first-launch flow                                  | ⬜      |       |
+
 
 ---
 
-## 🧹 Polish & Beta Hardening
+## 🧹 Polish
 
-| Item | Status | Notes |
-|------|--------|-------|
-| Empty states for all list screens | ⬜ | Only transactions has one |
-| Loading skeletons / shimmer placeholders | ⬜ | |
-| Offline indicator | ⬜ | App is local-first but no UX indicator |
-| Accessibility labels (`accessibilityLabel`, `accessibilityRole`) | 🚧 | Partial in form components |
-| iOS VoiceOver / Android TalkBack audit | ⬜ | |
-| Tablet / large screen layout | ⬜ | |
-| Android back-gesture handling | 🚧 | Unsaved-changes guard in transaction form; missing elsewhere |
-| TypeScript strict errors (`pnpm types`) at zero | 🚧 | Run to get current count |
-| Lint pass at zero warnings (`pnpm lint`) | 🚧 | |
-| Performance: memo/callback audit on heavy lists | ⬜ | |
-| Deep link support | ⬜ | |
+
+| Item                                                  | Status | Notes                                 |
+| ----------------------------------------------------- | ------ | ------------------------------------- |
+| Empty state illustrations for all list screens        | ⬜      | Goals, Budgets, Loans, Pending screen |
+| Reorder categories (same as accounts)                 | ⬜      |                                       |
+| "Empty all trash" UI button                           | ⬜      | Service ready                         |
+| Android back-gesture guard (outside transaction form) | ⬜      |                                       |
+| TypeScript zero errors (`pnpm types`)                 | 🚧     |                                       |
+| Lint zero warnings (`pnpm lint`)                      | 🚧     |                                       |
+
 
 ---
 
-## 🚀 Beta Release Gates
+## 🚀 Beta Release Priority Order
 
-- [ ] Stats tab has at least basic monthly income/expense chart
-- [ ] Trash screen — restore + delete working
-- [ ] Pending transactions screen — fully functional
-- [ ] Exchange rates screen — live fetch confirmed
-- [ ] Reminder notifications fire on iOS + Android
-- [ ] Zero TypeScript errors (`pnpm types`)
-- [ ] Zero lint errors (`pnpm lint`)
-- [ ] Test on physical Android device via USB
-- [ ] Test on iOS simulator (macOS)
-- [ ] All placeholder screens either implemented or hidden from Settings list
+1. [ ] **Stats tab** — at minimum a monthly income/expense chart
+2. [ ] **Settings > Pending Transactions screen** — build real list (service + component already exist on home screen)
+3. [ ] **Empty all trash** button — one button, service is ready
+4. [ ] **Reminder notifications** — verify scheduling fires on iOS + Android
+5. [ ] **Goals** — DB + service ready, just needs screens
+6. [ ] **Budgets** — DB + service ready, just needs screens
+7. [ ] **Loans** — DB + service ready, just needs screens
+8. [ ] **Transaction location** — wire location capture into the form
+9. [ ] **Data Management** — at minimum CSV export
+10. [ ] **Bill Splitter** — lowest priority, needs full backend + UI
+11. [ ] Zero TS errors + zero lint warnings before shipping
 
 ---
 
