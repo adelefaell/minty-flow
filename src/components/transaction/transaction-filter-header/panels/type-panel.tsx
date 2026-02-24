@@ -1,9 +1,9 @@
 import { View } from "react-native"
 
+import { Chip } from "~/components/ui/chips"
 import { TYPE_OPTIONS } from "~/types/transaction-filters"
 import type { TransactionType } from "~/types/transactions"
 
-import { Chip } from "../chip"
 import { filterHeaderStyles } from "../filter-header.styles"
 import { PanelClearButton } from "../panel-clear-button"
 import { PanelDoneButton } from "../panel-done-button"

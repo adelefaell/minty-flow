@@ -1,8 +1,8 @@
 import { View } from "react-native"
 
+import { Chip } from "~/components/ui/chips"
 import { PENDING_OPTIONS } from "~/types/transaction-filters"
 
-import { Chip } from "../chip"
 import { filterHeaderStyles } from "../filter-header.styles"
 import { PanelDoneButton } from "../panel-done-button"
 import { CHIPS_PER_ROW } from "../types"

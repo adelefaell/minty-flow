@@ -1,12 +1,12 @@
 import { ScrollView, TextInput, View } from "react-native"
 import { useUnistyles } from "react-native-unistyles"
 
+import { Chip } from "~/components/ui/chips"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import type { SearchMatchType } from "~/types/transaction-filters"
 
-import { Chip } from "../chip"
 import { filterHeaderStyles } from "../filter-header.styles"
 import { PanelClearButton } from "../panel-clear-button"
 import { PanelDoneButton } from "../panel-done-button"

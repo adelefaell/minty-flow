@@ -9,6 +9,7 @@ import { ScrollView, View } from "react-native"
 import { useUnistyles } from "react-native-unistyles"
 
 import { DateRangePresetModal } from "~/components/date-range-preset-modal"
+import { Chip } from "~/components/ui/chips"
 import { IconSymbol, type IconSymbolName } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
@@ -295,8 +296,7 @@ export function TransactionFilterHeader({
     ? `${formatShortMonthDay(selectedRange.start)} – ${formatShortMonthDay(selectedRange.end)}`
     : "This month"
 
-  const borderColor = `${theme.colors.onSurface}30`
-  const activeBg = theme.colors.secondary
+  const borderColor = theme.colors.customColors.semi
 
   const pills: {
     key: FilterPanelKey | "date"
@@ -391,44 +391,20 @@ export function TransactionFilterHeader({
         ) : null}
         {visiblePills.map(({ key, icon, label, active }) => {
           const isExpanded = expandedPanel === key
+          const selected = active || isExpanded
           return (
-            <Pressable
+            <Chip
               key={key}
-              style={[
-                filterHeaderStyles.pill,
-                {
-                  borderColor: isExpanded
-                    ? theme.colors.primary
-                    : active
-                      ? `${theme.colors.primary}60`
-                      : borderColor,
-                  backgroundColor:
-                    active || isExpanded ? activeBg : "transparent",
-                },
-              ]}
+              label={label}
+              selected={selected}
+              hideCheck
               onPress={() =>
                 key === "date"
                   ? handleDatePress()
                   : togglePanel(key as FilterPanelKey)
               }
-            >
-              <IconSymbol name={icon} size={18} />
-              <Text
-                variant="default"
-                style={[
-                  filterHeaderStyles.pillLabel,
-                  {
-                    color:
-                      isExpanded || active
-                        ? theme.colors.primary
-                        : theme.colors.onSurface,
-                  },
-                ]}
-                numberOfLines={1}
-              >
-                {label}
-              </Text>
-            </Pressable>
+              leading={<IconSymbol name={icon} size={18} />}
+            />
           )
         })}
       </ScrollView>

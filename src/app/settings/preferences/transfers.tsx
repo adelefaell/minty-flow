@@ -1,5 +1,5 @@
 import { ScrollView } from "react-native"
-import { StyleSheet } from "react-native-unistyles"
+import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
@@ -12,23 +12,53 @@ import {
   useTransfersPreferencesStore,
 } from "~/stores/transfers-preferences.store"
 
-const HORIZONTAL_PADDING = 20
+const layoutOptions: Array<{
+  value: TransferLayoutType
+  label: string
+  description: string
+}> = [
+  {
+    value: TransferLayoutEnum.COMBINE,
+    label: "Combine",
+    description: "Single net amount",
+  },
+  {
+    value: TransferLayoutEnum.SEPARATE,
+    label: "Separate",
+    description: "Outgoing and incoming shown separately",
+  },
+]
 
 function LayoutPreview({ variant }: { variant: TransferLayoutType }) {
+  const { theme } = useUnistyles()
+  const successColor =
+    theme.colors.customColors?.success ?? theme.colors.primary
   return (
-    <View style={styles.layoutPreview}>
+    <View native style={styles.previewRow}>
       <IconSymbol
         name="swap-horizontal"
-        size={20}
-        color={styles.layoutIconColor.color}
+        size={18}
+        color={theme.colors.customColors?.semi}
       />
-      <View style={styles.slidersPreview}>
+      <View native style={styles.slidersPreview}>
         {variant === TransferLayoutEnum.COMBINE ? (
-          <View style={[styles.sliderBar, styles.sliderBarCombined]} />
+          <View
+            native
+            style={[styles.sliderBar, { backgroundColor: successColor }]}
+          />
         ) : (
           <>
-            <View style={[styles.sliderBar, styles.sliderBarGreen]} />
-            <View style={[styles.sliderBar, styles.sliderBarRed]} />
+            <View
+              native
+              style={[styles.sliderBar, { backgroundColor: successColor }]}
+            />
+            <View
+              native
+              style={[
+                styles.sliderBar,
+                { backgroundColor: theme.colors.error },
+              ]}
+            />
           </>
         )}
       </View>
@@ -36,40 +66,8 @@ function LayoutPreview({ variant }: { variant: TransferLayoutType }) {
   )
 }
 
-function LayoutOption({
-  label,
-  selected,
-  variant,
-  onPress,
-}: {
-  label: string
-  selected: boolean
-  variant: TransferLayoutType
-  onPress: () => void
-}) {
-  return (
-    <View style={styles.optionBlock}>
-      <Pressable
-        style={styles.radioRow}
-        onPress={onPress}
-        accessibilityRole="radio"
-        accessibilityState={{ checked: selected }}
-      >
-        <View style={styles.radioRowInner}>
-          <View
-            style={[styles.radioOuter, selected && styles.radioOuterSelected]}
-          >
-            {selected && <View style={styles.radioInner} />}
-          </View>
-          <Text style={styles.radioLabel}>{label}</Text>
-        </View>
-      </Pressable>
-      <LayoutPreview variant={variant} />
-    </View>
-  )
-}
-
 export default function TransfersPreferencesScreen() {
+  const { theme } = useUnistyles()
   const layout = useTransfersPreferencesStore((s) => s.layout)
   const setLayout = useTransfersPreferencesStore((s) => s.setLayout)
   const excludeFromTotals = useTransfersPreferencesStore(
@@ -86,45 +84,72 @@ export default function TransfersPreferencesScreen() {
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
     >
-      {/* Layout section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Layout</Text>
-        <View style={styles.radioGroup}>
-          <LayoutOption
-            label="Combine"
-            selected={layout === TransferLayoutEnum.COMBINE}
-            variant={TransferLayoutEnum.COMBINE}
-            onPress={() => setLayout(TransferLayoutEnum.COMBINE)}
-          />
-          <LayoutOption
-            label="Separate"
-            selected={layout === TransferLayoutEnum.SEPARATE}
-            variant={TransferLayoutEnum.SEPARATE}
-            onPress={() => setLayout(TransferLayoutEnum.SEPARATE)}
-          />
-        </View>
-        <View style={styles.infoRow}>
-          <IconSymbol
-            name="information"
-            size={16}
-            color={styles.infoIconColor.color}
-          />
-          <Text style={styles.infoText}>
-            Transfers will always be separated in some places.
-          </Text>
-        </View>
+      {/* Layout */}
+      <View native style={[styles.sectionLabel, styles.sectionLabelFirst]}>
+        <Text variant="small" style={styles.sectionLabelText}>
+          Layout
+        </Text>
+      </View>
+      <View native style={styles.card}>
+        {layoutOptions.map((option, index) => {
+          const isSelected = layout === option.value
+          const isLast = index === layoutOptions.length - 1
+          return (
+            <View key={option.value} native>
+              <Pressable
+                style={styles.row}
+                onPress={() => setLayout(option.value)}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: isSelected }}
+              >
+                <View native style={styles.rowContent}>
+                  <Text style={styles.rowLabel}>{option.label}</Text>
+                  <Text variant="small" style={styles.rowDescription}>
+                    {option.description}
+                  </Text>
+                  <LayoutPreview variant={option.value} />
+                </View>
+                {isSelected ? (
+                  <IconSymbol
+                    name="check"
+                    size={20}
+                    color={theme.colors.primary}
+                  />
+                ) : null}
+              </Pressable>
+              {!isLast ? <View native style={styles.divider} /> : null}
+            </View>
+          )
+        })}
+      </View>
+      <View native style={styles.captionRow}>
+        <IconSymbol
+          name="information"
+          size={14}
+          color={theme.colors.customColors?.semi}
+        />
+        <Text variant="small" style={styles.captionText}>
+          Transfers are always separated in some views.
+        </Text>
       </View>
 
-      {/* Exclude from totals section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Exclude from totals</Text>
+      {/* Exclude from totals */}
+      <View native style={styles.sectionLabel}>
+        <Text variant="small" style={styles.sectionLabelText}>
+          Totals
+        </Text>
+      </View>
+      <View native style={styles.toggleCard}>
         <Pressable
-          style={styles.excludeRow}
+          style={styles.toggleRow}
           onPress={() => setExcludeFromTotals(!excludeFromTotals)}
         >
-          <Text style={styles.excludeLabel}>
-            Don&apos;t count towards total expense/income
-          </Text>
+          <View native style={styles.toggleRowContent}>
+            <Text style={styles.toggleLabel}>Exclude from totals</Text>
+            <Text variant="small" style={styles.toggleDescription}>
+              Don&apos;t count towards total expense or income
+            </Text>
+          </View>
           <Switch
             value={excludeFromTotals}
             onValueChange={setExcludeFromTotals}
@@ -141,119 +166,113 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.surface,
   },
   content: {
-    paddingBottom: 40,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 48,
   },
-  section: {
-    paddingTop: 24,
+
+  sectionLabel: {
+    paddingHorizontal: 4,
     marginBottom: 8,
+    marginTop: 24,
   },
-  sectionTitle: {
-    fontSize: 12,
+  sectionLabelFirst: {
+    marginTop: 8,
+  },
+  sectionLabelText: {
+    fontSize: 11,
     fontWeight: "600",
-    letterSpacing: 0.5,
-    color: theme.colors.onSecondary,
-    marginBottom: 12,
-    paddingHorizontal: HORIZONTAL_PADDING,
+    letterSpacing: 1,
+    opacity: 0.5,
   },
-  optionBlock: {
-    marginBottom: 16,
+
+  card: {
+    backgroundColor: theme.colors.secondary,
+    borderRadius: theme.colors.radius,
+    overflow: "hidden",
   },
-  layoutPreview: {
+  row: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
-    paddingVertical: 6,
-    paddingHorizontal: HORIZONTAL_PADDING,
-    paddingLeft: HORIZONTAL_PADDING + 22 + 12,
-  },
-  layoutIconColor: {
-    color: theme.colors.customColors?.semi,
-  },
-  slidersPreview: {
-    flex: 1,
-    gap: 8,
-  },
-  sliderBar: {
-    height: 8,
-    borderRadius: 4,
-    maxWidth: "80%",
-  },
-  sliderBarGreen: {
-    backgroundColor: theme.colors.customColors?.success,
-  },
-  sliderBarRed: {
-    backgroundColor: theme.colors.error,
-  },
-  sliderBarCombined: {
-    backgroundColor: theme.colors.customColors.success,
-  },
-  radioGroup: {
-    width: "100%",
-  },
-  radioRow: {
-    width: "100%",
+    justifyContent: "space-between",
     paddingVertical: 14,
+    paddingHorizontal: 16,
+    minHeight: 56,
   },
-  radioRowInner: {
+  rowContent: {
+    flex: 1,
+    gap: 2,
+  },
+  rowLabel: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: theme.colors.onSecondary,
+  },
+  rowDescription: {
+    fontSize: 13,
+    color: theme.colors.onSecondary,
+    opacity: 0.7,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: theme.colors.customColors?.semi,
+  },
+
+  toggleCard: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.colors.radius,
+    borderWidth: 1,
+    borderColor: theme.colors.customColors?.semi,
+    overflow: "hidden",
+  },
+  toggleRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
-    paddingHorizontal: HORIZONTAL_PADDING,
+    justifyContent: "space-between",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    minHeight: 56,
   },
-  radioOuter: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    borderColor: theme.colors.customColors?.semi,
-    alignItems: "center",
-    justifyContent: "center",
+  toggleRowContent: {
+    flex: 1,
+    gap: 2,
   },
-  radioOuterSelected: {
-    borderColor: theme.colors.primary,
-  },
-  radioInner: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: theme.colors.primary,
-  },
-  radioLabel: {
+  toggleLabel: {
     fontSize: 16,
     fontWeight: "500",
     color: theme.colors.onSurface,
   },
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 8,
-    marginTop: 4,
-    paddingHorizontal: HORIZONTAL_PADDING,
-  },
-  infoIconColor: {
-    color: theme.colors.customColors?.semi,
-  },
-  infoText: {
-    flex: 1,
+  toggleDescription: {
     fontSize: 13,
-    color: theme.colors.customColors?.semi,
-    lineHeight: 18,
+    color: theme.colors.customColors.semi,
   },
-  excludeRow: {
-    width: "100%",
+
+  previewRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 15,
-    paddingHorizontal: HORIZONTAL_PADDING,
-    minHeight: 56,
+    gap: 10,
+    marginTop: 8,
   },
-  excludeLabel: {
+  slidersPreview: {
+    gap: 6,
+  },
+  sliderBar: {
+    height: 6,
+    borderRadius: 3,
+    width: 200,
+    backgroundColor: theme.colors.customColors?.semi,
+  },
+
+  captionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 8,
+    paddingHorizontal: 4,
+  },
+  captionText: {
+    color: theme.colors.customColors?.semi,
     flex: 1,
-    fontSize: 15,
-    fontWeight: "500",
-    color: theme.colors.onSurface,
-    lineHeight: 20,
-    marginRight: 16,
+    fontSize: 12,
   },
 }))

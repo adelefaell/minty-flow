@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-02-23T18:08:46.255Z
+Generated on: 2026-02-24T16:14:12.347Z
 
 ```
 ./
@@ -193,7 +193,6 @@ Generated on: 2026-02-23T18:08:46.255Z
 │   │   │   │   │   ├── 📄 search-panel.tsx
 │   │   │   │   │   ├── 📄 tags-panel.tsx
 │   │   │   │   │   └── 📄 type-panel.tsx
-│   │   │   │   ├── 📄 chip.tsx
 │   │   │   │   ├── 📄 filter-header.styles.ts
 │   │   │   │   ├── 📄 index.ts
 │   │   │   │   ├── 📄 panel-clear-button.tsx
@@ -228,7 +227,7 @@ Generated on: 2026-02-23T18:08:46.255Z
 │   │   │   └── 📄 transaction-type-selector.tsx
 │   │   ├── 📁 ui/
 │   │   │   ├── 📄 button.tsx
-│   │   │   ├── 📄 choice-chips.tsx
+│   │   │   ├── 📄 chips.tsx
 │   │   │   ├── 📄 collapsible.tsx
 │   │   │   ├── 📄 icon-symbol.ios.tsx.md
 │   │   │   ├── 📄 icon-symbol.tsx
@@ -247,7 +246,6 @@ Generated on: 2026-02-23T18:08:46.255Z
 │   │   ├── 📄 dynamic-icon.tsx
 │   │   ├── 📄 emoji-letter-selection-sheet.tsx
 │   │   ├── 📄 external-link.tsx
-│   │   ├── 📄 haptic-tab.tsx
 │   │   ├── 📄 info-modal.tsx
 │   │   ├── 📄 keyboard-sticky-view-minty.tsx
 │   │   ├── 📄 money.tsx

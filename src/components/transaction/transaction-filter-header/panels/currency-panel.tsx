@@ -1,11 +1,11 @@
 import { ScrollView, View } from "react-native"
 import { useUnistyles } from "react-native-unistyles"
 
+import { Chip } from "~/components/ui/chips"
 import { Text } from "~/components/ui/text"
 import { CurrencyRegistryService } from "~/services/currency-registry"
 import type { Account } from "~/types/accounts"
 
-import { Chip } from "../chip"
 import { filterHeaderStyles } from "../filter-header.styles"
 import { PanelClearButton } from "../panel-clear-button"
 import { PanelDoneButton } from "../panel-done-button"
