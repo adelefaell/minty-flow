@@ -2,11 +2,11 @@ import { useMemo, useState } from "react"
 import { ScrollView, View } from "react-native"
 
 import { DynamicIcon } from "~/components/dynamic-icon"
+import { Chip } from "~/components/ui/chips"
 import { Text } from "~/components/ui/text"
 import type { Category } from "~/types/categories"
 import type { TransactionType } from "~/types/transactions"
 
-import { Chip } from "../chip"
 import { filterHeaderStyles } from "../filter-header.styles"
 import { PanelClearButton } from "../panel-clear-button"
 import { PanelDoneButton } from "../panel-done-button"

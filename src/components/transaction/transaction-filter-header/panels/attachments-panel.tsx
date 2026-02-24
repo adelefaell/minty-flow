@@ -1,11 +1,11 @@
 import { View } from "react-native"
 
+import { Chip } from "~/components/ui/chips"
 import {
   ATTACHMENT_OPTIONS,
   type AttachmentsOptionsType,
 } from "~/types/transaction-filters"
 
-import { Chip } from "../chip"
 import { filterHeaderStyles } from "../filter-header.styles"
 import { PanelDoneButton } from "../panel-done-button"
 

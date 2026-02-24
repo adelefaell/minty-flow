@@ -1,10 +1,10 @@
 import { ScrollView, View } from "react-native"
 
 import { DynamicIcon } from "~/components/dynamic-icon"
+import { Chip } from "~/components/ui/chips"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import type { Account } from "~/types/accounts"
 
-import { Chip } from "../chip"
 import { filterHeaderStyles } from "../filter-header.styles"
 import { PanelClearButton } from "../panel-clear-button"
 import { PanelDoneButton } from "../panel-done-button"

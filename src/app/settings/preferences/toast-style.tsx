@@ -1,9 +1,10 @@
 import { useState } from "react"
 import { ScrollView } from "react-native"
-import { StyleSheet } from "react-native-unistyles"
+import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import { ConfirmModal } from "~/components/confirm-modal"
 import { Button } from "~/components/ui/button"
+import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
 import { Switch } from "~/components/ui/switch"
 import { Text } from "~/components/ui/text"
@@ -12,7 +13,21 @@ import type { ToastPosition } from "~/stores/toast.store"
 import { useToastStyleStore } from "~/stores/toast-style.store"
 import { Toast } from "~/utils/toast"
 
+const positionOptions: Array<{
+  value: ToastPosition
+  label: string
+  description: string
+}> = [
+  { value: "top", label: "Top", description: "Appears below the status bar" },
+  {
+    value: "bottom",
+    label: "Bottom",
+    description: "Appears above the home indicator",
+  },
+]
+
 export default function ToastStyleScreen() {
+  const { theme } = useUnistyles()
   const [resetModalVisible, setResetModalVisible] = useState(false)
   const {
     position,
@@ -24,46 +39,36 @@ export default function ToastStyleScreen() {
     resetToDefaults,
   } = useToastStyleStore()
 
-  const handlePositionChange = (newPosition: ToastPosition) => {
-    setPosition(newPosition)
-  }
-
   const handleShowDemoToasts = () => {
-    // Show all 4 toast types with current settings
     Toast.success({
       title: "Success",
       description: "This is a success message",
     })
-
-    setTimeout(() => {
-      Toast.error({
-        title: "Error",
-        description: "This is an error message",
-      })
-    }, 500)
-
-    setTimeout(() => {
-      Toast.info({
-        title: "Info",
-        description: "This is an info message",
-      })
-    }, 1000)
-
-    setTimeout(() => {
-      Toast.warn({
-        title: "Warning",
-        description: "This is a warning message",
-      })
-    }, 1500)
+    setTimeout(
+      () =>
+        Toast.error({
+          title: "Error",
+          description: "This is an error message",
+        }),
+      500,
+    )
+    setTimeout(
+      () =>
+        Toast.info({ title: "Info", description: "This is an info message" }),
+      1000,
+    )
+    setTimeout(
+      () =>
+        Toast.warn({
+          title: "Warning",
+          description: "This is a warning message",
+        }),
+      1500,
+    )
   }
 
-  const handleResetToDefaults = () => {
-    setResetModalVisible(true)
-  }
-
-  const handleConfirmReset = () => {
-    resetToDefaults()
-  }
+  const handleResetToDefaults = () => setResetModalVisible(true)
+  const handleConfirmReset = () => resetToDefaults()
 
   return (
     <>
@@ -77,83 +82,65 @@ export default function ToastStyleScreen() {
         cancelLabel="Cancel"
         variant="destructive"
       />
+
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.content}
+        contentInsetAdjustmentBehavior="automatic"
+        showsVerticalScrollIndicator={false}
       >
-        <View native style={styles.section}>
-          {/* Position */}
-          <View native style={styles.settingRow}>
-            <View native style={styles.settingInfo}>
-              <Text variant="p" style={styles.settingLabel}>
-                Position
-              </Text>
-              <Text variant="small" style={styles.settingDescription}>
-                Where toasts appear on screen
-              </Text>
-              <View native style={styles.radioGroup}>
+        {/* Position */}
+        <View native style={[styles.sectionLabel, styles.sectionLabelFirst]}>
+          <Text variant="small" style={styles.sectionLabelText}>
+            Position
+          </Text>
+        </View>
+        <View native style={styles.card}>
+          {positionOptions.map((option, index) => {
+            const isSelected = position === option.value
+            const isLast = index === positionOptions.length - 1
+            return (
+              <View key={option.value} native>
                 <Pressable
-                  style={styles.radioOption}
-                  onPress={() => handlePositionChange("top")}
+                  style={styles.row}
+                  onPress={() => setPosition(option.value)}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: isSelected }}
                 >
-                  <View
-                    native
-                    style={[
-                      styles.radioButton,
-                      position === "top" && styles.radioButtonSelected,
-                    ]}
-                  >
-                    {position === "top" && (
-                      <View native style={styles.radioButtonInner} />
-                    )}
+                  <View native style={styles.rowContent}>
+                    <Text style={styles.rowLabel}>{option.label}</Text>
+                    <Text variant="small" style={styles.rowDescription}>
+                      {option.description}
+                    </Text>
                   </View>
-                  <Text
-                    style={[
-                      styles.radioLabel,
-                      position === "top" && styles.radioLabelSelected,
-                    ]}
-                  >
-                    Top
-                  </Text>
+                  {isSelected ? (
+                    <IconSymbol
+                      name="check"
+                      size={20}
+                      color={theme.colors.primary}
+                    />
+                  ) : null}
                 </Pressable>
-                <Pressable
-                  style={styles.radioOption}
-                  onPress={() => handlePositionChange("bottom")}
-                >
-                  <View
-                    native
-                    style={[
-                      styles.radioButton,
-                      position === "bottom" && styles.radioButtonSelected,
-                    ]}
-                  >
-                    {position === "bottom" && (
-                      <View native style={styles.radioButtonInner} />
-                    )}
-                  </View>
-                  <Text
-                    style={[
-                      styles.radioLabel,
-                      position === "bottom" && styles.radioLabelSelected,
-                    ]}
-                  >
-                    Bottom
-                  </Text>
-                </Pressable>
+                {!isLast ? <View native style={styles.divider} /> : null}
               </View>
-            </View>
-          </View>
+            )
+          })}
+        </View>
 
-          {/* Progress Bar */}
+        {/* Options */}
+        <View native style={styles.sectionLabel}>
+          <Text variant="small" style={styles.sectionLabelText}>
+            Options
+          </Text>
+        </View>
+        <View native style={styles.toggleCard}>
           <Pressable
-            style={styles.settingRow}
+            style={styles.toggleRow}
             onPress={() => setShowProgressBar(!showProgressBar)}
           >
-            <View native style={styles.settingInfo}>
-              <Text variant="p" style={styles.settingLabel}>
-                Progress Bar
-              </Text>
-              <Text variant="small" style={styles.settingDescription}>
+            <View native style={styles.toggleRowContent}>
+              <Text style={styles.toggleLabel}>Progress bar</Text>
+              <Text variant="small" style={styles.toggleDescription}>
                 Visual countdown indicator
               </Text>
             </View>
@@ -162,17 +149,14 @@ export default function ToastStyleScreen() {
               onValueChange={setShowProgressBar}
             />
           </Pressable>
-
-          {/* Close Icon */}
+          <View native style={styles.divider} />
           <Pressable
-            style={styles.settingRow}
+            style={styles.toggleRow}
             onPress={() => setShowCloseIcon(!showCloseIcon)}
           >
-            <View native style={styles.settingInfo}>
-              <Text variant="p" style={styles.settingLabel}>
-                Close Icon
-              </Text>
-              <Text variant="small" style={styles.settingDescription}>
+            <View native style={styles.toggleRowContent}>
+              <Text style={styles.toggleLabel}>Close icon</Text>
+              <Text variant="small" style={styles.toggleDescription}>
                 Manual dismiss button
               </Text>
             </View>
@@ -180,40 +164,41 @@ export default function ToastStyleScreen() {
           </Pressable>
         </View>
 
-        {/* Demo Section */}
-        <View native style={styles.demoSection}>
-          <Text variant="h3" style={styles.sectionTitle}>
+        {/* Preview */}
+        <View native style={styles.sectionLabel}>
+          <Text variant="small" style={styles.sectionLabelText}>
             Preview
           </Text>
-          <Text variant="small" style={styles.demoDescription}>
-            Test your toast settings with demo notifications
+          <Text variant="small" style={styles.previewDescription}>
+            Test your current settings with live notifications
           </Text>
-          <View native style={styles.demoButtons}>
-            <Button
-              variant="default"
-              style={styles.demoButton}
-              onPress={handleShowDemoToasts}
-            >
-              <Text style={styles.demoButtonText}>Show Demo Toasts</Text>
-            </Button>
-            <Button
-              variant="outline"
-              style={styles.demoButton}
-              onPress={() => Toast.hideAll()}
-            >
-              <Text style={styles.hideAllButtonText}>Hide All</Text>
-            </Button>
-          </View>
         </View>
 
-        {/* Reset Section */}
+        <View native style={styles.previewButtons}>
+          <Button
+            variant="default"
+            style={styles.previewBtnPrimary}
+            onPress={handleShowDemoToasts}
+          >
+            <Text style={styles.previewBtnPrimaryText}>Show demo</Text>
+          </Button>
+          <Button
+            variant="outline"
+            style={styles.previewBtnOutline}
+            onPress={() => Toast.hideAll()}
+          >
+            <Text style={styles.previewBtnOutlineText}>Hide all</Text>
+          </Button>
+        </View>
+
+        {/* Reset */}
         <View native style={styles.resetSection}>
           <Button
             variant="destructive"
             style={styles.resetButton}
             onPress={handleResetToDefaults}
           >
-            <Text>Reset to Defaults</Text>
+            <Text style={styles.resetButtonText}>Reset to defaults</Text>
           </Button>
         </View>
       </ScrollView>
@@ -227,98 +212,120 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.surface,
   },
   content: {
-    paddingBottom: 40,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 48,
   },
-  section: {
-    marginBottom: 32,
+
+  sectionLabel: {
+    paddingHorizontal: 4,
+    marginBottom: 8,
+    marginTop: 24,
   },
-  sectionTitle: {
-    fontSize: 18,
+  sectionLabelFirst: {
+    marginTop: 8,
+  },
+  sectionLabelText: {
+    fontSize: 11,
     fontWeight: "600",
+    letterSpacing: 1,
+    color: theme.colors.customColors?.semi,
   },
-  settingRow: {
+
+  card: {
+    backgroundColor: theme.colors.secondary,
+    borderRadius: theme.colors.radius,
+    overflow: "hidden",
+  },
+  row: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingBlock: 16,
-    paddingRight: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.onSurface,
-    gap: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    minHeight: 56,
   },
-  settingInfo: {
+  rowContent: {
     flex: 1,
-    gap: 4,
-    paddingInline: 20,
+    gap: 2,
   },
-  settingLabel: {
-    fontSize: 15,
-    fontWeight: "600",
+  rowLabel: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: theme.colors.onSecondary,
   },
-  settingDescription: {
+  rowDescription: {
     fontSize: 13,
+    color: theme.colors.onSecondary,
+    opacity: 0.7,
   },
-  radioGroup: {
-    marginTop: 16,
-    gap: 16,
+  divider: {
+    height: 1,
+    backgroundColor: theme.colors.customColors?.semi,
   },
-  radioOption: {
+
+  toggleCard: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.colors.radius,
+    borderWidth: 1,
+    borderColor: theme.colors.customColors?.semi,
+    overflow: "hidden",
+  },
+  toggleRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    justifyContent: "space-between",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    minHeight: 56,
   },
-  radioButton: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: theme.colors.onSurface,
-    alignItems: "center",
-    justifyContent: "center",
+  toggleRowContent: {
+    flex: 1,
+    gap: 2,
   },
-  radioButtonSelected: {
-    borderColor: theme.colors.primary,
-  },
-  radioButtonInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: theme.colors.primary,
-  },
-  radioLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  radioLabelSelected: {
+  toggleLabel: {
+    fontSize: 16,
+    fontWeight: "500",
     color: theme.colors.onSurface,
   },
-  demoSection: {
-    marginBottom: 24,
-    paddingInline: 20,
-  },
-  demoDescription: {
+  toggleDescription: {
     fontSize: 13,
-    marginBottom: 16,
+    color: theme.colors.customColors.semi,
   },
-  demoButtons: {
-    gap: 12,
+
+  previewDescription: {
+    fontSize: 13,
+    color: theme.colors.onSecondary,
+    opacity: 0.7,
   },
-  demoButton: {
+  previewButtons: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  previewBtnPrimary: {
     flex: 1,
   },
-  demoButtonText: {
+  previewBtnPrimaryText: {
     fontSize: 14,
     fontWeight: "600",
   },
-  hideAllButtonText: {
+  previewBtnOutline: {
+    flex: 1,
+  },
+  previewBtnOutlineText: {
     fontSize: 14,
     fontWeight: "600",
   },
+
   resetSection: {
-    paddingInline: 20,
-    marginTop: 8,
+    marginTop: 32,
   },
   resetButton: {
-    width: "100%",
+    borderRadius: theme.colors.radius,
+    paddingVertical: 2,
+  },
+  resetButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
   },
 }))
