@@ -5,7 +5,7 @@ import { createJSONStorage, devtools, persist } from "zustand/middleware"
 
 import type { ThemeKey } from "~/styles/unistyles"
 
-export const DEFAULT_THEME = "frostedMintHills"
+export const DEFAULT_THEME = "coastalTrim"
 export const THEME_PERSIST_STORE_KEY = "theme-preferences"
 export const THEME_PERSIST_MMKV_KEY = "theme-preferences-storage"
 

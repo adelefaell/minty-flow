@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-02-24T20:31:34.217Z
+Generated on: 2026-02-26T17:42:34.423Z
 
 ```
 ./
@@ -241,6 +241,7 @@ Generated on: 2026-02-24T20:31:34.217Z
 │   │   │   ├── 📄 tooltip.tsx
 │   │   │   └── 📄 view.tsx
 │   │   ├── 📄 action-item.tsx
+│   │   ├── 📄 app-lock-gate.tsx
 │   │   ├── 📄 bottom-sheet.tsx.md
 │   │   ├── 📄 color-variant-inline.tsx
 │   │   ├── 📄 confirm-modal.tsx
@@ -324,6 +325,7 @@ Generated on: 2026-02-24T20:31:34.217Z
 │   │   └── 📄 pending-transaction-notifications.ts
 │   ├── 📁 stores/
 │   │   ├── 📄 android-sound.store.ts
+│   │   ├── 📄 app-lock.store.ts
 │   │   ├── 📄 exchange-rates-preferences.store.ts
 │   │   ├── 📄 letter-emoji.store.ts
 │   │   ├── 📄 money-formatting.store.ts
