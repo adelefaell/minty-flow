@@ -8,12 +8,7 @@ import {
   useReducer,
   useState,
 } from "react"
-import {
-  ActivityIndicator,
-  FlatList,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native"
+import { ActivityIndicator, FlatList } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
 import { ExternalLink } from "~/components/external-link"
@@ -237,8 +232,8 @@ function ExchangeRatesContent({
     ],
   )
 
-  const fixedHeader = (
-    <View style={styles.fixedHeader}>
+  const listHeader = (
+    <View style={styles.listHeader}>
       <ExternalLink href={EXCHANGE_API_URL} style={styles.apiCard}>
         <View style={styles.apiCardContent}>
           <Text style={styles.apiTitle}>Exchange Rates API</Text>
@@ -272,21 +267,16 @@ function ExchangeRatesContent({
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={100}
-    >
-      {fixedHeader}
-      <FlatList
-        data={filteredEntries}
-        keyExtractor={(item) => item.displayCode}
-        renderItem={renderItem}
-        contentContainerStyle={styles.listContent}
-        keyboardShouldPersistTaps="handled"
-        style={styles.list}
-      />
-    </KeyboardAvoidingView>
+    <FlatList
+      data={filteredEntries}
+      keyExtractor={(item) => item.displayCode}
+      renderItem={renderItem}
+      ListHeaderComponent={listHeader}
+      contentContainerStyle={styles.listContent}
+      keyboardShouldPersistTaps="handled"
+      style={styles.list}
+      contentInsetAdjustmentBehavior="automatic"
+    />
   )
 }
 
@@ -356,19 +346,15 @@ export default function ExchangeRatesScreen() {
 }
 
 const styles = StyleSheet.create((theme) => ({
-  container: {
+  list: {
     flex: 1,
     backgroundColor: theme.colors.surface,
   },
-  list: {
-    flex: 1,
-  },
   listContent: {
     paddingBottom: 40,
-    paddingTop: 4,
   },
-  fixedHeader: {
-    paddingBottom: 12,
+  listHeader: {
+    paddingBottom: 4,
   },
   apiCard: {
     backgroundColor: theme.colors.secondary,
@@ -453,6 +439,7 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: theme.colors.surface,
   },
   loadingText: {
     marginTop: 12,
