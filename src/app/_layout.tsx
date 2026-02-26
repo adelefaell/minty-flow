@@ -4,15 +4,18 @@ import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { KeyboardProvider } from "react-native-keyboard-controller"
 import { UnistylesRuntime, useUnistyles } from "react-native-unistyles"
 
+import { AppLockGate } from "~/components/app-lock-gate"
 import { ToastManager } from "~/components/ui/toast"
 import { TooltipProvider } from "~/components/ui/tooltip"
 import "react-native-reanimated"
 
 import { setStyle } from "expo-navigation-bar"
+import { useEffect } from "react"
 import { Platform } from "react-native"
 
 import { useRecurringTransactionSync } from "~/hooks/use-recurring-transaction-sync"
 import { useRetentionCleanup } from "~/hooks/use-retention-cleanup"
+import { useMoneyFormattingStore } from "~/stores/money-formatting.store"
 import { NewEnum } from "~/types/new"
 
 export default function RootLayout() {
@@ -24,7 +27,13 @@ export default function RootLayout() {
     setStyle(theme.isDark ? "dark" : "light")
   }
 
-  // Ports to reality: retention cleanup and recurring sync (effects live in domain hooks)
+  // Rehydrate shake listener on app start if mask-on-shake was enabled (store-owned subscription)
+  useEffect(() => {
+    const { maskOnShake, _startShakeListener } =
+      useMoneyFormattingStore.getState()
+    if (maskOnShake) _startShakeListener()
+  }, [])
+
   useRetentionCleanup()
   useRecurringTransactionSync()
 
@@ -222,6 +231,7 @@ export default function RootLayout() {
           </Stack>
           <StatusBar style={theme.isDark ? "light" : "dark"} animated />
 
+          <AppLockGate />
           <ToastManager />
         </TooltipProvider>
       </GestureHandlerRootView>
