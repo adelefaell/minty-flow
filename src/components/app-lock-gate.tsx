@@ -1,12 +1,12 @@
 import { BlurView } from "expo-blur"
 import { useEffect, useState } from "react"
 import Animated, {
-  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated"
 import { StyleSheet } from "react-native-unistyles"
+import { scheduleOnRN } from "react-native-worklets"
 
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
@@ -27,7 +27,7 @@ export function AppLockGate() {
       opacity.value = withTiming(1, { duration: 300 })
     } else {
       opacity.value = withTiming(0, { duration: 400 }, (finished) => {
-        if (finished) runOnJS(setVisible)(false)
+        if (finished) scheduleOnRN(() => setVisible(false))
       })
     }
   }, [isLocked, opacity])
