@@ -498,6 +498,9 @@ export const styles = StyleSheet.create((theme) => ({
     fontWeight: "600",
     color: theme.colors.onSecondary,
   },
+  locationClearBtn: {
+    marginRight: -8,
+  },
   recurringRightWithBadge: {
     flexDirection: "row",
     alignItems: "center",

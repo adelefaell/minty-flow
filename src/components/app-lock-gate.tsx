@@ -1,12 +1,11 @@
 import { BlurView } from "expo-blur"
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated"
 import { StyleSheet } from "react-native-unistyles"
-import { scheduleOnRN } from "react-native-worklets"
 
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
@@ -18,25 +17,21 @@ export function AppLockGate() {
   const isAuthenticating = useAppLockStore((s) => s.isAuthenticating)
   const attemptUnlock = useAppLockStore((s) => s.attemptUnlock)
 
-  const opacity = useSharedValue(0)
-  const [visible, setVisible] = useState(isLocked)
+  const opacity = useSharedValue(isLocked ? 1 : 0)
 
   useEffect(() => {
-    if (isLocked) {
-      setVisible(true)
-      opacity.value = withTiming(1, { duration: 300 })
-    } else {
-      opacity.value = withTiming(0, { duration: 400 }, (finished) => {
-        if (finished) scheduleOnRN(() => setVisible(false))
-      })
-    }
+    opacity.value = withTiming(isLocked ? 1 : 0, {
+      duration: isLocked ? 300 : 400,
+    })
   }, [isLocked, opacity])
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
+    // Blocks all touches when locked, passes through when faded out
+    pointerEvents: opacity.value > 0 ? "auto" : "none",
   }))
 
-  if (!lockAppEnabled || !visible) return null
+  if (!lockAppEnabled) return null
 
   return (
     <Animated.View style={[styles.overlay, animatedStyle]}>
@@ -47,7 +42,7 @@ export function AppLockGate() {
           style={styles.lockButton}
         >
           <IconSymbol
-            name={isAuthenticating ? "lock" : "lock-open"}
+            name={isAuthenticating ? "lock-open" : "lock"}
             size={40}
           />
         </Pressable>

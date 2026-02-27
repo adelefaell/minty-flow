@@ -50,6 +50,7 @@ export function getDefaultValues(
       description: "",
       isPending: false,
       tags: [],
+      location: undefined,
     }
   }
   const isTransfer =
@@ -79,6 +80,7 @@ export function getDefaultValues(
     description: transaction.description ?? "",
     isPending: transaction.isPending,
     tags: initialTagIds,
+    location: transaction.location,
   }
 }
 
