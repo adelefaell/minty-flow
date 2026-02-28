@@ -3,7 +3,7 @@ import { z } from "zod"
 import { TransactionTypeEnum } from "~/types/transactions"
 
 const addCategoriesSchema = z.object({
-  name: z.string().min(1, "Category name is required"),
+  name: z.string().min(1, "validation.category.name.required"),
   icon: z.string().optional(),
   colorSchemeName: z.string().optional(),
   type: z.enum(TransactionTypeEnum),

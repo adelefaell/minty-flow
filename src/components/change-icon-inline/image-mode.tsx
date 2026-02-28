@@ -40,7 +40,9 @@ export function ImageMode({
         </Text>
         <Pressable style={styles.pasteOption} onPress={onPaste}>
           <IconSymbol name="clipboard" size={20} style={styles.optionIcon} />
-          <Text style={styles.optionText}>{t("iconPicker.pasteImage")}</Text>
+          <Text style={styles.optionText}>
+            {t("components.iconPicker.pasteImage")}
+          </Text>
         </Pressable>
         <View style={styles.divider} />
         <View style={styles.previewContainer}>
@@ -70,7 +72,9 @@ export function ImageMode({
             size={20}
             style={styles.optionIcon}
           />
-          <Text style={styles.optionText}>{t("iconPicker.pickImage")}</Text>
+          <Text style={styles.optionText}>
+            {t("components.iconPicker.pickImage")}
+          </Text>
         </Pressable>
         <View style={styles.modeActions}>
           <Button variant="outline" onPress={onCancel}>

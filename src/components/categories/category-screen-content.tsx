@@ -44,8 +44,10 @@ export function CategoryScreenContent({
 
   const currentSearchPlaceholder =
     searchPlaceholder ||
-    t("categories.search.placeholder", {
-      tab: t(`categories.types.${activeTab.toLowerCase()}` as TranslationKey),
+    t("components.categories.search.placeholder", {
+      tab: t(
+        `components.categories.types.${activeTab.toLowerCase()}` as TranslationKey,
+      ),
     })
 
   return (
@@ -61,15 +63,15 @@ export function CategoryScreenContent({
         items={[
           {
             value: TransactionTypeEnum.EXPENSE,
-            label: t("categories.types.expense"),
+            label: t("components.categories.types.expense"),
           },
           {
             value: TransactionTypeEnum.INCOME,
-            label: t("categories.types.income"),
+            label: t("components.categories.types.income"),
           },
           {
             value: TransactionTypeEnum.TRANSFER,
-            label: t("categories.types.transfer"),
+            label: t("components.categories.types.transfer"),
           },
         ]}
         activeValue={activeTab}

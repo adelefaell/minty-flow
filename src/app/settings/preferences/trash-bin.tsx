@@ -34,7 +34,10 @@ export default function TrashBinScreen() {
 
   const retentionMapping = Object.values(RetentionPeriodEnum).map((val) => {
     if (val === "forever") {
-      return { value: val, label: t("trash.retention.forever") }
+      return {
+        value: val,
+        label: t("screens.settings.trash.retention.forever"),
+      }
     }
 
     // Extract the number from the string "30 days" -> 30
@@ -44,8 +47,8 @@ export default function TrashBinScreen() {
       value: val,
       label:
         count === 1
-          ? t("trash.retention.daysCount", { count })
-          : t("trash.retention.daysCountPlural", { count }),
+          ? t("screens.settings.trash.retention.daysCount", { count })
+          : t("screens.settings.trash.retention.daysCountPlural", { count }),
     }
   })
 
@@ -62,14 +65,16 @@ export default function TrashBinScreen() {
     destroyAllDeletedTransactionMode()
       .then(() => {
         Toast.success({
-          title: t("trash.empty.toast.successTitle"),
-          description: t("trash.empty.toast.successDescription"),
+          title: t("screens.settings.trash.empty.toast.successTitle"),
+          description: t(
+            "screens.settings.trash.empty.toast.successDescription",
+          ),
         })
       })
       .catch(() => {
         Toast.error({
-          title: t("trash.empty.toast.errorTitle"),
-          description: t("trash.empty.toast.errorDescription"),
+          title: t("screens.settings.trash.empty.toast.errorTitle"),
+          description: t("screens.settings.trash.empty.toast.errorDescription"),
         })
       })
   }, [t]) // Added 't' to dependencies
@@ -78,8 +83,8 @@ export default function TrashBinScreen() {
     <ScrollView style={styles.container}>
       {/* Retention Period Choices */}
       <ChoiceChips
-        title={t("trash.retention.title")}
-        description={t("trash.retention.description")}
+        title={t("screens.settings.trash.retention.title")}
+        description={t("screens.settings.trash.retention.description")}
         style={{
           paddingHorizontal: 20,
         }}
@@ -100,7 +105,7 @@ export default function TrashBinScreen() {
           <View style={styles.actionItemContent}>
             <View style={styles.titleRow}>
               <Text variant="default" style={styles.actionItemTitle}>
-                {t("trash.viewRemovedList")}
+                {t("screens.settings.trash.viewRemovedList")}
               </Text>
             </View>
           </View>
@@ -123,7 +128,7 @@ export default function TrashBinScreen() {
           <View style={styles.actionItemContent}>
             <View style={styles.titleRow}>
               <Text variant="default" style={styles.actionTrashItemTitle}>
-                {t("trash.empty.label")}
+                {t("screens.settings.trash.empty.label")}
               </Text>
             </View>
           </View>
@@ -140,10 +145,10 @@ export default function TrashBinScreen() {
         visible={confirmModalVisible}
         onRequestClose={() => setConfirmModalVisible(false)}
         onConfirm={handleEmptyConfirmed}
-        title={t("trash.empty.modal.title")}
-        description={t("trash.empty.modal.description")}
-        confirmLabel={t("trash.empty.modal.confirm")}
-        cancelLabel={t("trash.empty.modal.cancel")}
+        title={t("screens.settings.trash.empty.modal.title")}
+        description={t("screens.settings.trash.empty.modal.description")}
+        confirmLabel={t("screens.settings.trash.empty.modal.confirm")}
+        cancelLabel={t("screens.settings.trash.empty.modal.cancel")}
         variant="destructive"
         icon="trash-can"
       />

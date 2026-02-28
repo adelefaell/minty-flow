@@ -25,6 +25,7 @@ import {
   updateAccount,
 } from "~/database/services/account-service"
 import { useNavigationGuard } from "~/hooks/use-navigation-guard"
+import type { TranslationKey } from "~/i18n/config"
 import {
   type AddAccountsFormSchema,
   addAccountsSchema,
@@ -116,7 +117,7 @@ export function AccountModifyContent({
         if (!accountModel) {
           Toast.error({
             title: "Error",
-            description: t("accounts.toast.notFound"),
+            description: t("screens.accounts.toast.notFound"),
           })
           setIsSubmitting(false)
           return
@@ -211,7 +212,7 @@ export function AccountModifyContent({
 
           <View style={accountModifyStyles.nameSection}>
             <Text variant="small" style={accountModifyStyles.label}>
-              {t("accounts.form.namePlaceholder")}
+              {t("screens.accounts.form.namePlaceholder")}
             </Text>
             <Controller
               control={control}
@@ -228,7 +229,7 @@ export function AccountModifyContent({
             />
             {errors.name && (
               <Text variant="small" style={accountModifyStyles.errorText}>
-                {errors.name.message}
+                {t(errors.name.message as TranslationKey)}
               </Text>
             )}
           </View>
@@ -242,9 +243,13 @@ export function AccountModifyContent({
                   value={Number(value) || 0}
                   onChange={(v) => onChange(v)}
                   currencyCode={formCurrencyCode}
-                  label={t("accounts.form.initialBalance")}
+                  label={t("screens.accounts.form.initialBalance")}
                   placeholder="0"
-                  error={errors.balance?.message}
+                  error={
+                    errors.balance?.message
+                      ? t(errors.balance.message as TranslationKey)
+                      : undefined
+                  }
                 />
               )}
             />

@@ -76,7 +76,7 @@ export const AccountCard = ({
               <View style={styles.primaryBadge}>
                 <IconSymbol name="star" size={12} />
                 <Text style={styles.primaryBadgeText}>
-                  {t("accounts.card.primary")}
+                  {t("screens.accounts.card.primary")}
                 </Text>
               </View>
             )}
@@ -94,7 +94,7 @@ export const AccountCard = ({
       {!isArchived && (
         <View variant="muted" style={styles.monthlySummary}>
           <Text variant="small" style={styles.summaryLabel}>
-            {t("accounts.card.thisMonth")}
+            {t("screens.accounts.card.thisMonth")}
           </Text>
           <View variant="muted" style={styles.summaryRow}>
             <View variant="muted" style={styles.summaryItem}>
@@ -105,7 +105,7 @@ export const AccountCard = ({
                   color={styles.incomeColor.color}
                 />
                 <Text style={styles.summaryItemLabel}>
-                  {t("accounts.card.in")}
+                  {t("screens.accounts.card.in")}
                 </Text>
               </View>
 
@@ -125,7 +125,7 @@ export const AccountCard = ({
                   color={styles.expenseColor.color}
                 />
                 <Text style={styles.summaryItemLabel}>
-                  {t("accounts.card.out")}
+                  {t("screens.accounts.card.out")}
                 </Text>
               </View>
 
@@ -146,7 +146,7 @@ export const AccountCard = ({
                   color={styles.semiColor.color}
                 />
                 <Text style={styles.summaryItemLabel}>
-                  {t("accounts.card.net")}
+                  {t("screens.accounts.card.net")}
                 </Text>
               </View>
 

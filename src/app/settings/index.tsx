@@ -84,21 +84,21 @@ const moneyManagementItems: SettingsItem[] = [
 ]
 
 const MONEY_MANAGEMENT_TITLE_KEYS = {
-  "all-accounts": "accounts.title",
-  loans: "loans.title",
-  categories: "categories.title",
-  tags: "tags.title",
-  trash: "trash.title",
-  goals: "goals.title",
-  budgets: "budgets.title",
-  "pending-transactions": "pending.title",
-  "bill-splitter": "billSplitter.title",
+  "all-accounts": "screens.accounts.title",
+  loans: "screens.settings.loans.title",
+  categories: "components.categories.title",
+  tags: "screens.settings.tags.title",
+  trash: "screens.settings.trash.title",
+  goals: "screens.settings.goals.title",
+  budgets: "screens.settings.budgets.title",
+  "pending-transactions": "screens.settings.pending.title",
+  "bill-splitter": "screens.settings.billSplitter.title",
 } as const
 
 const OTHER_SETTINGS_TITLE_KEYS = {
-  preferences: "preferences.title",
-  language: "preferences.language.title",
-  "data-management": "dataManagement.title",
+  preferences: "screens.settings.preferences.title",
+  language: "screens.settings.preferences.language.title",
+  "data-management": "screens.settings.dataManagement.title",
 } as const
 
 const otherSettingsItems: SettingsItem[] = [
@@ -162,7 +162,7 @@ export default function SettingsScreen() {
       {/* Other Settings Section */}
       <View style={styles.section}>
         <Text variant="small" style={styles.sectionTitle}>
-          {t("settings.otherLabel")}
+          {t("screens.settings.sections.other")}
         </Text>
         <View>
           {otherSettingsItems.map((item) => (

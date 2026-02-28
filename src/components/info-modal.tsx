@@ -58,7 +58,7 @@ export function InfoModal({
       <Pressable
         style={[styles.backdrop, { width }]}
         onPress={onRequestClose}
-        accessibilityLabel={t("accessibility.close")}
+        accessibilityLabel={t("common.actions.close")}
         accessibilityRole="button"
         native
         disableRipple

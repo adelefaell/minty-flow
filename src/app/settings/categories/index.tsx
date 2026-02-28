@@ -16,7 +16,7 @@ export default function CategoriesIndexScreen() {
 
   return (
     <CategoryScreenContent
-      subtitle={t("categories.subtitle")}
+      subtitle={t("components.categories.subtitle")}
       includeArchived={false}
       initialType={params.type}
       extraListProps={{

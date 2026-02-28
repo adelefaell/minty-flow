@@ -291,7 +291,7 @@ export function ContactSelectorModal({
               value={searchQuery}
               onChangeText={setSearchQuery}
               onClear={() => setSearchQuery("")}
-              placeholder={t("selectors.contacts.searchPlaceholder")}
+              placeholder={t("components.selectors.contacts.searchPlaceholder")}
             />
           </View>
           <View style={modalStyles.listWrapper}>

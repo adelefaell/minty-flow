@@ -44,7 +44,7 @@ const AllAccountsScreenInner = ({ accounts }: AllAccountsScreenInnerProps) => {
         <Pressable style={styles.newAccountButton} onPress={handleAddAccount}>
           <IconSymbol name="plus" size={32} color={theme.colors.onSecondary} />
           <Text variant="default" style={styles.newAccountText}>
-            {t("accounts.addNew")}
+            {t("screens.accounts.addNew")}
           </Text>
         </Pressable>
 

@@ -10,17 +10,19 @@ export default function DataManagementScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text variant="h2" style={styles.title}>
-        {t("dataManagement.title")}
+        {t("screens.settings.dataManagement.title")}
       </Text>
       <View style={styles.badge}>
-        <Text style={styles.badgeText}>{t("dataManagement.badge")}</Text>
+        <Text style={styles.badgeText}>
+          {t("screens.settings.dataManagement.badge")}
+        </Text>
       </View>
       <Text variant="p" style={styles.description}>
-        {t("dataManagement.description")}
+        {t("screens.settings.dataManagement.description")}
       </Text>
       <View style={styles.placeholder}>
         <Text variant="small" style={styles.placeholderText}>
-          {t("dataManagement.placeholder")}
+          {t("screens.settings.dataManagement.placeholder")}
         </Text>
       </View>
     </ScrollView>

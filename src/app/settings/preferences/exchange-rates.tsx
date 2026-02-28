@@ -198,7 +198,7 @@ function ExchangeRatesContent({
                 placeholder="0"
                 error={
                   isInvalidRate
-                    ? t("exchangeRates.errors.invalidRate")
+                    ? t("screens.settings.exchangeRates.errors.invalidRate")
                     : undefined
                 }
               />
@@ -241,7 +241,9 @@ function ExchangeRatesContent({
     <View style={styles.listHeader}>
       <ExternalLink href={EXCHANGE_API_URL} style={styles.apiCard}>
         <View style={styles.apiCardContent}>
-          <Text style={styles.apiTitle}>{t("exchangeRates.apiTitle")}</Text>
+          <Text style={styles.apiTitle}>
+            {t("screens.settings.exchangeRates.apiTitle")}
+          </Text>
           <Text style={styles.apiUrl}>{EXCHANGE_API_URL}</Text>
         </View>
       </ExternalLink>
@@ -249,11 +251,11 @@ function ExchangeRatesContent({
         value={searchQuery}
         onChangeText={(query) => dispatch({ type: "SET_SEARCH", query })}
         onClear={() => dispatch({ type: "SET_SEARCH", query: "" })}
-        placeholder={t("exchangeRates.searchPlaceholder")}
+        placeholder={t("screens.settings.exchangeRates.searchPlaceholder")}
         containerStyle={styles.searchRow}
       />
       <Text style={styles.instruction}>
-        {t("exchangeRates.instructionCaption")}
+        {t("screens.settings.exchangeRates.instructionCaption")}
       </Text>
       <Text style={styles.baseHeading}>1 USD</Text>
     </View>
@@ -312,7 +314,7 @@ export default function ExchangeRatesScreen() {
         <Button
           variant="ghost"
           onPress={() => setInfoModalVisible(true)}
-          accessibilityLabel={t("exchangeRates.a11y.info")}
+          accessibilityLabel={t("screens.settings.exchangeRates.a11y.info")}
         >
           <IconSymbol name="information" size={24} />
         </Button>
@@ -326,7 +328,9 @@ export default function ExchangeRatesScreen() {
         fallback={
           <View style={styles.centered}>
             <ActivityIndicator size="large" />
-            <Text style={styles.loadingText}>{t("exchangeRates.loading")}</Text>
+            <Text style={styles.loadingText}>
+              {t("screens.settings.exchangeRates.loading")}
+            </Text>
           </View>
         }
       >
@@ -343,9 +347,9 @@ export default function ExchangeRatesScreen() {
       <InfoModal
         visible={infoModalVisible}
         onRequestClose={() => setInfoModalVisible(false)}
-        title={t("exchangeRates.infoModal.title")}
-        description={t("exchangeRates.infoModal.description")}
-        okLabel={t("exchangeRates.infoModal.ok")}
+        title={t("screens.settings.exchangeRates.infoModal.title")}
+        description={t("screens.settings.exchangeRates.infoModal.description")}
+        okLabel={t("screens.settings.exchangeRates.infoModal.ok")}
         icon="information"
       />
     </>

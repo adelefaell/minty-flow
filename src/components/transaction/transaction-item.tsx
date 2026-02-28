@@ -55,7 +55,7 @@ function RightAction({
 }) {
   const { t } = useTranslation()
   const accessibilityLabel =
-    accessibilityLabelProp ?? t("accessibility.moveToTrash")
+    accessibilityLabelProp ?? t("screens.settings.trash.a11y.moveToTrash")
   const iconStyle = useAnimatedStyle(() => {
     const scale = interpolate(progress.value, [0, 1], [0.5, 1], "clamp")
     const opacity = interpolate(
@@ -327,7 +327,7 @@ export const TransactionItem = ({
             },
           ]}
           onPress={onConfirm}
-          accessibilityLabel={t("accessibility.confirmTransaction")}
+          accessibilityLabel={t("screens.home.upcoming.a11y.confirm")}
           accessibilityRole="button"
         >
           <IconSymbol name="check" size={18} color={theme.colors.onError} />

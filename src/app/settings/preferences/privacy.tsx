@@ -42,8 +42,8 @@ export default function PrivacyScreen() {
         level === LocalAuthentication.SecurityLevel.BIOMETRIC_STRONG
       if (!hasDeviceAuth) {
         Alert.alert(
-          t("privacy.alert.deviceLockRequired.title"),
-          t("privacy.alert.deviceLockRequired.message"),
+          t("screens.settings.privacy.alert.deviceLockRequired.title"),
+          t("screens.settings.privacy.alert.deviceLockRequired.message"),
         )
         return
       }
@@ -58,29 +58,29 @@ export default function PrivacyScreen() {
 
   const settings: PrivacySetting[] = [
     {
-      id: "mask-number",
-      label: t("privacy.settings.mask-number"),
+      id: "maskNumber",
+      label: t("screens.settings.privacy.settings.maskNumber"),
       icon: "asterisk",
       value: hideOnStartup,
       onValueChange: setHideOnStartup,
     },
     {
-      id: "mask-number-on-shake",
-      label: t("privacy.settings.mask-number-on-shake"),
+      id: "maskNumberOnShake",
+      label: t("screens.settings.privacy.settings.maskNumberOnShake"),
       icon: "pulse",
       value: maskOnShake,
       onValueChange: setMaskOnShake,
     },
     {
-      id: "lock-app",
-      label: t("privacy.settings.lock-app"),
+      id: "lockApp",
+      label: t("screens.settings.privacy.settings.lockApp"),
       icon: "cellphone-lock",
       value: lockAppEnabled,
       onValueChange: handleLockAppChange,
     },
     {
-      id: "lock-after-closing",
-      label: t("privacy.settings.lock-after-closing"),
+      id: "lockAfterClosing",
+      label: t("screens.settings.privacy.settings.lockAfterClosing"),
       icon: "lock",
       value: lockAfterClosing,
       onValueChange: setLockAfterClosing,
@@ -111,7 +111,9 @@ export default function PrivacyScreen() {
             </View>
             <View style={styles.labelContainer}>
               <Text variant="p" style={styles.settingLabel}>
-                {t(`privacy.settings.${setting.id}` as TranslationKey)}
+                {t(
+                  `screens.settings.privacy.settings.${setting.id}` as TranslationKey,
+                )}
               </Text>
             </View>
             <Switch

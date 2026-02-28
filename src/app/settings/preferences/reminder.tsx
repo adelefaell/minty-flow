@@ -149,7 +149,7 @@ export default function ReminderScreen() {
                 style={styles.grantPermissionIcon}
               />
               <Text variant="default" style={styles.grantPermissionText}>
-                {t("reminders.a11y.permissionWarning")}
+                {t("screens.settings.reminders.a11y.permissionWarning")}
               </Text>
               <IconSymbol
                 name="open-in-new"
@@ -167,10 +167,10 @@ export default function ReminderScreen() {
       >
         <View style={styles.labelContainer}>
           <Text variant="p" style={styles.settingLabel}>
-            {t("reminders.remindDaily.label")}
+            {t("screens.settings.reminders.remindDaily.label")}
           </Text>
           <Text variant="small" style={styles.settingLabelDescription}>
-            {t("reminders.remindDaily.description")}
+            {t("screens.settings.reminders.remindDaily.description")}
           </Text>
         </View>
         <Switch
@@ -181,7 +181,9 @@ export default function ReminderScreen() {
 
       {isDailyReminderEnabled && (
         <View style={styles.section}>
-          <Text style={styles.headerLabel}>{t("reminders.remindAt")}</Text>
+          <Text style={styles.headerLabel}>
+            {t("screens.settings.reminders.remindAt")}
+          </Text>
 
           {/* The Main Time Card */}
           <Pressable style={styles.timeCard} onPress={showTimePicker}>
@@ -208,7 +210,7 @@ export default function ReminderScreen() {
               style={styles.footerIcon}
             />
             <Text style={styles.footerText}>
-              {t("reminders.footerCaption")}
+              {t("screens.settings.reminders.footerCaption")}
             </Text>
           </View>
 
@@ -219,7 +221,9 @@ export default function ReminderScreen() {
             onPress={async () => await schedulePushNotification()}
             style={[styles.actionButton, { marginTop: 100 }]}
           >
-            <Text variant="default">{t("reminders.testNotification")}</Text>
+            <Text variant="default">
+              {t("screens.settings.reminders.testNotification")}
+            </Text>
           </Button>
         </View>
       )}

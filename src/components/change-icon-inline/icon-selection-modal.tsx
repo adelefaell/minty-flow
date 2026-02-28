@@ -221,7 +221,9 @@ export const IconSelectionModal = ({
       <SafeAreaView style={styles.modalContainer} edges={["top", "bottom"]}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>{t("iconPicker.title")}</Text>
+          <Text style={styles.headerTitle}>
+            {t("components.iconPicker.title")}
+          </Text>
           <Button variant="secondary" onPress={onClose}>
             <Text>Cancel</Text>
           </Button>

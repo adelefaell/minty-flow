@@ -44,7 +44,7 @@ export default function LanguageOptionsScreen() {
     >
       <View native style={styles.sectionLabel}>
         <Text variant="small" style={styles.sectionLabelText}>
-          {t("preferences.language.sectionLabel")}
+          {t("screens.settings.preferences.language.sectionLabel")}
         </Text>
       </View>
       <View native style={styles.card}>

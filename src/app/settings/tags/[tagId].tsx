@@ -27,6 +27,7 @@ import {
 } from "~/database/services/tag-service"
 import { modelToTag } from "~/database/utils/model-to-tag"
 import { useNavigationGuard } from "~/hooks/use-navigation-guard"
+import type { TranslationKey } from "~/i18n/config"
 import { type AddTagsFormSchema, addTagsSchema } from "~/schemas/tags.schema"
 import { getThemeStrict } from "~/styles/theme/registry"
 import { NewEnum } from "~/types/new"
@@ -99,7 +100,10 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
         })
       } else {
         if (!tagModel) {
-          Toast.error({ title: "Error", description: t("tags.toast.notFound") })
+          Toast.error({
+            title: "Error",
+            description: t("screens.settings.tags.toast.notFound"),
+          })
           return
         }
         await updateTag(tagModel, {
@@ -210,7 +214,7 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
               />
               {errors.name && (
                 <Text variant="small" style={styles.errorText}>
-                  {errors.name.message}
+                  {t(errors.name.message as TranslationKey)}
                 </Text>
               )}
             </View>
