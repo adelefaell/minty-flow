@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-02-24T20:31:34.217Z
+Generated on: 2026-02-28T15:59:37.129Z
 
 ```
 ./
@@ -93,7 +93,6 @@ Generated on: 2026-02-24T20:31:34.217Z
 │   │   │   │   ├── 📄 index.tsx
 │   │   │   │   └── 📄 presets.tsx
 │   │   │   ├── 📁 preferences/
-│   │   │   │   ├── 📁 theme/
 │   │   │   │   ├── 📄 exchange-rates.tsx
 │   │   │   │   ├── 📄 index.tsx
 │   │   │   │   ├── 📄 money-formatting.tsx
@@ -115,6 +114,7 @@ Generated on: 2026-02-24T20:31:34.217Z
 │   │   │   ├── 📄 edit-profile.tsx
 │   │   │   ├── 📄 goals.tsx
 │   │   │   ├── 📄 index.tsx
+│   │   │   ├── 📄 language.tsx
 │   │   │   ├── 📄 loans.tsx
 │   │   │   ├── 📄 pending-transactions.tsx
 │   │   │   └── 📄 trash.tsx
@@ -261,6 +261,10 @@ Generated on: 2026-02-24T20:31:34.217Z
 │   │   ├── 📄 tabs-minty.tsx
 │   │   └── 📄 toggle-item.tsx
 │   ├── 📁 constants/
+│   │   ├── 📁 translation/
+│   │   │   ├── 📄 ar.json
+│   │   │   └── 📄 en.json
+│   │   ├── 📄 i18n.ts
 │   │   ├── 📄 minty-icons-selection.ts
 │   │   ├── 📄 pre-sets-categories.ts
 │   │   └── 📄 site-data.ts
@@ -325,6 +329,7 @@ Generated on: 2026-02-24T20:31:34.217Z
 │   ├── 📁 stores/
 │   │   ├── 📄 android-sound.store.ts
 │   │   ├── 📄 exchange-rates-preferences.store.ts
+│   │   ├── 📄 language.store.ts
 │   │   ├── 📄 letter-emoji.store.ts
 │   │   ├── 📄 money-formatting.store.ts
 │   │   ├── 📄 notification.store.ts

@@ -1,47 +1,45 @@
-import { useTranslation } from "react-i18next"
 import { ScrollView } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
-import { Money } from "~/components/money"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import {
-  MoneyFormatEnum,
-  type MoneyFormatType,
-  useMoneyFormattingStore,
-} from "~/stores/money-formatting.store"
+import i18n from "~/constants/i18n"
+import { useLanguageOptionStore } from "~/stores/language.store"
 
-const formatOptions: Array<{
-  value: MoneyFormatType
+// TODO: Add this to the language store
+export const languageOptionsEnum = {
+  ENGLISH: "en",
+  ARABIC: "ar",
+} as const
+
+export type languageOptionsType =
+  (typeof languageOptionsEnum)[keyof typeof languageOptionsEnum]
+
+const languageOptions: Array<{
+  value: languageOptionsType
   label: string
-  description: string
 }> = [
   {
-    value: MoneyFormatEnum.SYMBOL,
-    label: "Symbol",
-    description: "e.g., $, €, £",
+    value: languageOptionsEnum.ENGLISH,
+    label: "English",
   },
   {
-    value: MoneyFormatEnum.CODE,
-    label: "Code",
-    description: "e.g., USD, EUR, GBP",
-  },
-  {
-    value: MoneyFormatEnum.NAME,
-    label: "Name",
-    description: "e.g., US Dollar, Euro",
+    value: languageOptionsEnum.ARABIC,
+    label: "العربية",
   },
 ]
 
-export default function MoneyFormattingScreen() {
+export default function LanguageOptionsScreen() {
   const { theme } = useUnistyles()
-  const preferredCurrency = useMoneyFormattingStore((s) => s.preferredCurrency)
-  const setCurrencyLook = useMoneyFormattingStore((s) => s.setCurrencyLook)
-  const currencyLook = useMoneyFormattingStore((s) => s.currencyLook)
-  const exampleAmount = 1234.56
-  const { t } = useTranslation()
+  const languageCode = useLanguageOptionStore((s) => s.languageCode)
+  const setLanguageCode = useLanguageOptionStore((s) => s.setLanguageCode)
+
+  const switchLanguage = (code: string) => {
+    i18n.changeLanguage(code)
+    setLanguageCode(code)
+  }
 
   return (
     <ScrollView
@@ -50,43 +48,26 @@ export default function MoneyFormattingScreen() {
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
     >
-      <View native style={styles.previewSection}>
-        <Text variant="small" style={styles.previewLabel}>
-          {t("money_formating_screen.preview_label")}
-        </Text>
-        <Money
-          value={exampleAmount}
-          variant="h2"
-          currency={preferredCurrency}
-        />
-      </View>
-
       <View native style={styles.sectionLabel}>
         <Text variant="small" style={styles.sectionLabelText}>
-          {t("money_formating_screen.display_format_label")}
+          Languages
         </Text>
       </View>
       <View native style={styles.card}>
-        {formatOptions.map((option, index) => {
-          const isSelected = currencyLook === option.value
-          const isLast = index === formatOptions.length - 1
+        {languageOptions.map((option, index) => {
+          const isSelected = languageCode === option.value
+          const isLast = index === languageOptions.length - 1
           return (
             <View key={option.value} native>
               <Pressable
                 style={styles.row}
-                onPress={() => setCurrencyLook(option.value)}
+                onPress={() => {
+                  setLanguageCode(option.value)
+                  switchLanguage(option.value)
+                }}
               >
                 <View native style={styles.rowContent}>
-                  <Text style={styles.rowLabel}>
-                    {t(
-                      `money_formating_screen.format_options_items.${option.value}.label`,
-                    )}
-                  </Text>
-                  <Text variant="small" style={styles.rowDescription}>
-                    {t(
-                      `money_formating_screen.format_options_items.${option.value}.description`,
-                    )}
-                  </Text>
+                  <Text style={styles.rowLabel}>{option.label}</Text>
                 </View>
                 {isSelected ? (
                   <IconSymbol

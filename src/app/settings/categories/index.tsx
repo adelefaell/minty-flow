@@ -1,4 +1,5 @@
 import { useLocalSearchParams } from "expo-router"
+import { useTranslation } from "react-i18next"
 
 import type { TransactionType } from "~/types/transactions"
 
@@ -11,10 +12,11 @@ export default function CategoriesIndexScreen() {
     deletedCategory?: string
     type?: TransactionType
   }>()
+  const { t } = useTranslation()
 
   return (
     <CategoryScreenContent
-      subtitle="Organize how your money flows"
+      subtitle={t("categories_screen.subtitle")}
       includeArchived={false}
       initialType={params.type}
       extraListProps={{

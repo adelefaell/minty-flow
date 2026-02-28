@@ -8,6 +8,7 @@ import {
   useReducer,
   useState,
 } from "react"
+import { useTranslation } from "react-i18next"
 import { ActivityIndicator, FlatList } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -93,6 +94,7 @@ function ExchangeRatesContent({
 }: ExchangeRatesContentProps) {
   const { rates, error } = use(ratesPromise)
   const { searchQuery, editingCurrencyCode, draftRates } = editorState
+  const { t } = useTranslation()
 
   const entries = useMemo((): RateEntry[] => {
     if (!rates?.rates) return []
@@ -195,7 +197,11 @@ function ExchangeRatesContent({
                 label={`1 USD = ${draftValue.toLocaleString(undefined, { maximumFractionDigits: 6 })} ${item.displayCode}`}
                 placeholder="0"
                 error={
-                  isInvalidRate ? "Rate must be greater than 0" : undefined
+                  isInvalidRate
+                    ? t(
+                        "system.components.ExchangeRatesContent.errors.invalid_rate",
+                      )
+                    : undefined
                 }
               />
               <View style={styles.saveButtonRow}>
@@ -204,7 +210,9 @@ function ExchangeRatesContent({
                   onPress={() => handleResetToApiRate(item.displayCode)}
                   style={styles.resetButton}
                 >
-                  <Text>Reset</Text>
+                  <Text>
+                    {t("system.components.ExchangeRatesContent.reset")}
+                  </Text>
                 </Button>
                 <Button
                   variant="default"
@@ -212,7 +220,9 @@ function ExchangeRatesContent({
                   style={styles.saveButton}
                   disabled={isInvalidRate}
                 >
-                  <Text>Save</Text>
+                  <Text>
+                    {t("system.components.ExchangeRatesContent.save")}
+                  </Text>
                 </Button>
               </View>
             </View>
@@ -229,6 +239,7 @@ function ExchangeRatesContent({
       handleDraftChange,
       handleSaveRate,
       handleResetToApiRate,
+      t,
     ],
   )
 
@@ -244,12 +255,13 @@ function ExchangeRatesContent({
         value={searchQuery}
         onChangeText={(query) => dispatch({ type: "SET_SEARCH", query })}
         onClear={() => dispatch({ type: "SET_SEARCH", query: "" })}
-        placeholder="Search currencies..."
+        placeholder={t(
+          "system.components.ExchangeRatesContent.search_placeholder",
+        )}
         containerStyle={styles.searchRow}
       />
       <Text style={styles.instruction}>
-        Select an entry to set a custom exchange rate. Note: All exchange rate
-        calculations use USD as a reference.
+        {t("system.components.ExchangeRatesContent.instruction_caption")}
       </Text>
       <Text style={styles.baseHeading}>1 USD</Text>
     </View>
@@ -260,7 +272,9 @@ function ExchangeRatesContent({
       <View style={styles.centered}>
         <Text style={styles.errorText}>{error}</Text>
         <Pressable style={styles.retryButton} onPress={onRetry}>
-          <Text style={styles.retryButtonText}>Retry</Text>
+          <Text style={styles.retryButtonText}>
+            {t("system.components.ExchangeRatesContent.retry")}
+          </Text>
         </Pressable>
       </View>
     )
@@ -287,6 +301,7 @@ export default function ExchangeRatesScreen() {
   const removeCustomRate = useExchangeRatesPreferencesStore(
     (s) => s.removeCustomRate,
   )
+  const { t } = useTranslation()
 
   const [ratesPromise, setRatesPromise] = useState(createRatesPromise)
   const [editorState, dispatch] = useReducer(
@@ -319,7 +334,9 @@ export default function ExchangeRatesScreen() {
         fallback={
           <View style={styles.centered}>
             <ActivityIndicator size="large" />
-            <Text style={styles.loadingText}>Loading exchange rates…</Text>
+            <Text style={styles.loadingText}>
+              {t("exchange_rates_screen.loading_text")}
+            </Text>
           </View>
         }
       >
@@ -336,9 +353,9 @@ export default function ExchangeRatesScreen() {
       <InfoModal
         visible={infoModalVisible}
         onRequestClose={() => setInfoModalVisible(false)}
-        title="Exchange Rates"
-        description="Rates are shown as amount per 1 USD. Select an entry to set a custom rate. All calculations use USD as reference."
-        okLabel="OK"
+        title={t("exchange_rates_screen.info_modal.title")}
+        description={t("exchange_rates_screen.info_modal.description")}
+        okLabel={t("exchange_rates_screen.info_modal.ok_label")}
         icon="information"
       />
     </>

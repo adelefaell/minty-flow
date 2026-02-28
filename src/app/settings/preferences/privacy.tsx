@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -49,6 +50,8 @@ export default function PrivacyScreen() {
     },
   ]
 
+  const { t } = useTranslation()
+
   return (
     <ScrollView
       style={styles.scrollContainer}
@@ -66,7 +69,7 @@ export default function PrivacyScreen() {
             </View>
             <View style={styles.labelContainer}>
               <Text variant="p" style={styles.settingLabel}>
-                {setting.label}
+                {t(`privacy_screen.settings_items.${setting.id}.label`)}
               </Text>
             </View>
             <Switch

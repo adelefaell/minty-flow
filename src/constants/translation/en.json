@@ -1,0 +1,289 @@
+{
+  "index_homepage_screen": {
+    "hi": "Hi"
+  },
+  "all_accounts_screen": {
+    "label": {
+      "add_new_account": "Add new account"
+    }
+  },
+  "categories_screen": {
+    "subtitle": "Organize how your money flows"
+  },
+  "tags_screen": {
+    "search_placeholder": "Search tags...",
+    "label": {
+      "new_tag": "New tag"
+    }
+  },
+  "transfers_screen": {
+    "subtitle": "Layout",
+    "caption_text": "Transfers are always separated in some views.",
+    "layout_options": {
+      "combine-option": {
+        "label": "Combine",
+        "description": "Single net amount"
+      },
+      "separate-option": {
+        "label": "Separate",
+        "description": "Outgoing and incoming shown separately"
+      }
+    },
+    "2_subtitle": "Totals",
+    "exclude_toggle": {
+      "label": "Exclude from totals",
+      "description": "Don&apos;t count towards total expense or income"
+    }
+  },
+  "pending_transaction_screen": {
+    "caption_text": "Pending transactions will not be counted towards income, expenses, and account balance.",
+    "choice_chips_title": "Show on home",
+    "choice_chips": {
+      "days_count": "Next {{count}} day(s)"
+    },
+    "require_toggle": {
+      "label": "Require confirmation",
+      "description": "When on, new planned transactions need your approval before they count. Existing transactions keep their original mode."
+    },
+    "update_confirm_toggle": {
+      "label": "Update date on confirm",
+      "description": "Disable to retain original transaction date."
+    }
+  },
+  "trash_bin_screen": {
+    "choice_chips_title": "Retention Period",
+    "choice_chips_description": "Automatically clear deleted items after a set period",
+    "choice_chips": {
+      "days_count": "{{count}} day",
+      "days_count_plural": "{{count}} days",
+      "forever": "Forever"
+    },
+    "view_removed_list_label": "View removed list",
+    "empty_trash_label": "Empty trash bin",
+    "modal": {
+      "title": "Empty Trash",
+      "description": "All items in the trash will be permanently deleted. This action cannot be undone.",
+      "confirm": "Empty Trash",
+      "cancel": "Cancel"
+    },
+    "toast": {
+      "success_title": "Trash Emptied",
+      "success_desc": "Your trash has been cleared.",
+      "error_title": "Cleanup Failed",
+      "error_desc": "An unexpected error occurred. Please try again."
+    }
+  },
+  "privacy_screen": {
+    "settings_items": {
+      "mask-number": {
+        "label": "Mask money (⁕) at startup"
+      },
+      "lock-app": {
+        "label": "Lock app"
+      },
+      "lock-after-closing": {
+        "label": "Lock after closing"
+      }
+    }
+  },
+  "reminder_screen": {
+    "remind_daily_toggle": {
+      "label": "Remind daily",
+      "description": "Remind me to log my transactions"
+    },
+    "remind_me_at_time_picker": {
+      "label": "Remind me at"
+    },
+    "footer_caption": "Reminders will stop if you don't open the app for 7 consecutive days"
+  },
+  "exchange_rates_screen": {
+    "loading_text": "Loading exchange rates…",
+    "info_modal": {
+      "title": "Exchange Rates",
+      "description": "Rates are shown as amount per 1 USD. Select an entry to set a custom rate. All calculations use USD as reference.",
+      "ok_label": "OK"
+    }
+  },
+  "settings_screen": {
+    "money_management_items": {
+      "all-accounts": {
+        "title": "All Accounts",
+        "description": "View all your accounts"
+      },
+      "loans": {
+        "title": "Loans",
+        "description": "Track money lent and borrowed"
+      },
+      "categories": {
+        "title": "Categories",
+        "description": "Manage your transaction categories"
+      },
+      "tags": {
+        "title": "Tags",
+        "description": "Manage your transaction tags"
+      },
+      "trash": {
+        "title": "Trash",
+        "description": "View and restore deleted transactions"
+      },
+      "goals": {
+        "title": "Goals",
+        "description": "Set and track your financial goals"
+      },
+      "budgets": {
+        "title": "Budgets",
+        "description": "Create and manage your budgets"
+      },
+      "pending-transactions": {
+        "title": "Pending Transactions",
+        "description": "View and manage pending transactions"
+      },
+      "bill-splitter": {
+        "title": "Bill Splitter",
+        "description": "Split bills with friends and family"
+      }
+    },
+    "other_settings_items": {
+      "preferences": {
+        "title": "Preferences",
+        "description": "General preferences"
+      },
+      "language": {
+        "title": "Language",
+        "description": "Language and locale settings"
+      },
+      "data-management": {
+        "title": "Data Management",
+        "description": "Backup, import, and export your data"
+      }
+    },
+    "screen_labels": {
+      "other": "Other"
+    }
+  },
+  "money_formating_screen": {
+    "preview_label": "Preview",
+    "display_format_label": "Display format",
+    "format_options_items": {
+      "symbol": {
+        "label": "Symbol",
+        "description": "e.g., $, €, £"
+      },
+      "code": {
+        "label": "Code",
+        "description": "e.g., USD, EUR, GBP"
+      },
+      "name": {
+        "label": "Name",
+        "description": "e.g., US Dollar, Euro"
+      }
+    }
+  },
+  "preferences_screen": {
+    "appearance_items": {
+      "theme": {
+        "title": "Theme",
+        "description": "Choose your preferred theme"
+      },
+      "money-formatting": {
+        "title": "Money Formatting",
+        "description": "Configure how money is displayed"
+      },
+      "toast": {
+        "title": "Toast Style",
+        "description": "Configure your preferred toast style"
+      }
+    },
+    "other_preference_items": {
+      "transfers": {
+        "title": "Transfers",
+        "description": "Layout and totals for transfers"
+      },
+      "pending-transactions": {
+        "title": "Pending Transactions",
+        "description": "Configure pending transaction settings"
+      },
+      "exchange-rates": {
+        "title": "Exchange Rates",
+        "description": "Configure your preferred exchange rates"
+      },
+      "trash-bin": {
+        "title": "Trash Bin",
+        "description": "Manage deleted items and retention period"
+      },
+      "privacy": {
+        "title": "Privacy",
+        "description": "Manage privacy and security settings"
+      },
+      "transaction-location": {
+        "title": "Transaction Location",
+        "description": "Configure transaction location settings"
+      },
+      "reminder": {
+        "title": "Reminder",
+        "description": "Set up daily reminders for expense tracking"
+      }
+    },
+    "button_feedback": {
+      "sound_haptic": {
+        "title": "Sound / haptic feedback upon click"
+      },
+      "system_info": {
+        "text": "This depends on your phone's system settings. Make sure \"Touch interactions\" is enabled in Sound settings."
+      }
+    },
+    "screen_labels": {
+      "appearance": "Appearance",
+      "button_feedback": "Button Feedback"
+    }
+  },
+  "system": {
+    "tags": {
+      "soon": "SOON"
+    },
+    "components": {
+      "AccountCard": {
+        "primary": "Primary",
+        "this_month": "THIS MONTH",
+        "in": "IN",
+        "out": "OUT",
+        "net": "NET"
+      },
+      "CategoryScreenContent": {
+        "search_placeholder": "Search {{tab}} categories...",
+        "expense": "Expense",
+        "income": "Income",
+        "transfer": "Transfer"
+      },
+      "CategoryListHeader": {
+        "add_new_category": "Add New Category",
+        "add_from_presets": "Add From Presets"
+      },
+      "PermissionWarnings": {
+        "text": "Notifications permission not granted"
+      },
+      "ExchangeRatesContent": {
+        "reset": "Reset",
+        "save": "Save",
+        "retry": "Retry",
+        "search_placeholder": "Search currencies...",
+        "instruction_caption": "Select an entry to set a custom exchange rate. Note: All exchange rate calculations use USD as a reference.",
+        "errors": {
+          "invalid_rate": "Rate must be greater than 0"
+        }
+      },
+      "SmartAmountInput": {
+        "entered": "Entered"
+      }
+    },
+    "types": {
+      "account_types": {
+        "checking": "Checking",
+        "savings": "Savings",
+        "credit": "Credit",
+        "investment": "Investment",
+        "other": "Other"
+      }
+    }
+  }
+}
