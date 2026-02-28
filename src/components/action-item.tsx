@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { StyleSheet } from "react-native-unistyles"
 
 import { IconSymbol, type IconSymbolName } from "~/components/ui/icon-symbol"
@@ -20,6 +21,9 @@ export const ActionItem = ({
   onPress,
   soon,
 }: ActionItemProps) => {
+  const { t, i18n } = useTranslation()
+  const isRtl = i18n.dir() === "rtl"
+
   return (
     <Pressable
       style={() => [
@@ -40,7 +44,7 @@ export const ActionItem = ({
             </Text>
             {soon && (
               <View style={styles.badge}>
-                <Text style={styles.badgeText}>SOON</Text>
+                <Text style={styles.badgeText}>{t("system.tags.soon")}</Text>
               </View>
             )}
           </View>
@@ -51,7 +55,7 @@ export const ActionItem = ({
           )}
         </View>
       </View>
-      <IconSymbol name="chevron-right" size={18} />
+      <IconSymbol name={isRtl ? "chevron-left" : "chevron-right"} size={18} />
     </Pressable>
   )
 }

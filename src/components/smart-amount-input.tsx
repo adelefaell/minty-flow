@@ -6,6 +6,7 @@
  */
 
 import { useCallback, useMemo, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Keyboard, TextInput } from "react-native"
 import Animated, { FadeInDown } from "react-native-reanimated"
 import { StyleSheet } from "react-native-unistyles"
@@ -73,6 +74,7 @@ export function SmartAmountInput({
   const [inputValue, setInputValue] = useState("")
   const [showMathToolbar, setShowMathToolbar] = useState(false)
   const inputRef = useRef<TextInput>(null)
+  const { t } = useTranslation()
 
   const currencySymbol = currencyCode
     ? currencyRegistryService.getCurrencySymbol(currencyCode)
@@ -321,7 +323,9 @@ export function SmartAmountInput({
 
       {formattedTyped ? (
         <View style={styles.formattedChip}>
-          <Text style={styles.formattedChipLabel}>Entered: </Text>
+          <Text style={styles.formattedChipLabel}>
+            {t("system.components.SmartAmountInput.entered")}:{" "}
+          </Text>
           <Text style={styles.formattedChipValue}>{formattedTyped}</Text>
         </View>
       ) : null}

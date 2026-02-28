@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { ScrollView } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
@@ -68,6 +69,7 @@ function LayoutPreview({ variant }: { variant: TransferLayoutType }) {
 
 export default function TransfersPreferencesScreen() {
   const { theme } = useUnistyles()
+  const { t } = useTranslation()
   const layout = useTransfersPreferencesStore((s) => s.layout)
   const setLayout = useTransfersPreferencesStore((s) => s.setLayout)
   const excludeFromTotals = useTransfersPreferencesStore(
@@ -87,7 +89,7 @@ export default function TransfersPreferencesScreen() {
       {/* Layout */}
       <View native style={[styles.sectionLabel, styles.sectionLabelFirst]}>
         <Text variant="small" style={styles.sectionLabelText}>
-          Layout
+          {t("transfers_screen.subtitle")}
         </Text>
       </View>
       <View native style={styles.card}>
@@ -103,9 +105,15 @@ export default function TransfersPreferencesScreen() {
                 accessibilityState={{ checked: isSelected }}
               >
                 <View native style={styles.rowContent}>
-                  <Text style={styles.rowLabel}>{option.label}</Text>
+                  <Text style={styles.rowLabel}>
+                    {t(
+                      `transfers_screen.layout_options.${option.label.toLowerCase()}-option.label`,
+                    )}
+                  </Text>
                   <Text variant="small" style={styles.rowDescription}>
-                    {option.description}
+                    {t(
+                      `transfers_screen.layout_options.${option.label.toLowerCase()}-option.description`,
+                    )}
                   </Text>
                   <LayoutPreview variant={option.value} />
                 </View>
@@ -129,14 +137,14 @@ export default function TransfersPreferencesScreen() {
           color={theme.colors.customColors?.semi}
         />
         <Text variant="small" style={styles.captionText}>
-          Transfers are always separated in some views.
+          {t(`transfers_screen.caption_text`)}
         </Text>
       </View>
 
       {/* Exclude from totals */}
       <View native style={styles.sectionLabel}>
         <Text variant="small" style={styles.sectionLabelText}>
-          Totals
+          {t(`transfers_screen.2_subtitle`)}
         </Text>
       </View>
       <View native style={styles.toggleCard}>
@@ -145,9 +153,11 @@ export default function TransfersPreferencesScreen() {
           onPress={() => setExcludeFromTotals(!excludeFromTotals)}
         >
           <View native style={styles.toggleRowContent}>
-            <Text style={styles.toggleLabel}>Exclude from totals</Text>
+            <Text style={styles.toggleLabel}>
+              {t("transfers_screen.exclude_toggle.label")}
+            </Text>
             <Text variant="small" style={styles.toggleDescription}>
-              Don&apos;t count towards total expense or income
+              {t("transfers_screen.exclude_toggle.description")}
             </Text>
           </View>
           <Switch

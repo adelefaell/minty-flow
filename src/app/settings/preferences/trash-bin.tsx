@@ -1,5 +1,6 @@
 import { useRouter } from "expo-router"
 import { useCallback, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { ScrollView } from "react-native-gesture-handler"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -29,6 +30,26 @@ export default function TrashBinScreen() {
   const [confirmModalVisible, setConfirmModalVisible] = useState<boolean>(false)
   const retentionPeriod = useTrashBinStore((s) => s.retentionPeriod)
   const setRetentionPeriod = useTrashBinStore((s) => s.setRetentionPeriod)
+  const { t } = useTranslation()
+
+  const retentionMapping = Object.values(RetentionPeriodEnum).map((val) => {
+    if (val === "forever") {
+      return { value: val, label: t("trash_bin_screen.choice_chips.forever") }
+    }
+
+    // Extract the number from the string "30 days" -> 30
+    const count = parseInt(val, 10)
+
+    return {
+      value: val,
+      label: t("trash_bin_screen.choice_chips.days_count", { count }),
+    }
+  })
+
+  const choiceLabels = retentionMapping.map((m) => m.label)
+  const selectedLabel =
+    retentionMapping.find((m) => m.value === retentionPeriod)?.label ||
+    retentionPeriod
 
   const handleView = useCallback(() => {
     router.push("/settings/trash")
@@ -38,30 +59,36 @@ export default function TrashBinScreen() {
     destroyAllDeletedTransactionMode()
       .then(() => {
         Toast.success({
-          title: "Trash Emptied",
-          description: "Your trash has been cleared.",
+          title: t("trash_bin_screen.toast.success_title"),
+          description: t("trash_bin_screen.toast.success_desc"),
         })
       })
       .catch(() => {
         Toast.error({
-          title: "Cleanup Failed",
-          description: "An unexpected error occurred. Please try again.",
+          title: t("trash_bin_screen.toast.error_title"),
+          description: t("trash_bin_screen.toast.error_desc"),
         })
       })
-  }, [])
+  }, [t]) // Added 't' to dependencies
 
   return (
     <ScrollView style={styles.container}>
       {/* Retention Period Choices */}
       <ChoiceChips
-        title="Retention Period"
-        description="Automatically clear deleted items after a set period"
+        title={t("trash_bin_screen.choice_chips_title")}
+        description={t("trash_bin_screen.choice_chips_description")}
         style={{
           paddingHorizontal: 20,
         }}
-        choices={Object.values(RetentionPeriodEnum)}
-        selectedValue={retentionPeriod}
-        onSelect={(choice) => setRetentionPeriod(choice)}
+        // choices={Object.values(RetentionPeriodEnum)}
+        choices={choiceLabels}
+        // selectedValue={retentionPeriod}
+        selectedValue={selectedLabel}
+        // onSelect={(choice) => setRetentionPeriod(choice)}
+        onSelect={(label) => {
+          const selected = retentionMapping.find((m) => m.label === label)
+          if (selected) setRetentionPeriod(selected.value) // Saves English "30 days"
+        }}
       />
 
       {/* View Removed List */}
@@ -70,7 +97,7 @@ export default function TrashBinScreen() {
           <View style={styles.actionItemContent}>
             <View style={styles.titleRow}>
               <Text variant="default" style={styles.actionItemTitle}>
-                View removed list
+                {t("trash_bin_screen.view_removed_list_label")}
               </Text>
             </View>
           </View>
@@ -93,7 +120,7 @@ export default function TrashBinScreen() {
           <View style={styles.actionItemContent}>
             <View style={styles.titleRow}>
               <Text variant="default" style={styles.actionTrashItemTitle}>
-                Empty trash bin
+                {t("trash_bin_screen.empty_trash_label")}
               </Text>
             </View>
           </View>
@@ -110,10 +137,10 @@ export default function TrashBinScreen() {
         visible={confirmModalVisible}
         onRequestClose={() => setConfirmModalVisible(false)}
         onConfirm={handleEmptyConfirmed}
-        title="Empty Trash"
-        description="All items in the trash will be permanently deleted. This action cannot be undone."
-        confirmLabel="Empty Trash"
-        cancelLabel="Cancel"
+        title={t("trash_bin_screen.modal.title")}
+        description={t("trash_bin_screen.modal.description")}
+        confirmLabel={t("trash_bin_screen.modal.confirm")}
+        cancelLabel={t("trash_bin_screen.modal.cancel")}
         variant="destructive"
         icon="trash-can"
       />

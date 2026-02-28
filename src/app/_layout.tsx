@@ -1,3 +1,4 @@
+import "../constants/i18n"
 import { Stack } from "expo-router"
 import { StatusBar } from "expo-status-bar"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
@@ -10,6 +11,7 @@ import { TooltipProvider } from "~/components/ui/tooltip"
 import "react-native-reanimated"
 
 import { setStyle } from "expo-navigation-bar"
+import { useTranslation } from "react-i18next"
 import { useEffect } from "react"
 import { Platform } from "react-native"
 
@@ -27,6 +29,10 @@ export default function RootLayout() {
     setStyle(theme.isDark ? "dark" : "light")
   }
 
+  const { i18n } = useTranslation()
+  const isRtl = i18n.dir() === "rtl"
+
+  // Ports to reality: retention cleanup and recurring sync (effects live in domain hooks)
   // Rehydrate shake listener on app start if mask-on-shake was enabled (store-owned subscription)
   useEffect(() => {
     const { maskOnShake, _startShakeListener } =
@@ -44,6 +50,7 @@ export default function RootLayout() {
           flex: 1,
           // paddingTop: UnistylesRuntime.insets.top,
           paddingBottom: UnistylesRuntime.insets.bottom,
+          direction: isRtl ? "rtl" : "ltr",
         }}
       >
         <TooltipProvider>

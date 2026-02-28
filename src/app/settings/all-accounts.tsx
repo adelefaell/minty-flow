@@ -1,5 +1,6 @@
 import { withObservables } from "@nozbe/watermelondb/react"
 import { useRouter } from "expo-router"
+import { useTranslation } from "react-i18next"
 import { ScrollView } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
@@ -19,6 +20,7 @@ interface AllAccountsScreenInnerProps {
 const AllAccountsScreenInner = ({ accounts }: AllAccountsScreenInnerProps) => {
   const router = useRouter()
   const { theme } = useUnistyles()
+  const { t } = useTranslation()
 
   const handleAddAccount = () => {
     router.push({
@@ -42,7 +44,7 @@ const AllAccountsScreenInner = ({ accounts }: AllAccountsScreenInnerProps) => {
         <Pressable style={styles.newAccountButton} onPress={handleAddAccount}>
           <IconSymbol name="plus" size={32} color={theme.colors.onSecondary} />
           <Text variant="default" style={styles.newAccountText}>
-            Add new account
+            {t("all_accounts_screen.label.add_new_account")}
           </Text>
         </Pressable>
 

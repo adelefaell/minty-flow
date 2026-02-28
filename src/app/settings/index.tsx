@@ -1,4 +1,5 @@
 import { type Href, useRouter } from "expo-router"
+import { useTranslation } from "react-i18next"
 import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -91,6 +92,13 @@ const otherSettingsItems: SettingsItem[] = [
     icon: "puzzle-edit",
   },
   {
+    id: "language",
+    title: "Language",
+    description: "Language and locale settings",
+    route: "/settings/language",
+    icon: "translate",
+  },
+  {
     id: "data-management",
     title: "Data Management",
     description: "Backup, import, and export your data",
@@ -101,6 +109,7 @@ const otherSettingsItems: SettingsItem[] = [
 
 export default function SettingsScreen() {
   const router = useRouter()
+  const { t } = useTranslation()
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -121,8 +130,12 @@ export default function SettingsScreen() {
             <ActionItem
               key={item.id}
               icon={item.icon}
-              title={item.title}
-              // description={item.description}
+              title={t(
+                `settings_screen.money_management_items.${item.id.toString()}.title`,
+              )}
+              // description={t(
+              //   `settings_screen.money_management_items.${item.id.toString()}.description`,
+              // )}
               onPress={() => router.push(item.route)}
             />
           ))}
@@ -132,14 +145,16 @@ export default function SettingsScreen() {
       {/* Other Settings Section */}
       <View style={styles.section}>
         <Text variant="small" style={styles.sectionTitle}>
-          Other
+          {t("settings_screen.screen_labels.other")}
         </Text>
         <View>
           {otherSettingsItems.map((item) => (
             <ActionItem
               key={item.id}
               icon={item.icon}
-              title={item.title}
+              title={t(
+                `settings_screen.other_settings_items.${item.id.toString()}.title`,
+              )}
               soon={item.id === "data-management"}
               onPress={() => router.push(item.route)}
             />

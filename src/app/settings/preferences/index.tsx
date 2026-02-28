@@ -1,4 +1,5 @@
 import { type Href, useRouter } from "expo-router"
+import { useTranslation } from "react-i18next"
 import { Platform, ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -95,6 +96,7 @@ const otherPreferenceItems: PreferenceItem[] = [
 
 export default function PreferencesScreen() {
   const router = useRouter()
+  const { t } = useTranslation()
   const setSoundEnabled = useAndroidSoundStore((s) => s.setSoundEnabled)
   const disableSound = useAndroidSoundStore((s) => s.disableSound)
 
@@ -107,7 +109,9 @@ export default function PreferencesScreen() {
             <ActionItem
               key={item.id}
               icon={item.icon}
-              title={item.title}
+              title={t(
+                `preferences_screen.other_preference_items.${item.id.toString()}.title`,
+              )}
               // description={item.description}
               onPress={() => router.push(item.route)}
             />
@@ -118,14 +122,16 @@ export default function PreferencesScreen() {
       {/* Appearance Section */}
       <View style={styles.section}>
         <Text variant="h4" style={styles.sectionTitle}>
-          Appearance
+          {t("preferences_screen.screen_labels.appearance")}
         </Text>
         <View style={styles.itemsList}>
           {appearanceItems.map((item) => (
             <ActionItem
               key={item.id}
               icon={item.icon}
-              title={item.title}
+              title={t(
+                `preferences_screen.appearance_items.${item.id.toString()}.title`,
+              )}
               // description={item.description}
               onPress={() => router.push(item.route)}
             />
@@ -137,13 +143,13 @@ export default function PreferencesScreen() {
       {Platform.OS === "android" && (
         <View style={styles.section}>
           <Text variant="h4" style={styles.sectionTitle}>
-            Button Feedback
+            {t("preferences_screen.screen_labels.button_feedback")}
           </Text>
 
           <View style={styles.itemsList}>
             <ToggleItem
               icon={disableSound ? "vibrate-off" : "vibrate"}
-              title="Sound / haptic feedback upon click"
+              title={t("preferences_screen.button_feedback.sound_haptic.title")}
               value={!disableSound}
               onValueChange={(enabled) => setSoundEnabled(enabled)}
             />
@@ -157,8 +163,7 @@ export default function PreferencesScreen() {
                 />
 
                 <Text style={styles.infoText}>
-                  This depends on your phone&apos;s system settings. Make sure
-                  &quot;Touch interactions&quot; is enabled in Sound settings.
+                  {t("preferences_screen.button_feedback.system_info.text")}
                 </Text>
               </View>
             )}
