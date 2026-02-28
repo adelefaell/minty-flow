@@ -1,6 +1,8 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ScrollView } from "react-native"
+import * as LocalAuthentication from "expo-local-authentication"
+import { Alert, ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
 import type { IconSymbolName } from "~/components/ui/icon-symbol"
@@ -9,6 +11,7 @@ import { Pressable } from "~/components/ui/pressable"
 import { Switch } from "~/components/ui/switch"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
+import { useAppLockStore } from "~/stores/app-lock.store"
 import { useMoneyFormattingStore } from "~/stores/money-formatting.store"
 
 interface PrivacySetting {
@@ -17,14 +20,40 @@ interface PrivacySetting {
   icon: IconSymbolName
   value: boolean
   onValueChange: (value: boolean) => void
+  disabled?: boolean
 }
 
 export default function PrivacyScreen() {
-  const [lockApp, setLockApp] = useState(false)
-  const [lockAfterClosing, setLockAfterClosing] = useState(false)
-
   const hideOnStartup = useMoneyFormattingStore((s) => s.hideOnStartup)
   const setHideOnStartup = useMoneyFormattingStore((s) => s.setHideOnStartup)
+  const maskOnShake = useMoneyFormattingStore((s) => s.maskOnShake)
+  const setMaskOnShake = useMoneyFormattingStore((s) => s.setMaskOnShake)
+  const lockAppEnabled = useAppLockStore((s) => s.lockAppEnabled)
+  const setLockAppEnabled = useAppLockStore((s) => s.setLockAppEnabled)
+  const lockAfterClosing = useAppLockStore((s) => s.lockAfterClosing)
+  const setLockAfterClosing = useAppLockStore((s) => s.setLockAfterClosing)
+
+  const handleLockAppChange = async (value: boolean) => {
+    if (value) {
+      // Allow when any device auth is enrolled: PIN, pattern, password, or biometric
+      const level = await LocalAuthentication.getEnrolledLevelAsync()
+      const hasDeviceAuth =
+        level === LocalAuthentication.SecurityLevel.SECRET ||
+        level === LocalAuthentication.SecurityLevel.BIOMETRIC_WEAK ||
+        level === LocalAuthentication.SecurityLevel.BIOMETRIC_STRONG
+      if (!hasDeviceAuth) {
+        Alert.alert(
+          "Device lock required",
+          "Set a PIN, pattern, password, or biometric in your device settings to use app lock.",
+        )
+        return
+      }
+      setLockAppEnabled(true)
+    } else {
+      setLockAppEnabled(false)
+      setLockAfterClosing(false)
+    }
+  }
 
   const settings: PrivacySetting[] = [
     {
@@ -35,11 +64,18 @@ export default function PrivacyScreen() {
       onValueChange: setHideOnStartup,
     },
     {
+      id: "mask-number-on-shake",
+      label: "Mask money (⁕) when shaking",
+      icon: "pulse",
+      value: maskOnShake,
+      onValueChange: setMaskOnShake,
+    },
+    {
       id: "lock-app",
       label: "Lock app",
-      icon: "lock-open",
-      value: lockApp,
-      onValueChange: setLockApp,
+      icon: "cellphone-lock",
+      value: lockAppEnabled,
+      onValueChange: handleLockAppChange,
     },
     {
       id: "lock-after-closing",
@@ -47,6 +83,7 @@ export default function PrivacyScreen() {
       icon: "lock",
       value: lockAfterClosing,
       onValueChange: setLockAfterClosing,
+      disabled: !lockAppEnabled,
     },
   ]
 
@@ -61,8 +98,14 @@ export default function PrivacyScreen() {
         {settings.map((setting) => (
           <Pressable
             key={setting.id}
-            style={styles.settingRow}
-            onPress={() => setting.onValueChange(!setting.value)}
+            style={[
+              styles.settingRow,
+              setting.disabled && styles.settingRowDisabled,
+            ]}
+            onPress={() =>
+              !setting.disabled && setting.onValueChange(!setting.value)
+            }
+            disabled={setting.disabled}
           >
             <View style={styles.iconContainer}>
               <IconSymbol name={setting.icon} size={24} />
@@ -70,11 +113,20 @@ export default function PrivacyScreen() {
             <View style={styles.labelContainer}>
               <Text variant="p" style={styles.settingLabel}>
                 {t(`privacy_screen.settings_items.${setting.id}.label`)}
+              <Text
+                variant="p"
+                style={[
+                  styles.settingLabel,
+                  setting.disabled && styles.settingLabelDisabled,
+                ]}
+              >
+                {setting.label}
               </Text>
             </View>
             <Switch
               value={setting.value}
               onValueChange={setting.onValueChange}
+              disabled={setting.disabled}
             />
           </Pressable>
         ))}
@@ -114,5 +166,11 @@ const styles = StyleSheet.create((theme) => ({
   settingLabel: {
     fontSize: 15,
     fontWeight: "600",
+  },
+  settingRowDisabled: {
+    opacity: 0.5,
+  },
+  settingLabelDisabled: {
+    color: theme.colors.customColors.semi,
   },
 }))

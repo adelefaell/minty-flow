@@ -105,9 +105,11 @@ export const VALID_ICON_NAMES = defineValidIcons([
   // Security
   "lock",
   "lock-open",
+  "fingerprint",
   // People & Social
   "handshake",
   "heart",
+  "pulse",
   // Places
   "map-marker",
   "office-building",
@@ -151,6 +153,7 @@ export const VALID_ICON_NAMES = defineValidIcons([
   "chevron-double-down",
   "chevron-double-up",
   "translate",
+  "cellphone-lock",
 ] as const)
 
 /**

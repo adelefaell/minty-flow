@@ -134,7 +134,7 @@ export default function ReminderScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* grant permission button */}
+      {/*  TODO: make this a reusable component and use it in the other screens */}
       {permissionStatus !== null &&
         permissionStatus !== Notifications.PermissionStatus.GRANTED && (
           <Pressable
