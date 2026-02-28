@@ -13,20 +13,27 @@
       "add": "إضافة",
       "search": "بحث",
       "clear": "مسح",
-      "apply": ""
+      "apply": "تطبيق"
     },
     "states": {
       "soon": "قريباً",
       "comingSoon": "قريباً",
-      "loading": "",
-      "empty": "",
-      "error": "",
+      "loading": "جاري التحميل…",
+      "empty": "لا توجد عناصر",
+      "error": "حدث خطأ ما",
       "toggleOn": "تشغيل",
       "toggleOff": "إيقاف"
     },
     "modals": {
       "closeWithoutSaving": "إغلاق دون حفظ؟",
       "deletePermanently": "حذف نهائي"
+    },
+    "form": {
+      "saving": "جارٍ الحفظ...",
+      "create": "إنشاء",
+      "saveChanges": "حفظ التغييرات",
+      "discard": "تجاهل",
+      "unsavedDescription": "ستُفقد جميع التغييرات."
     },
     "timePeriods": {
       "hour": "حسب الساعة",
@@ -78,10 +85,10 @@
       "summary": {
         "income": "دخل",
         "expense": "مصروف",
-        "net": ""
+        "net": "الصافي"
       },
       "upcoming": {
-        "header": "",
+        "header": "القادمة",
         "seeAll": "عرض الكل",
         "recurringCount": "{{count}} متكررة",
         "pendingCount": "{{count}} معلقة",
@@ -108,8 +115,8 @@
         }
       },
       "emptyState": {
-        "title": "",
-        "description": ""
+        "title": "لا توجد معاملات بعد",
+        "description": "أضف أول معاملة"
       }
     },
     "accounts": {
@@ -133,7 +140,28 @@
           "edit": "تعديل الحساب"
         },
         "namePlaceholder": "اسم الحساب",
-        "initialBalance": "الرصيد الافتتاحي"
+        "placeholder": "جاري، توفير، إلخ.",
+        "initialBalance": "الرصيد الافتتاحي",
+        "excludeFromBalanceLabel": "استبعاد من الرصيد",
+        "primaryAccountLabel": "الحساب الأساسي",
+        "primaryAccountHint": "سيُستخدم هذا الحساب كحساب افتراضي للمعاملات الجديدة والإجراءات الأخرى.",
+        "archiveLabel": "أرشفة الحساب",
+        "deleteLabel": "حذف الحساب نهائياً",
+        "archiveWarning": "يمكنك حذف الحساب مع معاملاته نهائياً بعد أرشفته كإجراء أمان.",
+        "loadingText": "جارٍ تحميل الحساب...",
+        "deleteModal": {
+          "title": "حذف {{name}} نهائياً؟",
+          "descriptionWithCount_one": "يحتوي هذا الحساب على {{count}} معاملة. سيؤدي الحذف النهائي إلى حذفها أيضاً. لا يمكن التراجع عن هذا الإجراء.",
+          "descriptionWithCount_other": "يحتوي هذا الحساب على {{count}} معاملة. سيؤدي الحذف النهائي إلى حذفها جميعاً. لا يمكن التراجع عن هذا الإجراء.",
+          "descriptionEmpty": "لا يمكن التراجع عن الحذف النهائي لهذا الحساب. هذا الإجراء لا رجعة فيه!"
+        },
+        "toast": {
+          "error": "خطأ",
+          "notFound": "الحساب غير موجود",
+          "deleteFailed": "فشل حذف الحساب.",
+          "createFailed": "فشل إنشاء الحساب.",
+          "updateFailed": "فشل تحديث الحساب."
+        }
       },
       "detail": {
         "title": "تفاصيل الحساب"
@@ -151,26 +179,26 @@
       }
     },
     "stats": {
-      "title": "",
-      "description": "",
+      "title": "الإحصائيات",
+      "description": "نظرة عامة على وضعك المالي",
       "periodSelector": {
-        "month": "",
-        "year": "",
-        "custom": ""
+        "month": "الشهر",
+        "year": "السنة",
+        "custom": "مخصص"
       },
       "charts": {
-        "incomeVsExpense": "",
-        "categoryBreakdown": "",
-        "netWorth": ""
+        "incomeVsExpense": "الدخل مقابل المصروف",
+        "categoryBreakdown": "حسب الفئة",
+        "netWorth": "صافي الثروة عبر الزمن"
       },
       "emptyState": {
-        "title": "",
-        "description": ""
+        "title": "لا توجد بيانات لهذه الفترة",
+        "description": "أضف معاملات لرؤية إحصائياتك"
       }
     },
     "settings": {
       "sections": {
-        "moneyManagement": "",
+        "moneyManagement": "إدارة الأموال",
         "other": "أخرى"
       },
       "preferences": {
@@ -336,6 +364,33 @@
           "title": {
             "create": "إنشاء وسم",
             "edit": "تعديل الوسم"
+          },
+          "tabs": {
+            "generic": "عام",
+            "location": "موقع",
+            "contact": "شخص"
+          },
+          "locationComingSoon": {
+            "title": "قريباً",
+            "description": "وسوم الموقع قيد التطوير."
+          },
+          "nameLabelGeneric": "اسم الوسم",
+          "nameLabelContact": "اسم جهة الاتصال",
+          "placeholderGeneric": "عمل، تسوق...",
+          "placeholderContact": "محمد علي",
+          "deleteLabel": "حذف نهائي",
+          "loadingText": "جارٍ تحميل الوسم...",
+          "deleteModal": {
+            "title": "حذف {{name}} نهائياً؟",
+            "descriptionWithCount_one": "يُستخدم هذا الوسم في {{count}} معاملة. سيؤدي الحذف النهائي إلى إلغاء ارتباطه وإزالته. لا يمكن التراجع عن ذلك.",
+            "descriptionWithCount_other": "يُستخدم هذا الوسم في {{count}} معاملة. سيؤدي الحذف النهائي إلى إلغاء ارتباطه من جميعها وإزالته. لا يمكن التراجع عن ذلك.",
+            "descriptionEmpty": "لا يمكن التراجع عن الحذف النهائي لهذا الوسم."
+          },
+          "toast": {
+            "error": "خطأ",
+            "deleteFailed": "فشل حذف الوسم.",
+            "createFailed": "فشل إنشاء الوسم.",
+            "updateFailed": "فشل تحديث الوسم."
           }
         },
         "toast": {
@@ -440,7 +495,30 @@
         "titlePlaceholder": "معاملة بدون عنوان",
         "amountLabel": "المبلغ",
         "convertedAmountLabel": "المبلغ المحوّل",
-        "notes": "ملاحظات"
+        "notes": "ملاحظات",
+        "transactionDate": "تاريخ المعاملة",
+        "fileAttachments": "مرفقات الملفات"
+      },
+      "datePicker": {
+        "cancel": "إلغاء",
+        "next": "التالي",
+        "done": "تم"
+      },
+      "save": "حفظ",
+      "create": "إنشاء",
+      "openFile": {
+        "title": "فتح {{name}}؟",
+        "description": "هل أنت متأكد من فتح هذا الملف؟"
+      },
+      "removeAttachment": {
+        "title": "حذف الملف",
+        "description": "هل أنت متأكد من إزالة هذا المرفق؟"
+      },
+      "destroyModal": {
+        "description": "ستُزال هذه المعاملة نهائياً ولا يمكن استعادتها."
+      },
+      "unsavedModal": {
+        "description": "ستُفقد جميع التغييرات."
       },
       "amountInput": {
         "hint": "أدخل المبلغ أو تعبيراً رياضياً (مثال: 100/4)",
@@ -494,7 +572,11 @@
         "editRecurringFutureSuccess": "تم تحديث هذه والمعاملات المستقبلية",
         "editRecurringFailed": "فشل حفظ المعاملة",
         "upcomingConfirmFailed": "فشل التأكيد",
-        "upcomingConfirmAllFailed": "فشل تأكيد الكل"
+        "upcomingConfirmAllFailed": "فشل تأكيد الكل",
+        "deleted": "تم الحذف",
+        "deletedDescription": "تم حذف المعاملة نهائياً.",
+        "deleteFailed": "فشل حذف المعاملة.",
+        "error": "خطأ"
       },
       "a11y": {
         "closePreview": "إغلاق المعاينة",
@@ -559,7 +641,27 @@
           "edit": "تعديل الفئة",
           "archived": "الفئات المؤرشفة"
         },
-        "namePlaceholder": "بقالة، مطاعم، إلخ."
+        "nameLabel": "اسم الفئة",
+        "namePlaceholder": "بقالة، مطاعم، إلخ.",
+        "archiveLabel": "أرشفة الفئة",
+        "deleteLabel": "حذف نهائي",
+        "loadingText": "جارٍ تحميل الفئة...",
+        "deleteModal": {
+          "title": "حذف {{name}}؟",
+          "descriptionWithCount_one": "تستخدم هذه الفئة في {{count}} معاملة. سيؤدي الحذف إلى إلغاء الارتباط. لا يمكن التراجع عن ذلك.",
+          "descriptionWithCount_other": "تستخدم هذه الفئة في {{count}} معاملة. سيؤدي الحذف إلى إلغاء ارتباطها. لا يمكن التراجع عن ذلك.",
+          "descriptionEmpty": "لا يمكن التراجع عن حذف هذه الفئة."
+        },
+        "toast": {
+          "error": "خطأ",
+          "notFound": "الفئة غير موجودة",
+          "cannotDelete": "لا يمكن حذف الفئة",
+          "cannotDeleteDescription_one": "تحتوي هذه الفئة على {{count}} معاملة. يرجى إزالة أو إعادة تعيين جميع المعاملات قبل الحذف.",
+          "cannotDeleteDescription_other": "تحتوي هذه الفئة على {{count}} معاملة. يرجى إزالة أو إعادة تعيين جميع المعاملات قبل الحذف.",
+          "deleteFailed": "فشل حذف الفئة. يرجى المحاولة مرة أخرى.",
+          "createFailed": "فشل إنشاء الفئة. يرجى المحاولة مرة أخرى.",
+          "updateFailed": "فشل تحديث الفئة. يرجى المحاولة مرة أخرى."
+        }
       },
       "empty": {
         "noCategories": {
@@ -587,7 +689,7 @@
     "filters": {
       "searchPlaceholder": "البحث بالعنوان...",
       "accountSearch": "البحث في الحسابات...",
-      "clearAll": ""
+      "clearAll": "مسح الكل"
     },
     "iconPicker": {
       "title": "اختر أيقونة",
@@ -618,64 +720,67 @@
   "validation": {
     "account": {
       "name": {
-        "required": "",
-        "tooShort": "",
-        "tooLong": ""
+        "required": "اسم الحساب مطلوب",
+        "tooShort": "اسم الحساب قصير جداً",
+        "tooLong": "اسم الحساب طويل جداً"
       },
       "initialBalance": {
-        "invalid": "",
-        "negative": ""
+        "invalid": "أدخل مبلغاً صحيحاً",
+        "negative": "الرصيد الافتتاحي لا يمكن أن يكون سالباً"
       },
       "currency": {
-        "required": ""
+        "required": "العملة مطلوبة"
       }
     },
     "transaction": {
       "amount": {
-        "required": "",
-        "invalid": "",
-        "zero": ""
+        "required": "المبلغ مطلوب",
+        "invalid": "أدخل مبلغاً صحيحاً",
+        "zero": "يجب أن يكون المبلغ أكبر من صفر"
       },
       "account": {
-        "required": ""
+        "required": "يرجى اختيار حساب لحفظ هذه المعاملة."
       },
       "date": {
-        "invalid": ""
+        "invalid": "تاريخ غير صحيح"
       }
     },
     "category": {
       "name": {
-        "required": "",
-        "tooShort": "",
-        "tooLong": ""
+        "required": "اسم الفئة مطلوب",
+        "tooShort": "اسم الفئة قصير جداً",
+        "tooLong": "اسم الفئة طويل جداً"
       }
     },
     "tag": {
       "name": {
-        "required": "",
-        "tooShort": "",
-        "tooLong": "",
-        "duplicate": ""
+        "required": "اسم الوسم مطلوب",
+        "tooShort": "اسم الوسم قصير جداً",
+        "tooLong": "اسم الوسم طويل جداً",
+        "duplicate": "وسم بهذا الاسم موجود مسبقاً"
       }
     },
     "profile": {
       "name": {
-        "required": "",
-        "tooLong": ""
+        "required": "الاسم مطلوب",
+        "tooLong": "الاسم طويل جداً"
       }
     },
     "loan": {
-      "name": { "required": "" },
-      "amount": { "required": "", "invalid": "" },
-      "contact": { "invalidPhone": "" }
+      "name": { "required": "اسم القرض مطلوب" },
+      "amount": { "required": "المبلغ مطلوب", "invalid": "أدخل مبلغاً صحيحاً" },
+      "contact": { "invalidPhone": "أدخل رقماً هاتفياً صحيحاً" }
     },
     "goal": {
-      "name": { "required": "" },
-      "targetAmount": { "required": "", "invalid": "" }
+      "name": { "required": "اسم الهدف مطلوب" },
+      "targetAmount": {
+        "required": "المبلغ المستهدف مطلوب",
+        "invalid": "أدخل مبلغاً صحيحاً"
+      }
     },
     "budget": {
-      "name": { "required": "" },
-      "amount": { "required": "", "invalid": "" }
+      "name": { "required": "اسم الميزانية مطلوب" },
+      "amount": { "required": "المبلغ مطلوب", "invalid": "أدخل مبلغاً صحيحاً" }
     }
   }
 }

@@ -28,6 +28,13 @@
       "closeWithoutSaving": "Close without saving?",
       "deletePermanently": "Delete permanently"
     },
+    "form": {
+      "saving": "Saving...",
+      "create": "Create",
+      "saveChanges": "Save Changes",
+      "discard": "Discard",
+      "unsavedDescription": "All changes will be lost."
+    },
     "timePeriods": {
       "hour": "By hour",
       "day": "By day",
@@ -133,7 +140,28 @@
           "edit": "Edit Account"
         },
         "namePlaceholder": "Account name",
-        "initialBalance": "Initial balance"
+        "placeholder": "Checking, Savings, etc.",
+        "initialBalance": "Initial balance",
+        "excludeFromBalanceLabel": "Exclude from balance",
+        "primaryAccountLabel": "Primary account",
+        "primaryAccountHint": "This account will be used as the default account for new transactions and other actions.",
+        "archiveLabel": "Archive account",
+        "deleteLabel": "Permanently delete account",
+        "archiveWarning": "You can permanently delete the account with its transactions after you archive the account for safety measures.",
+        "loadingText": "Loading account...",
+        "deleteModal": {
+          "title": "Permanently delete {{name}}?",
+          "descriptionWithCount_one": "This account has {{count}} transaction. Permanently deleting the account will also delete it. This action cannot be undone.",
+          "descriptionWithCount_other": "This account has {{count}} transactions. Permanently deleting the account will also delete them. This action cannot be undone.",
+          "descriptionEmpty": "Permanently deleting this account cannot be undone. This action is irreversible!"
+        },
+        "toast": {
+          "error": "Error",
+          "notFound": "Account not found",
+          "deleteFailed": "Failed to delete account.",
+          "createFailed": "Failed to create account.",
+          "updateFailed": "Failed to update account."
+        }
       },
       "detail": {
         "title": "Account Details"
@@ -336,6 +364,33 @@
           "title": {
             "create": "Create Tag",
             "edit": "Edit Tag"
+          },
+          "tabs": {
+            "generic": "Generic",
+            "location": "Location",
+            "contact": "Person"
+          },
+          "locationComingSoon": {
+            "title": "Coming soon",
+            "description": "Location tags are being developed."
+          },
+          "nameLabelGeneric": "Tag name",
+          "nameLabelContact": "Contact name",
+          "placeholderGeneric": "Work, Shopping...",
+          "placeholderContact": "John Doe",
+          "deleteLabel": "Permanently delete",
+          "loadingText": "Loading tag...",
+          "deleteModal": {
+            "title": "Permanently delete {{name}}?",
+            "descriptionWithCount_one": "This tag is used by {{count}} transaction. Permanently deleting the tag will unlink it and remove it permanently. This cannot be undone.",
+            "descriptionWithCount_other": "This tag is used by {{count}} transactions. Permanently deleting the tag will unlink it from all of them and remove it permanently. This cannot be undone.",
+            "descriptionEmpty": "Permanently deleting this tag cannot be undone."
+          },
+          "toast": {
+            "error": "Error",
+            "deleteFailed": "Failed to delete tag.",
+            "createFailed": "Failed to create tag.",
+            "updateFailed": "Failed to update tag."
           }
         },
         "toast": {
@@ -440,7 +495,30 @@
         "titlePlaceholder": "Untitled transaction",
         "amountLabel": "Amount",
         "convertedAmountLabel": "Converted amount",
-        "notes": "Notes"
+        "notes": "Notes",
+        "transactionDate": "Transaction date",
+        "fileAttachments": "File attachments"
+      },
+      "datePicker": {
+        "cancel": "Cancel",
+        "next": "Next",
+        "done": "Done"
+      },
+      "save": "Save",
+      "create": "Create",
+      "openFile": {
+        "title": "Open {{name}}?",
+        "description": "Are you sure you want to open this file?"
+      },
+      "removeAttachment": {
+        "title": "Delete file",
+        "description": "Are you sure you want to remove this attachment?"
+      },
+      "destroyModal": {
+        "description": "This transaction will be removed forever and cannot be restored."
+      },
+      "unsavedModal": {
+        "description": "All changes will be lost."
       },
       "amountInput": {
         "hint": "Enter amount or a math expression (e.g. 100/4)",
@@ -494,7 +572,11 @@
         "editRecurringFutureSuccess": "This and future transactions updated",
         "editRecurringFailed": "Failed to save transaction",
         "upcomingConfirmFailed": "Failed to confirm",
-        "upcomingConfirmAllFailed": "Failed to confirm all"
+        "upcomingConfirmAllFailed": "Failed to confirm all",
+        "deleted": "Deleted",
+        "deletedDescription": "Transaction permanently removed.",
+        "deleteFailed": "Failed to delete transaction.",
+        "error": "Error"
       },
       "a11y": {
         "closePreview": "Close preview",
@@ -559,7 +641,27 @@
           "edit": "Edit Category",
           "archived": "Archived Categories"
         },
-        "namePlaceholder": "Groceries, Dining out, etc."
+        "nameLabel": "Category name",
+        "namePlaceholder": "Groceries, Dining out, etc.",
+        "archiveLabel": "Archive category",
+        "deleteLabel": "Permanently delete",
+        "loadingText": "Loading category...",
+        "deleteModal": {
+          "title": "Delete {{name}}?",
+          "descriptionWithCount_one": "This category is used by {{count}} transaction. Deleting will unlink it. This cannot be undone.",
+          "descriptionWithCount_other": "This category is used by {{count}} transactions. Deleting will unlink them. This cannot be undone.",
+          "descriptionEmpty": "Deleting this category cannot be undone."
+        },
+        "toast": {
+          "error": "Error",
+          "notFound": "Category not found",
+          "cannotDelete": "Cannot delete category",
+          "cannotDeleteDescription_one": "This category has {{count}} transaction. Please remove or reassign all transactions before deleting.",
+          "cannotDeleteDescription_other": "This category has {{count}} transactions. Please remove or reassign all transactions before deleting.",
+          "deleteFailed": "Failed to delete category. Please try again.",
+          "createFailed": "Failed to create category. Please try again.",
+          "updateFailed": "Failed to update category. Please try again."
+        }
       },
       "empty": {
         "noCategories": {
@@ -619,7 +721,7 @@
     "account": {
       "name": {
         "required": "Account name is required",
-        "tooShort": "",
+        "tooShort": "Account name is too short",
         "tooLong": "Account name is too long"
       },
       "initialBalance": {
@@ -646,36 +748,45 @@
     "category": {
       "name": {
         "required": "Category name is required",
-        "tooShort": "",
-        "tooLong": ""
+        "tooShort": "Category name is too short",
+        "tooLong": "Category name is too long"
       }
     },
     "tag": {
       "name": {
         "required": "Tag name is required",
-        "tooShort": "",
+        "tooShort": "Tag name is too short",
         "tooLong": "Tag name is too long",
-        "duplicate": ""
+        "duplicate": "A tag with this name already exists"
       }
     },
     "profile": {
       "name": {
-        "required": "",
-        "tooLong": ""
+        "required": "Name is required",
+        "tooLong": "Name is too long"
       }
     },
     "loan": {
-      "name": { "required": "" },
-      "amount": { "required": "", "invalid": "" },
-      "contact": { "invalidPhone": "" }
+      "name": { "required": "Loan name is required" },
+      "amount": {
+        "required": "Amount is required",
+        "invalid": "Enter a valid amount"
+      },
+      "contact": { "invalidPhone": "Enter a valid phone number" }
     },
     "goal": {
-      "name": { "required": "" },
-      "targetAmount": { "required": "", "invalid": "" }
+      "name": { "required": "Goal name is required" },
+      "targetAmount": {
+        "required": "Target amount is required",
+        "invalid": "Enter a valid amount"
+      }
     },
     "budget": {
-      "name": { "required": "" },
-      "amount": { "required": "", "invalid": "" }
+      "name": { "required": "Budget name is required" },
+      "amount": {
+        "required": "Amount is required",
+        "invalid": "Enter a valid amount"
+      }
     }
   }
 }

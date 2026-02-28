@@ -116,8 +116,8 @@ export function AccountModifyContent({
       } else {
         if (!accountModel) {
           Toast.error({
-            title: "Error",
-            description: t("screens.accounts.toast.notFound"),
+            title: t("screens.accounts.form.toast.error"),
+            description: t("screens.accounts.form.toast.notFound"),
           })
           setIsSubmitting(false)
           return
@@ -141,8 +141,10 @@ export function AccountModifyContent({
     } catch (error) {
       logger.error("Error saving account", { error })
       Toast.error({
-        title: "Error",
-        description: `Failed to ${isAddMode ? "create" : "update"} account.`,
+        title: t("screens.accounts.form.toast.error"),
+        description: isAddMode
+          ? t("screens.accounts.form.toast.createFailed")
+          : t("screens.accounts.form.toast.updateFailed"),
       })
     }
     setIsSubmitting(false)
@@ -162,8 +164,8 @@ export function AccountModifyContent({
     } catch (error) {
       logger.error("Error deleting account", { error })
       Toast.error({
-        title: "Error",
-        description: "Failed to delete account.",
+        title: t("screens.accounts.form.toast.error"),
+        description: t("screens.accounts.form.toast.deleteFailed"),
       })
     }
   }
@@ -190,7 +192,9 @@ export function AccountModifyContent({
     return (
       <View style={accountModifyStyles.container}>
         <View style={accountModifyStyles.loadingContainer}>
-          <Text variant="default">Loading account...</Text>
+          <Text variant="default">
+            {t("screens.accounts.form.loadingText")}
+          </Text>
         </View>
       </View>
     )
@@ -222,7 +226,7 @@ export function AccountModifyContent({
                   value={value}
                   onChangeText={onChange}
                   onBlur={onBlur}
-                  placeholder="Checking, Savings, etc."
+                  placeholder={t("screens.accounts.form.placeholder")}
                   error={!!errors.name}
                 />
               )}
@@ -294,7 +298,7 @@ export function AccountModifyContent({
                       variant="default"
                       style={accountModifyStyles.switchLabel}
                     >
-                      Exclude from balance
+                      {t("screens.accounts.form.excludeFromBalanceLabel")}
                     </Text>
                   </View>
 
@@ -328,7 +332,7 @@ export function AccountModifyContent({
                           variant="default"
                           style={accountModifyStyles.switchLabel}
                         >
-                          Primary account
+                          {t("screens.accounts.form.primaryAccountLabel")}
                         </Text>
                       </View>
 
@@ -349,8 +353,7 @@ export function AccountModifyContent({
                       variant="small"
                       style={accountModifyStyles.primaryAccountHint}
                     >
-                      This account will be used as the default account for new
-                      transactions and other actions.
+                      {t("screens.accounts.form.primaryAccountHint")}
                     </Text>
                   </View>
                 )}
@@ -379,7 +382,7 @@ export function AccountModifyContent({
                         variant="default"
                         style={accountModifyStyles.switchLabel}
                       >
-                        Archive account
+                        {t("screens.accounts.form.archiveLabel")}
                       </Text>
                     </View>
 
@@ -409,7 +412,7 @@ export function AccountModifyContent({
                   style={accountModifyStyles.deleteIcon}
                 />
                 <Text variant="default" style={accountModifyStyles.deleteText}>
-                  Permanently delete Account
+                  {t("screens.accounts.form.deleteLabel")}
                 </Text>
               </Button>
             ) : (
@@ -424,8 +427,7 @@ export function AccountModifyContent({
                   variant="small"
                   style={accountModifyStyles.archiveWarning}
                 >
-                  You can permanently delete the account with its transactions
-                  after you archive the account for safety measures.
+                  {t("screens.accounts.form.archiveWarning")}
                 </Text>
               </View>
             )}
@@ -440,7 +442,7 @@ export function AccountModifyContent({
           style={accountModifyStyles.button}
         >
           <Text variant="default" style={accountModifyStyles.cancelText}>
-            Cancel
+            {t("common.actions.cancel")}
           </Text>
         </Button>
         <Button
@@ -452,7 +454,11 @@ export function AccountModifyContent({
           }
         >
           <Text variant="default" style={accountModifyStyles.saveText}>
-            {isSubmitting ? "Saving..." : isAddMode ? "Create" : "Save Changes"}
+            {isSubmitting
+              ? t("common.form.saving")
+              : isAddMode
+                ? t("common.form.create")
+                : t("common.form.saveChanges")}
           </Text>
         </Button>
       </View>
@@ -462,14 +468,18 @@ export function AccountModifyContent({
           visible={deleteModalVisible}
           onRequestClose={() => setDeleteModalVisible(false)}
           onConfirm={handleDelete}
-          title={`Permanently delete ${account.name}?`}
+          title={t("screens.accounts.form.deleteModal.title", {
+            name: account.name,
+          })}
           description={
             transactionCount > 0
-              ? `This account has ${transactionCount} transaction${transactionCount !== 1 ? "s" : ""}. Permanently deleting the account will also delete ${transactionCount === 1 ? "it" : "them"}. This action cannot be undone.`
-              : "Permanently deleting this account cannot be undone. This action is irreversible!"
+              ? t("screens.accounts.form.deleteModal.descriptionWithCount", {
+                  count: transactionCount,
+                })
+              : t("screens.accounts.form.deleteModal.descriptionEmpty")
           }
-          confirmLabel="Delete"
-          cancelLabel="Cancel"
+          confirmLabel={t("common.actions.delete")}
+          cancelLabel={t("common.actions.cancel")}
           variant="destructive"
           icon="trash-can"
         />
@@ -483,8 +493,8 @@ export function AccountModifyContent({
           confirmNavigation()
         }}
         title={t("common.modals.closeWithoutSaving")}
-        description="All changes will be lost."
-        confirmLabel="Discard"
+        description={t("common.form.unsavedDescription")}
+        confirmLabel={t("common.form.discard")}
         cancelLabel={t("common.actions.cancel")}
         variant="default"
       />
