@@ -123,7 +123,7 @@ export function EditRecurringModal({
             await detachTransactionFromRule(transaction)
             await updateTransactionModel(transaction, pendingPayload)
             Toast.success({
-              title: t("transactions.toast.editRecurringSuccess"),
+              title: t("components.transactionForm.toast.editRecurringSuccess"),
             })
             break
           }
@@ -145,7 +145,9 @@ export function EditRecurringModal({
               updateTransactionModel(transaction, pendingPayload),
             ])
             Toast.success({
-              title: t("transactions.toast.editRecurringFutureSuccess"),
+              title: t(
+                "components.transactionForm.toast.editRecurringFutureSuccess",
+              ),
             })
             break
           }
@@ -158,7 +160,9 @@ export function EditRecurringModal({
           scope,
           error: error instanceof Error ? error.message : String(error),
         })
-        Toast.error({ title: t("transactions.toast.editRecurringFailed") })
+        Toast.error({
+          title: t("components.transactionForm.toast.editRecurringFailed"),
+        })
       }
       setLoadingScope(null)
     },
@@ -185,7 +189,7 @@ export function EditRecurringModal({
       <Pressable
         style={[styles.backdrop, { width }]}
         onPress={onRequestClose}
-        accessibilityLabel={t("accessibility.close")}
+        accessibilityLabel={t("common.actions.close")}
         accessibilityRole="button"
       >
         <TouchableWithoutFeedback onPress={() => {}}>
@@ -218,26 +222,26 @@ export function EditRecurringModal({
                 />
               </View>
               <Text style={styles.title}>
-                {t("transactions.recurring.editModal.title")}
+                {t("components.recurring.editModal.title")}
               </Text>
               <Text style={styles.subtitle}>
-                {t("transactions.recurring.editModal.subtitle")}
+                {t("components.recurring.editModal.subtitle")}
               </Text>
             </View>
 
             <View style={styles.optionsCard}>
               <OptionRow
-                label={t("transactions.recurring.editModal.optionThis")}
+                label={t("components.recurring.editModal.optionThis")}
                 sublabel={t(
-                  "transactions.recurring.editModal.optionThisSublabel",
+                  "components.recurring.editModal.optionThisSublabel",
                 )}
                 onPress={() => handleEdit("this")}
                 loading={loadingScope === "this"}
               />
               <OptionRow
-                label={t("transactions.recurring.editModal.optionFuture")}
+                label={t("components.recurring.editModal.optionFuture")}
                 sublabel={t(
-                  "transactions.recurring.editModal.optionFutureSublabel",
+                  "components.recurring.editModal.optionFutureSublabel",
                 )}
                 onPress={() => handleEdit("this_and_future")}
                 loading={loadingScope === "this_and_future"}
@@ -254,7 +258,7 @@ export function EditRecurringModal({
               disabled={!!loadingScope}
             >
               <Text style={styles.cancelText}>
-                {t("transactions.recurring.editModal.cancel")}
+                {t("components.recurring.editModal.cancel")}
               </Text>
             </Pressable>
           </SafeAreaView>

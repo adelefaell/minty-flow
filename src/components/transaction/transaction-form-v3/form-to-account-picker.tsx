@@ -88,11 +88,11 @@ export function FormToAccountPicker({
             !toAccountId && styles.clearButtonDisabled,
           ]}
           pointerEvents={toAccountId ? "auto" : "none"}
-          accessibilityLabel={t("accessibility.clearToAccount")}
+          accessibilityLabel={t("screens.accounts.a11y.clearTo")}
           accessibilityState={{ disabled: !toAccountId }}
         >
           <Text variant="small" style={styles.clearButtonText}>
-            {t("accessibility.clear")}
+            {t("common.actions.clear")}
           </Text>
         </Pressable>
       </View>
@@ -104,8 +104,8 @@ export function FormToAccountPicker({
         onPress={handleToggle}
         accessibilityLabel={
           toAccountPickerOpen
-            ? t("accessibility.cancel")
-            : t("accessibility.selectToAccount")
+            ? t("common.actions.cancel")
+            : t("screens.accounts.a11y.selectTo")
         }
       >
         {selectedToAccount ? (
@@ -149,7 +149,7 @@ export function FormToAccountPicker({
               style={styles.accountTriggerPlaceholder}
               numberOfLines={1}
             >
-              {t("accessibility.selectToAccount")}
+              {t("screens.accounts.a11y.selectTo")}
             </Text>
             <IconSymbol
               name={toAccountPickerOpen ? "close" : "chevron-down"}
@@ -162,7 +162,7 @@ export function FormToAccountPicker({
       {toAccountPickerOpen && (
         <View native style={styles.inlineAccountPicker}>
           <Input
-            placeholder={t("accessibility.searchAccountsPlaceholder")}
+            placeholder={t("screens.accounts.a11y.searchPlaceholder")}
             value={toAccountSearchQuery}
             onChangeText={setToAccountSearchQuery}
             placeholderTextColor={theme.colors.customColors.semi}
@@ -224,7 +224,7 @@ export function FormToAccountPicker({
                 }}
                 accessible
                 accessibilityRole="button"
-                accessibilityLabel={t("accessibility.addAccount")}
+                accessibilityLabel={t("screens.accounts.a11y.add")}
               >
                 <DynamicIcon
                   icon="plus"
@@ -239,7 +239,7 @@ export function FormToAccountPicker({
                   style={styles.accountPickerRowAddLabel}
                   numberOfLines={1}
                 >
-                  {t("accessibility.addAccount")}
+                  {t("screens.accounts.a11y.add")}
                 </Text>
               </Pressable>
             )}

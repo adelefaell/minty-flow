@@ -210,7 +210,9 @@ const AccountsScreenInner = ({
             <View style={styles.footer}>
               <Button onPress={handleAddAccount} variant="secondary">
                 <IconSymbol name="plus" size={24} />
-                <Text variant="default">{t("accounts.addNewAccount")}</Text>
+                <Text variant="default">
+                  {t("screens.accounts.addNewAccount")}
+                </Text>
               </Button>
             </View>
           ) : null

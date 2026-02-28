@@ -2,17 +2,30 @@ import { z } from "zod"
 
 import { AccountTypeEnum } from "~/types/accounts"
 
-const addAccountsSchema = z.object({
-  name: z.string().min(1, "Account name is required").max(50),
-  type: z.enum(AccountTypeEnum),
-  balance: z.number(),
-  currencyCode: z.string().min(3).max(3),
-  icon: z.string().optional(),
-  colorSchemeName: z.string().optional(),
-  isPrimary: z.boolean().default(false),
-  excludeFromBalance: z.boolean().default(false),
-  isArchived: z.boolean().default(false),
-})
+const addAccountsSchema = z
+  .object({
+    name: z
+      .string()
+      .min(1, "validation.account.name.required")
+      .max(50, "validation.account.name.tooLong"),
+    type: z.enum(AccountTypeEnum),
+    balance: z.number({
+      error: "validation.account.initialBalance.invalid",
+    }),
+    currencyCode: z
+      .string()
+      .min(3, "validation.account.currency.required")
+      .max(3, "validation.account.currency.required"),
+    icon: z.string().optional(),
+    colorSchemeName: z.string().optional(),
+    isPrimary: z.boolean().default(false),
+    excludeFromBalance: z.boolean().default(false),
+    isArchived: z.boolean().default(false),
+  })
+  .refine((data) => data.balance >= 0, {
+    message: "validation.account.initialBalance.negative",
+    path: ["balance"],
+  })
 
 const updateAccountsSchema = addAccountsSchema
 

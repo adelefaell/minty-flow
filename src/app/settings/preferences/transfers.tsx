@@ -89,7 +89,7 @@ export default function TransfersPreferencesScreen() {
       {/* Layout */}
       <View native style={[styles.sectionLabel, styles.sectionLabelFirst]}>
         <Text variant="small" style={styles.sectionLabelText}>
-          {t("transfers.layout.subtitle")}
+          {t("screens.settings.transfers.layout.subtitle")}
         </Text>
       </View>
       <View native style={styles.card}>
@@ -107,7 +107,7 @@ export default function TransfersPreferencesScreen() {
                 <View native style={styles.rowContent}>
                   <Text style={styles.rowLabel}>
                     {t(
-                      `transfers.layout.options.${
+                      `screens.settings.transfers.layout.options.${
                         option.value === TransferLayoutEnum.COMBINE
                           ? "combine"
                           : "separate"
@@ -116,7 +116,7 @@ export default function TransfersPreferencesScreen() {
                   </Text>
                   <Text variant="small" style={styles.rowDescription}>
                     {t(
-                      `transfers.layout.options.${
+                      `screens.settings.transfers.layout.options.${
                         option.value === TransferLayoutEnum.COMBINE
                           ? "combine"
                           : "separate"
@@ -145,14 +145,14 @@ export default function TransfersPreferencesScreen() {
           color={theme.colors.customColors?.semi}
         />
         <Text variant="small" style={styles.captionText}>
-          {t("transfers.layout.caption")}
+          {t("screens.settings.transfers.layout.caption")}
         </Text>
       </View>
 
       {/* Exclude from totals */}
       <View native style={styles.sectionLabel}>
         <Text variant="small" style={styles.sectionLabelText}>
-          {t("transfers.totals.subtitle")}
+          {t("screens.settings.transfers.totals.subtitle")}
         </Text>
       </View>
       <View native style={styles.toggleCard}>
@@ -162,10 +162,10 @@ export default function TransfersPreferencesScreen() {
         >
           <View native style={styles.toggleRowContent}>
             <Text style={styles.toggleLabel}>
-              {t("transfers.totals.excludeToggle.label")}
+              {t("screens.settings.transfers.totals.excludeToggle.label")}
             </Text>
             <Text variant="small" style={styles.toggleDescription}>
-              {t("transfers.totals.excludeToggle.description")}
+              {t("screens.settings.transfers.totals.excludeToggle.description")}
             </Text>
           </View>
           <Switch

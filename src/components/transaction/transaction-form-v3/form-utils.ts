@@ -84,15 +84,12 @@ export function getDefaultValues(
   }
 }
 
+/** Returns the raw validation key from the schema (caller should pass to t() for display). */
 export function getFieldError(
-  field: keyof TransactionFormValues,
+  _field: keyof TransactionFormValues,
   message: string | undefined,
 ): string | undefined {
-  if (!message) return undefined
-  if (field === "accountId")
-    return "Please choose an account to save this transaction."
-  if (field === "amount") return "Enter an amount greater than 0."
-  return message
+  return message ?? undefined
 }
 
 export function notesMarkdownStyles(theme: { colors: { onSurface: string } }) {

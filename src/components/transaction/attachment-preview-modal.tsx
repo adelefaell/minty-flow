@@ -57,7 +57,7 @@ export function AttachmentPreviewModal({
         <Pressable
           style={styles.previewCloseBtn}
           onPress={onClose}
-          accessibilityLabel={t("accessibility.closePreview")}
+          accessibilityLabel={t("components.transactionForm.a11y.closePreview")}
         >
           <IconSymbol name="close" size={28} color="#fff" />
         </Pressable>

@@ -24,16 +24,16 @@ export default function ToastStyleScreen() {
   }> = [
     {
       value: "top",
-      label: t("preferences.appearance.toast.options.positionTop"),
+      label: t("screens.settings.preferences.appearance.toast.position.top"),
       description: t(
-        "preferences.appearance.toast.options.positionTopDescription",
+        "screens.settings.preferences.appearance.toast.position.topDescription",
       ),
     },
     {
       value: "bottom",
-      label: t("preferences.appearance.toast.options.positionBottom"),
+      label: t("screens.settings.preferences.appearance.toast.position.bottom"),
       description: t(
-        "preferences.appearance.toast.options.positionBottomDescription",
+        "screens.settings.preferences.appearance.toast.position.bottomDescription",
       ),
     },
   ]
@@ -50,31 +50,45 @@ export default function ToastStyleScreen() {
 
   const handleShowDemoToasts = () => {
     Toast.success({
-      title: t("preferences.appearance.toast.demo.successTitle"),
-      description: t("preferences.appearance.toast.demo.successDescription"),
+      title: t(
+        "screens.settings.preferences.appearance.toast.demo.successTitle",
+      ),
+      description: t(
+        "screens.settings.preferences.appearance.toast.demo.successDescription",
+      ),
     })
     setTimeout(
       () =>
         Toast.error({
-          title: t("preferences.appearance.toast.demo.errorTitle"),
-          description: t("preferences.appearance.toast.demo.errorDescription"),
+          title: t(
+            "screens.settings.preferences.appearance.toast.demo.errorTitle",
+          ),
+          description: t(
+            "screens.settings.preferences.appearance.toast.demo.errorDescription",
+          ),
         }),
       500,
     )
     setTimeout(
       () =>
         Toast.info({
-          title: t("preferences.appearance.toast.demo.infoTitle"),
-          description: t("preferences.appearance.toast.demo.infoDescription"),
+          title: t(
+            "screens.settings.preferences.appearance.toast.demo.infoTitle",
+          ),
+          description: t(
+            "screens.settings.preferences.appearance.toast.demo.infoDescription",
+          ),
         }),
       1000,
     )
     setTimeout(
       () =>
         Toast.warn({
-          title: t("preferences.appearance.toast.demo.warningTitle"),
+          title: t(
+            "screens.settings.preferences.appearance.toast.demo.warningTitle",
+          ),
           description: t(
-            "preferences.appearance.toast.demo.warningDescription",
+            "screens.settings.preferences.appearance.toast.demo.warningDescription",
           ),
         }),
       1500,
@@ -90,10 +104,16 @@ export default function ToastStyleScreen() {
         visible={resetModalVisible}
         onRequestClose={() => setResetModalVisible(false)}
         onConfirm={handleConfirmReset}
-        title={t("preferences.appearance.toast.resetModal.title")}
-        description={t("preferences.appearance.toast.resetModal.description")}
-        confirmLabel={t("preferences.appearance.toast.resetModal.confirmLabel")}
-        cancelLabel={t("preferences.appearance.toast.resetModal.cancelLabel")}
+        title={t("screens.settings.preferences.appearance.toast.reset.title")}
+        description={t(
+          "screens.settings.preferences.appearance.toast.reset.description",
+        )}
+        confirmLabel={t(
+          "screens.settings.preferences.appearance.toast.reset.confirmLabel",
+        )}
+        cancelLabel={t(
+          "screens.settings.preferences.appearance.toast.reset.cancelLabel",
+        )}
         variant="destructive"
       />
 
@@ -106,7 +126,7 @@ export default function ToastStyleScreen() {
         {/* Position */}
         <View native style={[styles.sectionLabel, styles.sectionLabelFirst]}>
           <Text variant="small" style={styles.sectionLabelText}>
-            {t("preferences.appearance.toast.options.position")}
+            {t("screens.settings.preferences.appearance.toast.position.label")}
           </Text>
         </View>
         <View native style={styles.card}>
@@ -144,7 +164,7 @@ export default function ToastStyleScreen() {
         {/* Options */}
         <View native style={styles.sectionLabel}>
           <Text variant="small" style={styles.sectionLabelText}>
-            {t("preferences.appearance.toast.optionsLabel")}
+            {t("screens.settings.preferences.appearance.toast.optionsLabel")}
           </Text>
         </View>
         <View native style={styles.toggleCard}>
@@ -154,11 +174,13 @@ export default function ToastStyleScreen() {
           >
             <View native style={styles.toggleRowContent}>
               <Text style={styles.toggleLabel}>
-                {t("preferences.appearance.toast.options.progressBar")}
+                {t(
+                  "screens.settings.preferences.appearance.toast.progressBar.label",
+                )}
               </Text>
               <Text variant="small" style={styles.toggleDescription}>
                 {t(
-                  "preferences.appearance.toast.options.progressBarDescription",
+                  "screens.settings.preferences.appearance.toast.progressBar.description",
                 )}
               </Text>
             </View>
@@ -174,10 +196,14 @@ export default function ToastStyleScreen() {
           >
             <View native style={styles.toggleRowContent}>
               <Text style={styles.toggleLabel}>
-                {t("preferences.appearance.toast.options.closeIcon")}
+                {t(
+                  "screens.settings.preferences.appearance.toast.closeIcon.label",
+                )}
               </Text>
               <Text variant="small" style={styles.toggleDescription}>
-                {t("preferences.appearance.toast.options.closeIconDescription")}
+                {t(
+                  "screens.settings.preferences.appearance.toast.closeIcon.description",
+                )}
               </Text>
             </View>
             <Switch value={showCloseIcon} onValueChange={setShowCloseIcon} />
@@ -187,10 +213,12 @@ export default function ToastStyleScreen() {
         {/* Preview */}
         <View native style={styles.sectionLabel}>
           <Text variant="small" style={styles.sectionLabelText}>
-            {t("preferences.appearance.toast.preview.label")}
+            {t("screens.settings.preferences.appearance.toast.preview.label")}
           </Text>
           <Text variant="small" style={styles.previewDescription}>
-            {t("preferences.appearance.toast.preview.description")}
+            {t(
+              "screens.settings.preferences.appearance.toast.preview.description",
+            )}
           </Text>
         </View>
 
@@ -201,7 +229,9 @@ export default function ToastStyleScreen() {
             onPress={handleShowDemoToasts}
           >
             <Text style={styles.previewBtnPrimaryText}>
-              {t("preferences.appearance.toast.preview.showDemo")}
+              {t(
+                "screens.settings.preferences.appearance.toast.preview.showDemo",
+              )}
             </Text>
           </Button>
           <Button
@@ -210,7 +240,9 @@ export default function ToastStyleScreen() {
             onPress={() => Toast.hideAll()}
           >
             <Text style={styles.previewBtnOutlineText}>
-              {t("preferences.appearance.toast.preview.hideAll")}
+              {t(
+                "screens.settings.preferences.appearance.toast.preview.hideAll",
+              )}
             </Text>
           </Button>
         </View>
@@ -223,7 +255,7 @@ export default function ToastStyleScreen() {
             onPress={handleResetToDefaults}
           >
             <Text style={styles.resetButtonText}>
-              {t("preferences.appearance.toast.resetButton")}
+              {t("screens.settings.preferences.appearance.toast.resetButton")}
             </Text>
           </Button>
         </View>

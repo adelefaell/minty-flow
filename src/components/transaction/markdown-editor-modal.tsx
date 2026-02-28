@@ -143,7 +143,7 @@ export function MarkdownEditorModal({
             onPress={onRequestClose}
             hitSlop={12}
             style={styles.headerBtn}
-            accessibilityLabel={t("accessibility.close")}
+            accessibilityLabel={t("common.actions.close")}
           >
             <IconSymbol name="close" size={24} color={fg} />
           </Pressable>
@@ -151,7 +151,7 @@ export function MarkdownEditorModal({
             onPress={handleSave}
             hitSlop={12}
             style={styles.headerBtn}
-            accessibilityLabel={t("accessibility.save")}
+            accessibilityLabel={t("common.actions.save")}
           >
             <IconSymbol name="check" size={24} color={theme.colors.primary} />
           </Pressable>

@@ -129,7 +129,9 @@ export function DeleteRecurringModal({
           case "this": {
             await deleteTransactionModel(transaction)
             Toast.success({
-              title: t("transactions.toast.deleteRecurringSuccess"),
+              title: t(
+                "components.transactionForm.toast.deleteRecurringSuccess",
+              ),
             })
             break
           }
@@ -138,7 +140,9 @@ export function DeleteRecurringModal({
             await deleteAllRecurringInstances(recurringRule.id)
             await disableRecurringRule(recurringRule.id)
             Toast.success({
-              title: t("transactions.toast.deleteRecurringAllSuccess"),
+              title: t(
+                "components.transactionForm.toast.deleteRecurringAllSuccess",
+              ),
             })
             break
           }
@@ -150,7 +154,9 @@ export function DeleteRecurringModal({
             )
             await disableRecurringRule(recurringRule.id)
             Toast.success({
-              title: t("transactions.toast.deleteRecurringFutureSuccess"),
+              title: t(
+                "components.transactionForm.toast.deleteRecurringFutureSuccess",
+              ),
             })
             break
           }
@@ -163,7 +169,9 @@ export function DeleteRecurringModal({
           scope,
           error: error instanceof Error ? error.message : String(error),
         })
-        Toast.error({ title: t("transactions.toast.deleteRecurringFailed") })
+        Toast.error({
+          title: t("components.transactionForm.toast.deleteRecurringFailed"),
+        })
       }
       setLoadingScope(null)
     },
@@ -174,15 +182,15 @@ export function DeleteRecurringModal({
     (scope: DeleteScope) => {
       if (scope === "all" || scope === "this_and_future") {
         Alert.alert(
-          t("transactions.recurring.deleteModal.confirmTitle"),
-          t("transactions.recurring.deleteModal.confirmMessage"),
+          t("components.recurring.deleteModal.confirmTitle"),
+          t("components.recurring.deleteModal.confirmMessage"),
           [
             {
-              text: t("transactions.recurring.deleteModal.cancel"),
+              text: t("components.recurring.deleteModal.cancel"),
               style: "cancel",
             },
             {
-              text: t("transactions.recurring.deleteModal.delete"),
+              text: t("components.recurring.deleteModal.delete"),
               style: "destructive",
               onPress: () => performDelete(scope),
             },
@@ -207,7 +215,7 @@ export function DeleteRecurringModal({
       <Pressable
         style={[styles.backdrop, { width }]}
         onPress={onRequestClose}
-        accessibilityLabel={t("accessibility.close")}
+        accessibilityLabel={t("common.actions.close")}
         accessibilityRole="button"
       >
         <TouchableWithoutFeedback onPress={() => {}}>
@@ -236,36 +244,36 @@ export function DeleteRecurringModal({
                 />
               </View>
               <Text style={styles.title}>
-                {t("transactions.recurring.deleteModal.title")}
+                {t("components.recurring.deleteModal.title")}
               </Text>
               <Text style={styles.subtitle}>
-                {t("transactions.recurring.deleteModal.subtitle")}
+                {t("components.recurring.deleteModal.subtitle")}
               </Text>
             </View>
 
             <View style={styles.optionsCard}>
               <OptionRow
-                label={t("transactions.recurring.deleteModal.optionThis")}
+                label={t("components.recurring.deleteModal.optionThis")}
                 sublabel={t(
-                  "transactions.recurring.deleteModal.optionThisSublabel",
+                  "components.recurring.deleteModal.optionThisSublabel",
                 )}
                 onPress={() => handleDelete("this")}
                 loading={loadingScope === "this"}
                 isDestructive
               />
               <OptionRow
-                label={t("transactions.recurring.deleteModal.optionAll")}
+                label={t("components.recurring.deleteModal.optionAll")}
                 sublabel={t(
-                  "transactions.recurring.deleteModal.optionAllSublabel",
+                  "components.recurring.deleteModal.optionAllSublabel",
                 )}
                 onPress={() => handleDelete("all")}
                 loading={loadingScope === "all"}
                 isDestructive
               />
               <OptionRow
-                label={t("transactions.recurring.deleteModal.optionFuture")}
+                label={t("components.recurring.deleteModal.optionFuture")}
                 sublabel={t(
-                  "transactions.recurring.deleteModal.optionFutureSublabel",
+                  "components.recurring.deleteModal.optionFutureSublabel",
                 )}
                 onPress={() => handleDelete("this_and_future")}
                 loading={loadingScope === "this_and_future"}
@@ -283,7 +291,7 @@ export function DeleteRecurringModal({
               disabled={!!loadingScope}
             >
               <Text style={styles.cancelText}>
-                {t("transactions.recurring.deleteModal.cancel")}
+                {t("components.recurring.deleteModal.cancel")}
               </Text>
             </Pressable>
           </SafeAreaView>

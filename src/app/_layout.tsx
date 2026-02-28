@@ -74,38 +74,38 @@ export default function RootLayout() {
             {/* settings screens */}
             <Stack.Screen
               name="settings/edit-profile"
-              options={{ title: t("navigation.screenTitles.editProfile") }}
+              options={{ title: t("profile.edit.title") }}
             />
             <Stack.Screen
               name="settings/loans"
-              options={{ title: t("loans.title") }}
+              options={{ title: t("screens.settings.loans.title") }}
             />
             <Stack.Screen
               name="settings/all-accounts"
-              options={{ title: t("accounts.title") }}
+              options={{ title: t("screens.accounts.title") }}
             />
             <Stack.Screen
               name="settings/categories/index"
-              options={{ title: t("categories.title") }}
+              options={{ title: t("components.categories.title") }}
             />
             <Stack.Screen
               name="settings/categories/archived"
               options={{
-                title: t("navigation.screenTitles.archivedCategories"),
+                title: t("components.categories.form.title.archived"),
               }}
             />
 
             <Stack.Screen
               name="settings/categories/[categoryId]/index"
               options={{
-                title: t("navigation.screenTitles.categoryDetails"),
+                title: t("components.categories.form.title.edit"),
               }}
             />
 
             <Stack.Screen
               name="settings/categories/presets"
               options={{
-                title: t("navigation.screenTitles.addFromPresets"),
+                title: t("components.categories.actions.addFromPresets"),
               }}
             />
             <Stack.Screen
@@ -117,100 +117,108 @@ export default function RootLayout() {
                 return {
                   title:
                     params?.categoryId === NewEnum.NEW
-                      ? t("navigation.screenTitles.createCategory")
-                      : t("navigation.screenTitles.editCategory"),
+                      ? t("components.categories.form.title.create")
+                      : t("components.categories.form.title.edit"),
                 }
               }}
             />
             <Stack.Screen
               name="settings/tags/index"
-              options={{ title: t("tags.title") }}
+              options={{ title: t("screens.settings.tags.title") }}
             />
             <Stack.Screen
               name="settings/trash"
-              options={{ title: t("trash.title") }}
+              options={{ title: t("screens.settings.trash.title") }}
             />
             <Stack.Screen
               name="settings/preferences/index"
-              options={{ title: t("preferences.title") }}
+              options={{ title: t("screens.settings.preferences.title") }}
             />
             <Stack.Screen
               name="settings/data-management"
-              options={{ title: t("dataManagement.title") }}
+              options={{ title: t("screens.settings.dataManagement.title") }}
             />
             <Stack.Screen
               name="settings/budgets"
-              options={{ title: t("budgets.title") }}
+              options={{ title: t("screens.settings.budgets.title") }}
             />
             <Stack.Screen
               name="settings/pending-transactions"
-              options={{ title: t("pending.title") }}
+              options={{ title: t("screens.settings.pending.title") }}
             />
             <Stack.Screen
               name="settings/bill-splitter"
-              options={{ title: t("billSplitter.title") }}
+              options={{ title: t("screens.settings.billSplitter.title") }}
             />
             <Stack.Screen
               name="settings/goals"
-              options={{ title: t("goals.title") }}
+              options={{ title: t("screens.settings.goals.title") }}
             />
 
             <Stack.Screen
               name="settings/language"
-              options={{ title: t("preferences.language.title") }}
+              options={{
+                title: t("screens.settings.preferences.language.title"),
+              }}
             />
 
             {/* settings screens preferences */}
             <Stack.Screen
               name="settings/preferences/theme"
-              options={{ title: t("preferences.appearance.theme.title") }}
+              options={{
+                title: t("screens.settings.preferences.appearance.theme.title"),
+              }}
             />
             <Stack.Screen
               name="settings/preferences/toast-style"
               options={{
-                title: t("navigation.screenTitles.toastStyle"),
+                title: t("screens.settings.preferences.appearance.toast.title"),
               }}
             />
             <Stack.Screen
               name="settings/preferences/exchange-rates"
-              options={{ title: t("exchangeRates.title") }}
+              options={{ title: t("screens.settings.exchangeRates.title") }}
             />
             <Stack.Screen
               name="settings/preferences/trash-bin"
-              options={{ title: t("trash.title") }}
+              options={{ title: t("screens.settings.trash.title") }}
             />
             <Stack.Screen
               name="settings/preferences/reminder"
-              options={{ title: t("reminders.title") }}
+              options={{ title: t("screens.settings.reminders.title") }}
             />
             <Stack.Screen
               name="settings/preferences/pending-transactions"
-              options={{ title: t("pending.title") }}
+              options={{ title: t("screens.settings.pending.title") }}
             />
             <Stack.Screen
               name="settings/preferences/privacy"
-              options={{ title: t("privacy.title") }}
+              options={{ title: t("screens.settings.privacy.title") }}
             />
             <Stack.Screen
               name="settings/preferences/money-formatting"
               options={{
-                title: t("preferences.appearance.moneyFormatting.title"),
+                title: t(
+                  "screens.settings.preferences.appearance.moneyFormatting.title",
+                ),
               }}
             />
             <Stack.Screen
               name="settings/preferences/transaction-location"
               options={{
-                title: t("preferences.transactionLocation.title"),
+                title: t(
+                  "screens.settings.preferences.transactionLocation.title",
+                ),
               }}
             />
             <Stack.Screen
               name="settings/preferences/transfers"
-              options={{ title: t("transfers.title") }}
+              options={{ title: t("screens.settings.transfers.title") }}
             />
             <Stack.Screen
               name="accounts/[accountId]/index"
               options={{
-                title: t("navigation.screenTitles.accountDetails"),
+                title: t("screens.accounts.detail.title"),
               }}
             />
             <Stack.Screen
@@ -222,8 +230,8 @@ export default function RootLayout() {
                 return {
                   title:
                     params?.accountId === NewEnum.NEW
-                      ? t("navigation.screenTitles.createAccount")
-                      : t("navigation.screenTitles.editAccount"),
+                      ? t("screens.accounts.form.title.create")
+                      : t("screens.accounts.form.title.edit"),
                 }
               }}
             />
@@ -234,8 +242,8 @@ export default function RootLayout() {
                 return {
                   title:
                     params?.tagId === NewEnum.NEW
-                      ? t("navigation.screenTitles.createTag")
-                      : t("navigation.screenTitles.editTag"),
+                      ? t("screens.settings.tags.form.title.create")
+                      : t("screens.settings.tags.form.title.edit"),
                 }
               }}
             />
@@ -247,8 +255,8 @@ export default function RootLayout() {
                 return {
                   title:
                     params?.id === NewEnum.NEW
-                      ? t("navigation.screenTitles.createTransaction")
-                      : t("navigation.screenTitles.editTransaction"),
+                      ? t("components.transactionForm.title.create")
+                      : t("components.transactionForm.title.edit"),
                   presentation: "fullScreenModal",
                 }
               }}

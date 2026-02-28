@@ -1,9 +1,5 @@
 {
   "common": {
-    "modals": {
-      "closeWithoutSaving": "إغلاق دون حفظ؟",
-      "deletePermanently": "حذف نهائي"
-    },
     "actions": {
       "save": "حفظ",
       "cancel": "إلغاء",
@@ -11,11 +7,34 @@
       "reset": "إعادة ضبط",
       "retry": "إعادة المحاولة",
       "restore": "استعادة",
-      "confirm": "تأكيد"
+      "confirm": "تأكيد",
+      "delete": "حذف",
+      "edit": "تعديل",
+      "add": "إضافة",
+      "search": "بحث",
+      "clear": "مسح",
+      "apply": ""
     },
     "states": {
       "soon": "قريباً",
-      "comingSoon": "قريباً"
+      "comingSoon": "قريباً",
+      "loading": "",
+      "empty": "",
+      "error": "",
+      "toggleOn": "تشغيل",
+      "toggleOff": "إيقاف"
+    },
+    "modals": {
+      "closeWithoutSaving": "إغلاق دون حفظ؟",
+      "deletePermanently": "حذف نهائي"
+    },
+    "timePeriods": {
+      "hour": "حسب الساعة",
+      "day": "حسب اليوم",
+      "week": "حسب الأسبوع",
+      "month": "حسب الشهر",
+      "year": "حسب السنة",
+      "allTime": "كل الوقت"
     },
     "account": {
       "types": {
@@ -27,7 +46,6 @@
       }
     }
   },
-
   "navigation": {
     "tabs": {
       "home": "الرئيسية",
@@ -40,28 +58,12 @@
       "income": "دخل",
       "expense": "مصروف",
       "transfer": "تحويل"
-    },
-    "screenTitles": {
-      "editProfile": "تعديل الملف الشخصي",
-      "archivedCategories": "الفئات المؤرشفة",
-      "categoryDetails": "تفاصيل الفئة",
-      "createCategory": "إنشاء فئة",
-      "editCategory": "تعديل الفئة",
-      "addFromPresets": "إضافة من القوالب الجاهزة",
-      "accountDetails": "تفاصيل الحساب",
-      "createAccount": "إنشاء حساب",
-      "editAccount": "تعديل الحساب",
-      "createTag": "إنشاء وسم",
-      "editTag": "تعديل الوسم",
-      "createTransaction": "إنشاء معاملة",
-      "editTransaction": "تعديل المعاملة",
-      "toastStyle": "نمط الإشعارات"
     }
   },
-
   "profile": {
     "greeting": "أهلاً",
     "edit": {
+      "title": "تعديل الملف الشخصي",
       "nameLabel": "الاسم",
       "namePlaceholder": "أدخل اسمك",
       "removePhoto": "إزالة الصورة",
@@ -71,87 +73,443 @@
       }
     }
   },
-
-  "accounts": {
-    "title": "جميع الحسابات",
-    "description": "عرض جميع حساباتك",
-    "addNew": "إضافة حساب جديد",
-    "addNewAccount": "حساب جديد",
-    "card": {
-      "primary": "أساسي",
-      "thisMonth": "هذا الشهر",
-      "in": "وارد",
-      "out": "صادر",
-      "net": "الصافي",
-      "currentBalance": "الرصيد الحالي",
-      "netThisMonth": "صافي هذا الشهر",
-      "moreOptions": "المزيد من الخيارات"
+  "screens": {
+    "home": {
+      "summary": {
+        "income": "دخل",
+        "expense": "مصروف",
+        "net": ""
+      },
+      "upcoming": {
+        "header": "",
+        "seeAll": "عرض الكل",
+        "recurringCount": "{{count}} متكررة",
+        "pendingCount": "{{count}} معلقة",
+        "subHeaderRecurring": "متكررة",
+        "subHeaderPending": "معلقة",
+        "confirmAll": {
+          "button": "تأكيد الكل",
+          "modalTitle": "تأكيد الكل؟",
+          "modalDescription": "سيتم تأكيد جميع المعاملات المعلقة. لا يمكن التراجع عن ذلك."
+        },
+        "updateDateOnConfirm": {
+          "label": "تحديث التاريخ عند التأكيد",
+          "description": "قم بالتعطيل للاحتفاظ بتاريخ المعاملة الأصلي."
+        },
+        "chips": {
+          "daysCount": "خلال الـ {{count}} أيام القادمة"
+        },
+        "a11y": {
+          "header": "معلقة",
+          "confirm": "تأكيد المعاملة",
+          "confirmAll": "تأكيد جميع المعاملات",
+          "confirmAllButton": "تأكيد الكل",
+          "cancelTransaction": "إلغاء المعاملة"
+        }
+      },
+      "emptyState": {
+        "title": "",
+        "description": ""
+      }
     },
-    "form": {
-      "namePlaceholder": "اسم الحساب",
-      "initialBalance": "الرصيد الافتتاحي"
+    "accounts": {
+      "title": "جميع الحسابات",
+      "description": "عرض جميع حساباتك",
+      "addNew": "إضافة حساب جديد",
+      "addNewAccount": "حساب جديد",
+      "card": {
+        "primary": "أساسي",
+        "thisMonth": "هذا الشهر",
+        "in": "وارد",
+        "out": "صادر",
+        "net": "الصافي",
+        "currentBalance": "الرصيد الحالي",
+        "netThisMonth": "صافي هذا الشهر",
+        "moreOptions": "المزيد من الخيارات"
+      },
+      "form": {
+        "title": {
+          "create": "إنشاء حساب",
+          "edit": "تعديل الحساب"
+        },
+        "namePlaceholder": "اسم الحساب",
+        "initialBalance": "الرصيد الافتتاحي"
+      },
+      "detail": {
+        "title": "تفاصيل الحساب"
+      },
+      "toast": {
+        "notFound": "الحساب غير موجود"
+      },
+      "a11y": {
+        "clear": "مسح الحساب",
+        "select": "اختر الحساب",
+        "selectTo": "اختر الحساب المستفيد",
+        "clearTo": "مسح الحساب المستفيد",
+        "add": "إضافة حساب",
+        "searchPlaceholder": "البحث في الحسابات..."
+      }
     },
     "stats": {
-      "hour": "حسب الساعة",
-      "day": "حسب اليوم",
-      "week": "حسب الأسبوع",
-      "month": "حسب الشهر",
-      "year": "حسب السنة",
-      "allTime": "كل الوقت"
+      "title": "",
+      "description": "",
+      "periodSelector": {
+        "month": "",
+        "year": "",
+        "custom": ""
+      },
+      "charts": {
+        "incomeVsExpense": "",
+        "categoryBreakdown": "",
+        "netWorth": ""
+      },
+      "emptyState": {
+        "title": "",
+        "description": ""
+      }
     },
-    "toast": {
-      "notFound": "الحساب غير موجود"
-    },
-    "a11y": {
-      "clear": "مسح الحساب",
-      "select": "اختر الحساب",
-      "selectTo": "اختر الحساب المستفيد",
-      "clearTo": "مسح الحساب المستفيد",
-      "add": "إضافة حساب",
-      "searchPlaceholder": "البحث في الحسابات..."
+    "settings": {
+      "sections": {
+        "moneyManagement": "",
+        "other": "أخرى"
+      },
+      "preferences": {
+        "title": "التفضيلات",
+        "appearance": {
+          "label": "المظهر",
+          "theme": {
+            "title": "السمة",
+            "description": "اختر السمة المفضلة لديك",
+            "options": {
+              "light": "فاتح",
+              "dark": "داكن",
+              "system": "النظام"
+            }
+          },
+          "moneyFormatting": {
+            "title": "تنسيق الأموال",
+            "description": "اضبط كيفية عرض الأموال",
+            "previewLabel": "معاينة",
+            "displayFormatLabel": "تنسيق العرض",
+            "options": {
+              "symbol": {
+                "label": "الرمز",
+                "description": "مثال: $، €، £"
+              },
+              "code": {
+                "label": "الكود",
+                "description": "مثال: USD، EUR، GBP"
+              },
+              "name": {
+                "label": "الاسم",
+                "description": "مثال: دولار أمريكي، يورو"
+              }
+            }
+          },
+          "toast": {
+            "title": "نمط الإشعارات",
+            "description": "اضبط نمط الإشعارات المفضل لديك",
+            "position": {
+              "label": "الموضع",
+              "top": "أعلى",
+              "topDescription": "يظهر أسفل شريط الحالة",
+              "bottom": "أسفل",
+              "bottomDescription": "يظهر فوق مؤشر الصفحة الرئيسية"
+            },
+            "progressBar": {
+              "label": "شريط التقدم",
+              "description": "مؤشر العد التنازلي"
+            },
+            "closeIcon": {
+              "label": "أيقونة الإغلاق",
+              "description": "زر إغلاق يدوي"
+            },
+            "reset": {
+              "title": "إعادة التعيين إلى الافتراضي",
+              "description": "هل أنت متأكد من إعادة تعيين جميع إعدادات نمط الإشعارات إلى قيمها الافتراضية؟",
+              "confirmLabel": "إعادة التعيين",
+              "cancelLabel": "إلغاء"
+            },
+            "preview": {
+              "label": "معاينة",
+              "description": "جرّب إعداداتك الحالية مع إشعارات حية",
+              "showDemo": "عرض تجريبي",
+              "hideAll": "إخفاء الكل"
+            },
+            "resetButton": "إعادة التعيين إلى الافتراضي",
+            "optionsLabel": "خيارات",
+            "demo": {
+              "successTitle": "نجاح",
+              "successDescription": "هذه رسالة نجاح",
+              "errorTitle": "خطأ",
+              "errorDescription": "هذه رسالة خطأ",
+              "infoTitle": "معلومات",
+              "infoDescription": "هذه رسالة معلومات",
+              "warningTitle": "تحذير",
+              "warningDescription": "هذه رسالة تحذير"
+            }
+          }
+        },
+        "buttonFeedback": {
+          "label": "استجابة الأزرار",
+          "soundHaptic": {
+            "title": "الصوت / الاهتزاز عند الضغط"
+          },
+          "systemInfo": "يعتمد هذا على إعدادات نظام هاتفك. تأكد من تفعيل خيار \"تفاعلات اللمس\" في إعدادات الصوت."
+        },
+        "language": {
+          "title": "اللغة",
+          "description": "إعدادات اللغة والمنطقة",
+          "sectionLabel": "تغيير اللغة"
+        },
+        "transactionLocation": {
+          "title": "موقع المعاملة",
+          "description": "إعدادات موقع المعاملة"
+        }
+      },
+      "trash": {
+        "title": "سلة المحذوفات",
+        "description": "عرض واستعادة المعاملات المحذوفة",
+        "viewRemovedList": "عرض قائمة المحذوفات",
+        "retention": {
+          "title": "فترة الاحتفاظ",
+          "description": "مسح العناصر المحذوفة تلقائياً بعد فترة زمنية محددة",
+          "daysCount": "{{count}} يوم",
+          "daysCountPlural": "{{count}} أيام",
+          "forever": "للأبد"
+        },
+        "empty": {
+          "label": "إفراغ سلة المحذوفات",
+          "modal": {
+            "title": "إفراغ سلة المحذوفات",
+            "description": "سيتم حذف جميع العناصر الموجودة في سلة المحذوفات نهائياً. لا يمكن التراجع عن هذا الإجراء.",
+            "confirm": "إفراغ السلة",
+            "cancel": "إلغاء"
+          },
+          "toast": {
+            "successTitle": "تم إفراغ السلة",
+            "successDescription": "تم مسح سلة المحذوفات بنجاح.",
+            "errorTitle": "فشل التنظيف",
+            "errorDescription": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى."
+          }
+        },
+        "a11y": {
+          "restore": "استعادة",
+          "destroyPermanently": "حذف نهائي",
+          "moveToTrash": "نقل إلى سلة المحذوفات"
+        }
+      },
+      "pending": {
+        "title": "المعاملات المعلقة",
+        "description": "عرض وإدارة المعاملات المعلقة",
+        "caption": "لن يتم احتساب المعاملات المعلقة ضمن الدخل والمصاريف ورصيد الحساب.",
+        "settings": {
+          "showOnHome": "عرض في الصفحة الرئيسية",
+          "requireConfirmation": {
+            "label": "يتطلب تأكيداً",
+            "description": "عند التفعيل، ستحتاج المعاملات المخطط لها حديثاً إلى موافقتك قبل احتسابها. ستحتفظ المعاملات الحالية بوضعها الأصلي."
+          },
+          "updateDateOnConfirm": {
+            "label": "تحديث التاريخ عند التأكيد",
+            "description": "قم بالتعطيل للاحتفاظ بتاريخ المعاملة الأصلي."
+          }
+        }
+      },
+      "goals": {
+        "title": "الأهداف",
+        "description": "تحديد وتتبع أهدافك المالية"
+      },
+      "budgets": {
+        "title": "الميزانيات",
+        "description": "إنشاء وإدارة ميزانياتك"
+      },
+      "loans": {
+        "title": "القروض",
+        "description": "تتبع الأموال المُعارة والمُقترَضة"
+      },
+      "tags": {
+        "title": "الوسوم",
+        "description": "إدارة وسوم معاملاتك",
+        "searchPlaceholder": "البحث في الوسوم...",
+        "newTag": "وسم جديد",
+        "form": {
+          "title": {
+            "create": "إنشاء وسم",
+            "edit": "تعديل الوسم"
+          }
+        },
+        "toast": {
+          "notFound": "الوسم غير موجود",
+          "deleteFailed": "فشل حذف الوسم"
+        }
+      },
+      "billSplitter": {
+        "title": "تقسيم الفاتورة",
+        "description": "قسّم الفواتير مع الأصدقاء والعائلة"
+      },
+      "exchangeRates": {
+        "title": "أسعار الصرف",
+        "apiTitle": "واجهة أسعار الصرف",
+        "description": "اضبط أسعار الصرف المفضلة لديك",
+        "loading": "جاري تحميل أسعار الصرف...",
+        "searchPlaceholder": "البحث عن العملات...",
+        "instructionCaption": "اختر أحد المدخلات لتعيين سعر صرف مخصص. ملاحظة: جميع حسابات أسعار الصرف تعتمد على الدولار الأمريكي كمرجع.",
+        "infoModal": {
+          "title": "أسعار الصرف",
+          "description": "تُعرض الأسعار كقيمة مقابل 1 دولار أمريكي. اختر عملة لتعيين سعر مخصص. تعتمد جميع الحسابات على الدولار الأمريكي كمرجع أساسي.",
+          "ok": "حسناً"
+        },
+        "errors": {
+          "invalidRate": "يجب أن يكون السعر أكبر من 0"
+        },
+        "a11y": {
+          "info": "معلومات عن أسعار الصرف"
+        }
+      },
+      "dataManagement": {
+        "title": "إدارة البيانات",
+        "description": "نسخ بياناتك احتياطياً واستيرادها وتصديرها",
+        "placeholder": "أدوات إدارة البيانات قيد التطوير",
+        "badge": "قريباً"
+      },
+      "privacy": {
+        "title": "الخصوصية",
+        "description": "إدارة إعدادات الخصوصية والأمان",
+        "settings": {
+          "maskNumber": "إخفاء المبالغ (⁕) عند التشغيل",
+          "maskNumberOnShake": "إخفاء المبالغ (⁕) عند الهز",
+          "lockApp": "قفل التطبيق",
+          "lockAfterClosing": "القفل بعد الإغلاق"
+        },
+        "alert": {
+          "deviceLockRequired": {
+            "title": "قفل الجهاز مطلوب",
+            "message": "عيّن رمز PIN أو نمط أو كلمة مرور أو بيومتري في إعدادات الجهاز لاستخدام قفل التطبيق."
+          }
+        }
+      },
+      "reminders": {
+        "title": "التذكير",
+        "description": "إعداد تذكيرات يومية لتتبع المصاريف",
+        "testNotification": "اضغط لاختبار الإشعار",
+        "remindDaily": {
+          "label": "تذكير يومي",
+          "description": "تذكيري بتسجيل معاملاتي المالية"
+        },
+        "remindAt": "تذكيري في تمام الساعة",
+        "footerCaption": "ستتوقف التذكيرات إذا لم تقم بفتح التطبيق لمدة 7 أيام متتالية",
+        "a11y": {
+          "grantNotifications": "منح إذن الإشعارات",
+          "permissionWarning": "لم يتم منح إذن الإشعارات"
+        }
+      },
+      "transfers": {
+        "title": "التحويلات",
+        "description": "تخطيط وإجمالي التحويلات",
+        "layout": {
+          "subtitle": "التخطيط",
+          "caption": "يتم دائماً فصل التحويلات في بعض طرق العرض.",
+          "options": {
+            "combine": {
+              "label": "دمج",
+              "description": "مبلغ صافي واحد"
+            },
+            "separate": {
+              "label": "فصل",
+              "description": "عرض الصادر والوارد بشكل منفصل"
+            }
+          }
+        },
+        "totals": {
+          "subtitle": "الإجماليات",
+          "excludeToggle": {
+            "label": "الاستبعاد من الإجماليات",
+            "description": "عدم احتسابها ضمن إجمالي المصاريف أو الدخل"
+          }
+        }
+      }
     }
   },
-
-  "transactions": {
-    "form": {
-      "titlePlaceholder": "معاملة بدون عنوان",
-      "amountLabel": "المبلغ",
-      "convertedAmountLabel": "المبلغ المحوّل"
-    },
-    "search": {
-      "placeholder": "البحث بالعنوان..."
-    },
-    "summary": {
-      "income": "دخل",
-      "expense": "مصروف"
-    },
-    "toast": {
-      "selectDestination": "يرجى اختيار الحساب المستفيد",
-      "fromToDifferent": "يجب أن يختلف حساب المصدر عن حساب المستفيد",
-      "transferCreated": "تم إنشاء التحويل",
-      "transferUpdated": "تم تحديث التحويل",
-      "recurringCreated": "تم إنشاء المعاملة المتكررة",
-      "recurringCreateFailed": "فشل إنشاء المعاملة المتكررة",
-      "transactionCreated": "تم إنشاء المعاملة",
-      "transactionUpdated": "تم تحديث المعاملة",
-      "saveFailed": "فشل حفظ المعاملة",
-      "movedToTrash": "نُقل إلى سلة المحذوفات",
-      "moveToTrashFailed": "فشل النقل إلى سلة المحذوفات",
-      "restored": "تمت الاستعادة",
-      "restoredDescription": "تم استعادة المعاملة.",
-      "restoreFailed": "فشل الاستعادة",
-      "couldNotSelectFile": "تعذر اختيار الملف",
-      "fileOpenFailed": "تعذر فتح الملف",
-      "couldNotGetLocation": "تعذر الحصول على الموقع",
-      "deleteRecurringSuccess": "تم حذف المعاملة",
-      "deleteRecurringAllSuccess": "تم حذف جميع المعاملات المتكررة",
-      "deleteRecurringFutureSuccess": "تم حذف هذه والمعاملات المستقبلية",
-      "deleteRecurringFailed": "فشل حذف المعاملة",
-      "editRecurringSuccess": "تم تحديث المعاملة",
-      "editRecurringFutureSuccess": "تم تحديث هذه والمعاملات المستقبلية",
-      "editRecurringFailed": "فشل حفظ المعاملة",
-      "upcomingConfirmFailed": "فشل التأكيد",
-      "upcomingConfirmAllFailed": "فشل تأكيد الكل"
+  "components": {
+    "transactionForm": {
+      "title": {
+        "create": "إنشاء معاملة",
+        "edit": "تعديل المعاملة"
+      },
+      "fields": {
+        "titlePlaceholder": "معاملة بدون عنوان",
+        "amountLabel": "المبلغ",
+        "convertedAmountLabel": "المبلغ المحوّل",
+        "notes": "ملاحظات"
+      },
+      "amountInput": {
+        "hint": "أدخل المبلغ أو تعبيراً رياضياً (مثال: 100/4)",
+        "showMathActions": "إظهار إجراءات الرياضيات",
+        "hideMathActions": "إخفاء إجراءات الرياضيات",
+        "mathToolbarHint": "تبديل شريط الرياضيات",
+        "insertOperator": "إدراج {{op}}",
+        "operatorTimes": "ضرب",
+        "backspace": "تراجع",
+        "clear": "مسح",
+        "applyResult": "تطبيق النتيجة",
+        "applyResultHint": "اضغط لاستخدام هذه النتيجة",
+        "confirmAmount": "تأكيد المبلغ",
+        "entered": "القيمة المُدخلة",
+        "resultLabel": "النتيجة: "
+      },
+      "attachments": {
+        "openFileModal": "فتح الملف",
+        "deleteFileModal": "حذف الملف",
+        "a11y": {
+          "removeAttachment": "إزالة المرفق",
+          "addFiles": "إضافة ملفات",
+          "addFilesHint": "إضافة صور أو ملفات لهذه المعاملة",
+          "addFilesExpandHint": "توسيع للإضافة",
+          "addFilesCollapseHint": "طي الخيارات"
+        }
+      },
+      "toast": {
+        "selectDestination": "يرجى اختيار الحساب المستفيد",
+        "fromToDifferent": "يجب أن يختلف حساب المصدر عن حساب المستفيد",
+        "transferCreated": "تم إنشاء التحويل",
+        "transferUpdated": "تم تحديث التحويل",
+        "recurringCreated": "تم إنشاء المعاملة المتكررة",
+        "recurringCreateFailed": "فشل إنشاء المعاملة المتكررة",
+        "transactionCreated": "تم إنشاء المعاملة",
+        "transactionUpdated": "تم تحديث المعاملة",
+        "saveFailed": "فشل حفظ المعاملة",
+        "movedToTrash": "نُقل إلى سلة المحذوفات",
+        "moveToTrashFailed": "فشل النقل إلى سلة المحذوفات",
+        "restored": "تمت الاستعادة",
+        "restoredDescription": "تم استعادة المعاملة.",
+        "restoreFailed": "فشل الاستعادة",
+        "couldNotSelectFile": "تعذر اختيار الملف",
+        "fileOpenFailed": "تعذر فتح الملف",
+        "couldNotGetLocation": "تعذر الحصول على الموقع",
+        "deleteRecurringSuccess": "تم حذف المعاملة",
+        "deleteRecurringAllSuccess": "تم حذف جميع المعاملات المتكررة",
+        "deleteRecurringFutureSuccess": "تم حذف هذه والمعاملات المستقبلية",
+        "deleteRecurringFailed": "فشل حذف المعاملة",
+        "editRecurringSuccess": "تم تحديث المعاملة",
+        "editRecurringFutureSuccess": "تم تحديث هذه والمعاملات المستقبلية",
+        "editRecurringFailed": "فشل حفظ المعاملة",
+        "upcomingConfirmFailed": "فشل التأكيد",
+        "upcomingConfirmAllFailed": "فشل تأكيد الكل"
+      },
+      "a11y": {
+        "closePreview": "إغلاق المعاينة",
+        "selectedSuffix": "، محدد",
+        "openNotesEditor": "فتح محرر الملاحظات",
+        "setDateTimeNow": "تعيين التاريخ والوقت إلى الآن",
+        "clearLocation": "مسح الموقع",
+        "clearCategory": "مسح الفئة",
+        "addCategories": "إضافة فئات",
+        "selectCategory": "اختر فئة {{name}}",
+        "clearAllTags": "مسح جميع الوسوم",
+        "addTag": "إضافة وسم",
+        "removeTag": "إزالة وسم {{name}}",
+        "amountInput": "إدخال المبلغ"
+      }
     },
     "recurring": {
       "deleteModal": {
@@ -178,467 +536,146 @@
         "cancel": "إلغاء"
       }
     },
-    "upcoming": {
-      "title": "القادمة",
-      "seeAll": "عرض الكل",
-      "recurringCount": "{{count}} متكررة",
-      "pendingCount": "{{count}} معلقة",
-      "subHeaderRecurring": "متكررة",
-      "subHeaderPending": "معلقة",
-      "cancelTransactionA11y": "إلغاء المعاملة"
-    },
-    "amount": {
-      "entered": "القيمة المُدخلة",
-      "resultLabel": "النتيجة: ",
-      "a11y": {
-        "input": "إدخال المبلغ",
-        "inputHint": "أدخل المبلغ أو تعبيراً رياضياً (مثال: 100/4)",
-        "showMathActions": "إظهار إجراءات الرياضيات",
-        "hideMathActions": "إخفاء إجراءات الرياضيات",
-        "mathToolbarHint": "تبديل شريط الرياضيات",
-        "insertOperator": "إدراج {{op}}",
-        "operatorTimes": "ضرب",
-        "backspace": "تراجع",
-        "clear": "مسح",
-        "applyResult": "تطبيق النتيجة",
-        "applyResultHint": "اضغط لاستخدام هذه النتيجة",
-        "confirmAmount": "تأكيد المبلغ"
-      }
-    },
-    "fields": {
-      "notes": "ملاحظات",
-      "a11y": {
-        "openNotesEditor": "فتح محرر الملاحظات",
-        "setDateTimeNow": "تعيين التاريخ والوقت إلى الآن",
-        "clearLocation": "مسح الموقع",
-        "clearCategory": "مسح الفئة",
-        "addCategories": "إضافة فئات",
-        "selectCategory": "اختر فئة {{name}}",
-        "clearAllTags": "مسح جميع الوسوم",
-        "addTag": "إضافة وسم",
-        "removeTag": "إزالة وسم {{name}}"
-      }
-    },
-    "attachments": {
-      "openFileModal": "فتح الملف",
-      "deleteFileModal": "حذف الملف",
-      "a11y": {
-        "removeAttachment": "إزالة المرفق",
-        "addFiles": "إضافة ملفات",
-        "addFilesHint": "إضافة صور أو ملفات لهذه المعاملة",
-        "addFilesExpandHint": "توسيع للإضافة",
-        "addFilesCollapseHint": "طي الخيارات"
-      }
-    },
-    "a11y": {
-      "closePreview": "إغلاق المعاينة",
-      "selectedSuffix": "، محدد"
-    }
-  },
-
-  "categories": {
-    "title": "الفئات",
-    "description": "إدارة فئات معاملاتك",
-    "subtitle": "نظم كيفية تدفق أموالك",
-    "viewArchived": "عرض {{type}} المؤرشفة ({{count}})",
-    "search": {
-      "placeholder": "بحث في فئات {{tab}}..."
-    },
-    "types": {
-      "expense": "مصروفات",
-      "income": "دخل",
-      "transfer": "تحويل"
-    },
-    "actions": {
-      "addNew": "إضافة فئة جديدة",
-      "addFromPresets": "إضافة من القوالب الجاهزة"
-    },
-    "form": {
-      "namePlaceholder": "بقالة، مطاعم، إلخ."
-    },
-    "empty": {
-      "noCategories": {
-        "title": "لا توجد فئات {{type}} بعد",
-        "description": "أنشئ أول فئة لتنظيم معاملاتك"
+    "categories": {
+      "title": "الفئات",
+      "description": "إدارة فئات معاملاتك",
+      "subtitle": "نظم كيفية تدفق أموالك",
+      "viewArchived": "عرض {{type}} المؤرشفة ({{count}})",
+      "search": {
+        "placeholder": "بحث في فئات {{tab}}..."
       },
-      "noResults": {
-        "title": "لا نتائج لـ \"{{query}}\"",
-        "description": "جرّب مصطلح بحث آخر"
+      "types": {
+        "expense": "مصروفات",
+        "income": "دخل",
+        "transfer": "تحويل"
       },
-      "noActive": {
-        "title": "لا توجد {{type}} نشطة",
-        "description": "لقد أرشفت جميع فئات {{type}}."
+      "actions": {
+        "addNew": "إضافة فئة جديدة",
+        "addFromPresets": "إضافة من القوالب الجاهزة"
       },
-      "noArchived": {
-        "title": "لا توجد فئات {{type}} مؤرشفة",
-        "description": "لم يتم أرشفة أي شيء بعد."
-      },
-      "allArchived": {
-        "title": "جميع الفئات مؤرشفة",
-        "description": "لقد أرشفت جميع فئات {{type}}."
-      }
-    }
-  },
-
-  "tags": {
-    "title": "الوسوم",
-    "description": "إدارة وسوم معاملاتك",
-    "searchPlaceholder": "البحث في الوسوم...",
-    "newTag": "وسم جديد",
-    "toast": {
-      "notFound": "الوسم غير موجود",
-      "deleteFailed": "فشل حذف الوسم"
-    }
-  },
-
-  "iconPicker": {
-    "title": "اختر أيقونة",
-    "searchPlaceholder": "البحث في الأيقونات...",
-    "pasteImage": "لصق صورة",
-    "pickImage": "اختيار صورة"
-  },
-
-  "colorPicker": {
-    "currentTheme": "السمة الحالية"
-  },
-
-  "dateRange": {
-    "yearPlaceholder": "اختر السنة"
-  },
-
-  "selectors": {
-    "contacts": {
-      "searchPlaceholder": "البحث في جهات الاتصال...",
-      "title": "اختر جهة اتصال",
-      "triggerLabel": "اختر من جهات اتصال الهاتف",
-      "noContacts": "لا توجد جهات اتصال",
-      "permissionDenied": "لم يُمنح إذن جهات الاتصال"
-    },
-    "currency": {
-      "searchPlaceholder": "البحث عن العملات...",
-      "noCurrenciesFound": "لا توجد عملات"
-    }
-  },
-
-  "transfers": {
-    "title": "التحويلات",
-    "description": "تخطيط وإجمالي التحويلات",
-    "layout": {
-      "subtitle": "التخطيط",
-      "caption": "يتم دائماً فصل التحويلات في بعض طرق العرض.",
-      "options": {
-        "combine": {
-          "label": "دمج",
-          "description": "مبلغ صافي واحد"
+      "form": {
+        "title": {
+          "create": "إنشاء فئة",
+          "edit": "تعديل الفئة",
+          "archived": "الفئات المؤرشفة"
         },
-        "separate": {
-          "label": "فصل",
-          "description": "عرض الصادر والوارد بشكل منفصل"
+        "namePlaceholder": "بقالة، مطاعم، إلخ."
+      },
+      "empty": {
+        "noCategories": {
+          "title": "لا توجد فئات {{type}} بعد",
+          "description": "أنشئ أول فئة لتنظيم معاملاتك"
+        },
+        "noResults": {
+          "title": "لا نتائج لـ \"{{query}}\"",
+          "description": "جرّب مصطلح بحث آخر"
+        },
+        "noActive": {
+          "title": "لا توجد {{type}} نشطة",
+          "description": "لقد أرشفت جميع فئات {{type}}."
+        },
+        "noArchived": {
+          "title": "لا توجد فئات {{type}} مؤرشفة",
+          "description": "لم يتم أرشفة أي شيء بعد."
+        },
+        "allArchived": {
+          "title": "جميع الفئات مؤرشفة",
+          "description": "لقد أرشفت جميع فئات {{type}}."
         }
       }
     },
-    "totals": {
-      "subtitle": "الإجماليات",
-      "excludeToggle": {
-        "label": "الاستبعاد من الإجماليات",
-        "description": "عدم احتسابها ضمن إجمالي المصاريف أو الدخل"
-      }
-    }
-  },
-
-  "pending": {
-    "title": "المعاملات المعلقة",
-    "description": "عرض وإدارة المعاملات المعلقة",
-    "caption": "لن يتم احتساب المعاملات المعلقة ضمن الدخل والمصاريف ورصيد الحساب.",
-    "settings": {
-      "showOnHome": "عرض في الصفحة الرئيسية",
-      "requireConfirmation": {
-        "label": "يتطلب تأكيداً",
-        "description": "عند التفعيل، ستحتاج المعاملات المخطط لها حديثاً إلى موافقتك قبل احتسابها. ستحتفظ المعاملات الحالية بوضعها الأصلي."
+    "filters": {
+      "searchPlaceholder": "البحث بالعنوان...",
+      "accountSearch": "البحث في الحسابات...",
+      "clearAll": ""
+    },
+    "iconPicker": {
+      "title": "اختر أيقونة",
+      "searchPlaceholder": "البحث في الأيقونات...",
+      "pasteImage": "لصق صورة",
+      "pickImage": "اختيار صورة"
+    },
+    "colorPicker": {
+      "currentTheme": "السمة الحالية"
+    },
+    "dateRange": {
+      "yearPlaceholder": "اختر السنة"
+    },
+    "selectors": {
+      "contacts": {
+        "searchPlaceholder": "البحث في جهات الاتصال...",
+        "title": "اختر جهة اتصال",
+        "triggerLabel": "اختر من جهات اتصال الهاتف",
+        "noContacts": "لا توجد جهات اتصال",
+        "permissionDenied": "لم يُمنح إذن جهات الاتصال"
       },
-      "updateDateOnConfirm": {
-        "label": "تحديث التاريخ عند التأكيد",
-        "description": "قم بالتعطيل للاحتفاظ بتاريخ المعاملة الأصلي."
-      }
-    },
-    "chips": {
-      "daysCount": "خلال الـ {{count}} أيام القادمة"
-    },
-    "a11y": {
-      "header": "معلقة",
-      "confirm": "تأكيد المعاملة",
-      "confirmAll": "تأكيد جميع المعاملات",
-      "confirmAllButton": "تأكيد الكل",
-      "confirmAllModal": {
-        "title": "تأكيد الكل؟",
-        "description": "سيتم تأكيد جميع المعاملات المعلقة. لا يمكن التراجع عن ذلك."
+      "currency": {
+        "searchPlaceholder": "البحث عن العملات...",
+        "noCurrenciesFound": "لا توجد عملات"
       }
     }
   },
-
-  "trash": {
-    "title": "سلة المحذوفات",
-    "description": "عرض واستعادة المعاملات المحذوفة",
-    "viewRemovedList": "عرض قائمة المحذوفات",
-    "retention": {
-      "title": "فترة الاحتفاظ",
-      "description": "مسح العناصر المحذوفة تلقائياً بعد فترة زمنية محددة",
-      "daysCount": "{{count}} يوم",
-      "daysCountPlural": "{{count}} أيام",
-      "forever": "للأبد"
-    },
-    "empty": {
-      "label": "إفراغ سلة المحذوفات",
-      "modal": {
-        "title": "إفراغ سلة المحذوفات",
-        "description": "سيتم حذف جميع العناصر الموجودة في سلة المحذوفات نهائياً. لا يمكن التراجع عن هذا الإجراء.",
-        "confirm": "إفراغ السلة",
-        "cancel": "إلغاء"
+  "validation": {
+    "account": {
+      "name": {
+        "required": "",
+        "tooShort": "",
+        "tooLong": ""
       },
-      "toast": {
-        "successTitle": "تم إفراغ السلة",
-        "successDescription": "تم مسح سلة المحذوفات بنجاح.",
-        "errorTitle": "فشل التنظيف",
-        "errorDescription": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى."
+      "initialBalance": {
+        "invalid": "",
+        "negative": ""
+      },
+      "currency": {
+        "required": ""
       }
     },
-    "a11y": {
-      "restore": "استعادة",
-      "destroyPermanently": "حذف نهائي",
-      "moveToTrash": "نقل إلى سلة المحذوفات"
-    }
-  },
-
-  "goals": {
-    "title": "الأهداف",
-    "description": "تحديد وتتبع أهدافك المالية"
-  },
-
-  "budgets": {
-    "title": "الميزانيات",
-    "description": "إنشاء وإدارة ميزانياتك"
-  },
-
-  "loans": {
-    "title": "القروض",
-    "description": "تتبع الأموال المُعارة والمُقترَضة"
-  },
-
-  "billSplitter": {
-    "title": "تقسيم الفاتورة",
-    "description": "قسّم الفواتير مع الأصدقاء والعائلة"
-  },
-
-  "exchangeRates": {
-    "title": "أسعار الصرف",
-    "apiTitle": "واجهة أسعار الصرف",
-    "description": "اضبط أسعار الصرف المفضلة لديك",
-    "loading": "جاري تحميل أسعار الصرف...",
-    "searchPlaceholder": "البحث عن العملات...",
-    "instructionCaption": "اختر أحد المدخلات لتعيين سعر صرف مخصص. ملاحظة: جميع حسابات أسعار الصرف تعتمد على الدولار الأمريكي كمرجع.",
-    "infoModal": {
-      "title": "أسعار الصرف",
-      "description": "تُعرض الأسعار كقيمة مقابل 1 دولار أمريكي. اختر عملة لتعيين سعر مخصص. تعتمد جميع الحسابات على الدولار الأمريكي كمرجع أساسي.",
-      "ok": "حسناً"
-    },
-    "errors": {
-      "invalidRate": "يجب أن يكون السعر أكبر من 0"
-    },
-    "a11y": {
-      "info": "معلومات عن أسعار الصرف"
-    }
-  },
-
-  "privacy": {
-    "title": "الخصوصية",
-    "description": "إدارة إعدادات الخصوصية والأمان",
-    "settings": {
-      "maskNumber": "إخفاء المبالغ (⁕) عند التشغيل",
-      "maskNumberOnShake": "إخفاء المبالغ (⁕) عند الهز",
-      "lockApp": "قفل التطبيق",
-      "lockAfterClosing": "القفل بعد الإغلاق",
-      "mask-number": "إخفاء المبالغ (⁕) عند التشغيل",
-      "mask-number-on-shake": "إخفاء المبالغ (⁕) عند الهز",
-      "lock-app": "قفل التطبيق",
-      "lock-after-closing": "القفل بعد الإغلاق"
-    },
-    "alert": {
-      "deviceLockRequired": {
-        "title": "قفل الجهاز مطلوب",
-        "message": "عيّن رمز PIN أو نمط أو كلمة مرور أو بيومتري في إعدادات الجهاز لاستخدام قفل التطبيق."
-      }
-    }
-  },
-
-  "reminders": {
-    "title": "التذكير",
-    "description": "إعداد تذكيرات يومية لتتبع المصاريف",
-    "testNotification": "اضغط لاختبار الإشعار",
-    "remindDaily": {
-      "label": "تذكير يومي",
-      "description": "تذكيري بتسجيل معاملاتي المالية"
-    },
-    "remindAt": "تذكيري في تمام الساعة",
-    "footerCaption": "ستتوقف التذكيرات إذا لم تقم بفتح التطبيق لمدة 7 أيام متتالية",
-    "a11y": {
-      "grantNotifications": "منح إذن الإشعارات",
-      "permissionWarning": "لم يتم منح إذن الإشعارات"
-    }
-  },
-
-  "dataManagement": {
-    "title": "إدارة البيانات",
-    "description": "نسخ بياناتك احتياطياً واستيرادها وتصديرها",
-    "placeholder": "أدوات إدارة البيانات قيد التطوير",
-    "badge": "قريباً"
-  },
-
-  "preferences": {
-    "title": "التفضيلات",
-    "description": "التفضيلات العامة",
-    "appearance": {
-      "label": "المظهر",
-      "theme": {
-        "title": "السمة",
-        "description": "اختر السمة المفضلة لديك"
+    "transaction": {
+      "amount": {
+        "required": "",
+        "invalid": "",
+        "zero": ""
       },
-      "moneyFormatting": {
-        "title": "تنسيق الأموال",
-        "description": "اضبط كيفية عرض الأموال",
-        "previewLabel": "معاينة",
-        "displayFormatLabel": "تنسيق العرض",
-        "options": {
-          "symbol": {
-            "label": "الرمز",
-            "description": "مثال: $، €، £"
-          },
-          "code": {
-            "label": "الكود",
-            "description": "مثال: USD، EUR، GBP"
-          },
-          "name": {
-            "label": "الاسم",
-            "description": "مثال: دولار أمريكي، يورو"
-          }
-        }
+      "account": {
+        "required": ""
       },
-      "toast": {
-        "title": "نمط الإشعارات",
-        "description": "اضبط نمط الإشعارات المفضل لديك",
-        "resetModal": {
-          "title": "إعادة التعيين إلى الافتراضي",
-          "description": "هل أنت متأكد من إعادة تعيين جميع إعدادات نمط الإشعارات إلى قيمها الافتراضية؟",
-          "confirmLabel": "إعادة التعيين",
-          "cancelLabel": "إلغاء"
-        },
-        "optionsLabel": "خيارات",
-        "options": {
-          "position": "الموضع",
-          "positionTop": "أعلى",
-          "positionTopDescription": "يظهر أسفل شريط الحالة",
-          "positionBottom": "أسفل",
-          "positionBottomDescription": "يظهر فوق مؤشر الصفحة الرئيسية",
-          "progressBar": "شريط التقدم",
-          "progressBarDescription": "مؤشر العد التنازلي",
-          "closeIcon": "أيقونة الإغلاق",
-          "closeIconDescription": "زر إغلاق يدوي"
-        },
-        "preview": {
-          "label": "معاينة",
-          "description": "جرّب إعداداتك الحالية مع إشعارات حية",
-          "showDemo": "عرض تجريبي",
-          "hideAll": "إخفاء الكل"
-        },
-        "resetButton": "إعادة التعيين إلى الافتراضي",
-        "demo": {
-          "successTitle": "نجاح",
-          "successDescription": "هذه رسالة نجاح",
-          "errorTitle": "خطأ",
-          "errorDescription": "هذه رسالة خطأ",
-          "infoTitle": "معلومات",
-          "infoDescription": "هذه رسالة معلومات",
-          "warningTitle": "تحذير",
-          "warningDescription": "هذه رسالة تحذير"
-        }
+      "date": {
+        "invalid": ""
       }
     },
-    "buttonFeedback": {
-      "label": "استجابة الأزرار",
-      "soundHaptic": {
-        "title": "الصوت / الاهتزاز عند الضغط"
-      },
-      "systemInfo": "يعتمد هذا على إعدادات نظام هاتفك. تأكد من تفعيل خيار \"تفاعلات اللمس\" في إعدادات الصوت."
+    "category": {
+      "name": {
+        "required": "",
+        "tooShort": "",
+        "tooLong": ""
+      }
     },
-    "language": {
-      "title": "اللغة",
-      "description": "إعدادات اللغة والمنطقة",
-      "sectionLabel": "تغيير اللغة"
+    "tag": {
+      "name": {
+        "required": "",
+        "tooShort": "",
+        "tooLong": "",
+        "duplicate": ""
+      }
     },
-    "transactionLocation": {
-      "title": "موقع المعاملة",
-      "description": "إعدادات موقع المعاملة"
+    "profile": {
+      "name": {
+        "required": "",
+        "tooLong": ""
+      }
+    },
+    "loan": {
+      "name": { "required": "" },
+      "amount": { "required": "", "invalid": "" },
+      "contact": { "invalidPhone": "" }
+    },
+    "goal": {
+      "name": { "required": "" },
+      "targetAmount": { "required": "", "invalid": "" }
+    },
+    "budget": {
+      "name": { "required": "" },
+      "amount": { "required": "", "invalid": "" }
     }
-  },
-
-  "settings": {
-    "otherLabel": "أخرى",
-    "a11y": {
-      "toggleOn": "تشغيل",
-      "toggleOff": "إيقاف"
-    }
-  },
-
-  "accessibility": {
-    "close": "إغلاق",
-    "save": "حفظ",
-    "clear": "مسح",
-    "cancel": "إلغاء",
-    "clearAccount": "مسح الحساب",
-    "selectAccount": "اختر الحساب",
-    "selectToAccount": "اختر الحساب المستفيد",
-    "clearToAccount": "مسح الحساب المستفيد",
-    "addAccount": "إضافة حساب",
-    "searchAccountsPlaceholder": "البحث في الحسابات...",
-    "clearCategory": "مسح الفئة",
-    "addCategories": "إضافة فئات",
-    "selectCategory": "اختر فئة {{name}}",
-    "setDateTimeNow": "تعيين التاريخ والوقت إلى الآن",
-    "notes": "ملاحظات",
-    "openNotesEditor": "فتح محرر الملاحظات",
-    "removeAttachment": "إزالة المرفق",
-    "addFiles": "إضافة ملفات",
-    "addFilesHint": "إضافة صور أو ملفات لهذه المعاملة",
-    "addFilesExpandHint": "توسيع للإضافة",
-    "addFilesCollapseHint": "طي الخيارات",
-    "selectedSuffix": "، محدد",
-    "clearLocation": "مسح الموقع",
-    "restore": "استعادة",
-    "destroyPermanently": "حذف نهائي",
-    "moveToTrash": "نقل إلى سلة المحذوفات",
-    "confirmTransaction": "تأكيد المعاملة",
-    "confirmAllModalTitle": "تأكيد الكل؟",
-    "confirmAllModalDescription": "سيتم تأكيد جميع المعاملات المعلقة. لا يمكن التراجع عن ذلك.",
-    "confirmAllButton": "تأكيد الكل",
-    "confirmAllTransactions": "تأكيد جميع المعاملات",
-    "pendingHeader": "معلقة",
-    "closePreview": "إغلاق المعاينة",
-    "clearAllTags": "مسح جميع الوسوم",
-    "addTag": "إضافة وسم",
-    "removeTag": "إزالة وسم {{name}}",
-    "grantNotifications": "منح إذن الإشعارات",
-    "toggleOn": "تشغيل",
-    "toggleOff": "إيقاف",
-    "infoExchangeRates": "معلومات عن أسعار الصرف",
-    "showMathActions": "إظهار إجراءات الرياضيات",
-    "hideMathActions": "إخفاء إجراءات الرياضيات",
-    "mathToolbarHint": "تبديل شريط الرياضيات",
-    "amountInput": "إدخال المبلغ",
-    "amountInputHint": "أدخل المبلغ أو تعبيراً رياضياً (مثال: 100/4)",
-    "insertOperator": "إدراج {{op}}",
-    "operatorTimes": "ضرب",
-    "backspace": "تراجع",
-    "applyResult": "تطبيق النتيجة",
-    "confirmAmount": "تأكيد المبلغ",
-    "applyResultHint": "اضغط لاستخدام هذه النتيجة"
   }
 }

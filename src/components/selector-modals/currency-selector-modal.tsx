@@ -140,7 +140,9 @@ export function CurrencySelectorModal({
   const listEmptyComponent = useMemo(
     () => (
       <View style={modalStyles.emptyState}>
-        <Text variant="muted">{t("selectors.currency.noCurrenciesFound")}</Text>
+        <Text variant="muted">
+          {t("components.selectors.currency.noCurrenciesFound")}
+        </Text>
       </View>
     ),
     [t],

@@ -337,7 +337,7 @@ export const DateRangePresetModalContent = ({
           {expandedSection === "byYear" && (
             <View style={styles.expandedContent}>
               <Text variant="small" style={styles.sectionLabel}>
-                {t("dateRange.yearPlaceholder")}
+                {t("components.dateRange.yearPlaceholder")}
               </Text>
               <Input
                 value={byYearInput}

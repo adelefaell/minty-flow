@@ -86,7 +86,7 @@ export function FormTagsPicker({
             (tagIds ?? []).length === 0 && styles.clearButtonDisabled,
           ]}
           pointerEvents={(tagIds ?? []).length > 0 ? "auto" : "none"}
-          accessibilityLabel={t("accessibility.clearAllTags")}
+          accessibilityLabel={t("components.transactionForm.a11y.clearAllTags")}
           accessibilityState={{
             disabled: (tagIds ?? []).length === 0,
           }}
@@ -108,8 +108,8 @@ export function FormTagsPicker({
           accessibilityRole="button"
           accessibilityLabel={
             tagPickerOpen
-              ? t("accessibility.cancel")
-              : t("accessibility.addTag")
+              ? t("common.actions.cancel")
+              : t("components.transactionForm.a11y.addTag")
           }
         >
           <Text
@@ -120,8 +120,8 @@ export function FormTagsPicker({
             ]}
           >
             {tagPickerOpen
-              ? t("accessibility.cancel")
-              : t("accessibility.addTag")}
+              ? t("common.actions.cancel")
+              : t("components.transactionForm.a11y.addTag")}
           </Text>
           <IconSymbol
             name={tagPickerOpen ? "close" : "plus"}
@@ -136,7 +136,7 @@ export function FormTagsPicker({
             onPress={() => removeTag(tag.id)}
             accessible
             accessibilityRole="button"
-            accessibilityLabel={t("accessibility.removeTag", {
+            accessibilityLabel={t("components.transactionForm.a11y.removeTag", {
               name: tag.name,
             })}
           >

@@ -95,19 +95,21 @@ const otherPreferenceItems: PreferenceItem[] = [
 ]
 
 const APPEARANCE_TITLE_KEYS = {
-  theme: "preferences.appearance.theme.title",
-  "money-formatting": "preferences.appearance.moneyFormatting.title",
-  toast: "preferences.appearance.toast.title",
+  theme: "screens.settings.preferences.appearance.theme.title",
+  "money-formatting":
+    "screens.settings.preferences.appearance.moneyFormatting.title",
+  toast: "screens.settings.preferences.appearance.toast.title",
 } as const
 
 const OTHER_PREFERENCE_TITLE_KEYS = {
-  transfers: "transfers.title",
-  "pending-transactions": "pending.title",
-  "exchange-rates": "exchangeRates.title",
-  "trash-bin": "trash.title",
-  privacy: "privacy.title",
-  "transaction-location": "preferences.transactionLocation.title",
-  reminder: "reminders.title",
+  transfers: "screens.settings.transfers.title",
+  "pending-transactions": "screens.settings.pending.title",
+  "exchange-rates": "screens.settings.exchangeRates.title",
+  "trash-bin": "screens.settings.trash.title",
+  privacy: "screens.settings.privacy.title",
+  "transaction-location":
+    "screens.settings.preferences.transactionLocation.title",
+  reminder: "screens.settings.reminders.title",
 } as const
 
 export default function PreferencesScreen() {
@@ -139,7 +141,7 @@ export default function PreferencesScreen() {
       {/* Appearance Section */}
       <View style={styles.section}>
         <Text variant="h4" style={styles.sectionTitle}>
-          {t("preferences.appearance.label")}
+          {t("screens.settings.preferences.appearance.label")}
         </Text>
         <View style={styles.itemsList}>
           {appearanceItems.map((item) => (
@@ -161,13 +163,15 @@ export default function PreferencesScreen() {
       {Platform.OS === "android" && (
         <View style={styles.section}>
           <Text variant="h4" style={styles.sectionTitle}>
-            {t("preferences.buttonFeedback.label")}
+            {t("screens.settings.preferences.buttonFeedback.label")}
           </Text>
 
           <View style={styles.itemsList}>
             <ToggleItem
               icon={disableSound ? "vibrate-off" : "vibrate"}
-              title={t("preferences.buttonFeedback.soundHaptic.title")}
+              title={t(
+                "screens.settings.preferences.buttonFeedback.soundHaptic.title",
+              )}
               value={!disableSound}
               onValueChange={(enabled) => setSoundEnabled(enabled)}
             />
@@ -181,7 +185,7 @@ export default function PreferencesScreen() {
                 />
 
                 <Text style={styles.infoText}>
-                  {t("preferences.buttonFeedback.systemInfo")}
+                  {t("screens.settings.preferences.buttonFeedback.systemInfo")}
                 </Text>
               </View>
             )}

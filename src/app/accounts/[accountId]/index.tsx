@@ -176,7 +176,7 @@ const AccountDetailsScreenInner = ({
         {/* Balance Section */}
         <View style={styles.balanceSection}>
           <Text style={styles.balanceLabel}>
-            {t("accounts.card.currentBalance")}
+            {t("screens.accounts.card.currentBalance")}
           </Text>
           <View style={styles.balanceRow}>
             <Money
@@ -210,7 +210,7 @@ const AccountDetailsScreenInner = ({
       </View>
       <View style={styles.summaryNetCard}>
         <Text style={styles.summaryNetLabel}>
-          {t("accounts.card.netThisMonth")}
+          {t("screens.accounts.card.netThisMonth")}
         </Text>
         <Money
           value={net}
@@ -270,7 +270,7 @@ const AccountDetailsScreenInner = ({
       {/* Row: By month | More options */}
       <View style={styles.filterToggleRow}>
         <Text style={styles.byLabel}>
-          {t(`accounts.stats.${filterState.groupBy}`)}
+          {t(`common.timePeriods.${filterState.groupBy}`)}
         </Text>
         <Button
           variant="ghost"
@@ -278,7 +278,7 @@ const AccountDetailsScreenInner = ({
           style={styles.moreOptionsButton}
         >
           <Text style={styles.moreOptionsText}>
-            {t("accounts.card.moreOptions")}
+            {t("screens.accounts.card.moreOptions")}
           </Text>
         </Button>
       </View>

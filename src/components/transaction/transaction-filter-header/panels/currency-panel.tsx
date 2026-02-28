@@ -42,7 +42,7 @@ export function CurrencyPanel({
       <View>
         <View style={filterHeaderStyles.panelHeader}>
           <Text variant="default" style={{ opacity: 0.5 }}>
-            {t("selectors.currency.noCurrenciesFound")}
+            {t("components.selectors.currency.noCurrenciesFound")}
           </Text>
           <PanelDoneButton onPress={onDone} />
         </View>

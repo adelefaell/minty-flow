@@ -23,6 +23,7 @@ import {
   updateCategory,
 } from "~/database/services/category-service"
 import { useNavigationGuard } from "~/hooks/use-navigation-guard"
+import type { TranslationKey } from "~/i18n/config"
 import {
   type AddCategoriesFormSchema,
   addCategoriesSchema,
@@ -223,14 +224,14 @@ export function CategoryModifyContent({
                   value={value}
                   onChangeText={onChange}
                   onBlur={onBlur}
-                  placeholder={t("categories.form.namePlaceholder")}
+                  placeholder={t("components.categories.form.namePlaceholder")}
                   error={!!errors.name}
                 />
               )}
             />
             {errors.name && (
               <Text variant="small" style={categoryModifyStyles.errorText}>
-                {errors.name.message}
+                {t(errors.name.message as TranslationKey)}
               </Text>
             )}
           </View>

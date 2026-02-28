@@ -3,10 +3,10 @@ import { z } from "zod"
 import { TransactionTypeEnum } from "~/types/transactions"
 
 export const transactionSchema = z.object({
-  amount: z.number().gt(0, "Amount must be greater than 0"),
+  amount: z.number().gt(0, "validation.transaction.amount.zero"),
   type: z.enum(TransactionTypeEnum),
   transactionDate: z.date(),
-  accountId: z.string().min(1, "Account is required"),
+  accountId: z.string().min(1, "validation.transaction.account.required"),
   /** When type is transfer: destination account (required for transfer). */
   toAccountId: z.string().optional(),
   categoryId: z.string().nullable().optional(),

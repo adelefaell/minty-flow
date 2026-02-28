@@ -230,10 +230,12 @@ export function SmartAmountInput({
           onPress={handleToggleMathToolbar}
           accessibilityLabel={
             showMathToolbar
-              ? t("accessibility.hideMathActions")
-              : t("accessibility.showMathActions")
+              ? t("components.transactionForm.amountInput.hideMathActions")
+              : t("components.transactionForm.amountInput.showMathActions")
           }
-          accessibilityHint={t("accessibility.mathToolbarHint")}
+          accessibilityHint={t(
+            "components.transactionForm.amountInput.mathToolbarHint",
+          )}
         >
           <IconSymbol name="calculator" size={24} />
         </Pressable>
@@ -256,8 +258,8 @@ export function SmartAmountInput({
           returnKeyType="done"
           onSubmitEditing={handleSubmit}
           textAlignVertical="center"
-          accessibilityLabel={t("accessibility.amountInput")}
-          accessibilityHint={t("accessibility.amountInputHint")}
+          accessibilityLabel={t("components.transactionForm.a11y.amountInput")}
+          accessibilityHint={t("components.transactionForm.amountInput.hint")}
           accessibilityValue={{ text: displayValue || placeholder }}
           onFocus={handleFocus}
           onBlur={handleBlur}
@@ -276,9 +278,17 @@ export function SmartAmountInput({
                 key={op}
                 style={styles.mathBtn}
                 onPress={() => handleOperatorPress(op)}
-                accessibilityLabel={t("accessibility.insertOperator", {
-                  op: op === "*" ? t("accessibility.operatorTimes") : op,
-                })}
+                accessibilityLabel={t(
+                  "components.transactionForm.amountInput.insertOperator",
+                  {
+                    op:
+                      op === "*"
+                        ? t(
+                            "components.transactionForm.amountInput.operatorTimes",
+                          )
+                        : op,
+                  },
+                )}
               >
                 <Text style={styles.mathBtnText}>{op === "*" ? "×" : op}</Text>
               </Pressable>
@@ -288,7 +298,9 @@ export function SmartAmountInput({
             <Pressable
               style={styles.mathBtn}
               onPress={handleBackspace}
-              accessibilityLabel={t("accessibility.backspace")}
+              accessibilityLabel={t(
+                "components.transactionForm.amountInput.backspace",
+              )}
             >
               <IconSymbol
                 name="backspace"
@@ -299,7 +311,7 @@ export function SmartAmountInput({
             <Pressable
               style={styles.mathBtn}
               onPress={handleClear}
-              accessibilityLabel={t("accessibility.clear")}
+              accessibilityLabel={t("common.actions.clear")}
             >
               <Text style={styles.mathBtnText}>C</Text>
             </Pressable>
@@ -308,8 +320,8 @@ export function SmartAmountInput({
               onPress={handleSubmit}
               accessibilityLabel={
                 isInMathOperation
-                  ? t("accessibility.applyResult")
-                  : t("accessibility.confirmAmount")
+                  ? t("components.transactionForm.amountInput.applyResult")
+                  : t("components.transactionForm.amountInput.confirmAmount")
               }
               accessibilityState={{ disabled: !!previewError }}
             >
@@ -330,7 +342,7 @@ export function SmartAmountInput({
       {formattedTyped ? (
         <View style={styles.formattedChip}>
           <Text style={styles.formattedChipLabel}>
-            {t("transactions.amount.entered")}:{" "}
+            {t("components.transactionForm.amountInput.entered")}:{" "}
           </Text>
           <Text style={styles.formattedChipValue}>{formattedTyped}</Text>
         </View>
@@ -340,12 +352,16 @@ export function SmartAmountInput({
         <Pressable
           style={styles.previewContainer}
           onPress={handlePreviewPress}
-          accessibilityLabel={t("accessibility.applyResult")}
-          accessibilityHint={t("accessibility.applyResultHint")}
+          accessibilityLabel={t(
+            "components.transactionForm.amountInput.applyResult",
+          )}
+          accessibilityHint={t(
+            "components.transactionForm.amountInput.applyResultHint",
+          )}
         >
           <IconSymbol name="equal" size={18} style={styles.previewIconLeft} />
           <Text style={styles.previewLabel}>
-            {t("transactions.amount.resultLabel")}{" "}
+            {t("components.transactionForm.amountInput.resultLabel")}{" "}
           </Text>
           <Text style={styles.previewValue}>{displayPreview}</Text>
           <IconSymbol
@@ -358,7 +374,7 @@ export function SmartAmountInput({
       ) : displayPreview ? (
         <View style={styles.previewContainer}>
           <Text style={styles.previewLabel}>
-            {t("transactions.amount.resultLabel")}{" "}
+            {t("components.transactionForm.amountInput.resultLabel")}{" "}
           </Text>
           <Text style={styles.previewValue}>{displayPreview}</Text>
         </View>

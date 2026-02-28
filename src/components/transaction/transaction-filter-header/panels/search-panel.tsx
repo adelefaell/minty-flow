@@ -59,7 +59,7 @@ export function SearchPanel({
         <TextInput
           value={value}
           onChangeText={onChange}
-          placeholder={t("transactions.search.placeholder")}
+          placeholder={t("components.filters.searchPlaceholder")}
           placeholderTextColor={`${theme.colors.onSurface}50`}
           style={[
             filterHeaderStyles.searchInput,

@@ -126,7 +126,9 @@ export function UpcomingTransactionsSection({
       try {
         await confirmTransactionSync(transactionId, opts)
       } catch {
-        Toast.error({ title: t("transactions.toast.upcomingConfirmFailed") })
+        Toast.error({
+          title: t("components.transactionForm.toast.upcomingConfirmFailed"),
+        })
       }
     },
     [updateDateUponConfirmation, t],
@@ -141,7 +143,9 @@ export function UpcomingTransactionsSection({
     try {
       await Promise.all(ids.map((id) => confirmTransactionSync(id, opts)))
     } catch {
-      Toast.error({ title: t("transactions.toast.upcomingConfirmAllFailed") })
+      Toast.error({
+        title: t("components.transactionForm.toast.upcomingConfirmAllFailed"),
+      })
     }
   }, [pending, updateDateUponConfirmation, t])
 
@@ -179,10 +183,10 @@ export function UpcomingTransactionsSection({
         visible={confirmAllModalVisible}
         onRequestClose={closeConfirmAllModal}
         onConfirm={handleConfirmAll}
-        title={t("accessibility.confirmAllModalTitle")}
-        description={t("accessibility.confirmAllModalDescription")}
-        confirmLabel={t("accessibility.confirmAllButton")}
-        cancelLabel={t("accessibility.cancel")}
+        title={t("screens.home.upcoming.confirmAll.modalTitle")}
+        description={t("screens.home.upcoming.confirmAll.modalDescription")}
+        confirmLabel={t("screens.home.upcoming.confirmAll.button")}
+        cancelLabel={t("common.actions.cancel")}
         variant="default"
         icon="check-circle"
       />
@@ -208,7 +212,7 @@ export function UpcomingTransactionsSection({
       >
         <View style={sectionStyles.headerLeft}>
           <Text style={sectionStyles.headerTitle}>
-            {t("transactions.upcoming.title")}
+            {t("screens.home.upcoming.header")}
           </Text>
           <View
             style={[
@@ -239,7 +243,7 @@ export function UpcomingTransactionsSection({
               style={sectionStyles.seeAllButton}
             >
               <Text style={sectionStyles.seeAllText}>
-                {t("transactions.upcoming.seeAll")}
+                {t("screens.home.upcoming.seeAll")}
               </Text>
               <IconSymbol
                 name="chevron-right"
@@ -268,7 +272,7 @@ export function UpcomingTransactionsSection({
                     { color: theme.colors.customColors.info },
                   ]}
                 >
-                  {t("transactions.upcoming.recurringCount", {
+                  {t("screens.home.upcoming.recurringCount", {
                     count: recurring.length,
                   })}
                 </Text>
@@ -292,7 +296,7 @@ export function UpcomingTransactionsSection({
                     { color: theme.colors.customColors.warning },
                   ]}
                 >
-                  {t("transactions.upcoming.pendingCount", {
+                  {t("screens.home.upcoming.pendingCount", {
                     count: pending.length,
                   })}
                 </Text>
@@ -308,7 +312,7 @@ export function UpcomingTransactionsSection({
             <>
               <View style={sectionStyles.subHeader}>
                 <Text style={sectionStyles.subHeaderText}>
-                  {t("transactions.upcoming.subHeaderRecurring")}
+                  {t("screens.home.upcoming.subHeaderRecurring")}
                 </Text>
               </View>
               {recurring.map((row) => (
@@ -321,7 +325,7 @@ export function UpcomingTransactionsSection({
                   onBeforeDelete={handleBeforeDelete}
                   onDelete={() => handleDeleteDone(row)}
                   rightActionAccessibilityLabel={t(
-                    "transactions.upcoming.cancelTransactionA11y",
+                    "screens.home.upcoming.a11y.cancelTransaction",
                   )}
                 />
               ))}
@@ -332,7 +336,7 @@ export function UpcomingTransactionsSection({
             <>
               <View style={sectionStyles.subHeader}>
                 <Text style={sectionStyles.subHeaderText}>
-                  {t("accessibility.pendingHeader")}
+                  {t("screens.home.upcoming.a11y.header")}
                 </Text>
                 {manualConfirmableCount > 1 && (
                   <Button
@@ -340,7 +344,7 @@ export function UpcomingTransactionsSection({
                     onPress={openConfirmAllModal}
                     style={sectionStyles.confirmAllButton}
                     accessibilityLabel={t(
-                      "accessibility.confirmAllTransactions",
+                      "screens.home.upcoming.a11y.confirmAll",
                     )}
                     accessibilityRole="button"
                   >
@@ -355,7 +359,7 @@ export function UpcomingTransactionsSection({
                         { color: theme.colors.customColors.success },
                       ]}
                     >
-                      {t("accessibility.confirmAllButton")}
+                      {t("screens.home.upcoming.a11y.confirmAllButton")}
                     </Text>
                   </Button>
                 )}
@@ -370,7 +374,7 @@ export function UpcomingTransactionsSection({
                   onBeforeDelete={handleBeforeDelete}
                   onDelete={() => handleDeleteDone(row)}
                   rightActionAccessibilityLabel={t(
-                    "transactions.upcoming.cancelTransactionA11y",
+                    "screens.home.upcoming.a11y.cancelTransaction",
                   )}
                 />
               ))}
