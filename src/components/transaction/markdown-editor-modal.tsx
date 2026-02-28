@@ -5,6 +5,7 @@
 
 import { useRef, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import {
   Modal,
   Platform,
@@ -36,6 +37,7 @@ export function MarkdownEditorModal({
   onSave,
   onRequestClose,
 }: MarkdownEditorModalProps) {
+  const { t } = useTranslation()
   const { theme } = useUnistyles()
   const insets = useSafeAreaInsets()
   const [preview, setPreview] = useState(false)
@@ -141,7 +143,7 @@ export function MarkdownEditorModal({
             onPress={onRequestClose}
             hitSlop={12}
             style={styles.headerBtn}
-            accessibilityLabel="Close"
+            accessibilityLabel={t("accessibility.close")}
           >
             <IconSymbol name="close" size={24} color={fg} />
           </Pressable>
@@ -149,7 +151,7 @@ export function MarkdownEditorModal({
             onPress={handleSave}
             hitSlop={12}
             style={styles.headerBtn}
-            accessibilityLabel="Save"
+            accessibilityLabel={t("accessibility.save")}
           >
             <IconSymbol name="check" size={24} color={theme.colors.primary} />
           </Pressable>

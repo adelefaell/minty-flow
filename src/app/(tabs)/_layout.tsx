@@ -17,6 +17,7 @@ import { IconSymbol, type IconSymbolName } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
 import { Tooltip } from "~/components/ui/tooltip"
 import { View } from "~/components/ui/view"
+import { DirectionEnum, useLanguageStore } from "~/stores/language.store"
 import { NewEnum } from "~/types/new"
 
 import AccountsScreen from "../accounts"
@@ -90,6 +91,7 @@ const AnimatedFABOption = ({
 
 const TabLayout = () => {
   const { theme } = useUnistyles()
+  const { t } = useTranslation()
   const { ref: pagerRef, activePage, setPage } = usePagerView()
   const [fabExpanded, setFabExpanded] = useState(false)
 
@@ -122,7 +124,7 @@ const TabLayout = () => {
       icon: "chevron-double-down",
       color: theme.colors.customColors.income,
       iconColor: theme.colors.onError,
-      label: "Income",
+      label: t("navigation.fab.income"),
       onPress: () => {
         router.push(`/transaction/${NewEnum.NEW}?type=income`)
         toggleFab()
@@ -132,7 +134,7 @@ const TabLayout = () => {
       icon: "chevron-double-up",
       color: theme.colors.customColors.expense,
       iconColor: theme.colors.onError,
-      label: "Expense",
+      label: t("navigation.fab.expense"),
       onPress: () => {
         router.push(`/transaction/${NewEnum.NEW}?type=expense`)
         toggleFab()
@@ -142,7 +144,7 @@ const TabLayout = () => {
       icon: "swap-horizontal",
       color: theme.colors.secondary,
       iconColor: theme.colors.onSecondary,
-      label: "Transfer",
+      label: t("navigation.fab.transfer"),
       onPress: () => {
         router.push(`/transaction/${NewEnum.NEW}?type=transfer`)
         toggleFab()
@@ -163,17 +165,16 @@ const TabLayout = () => {
   const tabBarHeight = 54
   const fabContainerBottom = tabBarBottom + tabBarHeight / 2
 
-  const { i18n } = useTranslation()
-  const isRtl = i18n.dir() === "rtl"
+  const isRTL = useLanguageStore((s) => s.isRTL)
 
   return (
     <View style={styles.container}>
       <PagerView
-        key={isRtl ? "rtl-pager" : "ltr-pager"}
+        key={isRTL ? "rtl-pager" : "ltr-pager"}
         ref={pagerRef}
         style={styles.pager}
         initialPage={0}
-        layoutDirection={isRtl ? "rtl" : "ltr"}
+        layoutDirection={isRTL ? DirectionEnum.RTL : DirectionEnum.LTR}
       >
         {tabs.map((tab) => (
           <tab.component key={tab.key} />
@@ -185,7 +186,7 @@ const TabLayout = () => {
         <View
           style={[styles.tabBar, { backgroundColor: theme.colors.secondary }]}
         >
-          <Tooltip text="Home">
+          <Tooltip text={t("navigation.tabs.home")}>
             <Button
               variant="link"
               size="icon"
@@ -196,7 +197,7 @@ const TabLayout = () => {
             </Button>
           </Tooltip>
 
-          <Tooltip text="Statistics">
+          <Tooltip text={t("navigation.tabs.statistics")}>
             <Button
               variant="link"
               size="icon"
@@ -210,7 +211,7 @@ const TabLayout = () => {
           {/* Placeholder for center button */}
           <View style={{ width: 44 }} />
 
-          <Tooltip text="Accounts">
+          <Tooltip text={t("navigation.tabs.accounts")}>
             <Button
               variant="link"
               size="icon"
@@ -221,7 +222,7 @@ const TabLayout = () => {
             </Button>
           </Tooltip>
 
-          <Tooltip text="Settings">
+          <Tooltip text={t("navigation.tabs.settings")}>
             <Button
               variant="link"
               size="icon"
@@ -281,7 +282,7 @@ const TabLayout = () => {
           <View style={{ flex: 1 }} />
           <View style={{ flex: 1 }} />
 
-          <Tooltip text="Add Transaction">
+          <Tooltip text={t("navigation.tabs.addTransaction")}>
             <Animated.View style={rotateStyle}>
               <Button
                 size="icon"

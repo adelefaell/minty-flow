@@ -1,6 +1,7 @@
 import { withObservables } from "@nozbe/watermelondb/react"
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router"
 import { useLayoutEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 import { startWith } from "rxjs"
 
@@ -28,7 +29,6 @@ import { useTransfersPreferencesStore } from "~/stores/transfers-preferences.sto
 import type { Category } from "~/types/categories"
 import type { Tag } from "~/types/tags"
 import type {
-  GroupByOption,
   SearchState,
   TransactionListFilterState,
 } from "~/types/transaction-filters"
@@ -39,15 +39,6 @@ import {
 import { TransactionTypeEnum } from "~/types/transactions"
 import { MONTH_NAMES } from "~/utils/time-utils"
 import { buildTransactionListFilters } from "~/utils/transaction-list-utils"
-
-const GROUP_BY_DISPLAY: Record<GroupByOption, string> = {
-  hour: "By hour",
-  day: "By day",
-  week: "By week",
-  month: "By month",
-  year: "By year",
-  allTime: "All time",
-}
 
 const EMPTY_TRANSACTIONS: TransactionWithRelations[] = []
 const EMPTY_CATEGORIES: Category[] = []
@@ -84,6 +75,7 @@ const AccountDetailsScreenInner = ({
   searchState,
   onSearchApply,
 }: AccountDetailsProps) => {
+  const { t } = useTranslation()
   const router = useRouter()
   const navigation = useNavigation()
   const { theme } = useUnistyles()
@@ -183,7 +175,9 @@ const AccountDetailsScreenInner = ({
 
         {/* Balance Section */}
         <View style={styles.balanceSection}>
-          <Text style={styles.balanceLabel}>CURRENT BALANCE</Text>
+          <Text style={styles.balanceLabel}>
+            {t("accounts.card.currentBalance")}
+          </Text>
           <View style={styles.balanceRow}>
             <Money
               value={account.balance}
@@ -215,7 +209,9 @@ const AccountDetailsScreenInner = ({
         </View>
       </View>
       <View style={styles.summaryNetCard}>
-        <Text style={styles.summaryNetLabel}>Net this month</Text>
+        <Text style={styles.summaryNetLabel}>
+          {t("accounts.card.netThisMonth")}
+        </Text>
         <Money
           value={net}
           currency={account.currencyCode}
@@ -274,14 +270,16 @@ const AccountDetailsScreenInner = ({
       {/* Row: By month | More options */}
       <View style={styles.filterToggleRow}>
         <Text style={styles.byLabel}>
-          {GROUP_BY_DISPLAY[filterState.groupBy]}
+          {t(`accounts.stats.${filterState.groupBy}`)}
         </Text>
         <Button
           variant="ghost"
           onPress={() => setShowFilters((v) => !v)}
           style={styles.moreOptionsButton}
         >
-          <Text style={styles.moreOptionsText}>More options</Text>
+          <Text style={styles.moreOptionsText}>
+            {t("accounts.card.moreOptions")}
+          </Text>
         </Button>
       </View>
 

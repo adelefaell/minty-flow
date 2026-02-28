@@ -5,6 +5,7 @@
  */
 
 import { memo, useCallback, useMemo, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { FlatList, Modal, View } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { StyleSheet } from "react-native-unistyles"
@@ -83,6 +84,7 @@ export function CurrencySelectorModal({
   onCurrencySelected,
   editable = true,
 }: CurrencySelectorModalProps) {
+  const { t } = useTranslation()
   const [visible, setVisible] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
 
@@ -138,10 +140,10 @@ export function CurrencySelectorModal({
   const listEmptyComponent = useMemo(
     () => (
       <View style={modalStyles.emptyState}>
-        <Text variant="muted">No currencies found</Text>
+        <Text variant="muted">{t("selectors.currency.noCurrenciesFound")}</Text>
       </View>
     ),
-    [],
+    [t],
   )
 
   return (

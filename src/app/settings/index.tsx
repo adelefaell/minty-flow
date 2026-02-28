@@ -83,6 +83,24 @@ const moneyManagementItems: SettingsItem[] = [
   },
 ]
 
+const MONEY_MANAGEMENT_TITLE_KEYS = {
+  "all-accounts": "accounts.title",
+  loans: "loans.title",
+  categories: "categories.title",
+  tags: "tags.title",
+  trash: "trash.title",
+  goals: "goals.title",
+  budgets: "budgets.title",
+  "pending-transactions": "pending.title",
+  "bill-splitter": "billSplitter.title",
+} as const
+
+const OTHER_SETTINGS_TITLE_KEYS = {
+  preferences: "preferences.title",
+  language: "preferences.language.title",
+  "data-management": "dataManagement.title",
+} as const
+
 const otherSettingsItems: SettingsItem[] = [
   {
     id: "preferences",
@@ -131,11 +149,10 @@ export default function SettingsScreen() {
               key={item.id}
               icon={item.icon}
               title={t(
-                `settings_screen.money_management_items.${item.id.toString()}.title`,
+                MONEY_MANAGEMENT_TITLE_KEYS[
+                  item.id as keyof typeof MONEY_MANAGEMENT_TITLE_KEYS
+                ],
               )}
-              // description={t(
-              //   `settings_screen.money_management_items.${item.id.toString()}.description`,
-              // )}
               onPress={() => router.push(item.route)}
             />
           ))}
@@ -145,7 +162,7 @@ export default function SettingsScreen() {
       {/* Other Settings Section */}
       <View style={styles.section}>
         <Text variant="small" style={styles.sectionTitle}>
-          {t("settings_screen.screen_labels.other")}
+          {t("settings.otherLabel")}
         </Text>
         <View>
           {otherSettingsItems.map((item) => (
@@ -153,7 +170,9 @@ export default function SettingsScreen() {
               key={item.id}
               icon={item.icon}
               title={t(
-                `settings_screen.other_settings_items.${item.id.toString()}.title`,
+                OTHER_SETTINGS_TITLE_KEYS[
+                  item.id as keyof typeof OTHER_SETTINGS_TITLE_KEYS
+                ],
               )}
               soon={item.id === "data-management"}
               onPress={() => router.push(item.route)}

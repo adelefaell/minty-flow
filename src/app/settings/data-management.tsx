@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -5,21 +6,21 @@ import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 
 export default function DataManagementScreen() {
+  const { t } = useTranslation()
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text variant="h2" style={styles.title}>
-        Data Management
+        {t("dataManagement.title")}
       </Text>
       <View style={styles.badge}>
-        <Text style={styles.badgeText}>COMING SOON</Text>
+        <Text style={styles.badgeText}>{t("dataManagement.badge")}</Text>
       </View>
       <Text variant="p" style={styles.description}>
-        Backup, import, and export your financial data. Keep your information
-        safe and portable across devices.
+        {t("dataManagement.description")}
       </Text>
       <View style={styles.placeholder}>
         <Text variant="small" style={styles.placeholderText}>
-          Data management tools in development
+          {t("dataManagement.placeholder")}
         </Text>
       </View>
     </ScrollView>

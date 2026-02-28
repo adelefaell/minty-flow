@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { ScrollView, View } from "react-native"
 import { useUnistyles } from "react-native-unistyles"
 
@@ -29,6 +30,7 @@ export function CurrencyPanel({
   onClear,
   onDone,
 }: CurrencyPanelProps) {
+  const { t } = useTranslation()
   const { theme } = useUnistyles()
   // Deduplicate currency codes while preserving order of first appearance.
   const currencies = [...new Set(accounts.map((a) => a.currencyCode))].filter(
@@ -40,7 +42,7 @@ export function CurrencyPanel({
       <View>
         <View style={filterHeaderStyles.panelHeader}>
           <Text variant="default" style={{ opacity: 0.5 }}>
-            No currencies found
+            {t("selectors.currency.noCurrenciesFound")}
           </Text>
           <PanelDoneButton onPress={onDone} />
         </View>

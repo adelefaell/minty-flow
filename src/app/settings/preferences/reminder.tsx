@@ -149,7 +149,7 @@ export default function ReminderScreen() {
                 style={styles.grantPermissionIcon}
               />
               <Text variant="default" style={styles.grantPermissionText}>
-                {t("system.components.PermissionWarnings.text")}
+                {t("reminders.a11y.permissionWarning")}
               </Text>
               <IconSymbol
                 name="open-in-new"
@@ -167,10 +167,10 @@ export default function ReminderScreen() {
       >
         <View style={styles.labelContainer}>
           <Text variant="p" style={styles.settingLabel}>
-            {t("reminder_screen.remind_daily_toggle.label")}
+            {t("reminders.remindDaily.label")}
           </Text>
           <Text variant="small" style={styles.settingLabelDescription}>
-            {t("reminder_screen.remind_daily_toggle.description")}
+            {t("reminders.remindDaily.description")}
           </Text>
         </View>
         <Switch
@@ -181,9 +181,7 @@ export default function ReminderScreen() {
 
       {isDailyReminderEnabled && (
         <View style={styles.section}>
-          <Text style={styles.headerLabel}>
-            {t("reminder_screen.remind_me_at_time_picker.label")}
-          </Text>
+          <Text style={styles.headerLabel}>{t("reminders.remindAt")}</Text>
 
           {/* The Main Time Card */}
           <Pressable style={styles.timeCard} onPress={showTimePicker}>
@@ -210,7 +208,7 @@ export default function ReminderScreen() {
               style={styles.footerIcon}
             />
             <Text style={styles.footerText}>
-              {t("reminder_screen.footer_caption")}
+              {t("reminders.footerCaption")}
             </Text>
           </View>
 
@@ -221,7 +219,7 @@ export default function ReminderScreen() {
             onPress={async () => await schedulePushNotification()}
             style={[styles.actionButton, { marginTop: 100 }]}
           >
-            <Text variant="default">Press Test Notification</Text>
+            <Text variant="default">{t("reminders.testNotification")}</Text>
           </Button>
         </View>
       )}

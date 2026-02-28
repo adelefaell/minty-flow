@@ -94,6 +94,22 @@ const otherPreferenceItems: PreferenceItem[] = [
   },
 ]
 
+const APPEARANCE_TITLE_KEYS = {
+  theme: "preferences.appearance.theme.title",
+  "money-formatting": "preferences.appearance.moneyFormatting.title",
+  toast: "preferences.appearance.toast.title",
+} as const
+
+const OTHER_PREFERENCE_TITLE_KEYS = {
+  transfers: "transfers.title",
+  "pending-transactions": "pending.title",
+  "exchange-rates": "exchangeRates.title",
+  "trash-bin": "trash.title",
+  privacy: "privacy.title",
+  "transaction-location": "preferences.transactionLocation.title",
+  reminder: "reminders.title",
+} as const
+
 export default function PreferencesScreen() {
   const router = useRouter()
   const { t } = useTranslation()
@@ -110,9 +126,10 @@ export default function PreferencesScreen() {
               key={item.id}
               icon={item.icon}
               title={t(
-                `preferences_screen.other_preference_items.${item.id.toString()}.title`,
+                OTHER_PREFERENCE_TITLE_KEYS[
+                  item.id as keyof typeof OTHER_PREFERENCE_TITLE_KEYS
+                ],
               )}
-              // description={item.description}
               onPress={() => router.push(item.route)}
             />
           ))}
@@ -122,7 +139,7 @@ export default function PreferencesScreen() {
       {/* Appearance Section */}
       <View style={styles.section}>
         <Text variant="h4" style={styles.sectionTitle}>
-          {t("preferences_screen.screen_labels.appearance")}
+          {t("preferences.appearance.label")}
         </Text>
         <View style={styles.itemsList}>
           {appearanceItems.map((item) => (
@@ -130,9 +147,10 @@ export default function PreferencesScreen() {
               key={item.id}
               icon={item.icon}
               title={t(
-                `preferences_screen.appearance_items.${item.id.toString()}.title`,
+                APPEARANCE_TITLE_KEYS[
+                  item.id as keyof typeof APPEARANCE_TITLE_KEYS
+                ],
               )}
-              // description={item.description}
               onPress={() => router.push(item.route)}
             />
           ))}
@@ -143,13 +161,13 @@ export default function PreferencesScreen() {
       {Platform.OS === "android" && (
         <View style={styles.section}>
           <Text variant="h4" style={styles.sectionTitle}>
-            {t("preferences_screen.screen_labels.button_feedback")}
+            {t("preferences.buttonFeedback.label")}
           </Text>
 
           <View style={styles.itemsList}>
             <ToggleItem
               icon={disableSound ? "vibrate-off" : "vibrate"}
-              title={t("preferences_screen.button_feedback.sound_haptic.title")}
+              title={t("preferences.buttonFeedback.soundHaptic.title")}
               value={!disableSound}
               onValueChange={(enabled) => setSoundEnabled(enabled)}
             />
@@ -163,7 +181,7 @@ export default function PreferencesScreen() {
                 />
 
                 <Text style={styles.infoText}>
-                  {t("preferences_screen.button_feedback.system_info.text")}
+                  {t("preferences.buttonFeedback.systemInfo")}
                 </Text>
               </View>
             )}

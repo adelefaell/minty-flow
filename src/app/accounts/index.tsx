@@ -1,6 +1,7 @@
 import { withObservables } from "@nozbe/watermelondb/react"
 import { useRouter } from "expo-router"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { StyleSheet } from "react-native-unistyles"
 
 import {
@@ -35,6 +36,7 @@ const AccountsScreenInner = ({
   accountModels,
   accountsWithMonthTotals,
 }: AccountsScreenInnerProps) => {
+  const { t } = useTranslation()
   const router = useRouter()
 
   const [searchQuery, setSearchQuery] = useState("")
@@ -208,7 +210,7 @@ const AccountsScreenInner = ({
             <View style={styles.footer}>
               <Button onPress={handleAddAccount} variant="secondary">
                 <IconSymbol name="plus" size={24} />
-                <Text variant="default">New Account</Text>
+                <Text variant="default">{t("accounts.addNewAccount")}</Text>
               </Button>
             </View>
           ) : null

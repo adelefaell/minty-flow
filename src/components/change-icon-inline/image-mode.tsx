@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { ScrollView, View } from "react-native"
 
 import { DynamicIcon } from "~/components/dynamic-icon"
@@ -26,6 +27,7 @@ export function ImageMode({
   onCancel,
   colorScheme,
 }: ImageModeProps) {
+  const { t } = useTranslation()
   return (
     <ScrollView
       contentContainerStyle={styles.modeScrollContent}
@@ -38,7 +40,7 @@ export function ImageMode({
         </Text>
         <Pressable style={styles.pasteOption} onPress={onPaste}>
           <IconSymbol name="clipboard" size={20} style={styles.optionIcon} />
-          <Text style={styles.optionText}>Paste an image</Text>
+          <Text style={styles.optionText}>{t("iconPicker.pasteImage")}</Text>
         </Pressable>
         <View style={styles.divider} />
         <View style={styles.previewContainer}>
@@ -68,7 +70,7 @@ export function ImageMode({
             size={20}
             style={styles.optionIcon}
           />
-          <Text style={styles.optionText}>Pick an image</Text>
+          <Text style={styles.optionText}>{t("iconPicker.pickImage")}</Text>
         </Pressable>
         <View style={styles.modeActions}>
           <Button variant="outline" onPress={onCancel}>

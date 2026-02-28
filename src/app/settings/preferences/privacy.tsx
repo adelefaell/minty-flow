@@ -1,7 +1,5 @@
-import { useState } from "react"
-import { useTranslation } from "react-i18next"
-import { ScrollView } from "react-native"
 import * as LocalAuthentication from "expo-local-authentication"
+import { useTranslation } from "react-i18next"
 import { Alert, ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -11,6 +9,7 @@ import { Pressable } from "~/components/ui/pressable"
 import { Switch } from "~/components/ui/switch"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
+import type { TranslationKey } from "~/i18n/config"
 import { useAppLockStore } from "~/stores/app-lock.store"
 import { useMoneyFormattingStore } from "~/stores/money-formatting.store"
 
@@ -43,8 +42,8 @@ export default function PrivacyScreen() {
         level === LocalAuthentication.SecurityLevel.BIOMETRIC_STRONG
       if (!hasDeviceAuth) {
         Alert.alert(
-          "Device lock required",
-          "Set a PIN, pattern, password, or biometric in your device settings to use app lock.",
+          t("privacy.alert.deviceLockRequired.title"),
+          t("privacy.alert.deviceLockRequired.message"),
         )
         return
       }
@@ -55,39 +54,39 @@ export default function PrivacyScreen() {
     }
   }
 
+  const { t } = useTranslation()
+
   const settings: PrivacySetting[] = [
     {
       id: "mask-number",
-      label: "Mask money (⁕) at startup",
+      label: t("privacy.settings.mask-number"),
       icon: "asterisk",
       value: hideOnStartup,
       onValueChange: setHideOnStartup,
     },
     {
       id: "mask-number-on-shake",
-      label: "Mask money (⁕) when shaking",
+      label: t("privacy.settings.mask-number-on-shake"),
       icon: "pulse",
       value: maskOnShake,
       onValueChange: setMaskOnShake,
     },
     {
       id: "lock-app",
-      label: "Lock app",
+      label: t("privacy.settings.lock-app"),
       icon: "cellphone-lock",
       value: lockAppEnabled,
       onValueChange: handleLockAppChange,
     },
     {
       id: "lock-after-closing",
-      label: "Lock after closing",
+      label: t("privacy.settings.lock-after-closing"),
       icon: "lock",
       value: lockAfterClosing,
       onValueChange: setLockAfterClosing,
       disabled: !lockAppEnabled,
     },
   ]
-
-  const { t } = useTranslation()
 
   return (
     <ScrollView
@@ -112,15 +111,7 @@ export default function PrivacyScreen() {
             </View>
             <View style={styles.labelContainer}>
               <Text variant="p" style={styles.settingLabel}>
-                {t(`privacy_screen.settings_items.${setting.id}.label`)}
-              <Text
-                variant="p"
-                style={[
-                  styles.settingLabel,
-                  setting.disabled && styles.settingLabelDisabled,
-                ]}
-              >
-                {setting.label}
+                {t(`privacy.settings.${setting.id}` as TranslationKey)}
               </Text>
             </View>
             <Switch

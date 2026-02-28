@@ -118,7 +118,7 @@ function HomeScreenInner({
             <IconSymbol name="account" size={24} />
           )}
           <Text variant="large" style={styles.greetingText}>
-            {t("index_homepage_screen.hi")}, {profileName}!
+            {t("profile.greeting")}, {profileName}!
           </Text>
         </Pressable>
 

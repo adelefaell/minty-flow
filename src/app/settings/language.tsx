@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { ScrollView } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
@@ -5,39 +6,32 @@ import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import i18n from "~/constants/i18n"
-import { useLanguageOptionStore } from "~/stores/language.store"
-
-// TODO: Add this to the language store
-export const languageOptionsEnum = {
-  ENGLISH: "en",
-  ARABIC: "ar",
-} as const
-
-export type languageOptionsType =
-  (typeof languageOptionsEnum)[keyof typeof languageOptionsEnum]
+import {
+  LangCodeEnum,
+  type LangCodeType,
+  useLanguageStore,
+} from "~/stores/language.store"
 
 const languageOptions: Array<{
-  value: languageOptionsType
+  value: LangCodeType
   label: string
 }> = [
   {
-    value: languageOptionsEnum.ENGLISH,
+    value: LangCodeEnum.EN,
     label: "English",
   },
   {
-    value: languageOptionsEnum.ARABIC,
+    value: LangCodeEnum.AR,
     label: "العربية",
   },
 ]
 
 export default function LanguageOptionsScreen() {
+  const { t } = useTranslation()
   const { theme } = useUnistyles()
-  const languageCode = useLanguageOptionStore((s) => s.languageCode)
-  const setLanguageCode = useLanguageOptionStore((s) => s.setLanguageCode)
-
-  const switchLanguage = (code: string) => {
-    i18n.changeLanguage(code)
+  const languageCode = useLanguageStore((s) => s.languageCode)
+  const setLanguageCode = useLanguageStore((s) => s.setLanguageCode)
+  const switchLanguage = (code: LangCodeType) => {
     setLanguageCode(code)
   }
 
@@ -50,7 +44,7 @@ export default function LanguageOptionsScreen() {
     >
       <View native style={styles.sectionLabel}>
         <Text variant="small" style={styles.sectionLabelText}>
-          Languages
+          {t("preferences.language.sectionLabel")}
         </Text>
       </View>
       <View native style={styles.card}>
@@ -116,10 +110,10 @@ const styles = StyleSheet.create((theme) => ({
     marginTop: 8,
   },
   sectionLabelText: {
-    fontSize: 11,
     fontWeight: "600",
     letterSpacing: 1,
-    opacity: 0.5,
+
+    color: theme.colors.customColors?.semi,
   },
 
   card: {

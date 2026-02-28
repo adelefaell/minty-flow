@@ -56,7 +56,7 @@ function CategoryListHeader({
         >
           <IconSymbol name="plus" size={20} />
           <Text variant="default" style={styles.headerButtonText}>
-            {t("system.components.CategoryListHeader.add_new_category")}
+            {t("categories.actions.addNew")}
           </Text>
         </Button>
         <Button
@@ -67,7 +67,7 @@ function CategoryListHeader({
         >
           <IconSymbol name="shape-plus" size={20} />
           <Text variant="default" style={styles.headerButtonText}>
-            {t("system.components.CategoryListHeader.add_from_presets")}
+            {t("categories.actions.addFromPresets")}
           </Text>
         </Button>
       </View>
@@ -87,7 +87,9 @@ function CategoryListFooter({
   archivedCount,
   onViewArchived,
 }: CategoryListFooterProps) {
+  const { t } = useTranslation()
   if (archivedCount === 0) return null
+  const typeLabel = t(`categories.types.${type}`)
   return (
     <>
       <Separator style={styles.footerSeparator} />
@@ -96,8 +98,10 @@ function CategoryListFooter({
           <View style={styles.archivedEntryLeft} variant="muted">
             <IconSymbol name="archive" size={20} style={styles.archivedIcon} />
             <Text style={styles.archivedText}>
-              View Archived {type.charAt(0).toUpperCase() + type.slice(1)}s (
-              {archivedCount})
+              {t("categories.viewArchived", {
+                type: typeLabel,
+                count: archivedCount,
+              })}
             </Text>
           </View>
         </Button>
@@ -117,6 +121,7 @@ const CategoryListInner = ({
   searchQuery = "",
 }: CategoryListInnerProps) => {
   const router = useRouter()
+  const { t } = useTranslation()
 
   // Clear URL params when screen comes into focus
   // The reactive observe will automatically update the list
@@ -210,10 +215,10 @@ const CategoryListInner = ({
           <View style={styles.emptyContainer}>
             <IconSymbol name="magnify" size={40} style={styles.emptyIcon} />
             <Text variant="h4" style={styles.emptyTitle}>
-              No results for "{searchQuery}"
+              {t("categories.empty.noResults.title", { query: searchQuery })}
             </Text>
             <Text variant="small" style={styles.emptyDescription}>
-              Try a different search term or create a new category
+              {t("categories.empty.noResults.description")}
             </Text>
           </View>
         </View>
@@ -227,10 +232,12 @@ const CategoryListInner = ({
           <View style={styles.emptyContainer}>
             <IconSymbol name="shape" size={40} style={styles.emptyIcon} />
             <Text variant="h4" style={styles.emptyTitle}>
-              No archived {type} categories
+              {t("categories.empty.noArchived.title", {
+                type: t(`categories.types.${type}`),
+              })}
             </Text>
             <Text variant="small" style={styles.emptyDescription}>
-              Archived categories will appear here
+              {t("categories.empty.noArchived.description")}
             </Text>
           </View>
         </View>
@@ -250,10 +257,14 @@ const CategoryListInner = ({
               style={[styles.emptyIcon, { opacity: 0.3 }]}
             />
             <Text variant="h4" style={styles.emptyTitle}>
-              No active {type}s
+              {t("categories.empty.noActive.title", {
+                type: t(`categories.types.${type}`),
+              })}
             </Text>
             <Text variant="small" style={styles.emptyDescription}>
-              You have archived all your {type} categories.
+              {t("categories.empty.noActive.description", {
+                type: t(`categories.types.${type}`),
+              })}
             </Text>
             <Button
               variant="default"
@@ -261,8 +272,10 @@ const CategoryListInner = ({
               style={styles.emptyButton}
             >
               <Text variant="default" style={styles.emptyButtonText}>
-                View Archived {type.charAt(0).toUpperCase() + type.slice(1)}s (
-                {archivedCount})
+                {t("categories.viewArchived", {
+                  type: t(`categories.types.${type}`),
+                  count: archivedCount,
+                })}
               </Text>
             </Button>
           </View>
@@ -276,10 +289,12 @@ const CategoryListInner = ({
         <View style={styles.emptyContainer}>
           <IconSymbol name="shape" size={40} style={styles.emptyIcon} />
           <Text variant="h4" style={styles.emptyTitle}>
-            No {type} categories yet
+            {t("categories.empty.noCategories.title", {
+              type: t(`categories.types.${type}`),
+            })}
           </Text>
           <Text variant="small" style={styles.emptyDescription}>
-            Create your first category to start organizing your transactions
+            {t("categories.empty.noCategories.description")}
           </Text>
         </View>
       </View>

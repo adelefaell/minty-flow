@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { ScrollView } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
@@ -13,21 +14,29 @@ import type { ToastPosition } from "~/stores/toast.store"
 import { useToastStyleStore } from "~/stores/toast-style.store"
 import { Toast } from "~/utils/toast"
 
-const positionOptions: Array<{
-  value: ToastPosition
-  label: string
-  description: string
-}> = [
-  { value: "top", label: "Top", description: "Appears below the status bar" },
-  {
-    value: "bottom",
-    label: "Bottom",
-    description: "Appears above the home indicator",
-  },
-]
-
 export default function ToastStyleScreen() {
+  const { t } = useTranslation()
   const { theme } = useUnistyles()
+  const positionOptions: Array<{
+    value: ToastPosition
+    label: string
+    description: string
+  }> = [
+    {
+      value: "top",
+      label: t("preferences.appearance.toast.options.positionTop"),
+      description: t(
+        "preferences.appearance.toast.options.positionTopDescription",
+      ),
+    },
+    {
+      value: "bottom",
+      label: t("preferences.appearance.toast.options.positionBottom"),
+      description: t(
+        "preferences.appearance.toast.options.positionBottomDescription",
+      ),
+    },
+  ]
   const [resetModalVisible, setResetModalVisible] = useState(false)
   const {
     position,
@@ -41,27 +50,32 @@ export default function ToastStyleScreen() {
 
   const handleShowDemoToasts = () => {
     Toast.success({
-      title: "Success",
-      description: "This is a success message",
+      title: t("preferences.appearance.toast.demo.successTitle"),
+      description: t("preferences.appearance.toast.demo.successDescription"),
     })
     setTimeout(
       () =>
         Toast.error({
-          title: "Error",
-          description: "This is an error message",
+          title: t("preferences.appearance.toast.demo.errorTitle"),
+          description: t("preferences.appearance.toast.demo.errorDescription"),
         }),
       500,
     )
     setTimeout(
       () =>
-        Toast.info({ title: "Info", description: "This is an info message" }),
+        Toast.info({
+          title: t("preferences.appearance.toast.demo.infoTitle"),
+          description: t("preferences.appearance.toast.demo.infoDescription"),
+        }),
       1000,
     )
     setTimeout(
       () =>
         Toast.warn({
-          title: "Warning",
-          description: "This is a warning message",
+          title: t("preferences.appearance.toast.demo.warningTitle"),
+          description: t(
+            "preferences.appearance.toast.demo.warningDescription",
+          ),
         }),
       1500,
     )
@@ -76,10 +90,10 @@ export default function ToastStyleScreen() {
         visible={resetModalVisible}
         onRequestClose={() => setResetModalVisible(false)}
         onConfirm={handleConfirmReset}
-        title="Reset to Defaults"
-        description="Are you sure you want to reset all toast style settings to their default values?"
-        confirmLabel="Reset"
-        cancelLabel="Cancel"
+        title={t("preferences.appearance.toast.resetModal.title")}
+        description={t("preferences.appearance.toast.resetModal.description")}
+        confirmLabel={t("preferences.appearance.toast.resetModal.confirmLabel")}
+        cancelLabel={t("preferences.appearance.toast.resetModal.cancelLabel")}
         variant="destructive"
       />
 
@@ -92,7 +106,7 @@ export default function ToastStyleScreen() {
         {/* Position */}
         <View native style={[styles.sectionLabel, styles.sectionLabelFirst]}>
           <Text variant="small" style={styles.sectionLabelText}>
-            Position
+            {t("preferences.appearance.toast.options.position")}
           </Text>
         </View>
         <View native style={styles.card}>
@@ -130,7 +144,7 @@ export default function ToastStyleScreen() {
         {/* Options */}
         <View native style={styles.sectionLabel}>
           <Text variant="small" style={styles.sectionLabelText}>
-            Options
+            {t("preferences.appearance.toast.optionsLabel")}
           </Text>
         </View>
         <View native style={styles.toggleCard}>
@@ -139,9 +153,13 @@ export default function ToastStyleScreen() {
             onPress={() => setShowProgressBar(!showProgressBar)}
           >
             <View native style={styles.toggleRowContent}>
-              <Text style={styles.toggleLabel}>Progress bar</Text>
+              <Text style={styles.toggleLabel}>
+                {t("preferences.appearance.toast.options.progressBar")}
+              </Text>
               <Text variant="small" style={styles.toggleDescription}>
-                Visual countdown indicator
+                {t(
+                  "preferences.appearance.toast.options.progressBarDescription",
+                )}
               </Text>
             </View>
             <Switch
@@ -155,9 +173,11 @@ export default function ToastStyleScreen() {
             onPress={() => setShowCloseIcon(!showCloseIcon)}
           >
             <View native style={styles.toggleRowContent}>
-              <Text style={styles.toggleLabel}>Close icon</Text>
+              <Text style={styles.toggleLabel}>
+                {t("preferences.appearance.toast.options.closeIcon")}
+              </Text>
               <Text variant="small" style={styles.toggleDescription}>
-                Manual dismiss button
+                {t("preferences.appearance.toast.options.closeIconDescription")}
               </Text>
             </View>
             <Switch value={showCloseIcon} onValueChange={setShowCloseIcon} />
@@ -167,10 +187,10 @@ export default function ToastStyleScreen() {
         {/* Preview */}
         <View native style={styles.sectionLabel}>
           <Text variant="small" style={styles.sectionLabelText}>
-            Preview
+            {t("preferences.appearance.toast.preview.label")}
           </Text>
           <Text variant="small" style={styles.previewDescription}>
-            Test your current settings with live notifications
+            {t("preferences.appearance.toast.preview.description")}
           </Text>
         </View>
 
@@ -180,14 +200,18 @@ export default function ToastStyleScreen() {
             style={styles.previewBtnPrimary}
             onPress={handleShowDemoToasts}
           >
-            <Text style={styles.previewBtnPrimaryText}>Show demo</Text>
+            <Text style={styles.previewBtnPrimaryText}>
+              {t("preferences.appearance.toast.preview.showDemo")}
+            </Text>
           </Button>
           <Button
             variant="outline"
             style={styles.previewBtnOutline}
             onPress={() => Toast.hideAll()}
           >
-            <Text style={styles.previewBtnOutlineText}>Hide all</Text>
+            <Text style={styles.previewBtnOutlineText}>
+              {t("preferences.appearance.toast.preview.hideAll")}
+            </Text>
           </Button>
         </View>
 
@@ -198,7 +222,9 @@ export default function ToastStyleScreen() {
             style={styles.resetButton}
             onPress={handleResetToDefaults}
           >
-            <Text style={styles.resetButtonText}>Reset to defaults</Text>
+            <Text style={styles.resetButtonText}>
+              {t("preferences.appearance.toast.resetButton")}
+            </Text>
           </Button>
         </View>
       </ScrollView>

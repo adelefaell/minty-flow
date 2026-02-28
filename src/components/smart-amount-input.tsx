@@ -229,9 +229,11 @@ export function SmartAmountInput({
           ]}
           onPress={handleToggleMathToolbar}
           accessibilityLabel={
-            showMathToolbar ? "Hide math actions" : "Show math actions"
+            showMathToolbar
+              ? t("accessibility.hideMathActions")
+              : t("accessibility.showMathActions")
           }
-          accessibilityHint="Toggles inline math toolbar"
+          accessibilityHint={t("accessibility.mathToolbarHint")}
         >
           <IconSymbol name="calculator" size={24} />
         </Pressable>
@@ -254,8 +256,8 @@ export function SmartAmountInput({
           returnKeyType="done"
           onSubmitEditing={handleSubmit}
           textAlignVertical="center"
-          accessibilityLabel="Amount input"
-          accessibilityHint="Enter amount or a math expression (e.g. 100/4)"
+          accessibilityLabel={t("accessibility.amountInput")}
+          accessibilityHint={t("accessibility.amountInputHint")}
           accessibilityValue={{ text: displayValue || placeholder }}
           onFocus={handleFocus}
           onBlur={handleBlur}
@@ -274,7 +276,9 @@ export function SmartAmountInput({
                 key={op}
                 style={styles.mathBtn}
                 onPress={() => handleOperatorPress(op)}
-                accessibilityLabel={`Insert ${op === "*" ? "times" : op}`}
+                accessibilityLabel={t("accessibility.insertOperator", {
+                  op: op === "*" ? t("accessibility.operatorTimes") : op,
+                })}
               >
                 <Text style={styles.mathBtnText}>{op === "*" ? "×" : op}</Text>
               </Pressable>
@@ -284,7 +288,7 @@ export function SmartAmountInput({
             <Pressable
               style={styles.mathBtn}
               onPress={handleBackspace}
-              accessibilityLabel="Backspace"
+              accessibilityLabel={t("accessibility.backspace")}
             >
               <IconSymbol
                 name="backspace"
@@ -295,7 +299,7 @@ export function SmartAmountInput({
             <Pressable
               style={styles.mathBtn}
               onPress={handleClear}
-              accessibilityLabel="Clear"
+              accessibilityLabel={t("accessibility.clear")}
             >
               <Text style={styles.mathBtnText}>C</Text>
             </Pressable>
@@ -303,7 +307,9 @@ export function SmartAmountInput({
               style={[styles.mathBtn, styles.okBtn]}
               onPress={handleSubmit}
               accessibilityLabel={
-                isInMathOperation ? "Apply result" : "Confirm amount"
+                isInMathOperation
+                  ? t("accessibility.applyResult")
+                  : t("accessibility.confirmAmount")
               }
               accessibilityState={{ disabled: !!previewError }}
             >
@@ -324,7 +330,7 @@ export function SmartAmountInput({
       {formattedTyped ? (
         <View style={styles.formattedChip}>
           <Text style={styles.formattedChipLabel}>
-            {t("system.components.SmartAmountInput.entered")}:{" "}
+            {t("transactions.amount.entered")}:{" "}
           </Text>
           <Text style={styles.formattedChipValue}>{formattedTyped}</Text>
         </View>
@@ -334,11 +340,13 @@ export function SmartAmountInput({
         <Pressable
           style={styles.previewContainer}
           onPress={handlePreviewPress}
-          accessibilityLabel="Apply calculation result"
-          accessibilityHint="Tap to use this result"
+          accessibilityLabel={t("accessibility.applyResult")}
+          accessibilityHint={t("accessibility.applyResultHint")}
         >
           <IconSymbol name="equal" size={18} style={styles.previewIconLeft} />
-          <Text style={styles.previewLabel}>Result: </Text>
+          <Text style={styles.previewLabel}>
+            {t("transactions.amount.resultLabel")}{" "}
+          </Text>
           <Text style={styles.previewValue}>{displayPreview}</Text>
           <IconSymbol
             name="chevron-right"
@@ -349,7 +357,9 @@ export function SmartAmountInput({
         </Pressable>
       ) : displayPreview ? (
         <View style={styles.previewContainer}>
-          <Text style={styles.previewLabel}>Result: </Text>
+          <Text style={styles.previewLabel}>
+            {t("transactions.amount.resultLabel")}{" "}
+          </Text>
           <Text style={styles.previewValue}>{displayPreview}</Text>
         </View>
       ) : null}

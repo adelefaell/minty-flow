@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useNavigation, useRouter } from "expo-router"
 import { useCallback, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 
 import { CategoryTypeInline } from "~/components/categories/category-type-inline"
 import { ChangeIconInline } from "~/components/change-icon-inline"
@@ -41,6 +42,7 @@ export function CategoryModifyContent({
   categoryModel,
   category,
 }: CategoryModifyContentProps) {
+  const { t } = useTranslation()
   const router = useRouter()
 
   const isAddMode = categoryModifyId === NewEnum.NEW || !categoryModifyId
@@ -221,7 +223,7 @@ export function CategoryModifyContent({
                   value={value}
                   onChangeText={onChange}
                   onBlur={onBlur}
-                  placeholder="Groceries, Dining out, etc."
+                  placeholder={t("categories.form.namePlaceholder")}
                   error={!!errors.name}
                 />
               )}
@@ -354,10 +356,10 @@ export function CategoryModifyContent({
           setUnsavedModalVisible(false)
           confirmNavigation()
         }}
-        title="Close without saving?"
+        title={t("common.modals.closeWithoutSaving")}
         description="All changes will be lost."
         confirmLabel="Discard"
-        cancelLabel="Cancel"
+        cancelLabel={t("common.actions.cancel")}
         variant="default"
       />
     </View>

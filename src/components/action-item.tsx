@@ -5,6 +5,7 @@ import { IconSymbol, type IconSymbolName } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
+import { useLanguageStore } from "~/stores/language.store"
 
 interface ActionItemProps {
   icon: IconSymbolName
@@ -21,8 +22,8 @@ export const ActionItem = ({
   onPress,
   soon,
 }: ActionItemProps) => {
-  const { t, i18n } = useTranslation()
-  const isRtl = i18n.dir() === "rtl"
+  const { t } = useTranslation()
+  const isRTL = useLanguageStore((s) => s.isRTL)
 
   return (
     <Pressable
@@ -44,7 +45,7 @@ export const ActionItem = ({
             </Text>
             {soon && (
               <View style={styles.badge}>
-                <Text style={styles.badgeText}>{t("system.tags.soon")}</Text>
+                <Text style={styles.badgeText}>{t("common.states.soon")}</Text>
               </View>
             )}
           </View>
@@ -55,7 +56,7 @@ export const ActionItem = ({
           )}
         </View>
       </View>
-      <IconSymbol name={isRtl ? "chevron-left" : "chevron-right"} size={18} />
+      <IconSymbol name={isRTL ? "chevron-left" : "chevron-right"} size={18} />
     </Pressable>
   )
 }

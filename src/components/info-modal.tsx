@@ -3,6 +3,7 @@
  * Use for informational messages (replaces Alert.alert for info-only content).
  */
 
+import { useTranslation } from "react-i18next"
 import {
   Modal,
   TouchableWithoutFeedback,
@@ -41,6 +42,7 @@ export function InfoModal({
   okLabel = "OK",
   icon,
 }: InfoModalProps) {
+  const { t } = useTranslation()
   const { width } = useWindowDimensions()
   const maxCardWidth = Math.min(width - 48, 400)
 
@@ -56,7 +58,7 @@ export function InfoModal({
       <Pressable
         style={[styles.backdrop, { width }]}
         onPress={onRequestClose}
-        accessibilityLabel="Close"
+        accessibilityLabel={t("accessibility.close")}
         accessibilityRole="button"
         native
         disableRipple

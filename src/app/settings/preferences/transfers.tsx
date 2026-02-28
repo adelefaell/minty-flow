@@ -89,7 +89,7 @@ export default function TransfersPreferencesScreen() {
       {/* Layout */}
       <View native style={[styles.sectionLabel, styles.sectionLabelFirst]}>
         <Text variant="small" style={styles.sectionLabelText}>
-          {t("transfers_screen.subtitle")}
+          {t("transfers.layout.subtitle")}
         </Text>
       </View>
       <View native style={styles.card}>
@@ -107,12 +107,20 @@ export default function TransfersPreferencesScreen() {
                 <View native style={styles.rowContent}>
                   <Text style={styles.rowLabel}>
                     {t(
-                      `transfers_screen.layout_options.${option.label.toLowerCase()}-option.label`,
+                      `transfers.layout.options.${
+                        option.value === TransferLayoutEnum.COMBINE
+                          ? "combine"
+                          : "separate"
+                      }.label`,
                     )}
                   </Text>
                   <Text variant="small" style={styles.rowDescription}>
                     {t(
-                      `transfers_screen.layout_options.${option.label.toLowerCase()}-option.description`,
+                      `transfers.layout.options.${
+                        option.value === TransferLayoutEnum.COMBINE
+                          ? "combine"
+                          : "separate"
+                      }.description`,
                     )}
                   </Text>
                   <LayoutPreview variant={option.value} />
@@ -137,14 +145,14 @@ export default function TransfersPreferencesScreen() {
           color={theme.colors.customColors?.semi}
         />
         <Text variant="small" style={styles.captionText}>
-          {t(`transfers_screen.caption_text`)}
+          {t("transfers.layout.caption")}
         </Text>
       </View>
 
       {/* Exclude from totals */}
       <View native style={styles.sectionLabel}>
         <Text variant="small" style={styles.sectionLabelText}>
-          {t(`transfers_screen.2_subtitle`)}
+          {t("transfers.totals.subtitle")}
         </Text>
       </View>
       <View native style={styles.toggleCard}>
@@ -154,10 +162,10 @@ export default function TransfersPreferencesScreen() {
         >
           <View native style={styles.toggleRowContent}>
             <Text style={styles.toggleLabel}>
-              {t("transfers_screen.exclude_toggle.label")}
+              {t("transfers.totals.excludeToggle.label")}
             </Text>
             <Text variant="small" style={styles.toggleDescription}>
-              {t("transfers_screen.exclude_toggle.description")}
+              {t("transfers.totals.excludeToggle.description")}
             </Text>
           </View>
           <Switch

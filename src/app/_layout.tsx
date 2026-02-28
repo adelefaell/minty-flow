@@ -1,6 +1,6 @@
-import "../constants/i18n"
 import { Stack } from "expo-router"
 import { StatusBar } from "expo-status-bar"
+import { useTranslation } from "react-i18next"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { KeyboardProvider } from "react-native-keyboard-controller"
 import { UnistylesRuntime, useUnistyles } from "react-native-unistyles"
@@ -11,17 +11,18 @@ import { TooltipProvider } from "~/components/ui/tooltip"
 import "react-native-reanimated"
 
 import { setStyle } from "expo-navigation-bar"
-import { useTranslation } from "react-i18next"
 import { useEffect } from "react"
 import { Platform } from "react-native"
 
 import { useRecurringTransactionSync } from "~/hooks/use-recurring-transaction-sync"
 import { useRetentionCleanup } from "~/hooks/use-retention-cleanup"
+import { DirectionEnum, useLanguageStore } from "~/stores/language.store"
 import { useMoneyFormattingStore } from "~/stores/money-formatting.store"
 import { NewEnum } from "~/types/new"
 
 export default function RootLayout() {
   const { theme } = useUnistyles()
+  const { t } = useTranslation()
 
   UnistylesRuntime.setRootViewBackgroundColor(theme.colors.surface)
 
@@ -29,8 +30,7 @@ export default function RootLayout() {
     setStyle(theme.isDark ? "dark" : "light")
   }
 
-  const { i18n } = useTranslation()
-  const isRtl = i18n.dir() === "rtl"
+  const isRTL = useLanguageStore((s) => s.isRTL)
 
   // Ports to reality: retention cleanup and recurring sync (effects live in domain hooks)
   // Rehydrate shake listener on app start if mask-on-shake was enabled (store-owned subscription)
@@ -50,7 +50,7 @@ export default function RootLayout() {
           flex: 1,
           // paddingTop: UnistylesRuntime.insets.top,
           paddingBottom: UnistylesRuntime.insets.bottom,
-          direction: isRtl ? "rtl" : "ltr",
+          direction: isRTL ? DirectionEnum.RTL : DirectionEnum.LTR,
         }}
       >
         <TooltipProvider>
@@ -74,32 +74,39 @@ export default function RootLayout() {
             {/* settings screens */}
             <Stack.Screen
               name="settings/edit-profile"
-              options={{ title: "Edit Profile" }}
+              options={{ title: t("navigation.screenTitles.editProfile") }}
             />
-            <Stack.Screen name="settings/loans" options={{ title: "Loan" }} />
+            <Stack.Screen
+              name="settings/loans"
+              options={{ title: t("loans.title") }}
+            />
             <Stack.Screen
               name="settings/all-accounts"
-              options={{ title: "All Accounts" }}
+              options={{ title: t("accounts.title") }}
             />
             <Stack.Screen
               name="settings/categories/index"
-              options={{ title: "Categories" }}
+              options={{ title: t("categories.title") }}
             />
             <Stack.Screen
               name="settings/categories/archived"
-              options={{ title: "Archived Categories" }}
+              options={{
+                title: t("navigation.screenTitles.archivedCategories"),
+              }}
             />
 
             <Stack.Screen
               name="settings/categories/[categoryId]/index"
               options={{
-                title: "Category Details",
+                title: t("navigation.screenTitles.categoryDetails"),
               }}
             />
 
             <Stack.Screen
               name="settings/categories/presets"
-              options={{ title: "Add from Presets" }}
+              options={{
+                title: t("navigation.screenTitles.addFromPresets"),
+              }}
             />
             <Stack.Screen
               name="settings/categories/[categoryId]/modify"
@@ -110,91 +117,100 @@ export default function RootLayout() {
                 return {
                   title:
                     params?.categoryId === NewEnum.NEW
-                      ? "Create Category"
-                      : "Edit Category",
+                      ? t("navigation.screenTitles.createCategory")
+                      : t("navigation.screenTitles.editCategory"),
                 }
               }}
             />
             <Stack.Screen
               name="settings/tags/index"
-              options={{ title: "Tags" }}
+              options={{ title: t("tags.title") }}
             />
-            <Stack.Screen name="settings/trash" options={{ title: "Trash" }} />
+            <Stack.Screen
+              name="settings/trash"
+              options={{ title: t("trash.title") }}
+            />
             <Stack.Screen
               name="settings/preferences/index"
-              options={{ title: "Preferences" }}
+              options={{ title: t("preferences.title") }}
             />
             <Stack.Screen
               name="settings/data-management"
-              options={{ title: "Data Management" }}
+              options={{ title: t("dataManagement.title") }}
             />
             <Stack.Screen
               name="settings/budgets"
-              options={{ title: "Budgets" }}
+              options={{ title: t("budgets.title") }}
             />
             <Stack.Screen
               name="settings/pending-transactions"
-              options={{
-                title: "Pending Transactions",
-              }}
+              options={{ title: t("pending.title") }}
             />
             <Stack.Screen
               name="settings/bill-splitter"
-              options={{ title: "Bill Splitter" }}
+              options={{ title: t("billSplitter.title") }}
             />
-            <Stack.Screen name="settings/goals" options={{ title: "Goals" }} />
+            <Stack.Screen
+              name="settings/goals"
+              options={{ title: t("goals.title") }}
+            />
+
+            <Stack.Screen
+              name="settings/language"
+              options={{ title: t("preferences.language.title") }}
+            />
 
             {/* settings screens preferences */}
             <Stack.Screen
               name="settings/preferences/theme"
-              options={{ title: "Theme" }}
+              options={{ title: t("preferences.appearance.theme.title") }}
             />
             <Stack.Screen
               name="settings/preferences/toast-style"
               options={{
-                title: "Toast Style",
+                title: t("navigation.screenTitles.toastStyle"),
               }}
             />
             <Stack.Screen
               name="settings/preferences/exchange-rates"
-              options={{ title: "Exchange Rates" }}
+              options={{ title: t("exchangeRates.title") }}
             />
             <Stack.Screen
               name="settings/preferences/trash-bin"
-              options={{ title: "Trash bin" }}
+              options={{ title: t("trash.title") }}
             />
             <Stack.Screen
               name="settings/preferences/reminder"
-              options={{ title: "Reminder" }}
+              options={{ title: t("reminders.title") }}
             />
             <Stack.Screen
               name="settings/preferences/pending-transactions"
-              options={{
-                title: "Pending transactions",
-              }}
+              options={{ title: t("pending.title") }}
             />
             <Stack.Screen
               name="settings/preferences/privacy"
-              options={{ title: "Privacy" }}
+              options={{ title: t("privacy.title") }}
             />
             <Stack.Screen
               name="settings/preferences/money-formatting"
-              options={{ title: "Money Formatting" }}
+              options={{
+                title: t("preferences.appearance.moneyFormatting.title"),
+              }}
             />
             <Stack.Screen
               name="settings/preferences/transaction-location"
               options={{
-                title: "Transaction Location",
+                title: t("preferences.transactionLocation.title"),
               }}
             />
             <Stack.Screen
               name="settings/preferences/transfers"
-              options={{ title: "Transfers" }}
+              options={{ title: t("transfers.title") }}
             />
             <Stack.Screen
               name="accounts/[accountId]/index"
               options={{
-                title: "Account Details",
+                title: t("navigation.screenTitles.accountDetails"),
               }}
             />
             <Stack.Screen
@@ -206,8 +222,8 @@ export default function RootLayout() {
                 return {
                   title:
                     params?.accountId === NewEnum.NEW
-                      ? "Create Account"
-                      : "Edit Account",
+                      ? t("navigation.screenTitles.createAccount")
+                      : t("navigation.screenTitles.editAccount"),
                 }
               }}
             />
@@ -217,7 +233,9 @@ export default function RootLayout() {
                 const params = route.params as { tagId?: string } | undefined
                 return {
                   title:
-                    params?.tagId === NewEnum.NEW ? "Create Tag" : "Edit Tag",
+                    params?.tagId === NewEnum.NEW
+                      ? t("navigation.screenTitles.createTag")
+                      : t("navigation.screenTitles.editTag"),
                 }
               }}
             />
@@ -229,8 +247,8 @@ export default function RootLayout() {
                 return {
                   title:
                     params?.id === NewEnum.NEW
-                      ? "Create Transaction"
-                      : "Edit Transaction",
+                      ? t("navigation.screenTitles.createTransaction")
+                      : t("navigation.screenTitles.editTransaction"),
                   presentation: "fullScreenModal",
                 }
               }}

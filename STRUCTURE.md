@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-02-27T16:53:29.321Z
+Generated on: 2026-02-28T18:20:23.049Z
 
 ```
 ./
@@ -70,9 +70,10 @@ Generated on: 2026-02-27T16:53:29.321Z
 │   ├── 📄 README.md
 │   └── 📄 withWatermelonDBJSI.js
 ├── 📁 scripts/
-│   ├── 📄 find-unused-styles.mjs
-│   ├── 📄 generate-structure.mjs
-│   └── 📄 run-android-usb.mjs
+│   ├── 📄 check-missing-i18n-keys.mts
+│   ├── 📄 find-unused-styles.mts
+│   ├── 📄 generate-structure.mts
+│   └── 📄 run-android-usb.mts
 ├── 📁 src/
 │   ├── 📁 app/
 │   │   ├── 📁 (tabs)/
@@ -93,6 +94,7 @@ Generated on: 2026-02-27T16:53:29.321Z
 │   │   │   │   ├── 📄 index.tsx
 │   │   │   │   └── 📄 presets.tsx
 │   │   │   ├── 📁 preferences/
+│   │   │   │   ├── 📁 theme/
 │   │   │   │   ├── 📄 exchange-rates.tsx
 │   │   │   │   ├── 📄 index.tsx
 │   │   │   │   ├── 📄 money-formatting.tsx
@@ -263,10 +265,6 @@ Generated on: 2026-02-27T16:53:29.321Z
 │   │   ├── 📄 tabs-minty.tsx
 │   │   └── 📄 toggle-item.tsx
 │   ├── 📁 constants/
-│   │   ├── 📁 translation/
-│   │   │   ├── 📄 ar.json
-│   │   │   └── 📄 en.json
-│   │   ├── 📄 i18n.ts
 │   │   ├── 📄 minty-icons-selection.ts
 │   │   ├── 📄 pre-sets-categories.ts
 │   │   └── 📄 site-data.ts
@@ -318,6 +316,12 @@ Generated on: 2026-02-27T16:53:29.321Z
 │   │   ├── 📄 use-retention-cleanup.ts
 │   │   ├── 📄 use-scroll-into-view.ts
 │   │   └── 📄 use-time-reactivity.ts
+│   ├── 📁 i18n/
+│   │   ├── 📁 translation/
+│   │   │   ├── 📄 ar.json
+│   │   │   └── 📄 en.json
+│   │   ├── 📄 config.ts
+│   │   └── 📄 language.constants.ts
 │   ├── 📁 schemas/
 │   │   ├── 📄 accounts.schema.ts
 │   │   ├── 📄 categories.schema.ts

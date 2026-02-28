@@ -164,7 +164,7 @@ export function ColorVariantInline({
         <View style={styles.panel}>
           <View style={styles.container}>
             {/* <View style={styles.header}>
-              <Text style={styles.headerLabel}>Current Theme</Text>
+              <Text style={styles.headerLabel}>{t("colorPicker.currentTheme")}</Text>
               {themeInfo && (
                 <Text style={styles.headerTheme}>{themeInfo.variant}</Text>
               )}

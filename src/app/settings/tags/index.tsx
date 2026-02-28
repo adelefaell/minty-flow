@@ -40,7 +40,7 @@ const TagsScreenInner = ({ tags }: TagsScreenInnerProps) => {
     <View style={styles.container}>
       <View style={styles.searchContainer}>
         <SearchInput
-          placeholder={t("tags_screen.search_placeholder")}
+          placeholder={t("tags.searchPlaceholder")}
           value={searchQuery}
           onChangeText={setSearchQuery}
           onClear={() => setSearchQuery("")}
@@ -55,7 +55,7 @@ const TagsScreenInner = ({ tags }: TagsScreenInnerProps) => {
         <Pressable style={styles.newTagButton} onPress={handleAddTag}>
           <IconSymbol name="plus" size={24} />
           <Text variant="default" style={styles.newTagText}>
-            {t("tags_screen.label.new_tag")}
+            {t("tags.newTag")}
           </Text>
         </Pressable>
 
