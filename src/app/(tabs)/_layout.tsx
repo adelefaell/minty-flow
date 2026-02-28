@@ -1,5 +1,6 @@
 import { useRouter } from "expo-router"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import PagerView, { usePagerView } from "react-native-pager-view"
 import Animated, {
   createAnimatedComponent,
@@ -162,9 +163,18 @@ const TabLayout = () => {
   const tabBarHeight = 54
   const fabContainerBottom = tabBarBottom + tabBarHeight / 2
 
+  const { i18n } = useTranslation()
+  const isRtl = i18n.dir() === "rtl"
+
   return (
     <View style={styles.container}>
-      <PagerView ref={pagerRef} style={styles.pager} initialPage={0}>
+      <PagerView
+        key={isRtl ? "rtl-pager" : "ltr-pager"}
+        ref={pagerRef}
+        style={styles.pager}
+        initialPage={0}
+        layoutDirection={isRtl ? "rtl" : "ltr"}
+      >
         {tabs.map((tab) => (
           <tab.component key={tab.key} />
         ))}

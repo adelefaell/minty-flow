@@ -1,4 +1,5 @@
 import * as Notifications from "expo-notifications"
+import { useTranslation } from "react-i18next"
 import { Linking, Platform, ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -11,29 +12,30 @@ import { useNotificationPermissionStatus } from "~/hooks/use-notification-permis
 import { usePendingTransactionsStore } from "~/stores/pending-transactions.store"
 
 const SHOW_ON_HOME_DAYS = [1, 2, 3, 5, 7, 14, 30] as const
-const SHOW_ON_HOME_CHOICES: readonly string[] = SHOW_ON_HOME_DAYS.map(
-  (d) => `Next ${d} day(s)`,
-)
+// const SHOW_ON_HOME_CHOICES: readonly string[] = SHOW_ON_HOME_DAYS.map(
+//   (d) => `Next ${d} day(s)`,
+// )
 
-function daysToChoice(days: number): string {
-  if (SHOW_ON_HOME_DAYS.includes(days as (typeof SHOW_ON_HOME_DAYS)[number])) {
-    return `Next ${days} day(s)`
-  }
-  const closest = SHOW_ON_HOME_DAYS.reduce((prev, curr) =>
-    Math.abs(curr - days) < Math.abs(prev - days) ? curr : prev,
-  )
-  return `Next ${closest} day(s)`
-}
+// function daysToChoice(days: number): string {
+//   if (SHOW_ON_HOME_DAYS.includes(days as (typeof SHOW_ON_HOME_DAYS)[number])) {
+//     return `Next ${days} day(s)`
+//   }
+//   const closest = SHOW_ON_HOME_DAYS.reduce((prev, curr) =>
+//     Math.abs(curr - days) < Math.abs(prev - days) ? curr : prev,
+//   )
+//   return `Next ${closest} day(s)`
+// }
 
-function choiceToDays(choice: string): number {
-  const match = choice.match(/\d+/)
-  const n = match ? Number.parseInt(match[0], 10) : NaN
-  return Number.isNaN(n) ? 3 : Math.min(30, Math.max(1, n))
-}
+// function choiceToDays(choice: string): number {
+//   const match = choice.match(/\d+/)
+//   const n = match ? Number.parseInt(match[0], 10) : NaN
+//   return Number.isNaN(n) ? 3 : Math.min(30, Math.max(1, n))
+// }
 
 function PermissionWarnings() {
   const { permissionStatus, refreshPermissionStatus } =
     useNotificationPermissionStatus()
+  const { t } = useTranslation()
 
   const handleRequestPermission = async () => {
     if (Platform.OS === "android") {
@@ -71,7 +73,7 @@ function PermissionWarnings() {
             style={styles.grantPermissionIcon}
           />
           <Text variant="default" style={styles.grantPermissionText}>
-            Notifications permission not granted
+            {t("system.components.PermissionWarnings.text")}
           </Text>
           <IconSymbol
             name="open-in-new"
@@ -141,9 +143,23 @@ export default function PendingTransactionsPreferencesScreen() {
     (s) => s.setUpdateDateUponConfirmation,
   )
 
-  const showOnHomeValue = daysToChoice(homeTimeframe)
-  const handleShowOnHomeSelect = (choice: string) => {
-    setHomeTimeframe(choiceToDays(choice))
+  const { t } = useTranslation()
+
+  const choicesMapping = SHOW_ON_HOME_DAYS.map((d) => ({
+    value: d,
+    label: t("pending_transaction_screen.choice_chips.days_count", {
+      count: d,
+    }),
+  }))
+  const choiceLabels = choicesMapping.map((c) => c.label)
+  const selectedLabel =
+    choicesMapping.find((c) => c.value === homeTimeframe)?.label ||
+    choicesMapping[0].label
+  const handleShowOnHomeSelect = (label: string) => {
+    const selected = choicesMapping.find((c) => c.label === label)
+    if (selected) {
+      setHomeTimeframe(selected.value) // Saves 1, 2, 3... (Number), not Arabic text
+    }
   }
 
   return (
@@ -155,30 +171,33 @@ export default function PendingTransactionsPreferencesScreen() {
           color={styles.infoIconColor.color}
         />
         <Text style={styles.infoText}>
-          Pending transactions will not be counted towards income, expenses, and
-          account balance.
+          {t("pending_transaction_screen.caption_text")}
         </Text>
       </View>
 
       <ChoiceChips
-        title="Show on home"
-        choices={SHOW_ON_HOME_CHOICES}
-        selectedValue={showOnHomeValue}
+        title={t("pending_transaction_screen.choice_chips_title")}
+        // choices={SHOW_ON_HOME_CHOICES}
+        choices={choiceLabels}
+        // selectedValue={showOnHomeValue}
+        selectedValue={selectedLabel}
         onSelect={handleShowOnHomeSelect}
         style={styles.choiceSection}
       />
 
       <ToggleRow
-        title="Require confirmation"
-        description="When on, new planned transactions need your approval before they count. Existing transactions keep their original mode."
+        title={t("pending_transaction_screen.require_toggle.label")}
+        description={t("pending_transaction_screen.require_toggle.description")}
         value={requireConfirmation}
         onToggle={() => setRequireConfirmation(!requireConfirmation)}
       />
 
       {requireConfirmation && (
         <ToggleRow
-          title="Update date on confirm"
-          description="Disable to retain original transaction date."
+          title={t("pending_transaction_screen.update_confirm_toggle.label")}
+          description={t(
+            "pending_transaction_screen.update_confirm_toggle.description",
+          )}
           value={updateDateUponConfirmation}
           onToggle={() =>
             setUpdateDateUponConfirmation(!updateDateUponConfirmation)

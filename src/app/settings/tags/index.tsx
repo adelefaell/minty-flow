@@ -1,6 +1,7 @@
 import { withObservables } from "@nozbe/watermelondb/react"
 import { useRouter } from "expo-router"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -21,6 +22,7 @@ interface TagsScreenInnerProps {
 const TagsScreenInner = ({ tags }: TagsScreenInnerProps) => {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
+  const { t } = useTranslation()
 
   const filteredModels = tags.filter((model) => {
     if (!searchQuery.trim()) return true
@@ -38,7 +40,7 @@ const TagsScreenInner = ({ tags }: TagsScreenInnerProps) => {
     <View style={styles.container}>
       <View style={styles.searchContainer}>
         <SearchInput
-          placeholder="Search tags..."
+          placeholder={t("tags_screen.search_placeholder")}
           value={searchQuery}
           onChangeText={setSearchQuery}
           onClear={() => setSearchQuery("")}
@@ -53,7 +55,7 @@ const TagsScreenInner = ({ tags }: TagsScreenInnerProps) => {
         <Pressable style={styles.newTagButton} onPress={handleAddTag}>
           <IconSymbol name="plus" size={24} />
           <Text variant="default" style={styles.newTagText}>
-            New tag
+            {t("tags_screen.label.new_tag")}
           </Text>
         </Pressable>
 

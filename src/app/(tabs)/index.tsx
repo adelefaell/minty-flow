@@ -1,6 +1,7 @@
 import { withObservables } from "@nozbe/watermelondb/react"
 import { useRouter } from "expo-router"
 import { useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 import { startWith } from "rxjs"
 
@@ -83,6 +84,7 @@ function HomeScreenInner({
     }),
     [categoriesExpense, categoriesIncome, categoriesTransfer],
   )
+  const { t } = useTranslation()
 
   const filteredList = useMemo(() => transactionsFull ?? [], [transactionsFull])
 
@@ -116,7 +118,7 @@ function HomeScreenInner({
             <IconSymbol name="account" size={24} />
           )}
           <Text variant="large" style={styles.greetingText}>
-            Hi, {profileName}!
+            {t("index_homepage_screen.hi")}, {profileName}!
           </Text>
         </Pressable>
 

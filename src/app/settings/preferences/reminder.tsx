@@ -4,6 +4,7 @@ import DateTimePicker, {
 } from "@react-native-community/datetimepicker"
 import * as Notifications from "expo-notifications"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Linking, Platform, ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -38,6 +39,8 @@ export default function ReminderScreen() {
     setDailyReminderEnabled,
     setDailyReminderTime,
   } = useNotificationStore()
+
+  const { t } = useTranslation()
 
   const dailyReminderDate = (() => {
     const [hours, minutes] = dailyReminderTime.split(":").map(Number)
@@ -146,7 +149,7 @@ export default function ReminderScreen() {
                 style={styles.grantPermissionIcon}
               />
               <Text variant="default" style={styles.grantPermissionText}>
-                Notifications permission not granted
+                {t("system.components.PermissionWarnings.text")}
               </Text>
               <IconSymbol
                 name="open-in-new"
@@ -164,10 +167,10 @@ export default function ReminderScreen() {
       >
         <View style={styles.labelContainer}>
           <Text variant="p" style={styles.settingLabel}>
-            Remind daily
+            {t("reminder_screen.remind_daily_toggle.label")}
           </Text>
           <Text variant="small" style={styles.settingLabelDescription}>
-            Remind me to log my transactions
+            {t("reminder_screen.remind_daily_toggle.description")}
           </Text>
         </View>
         <Switch
@@ -178,7 +181,9 @@ export default function ReminderScreen() {
 
       {isDailyReminderEnabled && (
         <View style={styles.section}>
-          <Text style={styles.headerLabel}>Remind me at</Text>
+          <Text style={styles.headerLabel}>
+            {t("reminder_screen.remind_me_at_time_picker.label")}
+          </Text>
 
           {/* The Main Time Card */}
           <Pressable style={styles.timeCard} onPress={showTimePicker}>
@@ -205,8 +210,7 @@ export default function ReminderScreen() {
               style={styles.footerIcon}
             />
             <Text style={styles.footerText}>
-              Reminders will stop if you don't open the app for 7 consecutive
-              days
+              {t("reminder_screen.footer_caption")}
             </Text>
           </View>
 

@@ -1,4 +1,5 @@
 import { useRouter } from "expo-router"
+import { useTranslation } from "react-i18next"
 import { StyleSheet } from "react-native-unistyles"
 
 import { IconSymbol } from "~/components/ui/icon-symbol"
@@ -27,6 +28,7 @@ export const AccountCard = ({
   isReorderMode,
 }: AccountCardProps) => {
   const router = useRouter()
+  const { t } = useTranslation()
 
   const handleViewAccount = () => {
     if (!isReorderMode) {
@@ -67,12 +69,15 @@ export const AccountCard = ({
           </View>
           <View style={styles.accountTypeRow} variant="muted">
             <Text variant="small" style={styles.accountType}>
-              {account.type}
+              {/* {account.type} */}
+              {t(`system.types.account_types.${account.type}`)}
             </Text>
             {account.isPrimary && (
               <View style={styles.primaryBadge}>
                 <IconSymbol name="star" size={12} />
-                <Text style={styles.primaryBadgeText}>Primary</Text>
+                <Text style={styles.primaryBadgeText}>
+                  {t("system.components.AccountCard.primary")}
+                </Text>
               </View>
             )}
           </View>
@@ -89,7 +94,7 @@ export const AccountCard = ({
       {!isArchived && (
         <View variant="muted" style={styles.monthlySummary}>
           <Text variant="small" style={styles.summaryLabel}>
-            THIS MONTH
+            {t("system.components.AccountCard.this_month")}
           </Text>
           <View variant="muted" style={styles.summaryRow}>
             <View variant="muted" style={styles.summaryItem}>
@@ -99,7 +104,9 @@ export const AccountCard = ({
                   size={12}
                   color={styles.incomeColor.color}
                 />
-                <Text style={styles.summaryItemLabel}>IN</Text>
+                <Text style={styles.summaryItemLabel}>
+                  {t("system.components.AccountCard.in")}
+                </Text>
               </View>
 
               <Money
@@ -117,7 +124,9 @@ export const AccountCard = ({
                   size={12}
                   color={styles.expenseColor.color}
                 />
-                <Text style={styles.summaryItemLabel}>OUT</Text>
+                <Text style={styles.summaryItemLabel}>
+                  {t("system.components.AccountCard.out")}
+                </Text>
               </View>
 
               <Money
@@ -136,7 +145,9 @@ export const AccountCard = ({
                   size={12}
                   color={styles.semiColor.color}
                 />
-                <Text style={styles.summaryItemLabel}>NET</Text>
+                <Text style={styles.summaryItemLabel}>
+                  {t("system.components.AccountCard.net")}
+                </Text>
               </View>
 
               <Money

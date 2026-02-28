@@ -1,6 +1,7 @@
 import { withObservables } from "@nozbe/watermelondb/react"
 import { useFocusEffect, useRouter } from "expo-router"
 import { useCallback } from "react"
+import { useTranslation } from "react-i18next"
 import { FlatList } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -42,6 +43,8 @@ function CategoryListHeader({
   onAddCategory,
   onAddFromPresets,
 }: CategoryListHeaderProps) {
+  const { t } = useTranslation()
+
   return (
     <>
       <View style={styles.headerContainer}>
@@ -53,7 +56,7 @@ function CategoryListHeader({
         >
           <IconSymbol name="plus" size={20} />
           <Text variant="default" style={styles.headerButtonText}>
-            Add New Category
+            {t("system.components.CategoryListHeader.add_new_category")}
           </Text>
         </Button>
         <Button
@@ -64,7 +67,7 @@ function CategoryListHeader({
         >
           <IconSymbol name="shape-plus" size={20} />
           <Text variant="default" style={styles.headerButtonText}>
-            Add From Presets
+            {t("system.components.CategoryListHeader.add_from_presets")}
           </Text>
         </Button>
       </View>
