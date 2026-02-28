@@ -778,18 +778,18 @@ export function TransactionFormV3({
     try {
       await destroyTransactionModel(transaction)
       Toast.success({
-        title: "Deleted",
-        description: "Transaction permanently removed.",
+        title: t("components.transactionForm.toast.deleted"),
+        description: t("components.transactionForm.toast.deletedDescription"),
       })
       allowNavigation()
       router.back()
     } catch {
       Toast.error({
-        title: "Error",
-        description: "Failed to delete transaction.",
+        title: t("components.transactionForm.toast.error"),
+        description: t("components.transactionForm.toast.deleteFailed"),
       })
     }
-  }, [transaction, router, allowNavigation])
+  }, [transaction, router, allowNavigation, t])
 
   const addTag = useCallback(
     (tagId: string) => {
@@ -1311,7 +1311,7 @@ export function TransactionFormV3({
               <View style={styles.fieldBlock}>
                 <View style={styles.sectionLabelRow}>
                   <Text variant="small" style={styles.sectionLabelInRow}>
-                    Transaction date
+                    {t("components.transactionForm.fields.transactionDate")}
                   </Text>
                   <Pressable
                     onPress={() => {
@@ -1464,7 +1464,7 @@ export function TransactionFormV3({
           {/* File attachments (extra) */}
           <View style={styles.fieldBlock}>
             <Text variant="small" style={styles.sectionLabel}>
-              File attachments
+              {t("components.transactionForm.fields.fileAttachments")}
             </Text>
 
             {attachments.length > 0 && (
@@ -2000,7 +2000,11 @@ export function TransactionFormV3({
               style={styles.saveSpinner}
             />
           ) : (
-            <Text style={styles.saveText}>{isNew ? "Create" : "Save"}</Text>
+            <Text style={styles.saveText}>
+              {isNew
+                ? t("components.transactionForm.create")
+                : t("components.transactionForm.save")}
+            </Text>
           )}
         </Button>
       </View>
@@ -2040,7 +2044,7 @@ export function TransactionFormV3({
                     { color: theme.colors.onSurface },
                   ]}
                 >
-                  Cancel
+                  {t("components.transactionForm.datePicker.cancel")}
                 </Text>
               </Pressable>
               <Pressable onPress={confirmIosDate} style={styles.datePickerDone}>
@@ -2050,7 +2054,9 @@ export function TransactionFormV3({
                     { color: theme.colors.primary },
                   ]}
                 >
-                  {datePickerMode === "date" ? "Next" : "Done"}
+                  {datePickerMode === "date"
+                    ? t("components.transactionForm.datePicker.next")
+                    : t("components.transactionForm.datePicker.done")}
                 </Text>
               </Pressable>
             </View>
@@ -2085,10 +2091,14 @@ export function TransactionFormV3({
             setFileToOpen(null)
           }
         }}
-        title={`Open ${fileToOpen?.name ?? "file"}?`}
-        description="Are you sure you want to open this file?"
-        confirmLabel="Confirm"
-        cancelLabel="Cancel"
+        title={t("components.transactionForm.openFile.title", {
+          name:
+            fileToOpen?.name ??
+            t("components.transactionForm.attachments.openFileModal"),
+        })}
+        description={t("components.transactionForm.openFile.description")}
+        confirmLabel={t("common.actions.confirm")}
+        cancelLabel={t("common.actions.cancel")}
       />
 
       <ConfirmModal
@@ -2100,10 +2110,12 @@ export function TransactionFormV3({
             setAttachmentToRemove(null)
           }
         }}
-        title="Delete file"
-        description="Are you sure you want to remove this attachment?"
-        confirmLabel="Delete"
-        cancelLabel="Cancel"
+        title={t("components.transactionForm.removeAttachment.title")}
+        description={t(
+          "components.transactionForm.removeAttachment.description",
+        )}
+        confirmLabel={t("common.actions.delete")}
+        cancelLabel={t("common.actions.cancel")}
         variant="destructive"
       />
       <ConfirmModal
@@ -2115,8 +2127,8 @@ export function TransactionFormV3({
           handleGoBack()
         }}
         title={t("common.modals.closeWithoutSaving")}
-        description="All changes will be lost."
-        confirmLabel="Discard"
+        description={t("common.form.unsavedDescription")}
+        confirmLabel={t("common.form.discard")}
         cancelLabel={t("common.actions.cancel")}
         variant="default"
       />
@@ -2126,8 +2138,8 @@ export function TransactionFormV3({
         onRequestClose={() => setDestroyModalVisible(false)}
         onConfirm={handleDestroyConfirm}
         title={t("common.modals.deletePermanently")}
-        description="This transaction will be removed forever and cannot be restored."
-        confirmLabel="Delete"
+        description={t("components.transactionForm.destroyModal.description")}
+        confirmLabel={t("common.actions.delete")}
         cancelLabel={t("common.actions.cancel")}
         variant="destructive"
         icon="trash-can"

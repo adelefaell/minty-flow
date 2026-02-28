@@ -110,8 +110,8 @@ export function CategoryModifyContent({
       } else {
         if (!categoryModel) {
           Toast.error({
-            title: "Error",
-            description: "Category not found",
+            title: t("components.categories.form.toast.error"),
+            description: t("components.categories.form.toast.notFound"),
           })
           setIsSubmitting(false)
           return
@@ -130,8 +130,10 @@ export function CategoryModifyContent({
     } catch (error) {
       logger.error("Error saving category", { error })
       Toast.error({
-        title: "Error",
-        description: `Failed to ${isAddMode ? "create" : "update"} category. Please try again.`,
+        title: t("components.categories.form.toast.error"),
+        description: isAddMode
+          ? t("components.categories.form.toast.createFailed")
+          : t("components.categories.form.toast.updateFailed"),
       })
     }
     setIsSubmitting(false)
@@ -143,16 +145,19 @@ export function CategoryModifyContent({
     try {
       if (!categoryModel || !category) {
         Toast.error({
-          title: "Error",
-          description: "Category not found",
+          title: t("components.categories.form.toast.error"),
+          description: t("components.categories.form.toast.notFound"),
         })
         return
       }
 
       if (category.transactionCount > 0) {
         Toast.error({
-          title: "Cannot delete category",
-          description: `This category has ${category.transactionCount} transaction${category.transactionCount !== 1 ? "s" : ""}. Please remove or reassign all transactions before deleting.`,
+          title: t("components.categories.form.toast.cannotDelete"),
+          description: t(
+            "components.categories.form.toast.cannotDeleteDescription",
+            { count: category.transactionCount },
+          ),
         })
         return
       }
@@ -166,8 +171,8 @@ export function CategoryModifyContent({
     } catch (error) {
       logger.error("Error deleting category", { error })
       Toast.error({
-        title: "Error",
-        description: "Failed to delete category. Please try again.",
+        title: t("components.categories.form.toast.error"),
+        description: t("components.categories.form.toast.deleteFailed"),
       })
     }
   }
@@ -190,7 +195,9 @@ export function CategoryModifyContent({
     return (
       <View style={categoryModifyStyles.container}>
         <View style={categoryModifyStyles.loadingContainer}>
-          <Text variant="default">Loading category...</Text>
+          <Text variant="default">
+            {t("components.categories.form.loadingText")}
+          </Text>
         </View>
       </View>
     )
@@ -214,7 +221,7 @@ export function CategoryModifyContent({
 
           <View style={categoryModifyStyles.nameSection}>
             <Text variant="small" style={categoryModifyStyles.label}>
-              Category name
+              {t("components.categories.form.nameLabel")}
             </Text>
             <Controller
               control={control}
@@ -272,7 +279,7 @@ export function CategoryModifyContent({
                         variant="default"
                         style={categoryModifyStyles.switchLabel}
                       >
-                        Archive category
+                        {t("components.categories.form.archiveLabel")}
                       </Text>
                     </View>
 
@@ -301,7 +308,7 @@ export function CategoryModifyContent({
                 style={categoryModifyStyles.deleteIcon}
               />
               <Text variant="default" style={categoryModifyStyles.deleteText}>
-                Permanently delete
+                {t("components.categories.form.deleteLabel")}
               </Text>
             </Button>
           </View>
@@ -315,7 +322,7 @@ export function CategoryModifyContent({
           style={categoryModifyStyles.button}
         >
           <Text variant="default" style={categoryModifyStyles.cancelText}>
-            Cancel
+            {t("common.actions.cancel")}
           </Text>
         </Button>
         <Button
@@ -327,7 +334,11 @@ export function CategoryModifyContent({
           }
         >
           <Text variant="default" style={categoryModifyStyles.saveText}>
-            {isSubmitting ? "Saving..." : isAddMode ? "Create" : "Save Changes"}
+            {isSubmitting
+              ? t("common.form.saving")
+              : isAddMode
+                ? t("common.form.create")
+                : t("common.form.saveChanges")}
           </Text>
         </Button>
       </View>
@@ -337,14 +348,19 @@ export function CategoryModifyContent({
           visible={deleteModalVisible}
           onRequestClose={() => setDeleteModalVisible(false)}
           onConfirm={handleDelete}
-          title={`Delete ${category.name}?`}
+          title={t("components.categories.form.deleteModal.title", {
+            name: category.name,
+          })}
           description={
             category.transactionCount > 0
-              ? `This category is used by ${category.transactionCount} transaction${category.transactionCount !== 1 ? "s" : ""}. Deleting will unlink ${category.transactionCount === 1 ? "it" : "them"}. This cannot be undone.`
-              : "Deleting this category cannot be undone."
+              ? t(
+                  "components.categories.form.deleteModal.descriptionWithCount",
+                  { count: category.transactionCount },
+                )
+              : t("components.categories.form.deleteModal.descriptionEmpty")
           }
-          confirmLabel="Delete"
-          cancelLabel="Cancel"
+          confirmLabel={t("common.actions.delete")}
+          cancelLabel={t("common.actions.cancel")}
           variant="destructive"
           icon="trash-can"
         />
@@ -358,8 +374,8 @@ export function CategoryModifyContent({
           confirmNavigation()
         }}
         title={t("common.modals.closeWithoutSaving")}
-        description="All changes will be lost."
-        confirmLabel="Discard"
+        description={t("common.form.unsavedDescription")}
+        confirmLabel={t("common.form.discard")}
         cancelLabel={t("common.actions.cancel")}
         variant="default"
       />

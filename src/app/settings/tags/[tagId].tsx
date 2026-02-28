@@ -101,7 +101,7 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
       } else {
         if (!tagModel) {
           Toast.error({
-            title: "Error",
+            title: t("screens.settings.tags.form.toast.error"),
             description: t("screens.settings.tags.toast.notFound"),
           })
           return
@@ -118,8 +118,10 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
     } catch (error) {
       logger.error("Error saving tag", { error })
       Toast.error({
-        title: "Error",
-        description: `Failed to ${isAddMode ? "create" : "update"} tag.`,
+        title: t("screens.settings.tags.form.toast.error"),
+        description: isAddMode
+          ? t("screens.settings.tags.form.toast.createFailed")
+          : t("screens.settings.tags.form.toast.updateFailed"),
       })
     }
     setIsSubmitting(false)
@@ -134,7 +136,10 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
       router.back()
     } catch (error) {
       logger.error("Error deleting tag", { error })
-      Toast.error({ title: "Error", description: "Failed to delete tag." })
+      Toast.error({
+        title: t("screens.settings.tags.form.toast.error"),
+        description: t("screens.settings.tags.form.toast.deleteFailed"),
+      })
     }
   }
 
@@ -144,7 +149,9 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
     return (
       <View style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Text variant="default">Loading tag...</Text>
+          <Text variant="default">
+            {t("screens.settings.tags.form.loadingText")}
+          </Text>
         </View>
       </View>
     )
@@ -159,11 +166,19 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
         {/* Type selector (Tabs) */}
         <TabsMinty<TagKindType>
           items={[
-            { value: TagKindEnum.GENERIC, label: "Generic", icon: "tag" },
-            { value: TagKindEnum.LOCATION, label: "Location", icon: "map" },
+            {
+              value: TagKindEnum.GENERIC,
+              label: t("screens.settings.tags.form.tabs.generic"),
+              icon: "tag",
+            },
+            {
+              value: TagKindEnum.LOCATION,
+              label: t("screens.settings.tags.form.tabs.location"),
+              icon: "map",
+            },
             {
               value: TagKindEnum.CONTACT,
-              label: "Person",
+              label: t("screens.settings.tags.form.tabs.contact"),
               icon: "account",
             },
           ]}
@@ -177,8 +192,12 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
 
         {formType === "location" ? (
           <View style={styles.comingSoon}>
-            <Text variant="h4">Coming soon</Text>
-            <Text variant="muted">Location tags are being developed.</Text>
+            <Text variant="h4">
+              {t("screens.settings.tags.form.locationComingSoon.title")}
+            </Text>
+            <Text variant="muted">
+              {t("screens.settings.tags.form.locationComingSoon.description")}
+            </Text>
           </View>
         ) : (
           <View style={styles.form} key={tag?.id || NewEnum.NEW}>
@@ -194,7 +213,9 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
             {/* Name Section */}
             <View style={styles.nameSection}>
               <Text variant="small" style={styles.label}>
-                {formType === "contact" ? "Contact name" : "Tag name"}
+                {formType === "contact"
+                  ? t("screens.settings.tags.form.nameLabelContact")
+                  : t("screens.settings.tags.form.nameLabelGeneric")}
               </Text>
               <Controller
                 control={control}
@@ -205,7 +226,9 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
                     onChangeText={onChange}
                     onBlur={onBlur}
                     placeholder={
-                      formType === "contact" ? "John Doe" : "Work, Shopping..."
+                      formType === "contact"
+                        ? t("screens.settings.tags.form.placeholderContact")
+                        : t("screens.settings.tags.form.placeholderGeneric")
                     }
                     error={!!errors.name}
                     editable={true}
@@ -272,7 +295,7 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
                 style={styles.deleteIcon}
               />
               <Text variant="default" style={styles.deleteText}>
-                Permanently delete
+                {t("screens.settings.tags.form.deleteLabel")}
               </Text>
             </Button>
           </View>
@@ -287,7 +310,7 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
           style={styles.button}
         >
           <Text variant="default" style={styles.cancelText}>
-            Cancel
+            {t("common.actions.cancel")}
           </Text>
         </Button>
         <Button
@@ -299,7 +322,11 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
           }
         >
           <Text variant="default" style={styles.saveText}>
-            {isSubmitting ? "Saving..." : isAddMode ? "Create" : "Save Changes"}
+            {isSubmitting
+              ? t("common.form.saving")
+              : isAddMode
+                ? t("common.form.create")
+                : t("common.form.saveChanges")}
           </Text>
         </Button>
       </View>
@@ -310,14 +337,19 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
           visible={deleteModalVisible}
           onRequestClose={() => setDeleteModalVisible(false)}
           onConfirm={handleDelete}
-          title={`Permanently delete ${tag.name}?`}
+          title={t("screens.settings.tags.form.deleteModal.title", {
+            name: tag.name,
+          })}
           description={
             (tag.transactionCount ?? 0) > 0
-              ? `This tag is used by ${tag.transactionCount} transaction${tag.transactionCount !== 1 ? "s" : ""}. Permanently deleting the tag will unlink it from all of them and remove it permanently. This cannot be undone.`
-              : "Permanently deleting this tag cannot be undone."
+              ? t(
+                  "screens.settings.tags.form.deleteModal.descriptionWithCount",
+                  { count: tag.transactionCount ?? 0 },
+                )
+              : t("screens.settings.tags.form.deleteModal.descriptionEmpty")
           }
-          confirmLabel="Delete"
-          cancelLabel="Cancel"
+          confirmLabel={t("common.actions.delete")}
+          cancelLabel={t("common.actions.cancel")}
           variant="destructive"
           icon="trash-can"
         />
@@ -331,8 +363,8 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
           confirmNavigation()
         }}
         title={t("common.modals.closeWithoutSaving")}
-        description="All changes will be lost."
-        confirmLabel="Discard"
+        description={t("common.form.unsavedDescription")}
+        confirmLabel={t("common.form.discard")}
         cancelLabel={t("common.actions.cancel")}
         variant="default"
       />
