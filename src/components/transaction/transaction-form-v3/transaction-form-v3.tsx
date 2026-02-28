@@ -15,6 +15,7 @@ import DateTimePicker, {
 } from "@react-native-community/datetimepicker"
 import * as DocumentPicker from "expo-document-picker"
 import * as ImagePicker from "expo-image-picker"
+import * as Location from "expo-location"
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router"
 import {
   useCallback,
@@ -27,6 +28,7 @@ import {
 import { Controller, type Resolver, useForm } from "react-hook-form"
 import {
   ActivityIndicator,
+  Linking,
   Modal,
   Platform,
   ScrollView,
@@ -79,12 +81,14 @@ import {
 import { exchangeRatesService } from "~/services"
 import { useExchangeRatesPreferencesStore } from "~/stores/exchange-rates-preferences.store"
 import { usePendingTransactionsStore } from "~/stores/pending-transactions.store"
+import { useTransactionLocationStore } from "~/stores/transaction-location.store"
 import { getThemeStrict } from "~/styles/theme/registry"
 import { NewEnum } from "~/types/new"
 import type {
   RecurringEndType,
   RecurringFrequency,
   TransactionAttachment,
+  TransactionLocation,
 } from "~/types/transactions"
 import {
   getFileExtension,
@@ -130,6 +134,7 @@ export function TransactionFormV3({
   const requireConfirmation = usePendingTransactionsStore(
     (s) => s.requireConfirmation,
   )
+  const { isEnabled: locationEnabled } = useTransactionLocationStore()
 
   const [unsavedModalVisible, setUnsavedModalVisible] = useState(false)
   const [editRecurringModalVisible, setEditRecurringModalVisible] =
@@ -175,6 +180,18 @@ export function TransactionFormV3({
   const date = watch("transactionDate")
   const description = watch("description")
   const tagIds = watch("tags")
+  const locationString = watch("location")
+  const location: TransactionLocation | null =
+    locationString != null && locationString !== ""
+      ? (() => {
+          try {
+            return JSON.parse(locationString) as TransactionLocation
+          } catch {
+            return null
+          }
+        })()
+      : null
+  const [isCapturingLocation, setIsCapturingLocation] = useState(false)
 
   const [isSaving, setIsSaving] = useState(false)
   const { allowNavigation } = useNavigationGuard({
@@ -598,7 +615,7 @@ export function TransactionFormV3({
         isPending: effectiveIsPending,
         requiresManualConfirmation,
         tags: data.tags ?? [],
-        location: undefined as string | undefined,
+        location: data.location,
         extra: Object.keys(builtExtra).length > 0 ? builtExtra : undefined,
         subtype: transaction?.subtype ?? undefined,
       }
@@ -852,6 +869,50 @@ export function TransactionFormV3({
       })
     }
   }, [addAttachment])
+
+  const handleAttachLocation = useCallback(async () => {
+    if (location != null) return
+    try {
+      const { status } = await Location.getForegroundPermissionsAsync()
+
+      if (status === Location.PermissionStatus.UNDETERMINED) {
+        const { status: requested } =
+          await Location.requestForegroundPermissionsAsync()
+        if (requested !== Location.PermissionStatus.GRANTED) {
+          Toast.error({
+            title: "Permission required",
+            description: "Location access is needed to attach location.",
+          })
+          return
+        }
+      } else if (status === Location.PermissionStatus.DENIED) {
+        Toast.info({
+          title: "Location permission denied",
+          description: "Enable location access in your device settings.",
+        })
+        await Linking.openSettings()
+        return
+      }
+
+      setIsCapturingLocation(true)
+      const position = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      })
+      const loc: TransactionLocation = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      }
+      setValue("location", JSON.stringify(loc), { shouldDirty: true })
+    } catch {
+      Toast.error({ title: "Could not get location" })
+    } finally {
+      setIsCapturingLocation(false)
+    }
+  }, [location, setValue])
+
+  const handleClearLocation = useCallback(() => {
+    setValue("location", undefined, { shouldDirty: true })
+  }, [setValue])
 
   const handleSelectSinglePhoto = useCallback(async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
@@ -1728,25 +1789,60 @@ export function TransactionFormV3({
             )}
           </View>
 
-          {/* Location — coming soon */}
-          <View style={styles.fieldBlock}>
-            <View style={styles.comingSoonRow}>
-              <View style={styles.switchLeft}>
+          {locationEnabled && (
+            <View style={styles.fieldBlock}>
+              <Text variant="small" style={styles.sectionLabel}>
+                Location
+              </Text>
+              <Pressable
+                style={styles.inlineDateRow}
+                onPress={location ? undefined : handleAttachLocation}
+                disabled={isCapturingLocation}
+              >
                 <DynamicIcon
                   icon="map-marker"
                   size={20}
                   color={theme.colors.primary}
                   variant="badge"
                 />
-                <Text variant="default" style={styles.switchLabel}>
-                  Location
+                <Text
+                  variant="default"
+                  style={
+                    location ? styles.inlineDateText : styles.fieldPlaceholder
+                  }
+                  numberOfLines={1}
+                >
+                  {location
+                    ? (location.address ??
+                      `${location.latitude.toFixed(5)}, ${location.longitude.toFixed(5)}`)
+                    : isCapturingLocation
+                      ? "Getting location..."
+                      : "Tap to attach location"}
                 </Text>
-              </View>
-              <View style={styles.comingSoonBadge}>
-                <Text style={styles.comingSoonBadgeText}>Coming soon</Text>
-              </View>
+                {location ? (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    style={styles.locationClearBtn}
+                    onPress={handleClearLocation}
+                    accessibilityLabel="Clear location"
+                    hitSlop={8}
+                  >
+                    <IconSymbol name="close" size={20} />
+                  </Button>
+                ) : (
+                  <IconSymbol
+                    name="chevron-right"
+                    size={20}
+                    style={[
+                      styles.chevronIcon,
+                      { color: theme.colors.primary },
+                    ]}
+                  />
+                )}
+              </Pressable>
             </View>
-          </View>
+          )}
 
           {!isNew && transaction && (
             <View style={styles.deleteButtonBlock}>

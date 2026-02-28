@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-02-26T17:42:34.423Z
+Generated on: 2026-02-27T16:53:29.321Z
 
 ```
 ./
@@ -233,6 +233,7 @@ Generated on: 2026-02-26T17:42:34.423Z
 │   │   │   ├── 📄 icon-symbol.ios.tsx.md
 │   │   │   ├── 📄 icon-symbol.tsx
 │   │   │   ├── 📄 input.tsx
+│   │   │   ├── 📄 permission-banner.tsx
 │   │   │   ├── 📄 pressable.tsx
 │   │   │   ├── 📄 separator.tsx
 │   │   │   ├── 📄 switch.tsx
@@ -309,6 +310,7 @@ Generated on: 2026-02-26T17:42:34.423Z
 │   │   ├── 📄 use-balance-before.ts
 │   │   ├── 📄 use-boolean.ts
 │   │   ├── 📄 use-color-scheme.ts
+│   │   ├── 📄 use-location-permission-status.ts
 │   │   ├── 📄 use-navigation-guard.ts
 │   │   ├── 📄 use-notification-permission-status.ts
 │   │   ├── 📄 use-recurring-rule.ts
@@ -341,6 +343,7 @@ Generated on: 2026-02-26T17:42:34.423Z
 │   │   ├── 📄 toast-style.store.ts
 │   │   ├── 📄 toast.store.ts
 │   │   ├── 📄 transaction-item-appearance.store.ts
+│   │   ├── 📄 transaction-location.store.ts
 │   │   ├── 📄 transaction-sheet-controls.store.ts
 │   │   ├── 📄 transfers-preferences.store.ts
 │   │   ├── 📄 trash-bin.store.ts
