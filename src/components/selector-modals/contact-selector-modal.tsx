@@ -7,6 +7,7 @@
 import type { Contact } from "expo-contacts"
 import * as Contacts from "expo-contacts"
 import { Suspense, use, useCallback, useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { ActivityIndicator, FlatList, Modal, View } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { StyleSheet } from "react-native-unistyles"
@@ -206,6 +207,7 @@ export function ContactSelectorModal({
   onPermissionDenied,
   editable = true,
 }: ContactSelectorModalProps) {
+  const { t } = useTranslation()
   const [visible, setVisible] = useState(false)
   const [contactsPromise, setContactsPromise] = useState<Promise<{
     contacts: Contacts.Contact[]
@@ -289,7 +291,7 @@ export function ContactSelectorModal({
               value={searchQuery}
               onChangeText={setSearchQuery}
               onClear={() => setSearchQuery("")}
-              placeholder="Search contacts..."
+              placeholder={t("selectors.contacts.searchPlaceholder")}
             />
           </View>
           <View style={modalStyles.listWrapper}>

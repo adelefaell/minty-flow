@@ -2,6 +2,7 @@ import { Image } from "expo-image"
 import * as ImagePicker from "expo-image-picker"
 import { useRouter } from "expo-router"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -18,6 +19,7 @@ import { Toast } from "~/utils/toast"
 
 export default function EditProfileScreen() {
   const router = useRouter()
+  const { t } = useTranslation()
   const { name, imageUri, setName, setImageUri } = useProfileStore()
 
   const [localName, setLocalName] = useState(() => name)
@@ -33,8 +35,8 @@ export default function EditProfileScreen() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
     if (status !== "granted") {
       Toast.warn({
-        title: "Permission Required",
-        description: "We need access to your photos to set a profile picture.",
+        title: t("profile.edit.permission.title"),
+        description: t("profile.edit.permission.description"),
       })
       return
     }
@@ -88,7 +90,9 @@ export default function EditProfileScreen() {
           </Pressable>
           {localImageUri && (
             <Pressable onPress={handleRemoveImage} style={styles.removeButton}>
-              <Text style={styles.removeButtonText}>Remove Photo</Text>
+              <Text style={styles.removeButtonText}>
+                {t("profile.edit.removePhoto")}
+              </Text>
             </Pressable>
           )}
         </View>
@@ -96,12 +100,12 @@ export default function EditProfileScreen() {
         {/* Name Input Section */}
         <View style={styles.inputSection}>
           <Text variant="small" style={styles.label}>
-            Name
+            {t("profile.edit.nameLabel")}
           </Text>
           <Input
             value={localName}
             onChangeText={setLocalName}
-            placeholder="Enter your name"
+            placeholder={t("profile.edit.namePlaceholder")}
           />
         </View>
       </ScrollView>
@@ -110,7 +114,7 @@ export default function EditProfileScreen() {
       <KeyboardStickyViewMinty>
         <View style={styles.buttonContainer}>
           <Button onPress={handleSave} style={styles.saveButton}>
-            <Text>Save</Text>
+            <Text>{t("common.actions.save")}</Text>
           </Button>
         </View>
       </KeyboardStickyViewMinty>

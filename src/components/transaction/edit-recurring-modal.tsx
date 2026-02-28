@@ -9,6 +9,7 @@
  */
 
 import { useCallback, useState } from "react"
+import { useTranslation } from "react-i18next"
 import {
   ActivityIndicator,
   Modal,
@@ -106,6 +107,7 @@ export function EditRecurringModal({
   onSaved,
 }: EditRecurringModalProps) {
   const [loadingScope, setLoadingScope] = useState<EditScope | null>(null)
+  const { t } = useTranslation()
   const { width } = useWindowDimensions()
   const maxCardWidth = Math.min(width - 48, 400)
   const { theme } = useUnistyles()
@@ -120,7 +122,9 @@ export function EditRecurringModal({
           case "this": {
             await detachTransactionFromRule(transaction)
             await updateTransactionModel(transaction, pendingPayload)
-            Toast.success({ title: "Transaction updated" })
+            Toast.success({
+              title: t("transactions.toast.editRecurringSuccess"),
+            })
             break
           }
 
@@ -140,7 +144,9 @@ export function EditRecurringModal({
               }),
               updateTransactionModel(transaction, pendingPayload),
             ])
-            Toast.success({ title: "This and future transactions updated" })
+            Toast.success({
+              title: t("transactions.toast.editRecurringFutureSuccess"),
+            })
             break
           }
         }
@@ -152,7 +158,7 @@ export function EditRecurringModal({
           scope,
           error: error instanceof Error ? error.message : String(error),
         })
-        Toast.error({ title: "Failed to save transaction" })
+        Toast.error({ title: t("transactions.toast.editRecurringFailed") })
       }
       setLoadingScope(null)
     },
@@ -163,6 +169,7 @@ export function EditRecurringModal({
       recurringRule,
       onRequestClose,
       onSaved,
+      t,
     ],
   )
 
@@ -178,7 +185,7 @@ export function EditRecurringModal({
       <Pressable
         style={[styles.backdrop, { width }]}
         onPress={onRequestClose}
-        accessibilityLabel="Close"
+        accessibilityLabel={t("accessibility.close")}
         accessibilityRole="button"
       >
         <TouchableWithoutFeedback onPress={() => {}}>
@@ -210,22 +217,28 @@ export function EditRecurringModal({
                   }
                 />
               </View>
-              <Text style={styles.title}>Edit recurring transaction</Text>
+              <Text style={styles.title}>
+                {t("transactions.recurring.editModal.title")}
+              </Text>
               <Text style={styles.subtitle}>
-                Choose how far to apply your changes
+                {t("transactions.recurring.editModal.subtitle")}
               </Text>
             </View>
 
             <View style={styles.optionsCard}>
               <OptionRow
-                label="This transaction"
-                sublabel="Only update this occurrence"
+                label={t("transactions.recurring.editModal.optionThis")}
+                sublabel={t(
+                  "transactions.recurring.editModal.optionThisSublabel",
+                )}
                 onPress={() => handleEdit("this")}
                 loading={loadingScope === "this"}
               />
               <OptionRow
-                label="This and future transactions"
-                sublabel="Update from here onward, keep the past"
+                label={t("transactions.recurring.editModal.optionFuture")}
+                sublabel={t(
+                  "transactions.recurring.editModal.optionFutureSublabel",
+                )}
                 onPress={() => handleEdit("this_and_future")}
                 loading={loadingScope === "this_and_future"}
                 isLast
@@ -240,7 +253,9 @@ export function EditRecurringModal({
               onPress={onRequestClose}
               disabled={!!loadingScope}
             >
-              <Text style={styles.cancelText}>Cancel</Text>
+              <Text style={styles.cancelText}>
+                {t("transactions.recurring.editModal.cancel")}
+              </Text>
             </Pressable>
           </SafeAreaView>
         </TouchableWithoutFeedback>

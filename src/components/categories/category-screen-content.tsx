@@ -5,6 +5,7 @@ import { StyleSheet } from "react-native-unistyles"
 import { SearchInput } from "~/components/search-input"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
+import type { TranslationKey } from "~/i18n/config"
 import { type TransactionType, TransactionTypeEnum } from "~/types/transactions"
 
 import { TabsMinty } from "../tabs-minty"
@@ -43,10 +44,8 @@ export function CategoryScreenContent({
 
   const currentSearchPlaceholder =
     searchPlaceholder ||
-    t("system.components.CategoryScreenContent.search_placeholder", {
-      tab: t(
-        `system.components.CategoryScreenContent.${activeTab.toLowerCase()}`,
-      ),
+    t("categories.search.placeholder", {
+      tab: t(`categories.types.${activeTab.toLowerCase()}` as TranslationKey),
     })
 
   return (
@@ -62,15 +61,15 @@ export function CategoryScreenContent({
         items={[
           {
             value: TransactionTypeEnum.EXPENSE,
-            label: t("system.components.CategoryScreenContent.expense"),
+            label: t("categories.types.expense"),
           },
           {
             value: TransactionTypeEnum.INCOME,
-            label: t("system.components.CategoryScreenContent.income"),
+            label: t("categories.types.income"),
           },
           {
             value: TransactionTypeEnum.TRANSFER,
-            label: t("system.components.CategoryScreenContent.transfer"),
+            label: t("categories.types.transfer"),
           },
         ]}
         activeValue={activeTab}

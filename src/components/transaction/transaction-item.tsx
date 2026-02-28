@@ -1,4 +1,5 @@
 import { useCallback, useRef } from "react"
+import { useTranslation } from "react-i18next"
 import Swipeable, {
   type SwipeableMethods,
 } from "react-native-gesture-handler/ReanimatedSwipeable"
@@ -45,13 +46,16 @@ interface TransactionItemProps {
 function RightAction({
   progress,
   onTrashPress,
-  accessibilityLabel = "Move to trash",
+  accessibilityLabel: accessibilityLabelProp,
 }: {
   progress: SharedValue<number>
   translation: SharedValue<number> // required by Swipeable renderRightActions signature
   onTrashPress: () => void
   accessibilityLabel?: string
 }) {
+  const { t } = useTranslation()
+  const accessibilityLabel =
+    accessibilityLabelProp ?? t("accessibility.moveToTrash")
   const iconStyle = useAnimatedStyle(() => {
     const scale = interpolate(progress.value, [0, 1], [0.5, 1], "clamp")
     const opacity = interpolate(
@@ -114,6 +118,7 @@ export const TransactionItem = ({
   variant = "default",
 }: TransactionItemProps) => {
   const swipeableRef = useRef<SwipeableMethods | null>(null)
+  const { t } = useTranslation()
   const { theme } = useUnistyles()
   const { transaction, account, category, relatedAccount, conversionRate } =
     transactionWithRelations
@@ -322,7 +327,7 @@ export const TransactionItem = ({
             },
           ]}
           onPress={onConfirm}
-          accessibilityLabel="Confirm transaction"
+          accessibilityLabel={t("accessibility.confirmTransaction")}
           accessibilityRole="button"
         >
           <IconSymbol name="check" size={18} color={theme.colors.onError} />

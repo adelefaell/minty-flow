@@ -3,6 +3,7 @@
  */
 
 import { Image } from "expo-image"
+import { useTranslation } from "react-i18next"
 import { Modal } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -43,6 +44,7 @@ export function AttachmentPreviewModal({
   attachment,
   onClose,
 }: AttachmentPreviewModalProps) {
+  const { t } = useTranslation()
   return (
     <Modal
       visible={attachment !== null}
@@ -55,7 +57,7 @@ export function AttachmentPreviewModal({
         <Pressable
           style={styles.previewCloseBtn}
           onPress={onClose}
-          accessibilityLabel="Close preview"
+          accessibilityLabel={t("accessibility.closePreview")}
         >
           <IconSymbol name="close" size={28} color="#fff" />
         </Pressable>

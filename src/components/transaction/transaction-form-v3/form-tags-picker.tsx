@@ -5,6 +5,7 @@
 
 import { useRouter } from "expo-router"
 import { useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { View as RNView, ScrollView } from "react-native"
 import { useUnistyles } from "react-native-unistyles"
 
@@ -41,6 +42,7 @@ export function FormTagsPicker({
   setValue,
 }: FormTagsPickerProps) {
   const router = useRouter()
+  const { t } = useTranslation()
   const { theme } = useUnistyles()
   const { wrapperRef, scrollIntoView } = useScrollIntoView()
   const [tagPickerOpen, setTagPickerOpen] = useState(false)
@@ -84,7 +86,7 @@ export function FormTagsPicker({
             (tagIds ?? []).length === 0 && styles.clearButtonDisabled,
           ]}
           pointerEvents={(tagIds ?? []).length > 0 ? "auto" : "none"}
-          accessibilityLabel="Clear all tags"
+          accessibilityLabel={t("accessibility.clearAllTags")}
           accessibilityState={{
             disabled: (tagIds ?? []).length === 0,
           }}
@@ -104,7 +106,11 @@ export function FormTagsPicker({
           onPress={handleToggle}
           accessible
           accessibilityRole="button"
-          accessibilityLabel={tagPickerOpen ? "Cancel" : "Add tag"}
+          accessibilityLabel={
+            tagPickerOpen
+              ? t("accessibility.cancel")
+              : t("accessibility.addTag")
+          }
         >
           <Text
             variant="default"
@@ -113,7 +119,9 @@ export function FormTagsPicker({
               tagPickerOpen && { color: theme.colors.customColors.semi },
             ]}
           >
-            {tagPickerOpen ? "Cancel" : "Add tag"}
+            {tagPickerOpen
+              ? t("accessibility.cancel")
+              : t("accessibility.addTag")}
           </Text>
           <IconSymbol
             name={tagPickerOpen ? "close" : "plus"}
@@ -128,7 +136,9 @@ export function FormTagsPicker({
             onPress={() => removeTag(tag.id)}
             accessible
             accessibilityRole="button"
-            accessibilityLabel={`Remove ${tag.name} tag`}
+            accessibilityLabel={t("accessibility.removeTag", {
+              name: tag.name,
+            })}
           >
             <DynamicIcon
               icon={tag.icon || "tag"}

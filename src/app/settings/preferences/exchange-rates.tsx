@@ -198,9 +198,7 @@ function ExchangeRatesContent({
                 placeholder="0"
                 error={
                   isInvalidRate
-                    ? t(
-                        "system.components.ExchangeRatesContent.errors.invalid_rate",
-                      )
+                    ? t("exchangeRates.errors.invalidRate")
                     : undefined
                 }
               />
@@ -210,9 +208,7 @@ function ExchangeRatesContent({
                   onPress={() => handleResetToApiRate(item.displayCode)}
                   style={styles.resetButton}
                 >
-                  <Text>
-                    {t("system.components.ExchangeRatesContent.reset")}
-                  </Text>
+                  <Text>{t("common.actions.reset")}</Text>
                 </Button>
                 <Button
                   variant="default"
@@ -220,9 +216,7 @@ function ExchangeRatesContent({
                   style={styles.saveButton}
                   disabled={isInvalidRate}
                 >
-                  <Text>
-                    {t("system.components.ExchangeRatesContent.save")}
-                  </Text>
+                  <Text>{t("common.actions.save")}</Text>
                 </Button>
               </View>
             </View>
@@ -247,7 +241,7 @@ function ExchangeRatesContent({
     <View style={styles.listHeader}>
       <ExternalLink href={EXCHANGE_API_URL} style={styles.apiCard}>
         <View style={styles.apiCardContent}>
-          <Text style={styles.apiTitle}>Exchange Rates API</Text>
+          <Text style={styles.apiTitle}>{t("exchangeRates.apiTitle")}</Text>
           <Text style={styles.apiUrl}>{EXCHANGE_API_URL}</Text>
         </View>
       </ExternalLink>
@@ -255,13 +249,11 @@ function ExchangeRatesContent({
         value={searchQuery}
         onChangeText={(query) => dispatch({ type: "SET_SEARCH", query })}
         onClear={() => dispatch({ type: "SET_SEARCH", query: "" })}
-        placeholder={t(
-          "system.components.ExchangeRatesContent.search_placeholder",
-        )}
+        placeholder={t("exchangeRates.searchPlaceholder")}
         containerStyle={styles.searchRow}
       />
       <Text style={styles.instruction}>
-        {t("system.components.ExchangeRatesContent.instruction_caption")}
+        {t("exchangeRates.instructionCaption")}
       </Text>
       <Text style={styles.baseHeading}>1 USD</Text>
     </View>
@@ -273,7 +265,7 @@ function ExchangeRatesContent({
         <Text style={styles.errorText}>{error}</Text>
         <Pressable style={styles.retryButton} onPress={onRetry}>
           <Text style={styles.retryButtonText}>
-            {t("system.components.ExchangeRatesContent.retry")}
+            {t("common.actions.retry")}
           </Text>
         </Pressable>
       </View>
@@ -320,13 +312,13 @@ export default function ExchangeRatesScreen() {
         <Button
           variant="ghost"
           onPress={() => setInfoModalVisible(true)}
-          accessibilityLabel="Information about exchange rates"
+          accessibilityLabel={t("exchangeRates.a11y.info")}
         >
           <IconSymbol name="information" size={24} />
         </Button>
       ),
     })
-  }, [navigation])
+  }, [navigation, t])
 
   return (
     <>
@@ -334,9 +326,7 @@ export default function ExchangeRatesScreen() {
         fallback={
           <View style={styles.centered}>
             <ActivityIndicator size="large" />
-            <Text style={styles.loadingText}>
-              {t("exchange_rates_screen.loading_text")}
-            </Text>
+            <Text style={styles.loadingText}>{t("exchangeRates.loading")}</Text>
           </View>
         }
       >
@@ -353,9 +343,9 @@ export default function ExchangeRatesScreen() {
       <InfoModal
         visible={infoModalVisible}
         onRequestClose={() => setInfoModalVisible(false)}
-        title={t("exchange_rates_screen.info_modal.title")}
-        description={t("exchange_rates_screen.info_modal.description")}
-        okLabel={t("exchange_rates_screen.info_modal.ok_label")}
+        title={t("exchangeRates.infoModal.title")}
+        description={t("exchangeRates.infoModal.description")}
+        okLabel={t("exchangeRates.infoModal.ok")}
         icon="information"
       />
     </>

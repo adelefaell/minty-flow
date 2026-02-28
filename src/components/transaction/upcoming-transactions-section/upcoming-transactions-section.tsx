@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useUnistyles } from "react-native-unistyles"
 
 import { ConfirmModal } from "~/components/confirm-modal"
@@ -34,6 +35,7 @@ export function UpcomingTransactionsSection({
   transactions,
   onTransactionPress,
 }: UpcomingTransactionsSectionProps) {
+  const { t } = useTranslation()
   const { theme } = useUnistyles()
   const requireConfirmation = usePendingTransactionsStore(
     (s) => s.requireConfirmation,
@@ -124,10 +126,10 @@ export function UpcomingTransactionsSection({
       try {
         await confirmTransactionSync(transactionId, opts)
       } catch {
-        Toast.error({ title: "Failed to confirm" })
+        Toast.error({ title: t("transactions.toast.upcomingConfirmFailed") })
       }
     },
-    [updateDateUponConfirmation],
+    [updateDateUponConfirmation, t],
   )
 
   const handleConfirmAll = useCallback(async () => {
@@ -139,9 +141,9 @@ export function UpcomingTransactionsSection({
     try {
       await Promise.all(ids.map((id) => confirmTransactionSync(id, opts)))
     } catch {
-      Toast.error({ title: "Failed to confirm all" })
+      Toast.error({ title: t("transactions.toast.upcomingConfirmAllFailed") })
     }
-  }, [pending, updateDateUponConfirmation])
+  }, [pending, updateDateUponConfirmation, t])
 
   const openConfirmAllModal = useCallback(
     () => setConfirmAllModalVisible(true),
@@ -177,10 +179,10 @@ export function UpcomingTransactionsSection({
         visible={confirmAllModalVisible}
         onRequestClose={closeConfirmAllModal}
         onConfirm={handleConfirmAll}
-        title="Confirm all?"
-        description="All transactions awaiting confirmation will be confirmed. This cannot be undone."
-        confirmLabel="Confirm all"
-        cancelLabel="Cancel"
+        title={t("accessibility.confirmAllModalTitle")}
+        description={t("accessibility.confirmAllModalDescription")}
+        confirmLabel={t("accessibility.confirmAllButton")}
+        cancelLabel={t("accessibility.cancel")}
         variant="default"
         icon="check-circle"
       />
@@ -205,7 +207,9 @@ export function UpcomingTransactionsSection({
         onPress={() => setCollapsed((c) => !c)}
       >
         <View style={sectionStyles.headerLeft}>
-          <Text style={sectionStyles.headerTitle}>Upcoming</Text>
+          <Text style={sectionStyles.headerTitle}>
+            {t("transactions.upcoming.title")}
+          </Text>
           <View
             style={[
               sectionStyles.countBadge,
@@ -234,7 +238,9 @@ export function UpcomingTransactionsSection({
               onPress={() => setCollapsed(false)}
               style={sectionStyles.seeAllButton}
             >
-              <Text style={sectionStyles.seeAllText}>See all</Text>
+              <Text style={sectionStyles.seeAllText}>
+                {t("transactions.upcoming.seeAll")}
+              </Text>
               <IconSymbol
                 name="chevron-right"
                 size={18}
@@ -262,7 +268,9 @@ export function UpcomingTransactionsSection({
                     { color: theme.colors.customColors.info },
                   ]}
                 >
-                  {recurring.length} recurring
+                  {t("transactions.upcoming.recurringCount", {
+                    count: recurring.length,
+                  })}
                 </Text>
               </View>
             )}
@@ -284,7 +292,9 @@ export function UpcomingTransactionsSection({
                     { color: theme.colors.customColors.warning },
                   ]}
                 >
-                  {pending.length} pending
+                  {t("transactions.upcoming.pendingCount", {
+                    count: pending.length,
+                  })}
                 </Text>
               </View>
             )}
@@ -297,7 +307,9 @@ export function UpcomingTransactionsSection({
           {recurring.length > 0 && (
             <>
               <View style={sectionStyles.subHeader}>
-                <Text style={sectionStyles.subHeaderText}>RECURRING</Text>
+                <Text style={sectionStyles.subHeaderText}>
+                  {t("transactions.upcoming.subHeaderRecurring")}
+                </Text>
               </View>
               {recurring.map((row) => (
                 <TransactionItem
@@ -308,7 +320,9 @@ export function UpcomingTransactionsSection({
                   onConfirm={() => handleConfirm(row.transaction.id)}
                   onBeforeDelete={handleBeforeDelete}
                   onDelete={() => handleDeleteDone(row)}
-                  rightActionAccessibilityLabel="Cancel transaction"
+                  rightActionAccessibilityLabel={t(
+                    "transactions.upcoming.cancelTransactionA11y",
+                  )}
                 />
               ))}
             </>
@@ -317,13 +331,17 @@ export function UpcomingTransactionsSection({
           {pending.length > 0 && (
             <>
               <View style={sectionStyles.subHeader}>
-                <Text style={sectionStyles.subHeaderText}>PENDING</Text>
+                <Text style={sectionStyles.subHeaderText}>
+                  {t("accessibility.pendingHeader")}
+                </Text>
                 {manualConfirmableCount > 1 && (
                   <Button
                     variant="ghost"
                     onPress={openConfirmAllModal}
                     style={sectionStyles.confirmAllButton}
-                    accessibilityLabel="Confirm all transactions"
+                    accessibilityLabel={t(
+                      "accessibility.confirmAllTransactions",
+                    )}
                     accessibilityRole="button"
                   >
                     <IconSymbol
@@ -337,7 +355,7 @@ export function UpcomingTransactionsSection({
                         { color: theme.colors.customColors.success },
                       ]}
                     >
-                      Confirm all
+                      {t("accessibility.confirmAllButton")}
                     </Text>
                   </Button>
                 )}
@@ -351,7 +369,9 @@ export function UpcomingTransactionsSection({
                   onConfirm={() => handleConfirm(row.transaction.id)}
                   onBeforeDelete={handleBeforeDelete}
                   onDelete={() => handleDeleteDone(row)}
-                  rightActionAccessibilityLabel="Cancel transaction"
+                  rightActionAccessibilityLabel={t(
+                    "transactions.upcoming.cancelTransactionA11y",
+                  )}
                 />
               ))}
             </>

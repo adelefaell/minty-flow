@@ -1,36 +1,42 @@
+#!/usr/bin/env node
 
 import fs from "node:fs";
 import path from "node:path";
 
-const ROOT = process.argv[2] || ".";
+const ROOT: string = process.argv[2] || ".";
 const OUTPUT = "STRUCTURE.md";
 
-const IGNORE = new Set([
+const IGNORE: Set<string> = new Set([
   "node_modules",
   ".git",
   ".expo",
   "dist",
   "build",
   "android",
-  "ios"
+  "ios",
 ]);
 
 const MAX_DEPTH = 8; // safety valve
 
-function walk(dir, prefix = "", depth = 0) {
+function walk(
+  dir: string,
+  prefix: string = "",
+  depth: number = 0
+): string {
   if (depth > MAX_DEPTH) return "";
 
-  let entries = fs.readdirSync(dir, { withFileTypes: true })
-    .filter(e => !IGNORE.has(e.name))
-    .sort((a, b) => {
-      // folders first, then alpha
+  const entries: fs.Dirent[] = fs
+    .readdirSync(dir, { withFileTypes: true })
+    .filter((e: fs.Dirent) => !IGNORE.has(e.name))
+    .sort((a: fs.Dirent, b: fs.Dirent) => {
+      // folders first, then alphabetical
       if (a.isDirectory() && !b.isDirectory()) return -1;
       if (!a.isDirectory() && b.isDirectory()) return 1;
       return a.name.localeCompare(b.name);
     });
 
   return entries
-    .map((entry, index) => {
+    .map((entry: fs.Dirent, index: number) => {
       const isLast = index === entries.length - 1;
       const connector = isLast ? "└── " : "├── ";
       const nextPrefix = prefix + (isLast ? "    " : "│   ");
@@ -47,14 +53,15 @@ function walk(dir, prefix = "", depth = 0) {
           "/\n" +
           walk(fullPath, nextPrefix, depth + 1)
         );
-      } else {
-        return prefix + connector + icon + entry.name + "\n";
       }
+
+      return prefix + connector + icon + entry.name + "\n";
     })
     .join("");
 }
 
-const tree = `# Project Structure
+function run(): void {
+  const tree = `# Project Structure
 
 Generated on: ${new Date().toISOString()}
 
@@ -64,9 +71,12 @@ ${walk(ROOT)}
 \`\`\`
 `;
 
-if (fs.existsSync(OUTPUT)) {
-  console.warn("⚠ Overwriting existing STRUCTURE.md");
+  if (fs.existsSync(OUTPUT)) {
+    console.warn("⚠ Overwriting existing STRUCTURE.md");
+  }
+
+  fs.writeFileSync(OUTPUT, tree, "utf8");
+  console.log(`✔ Project structure written to ${OUTPUT}`);
 }
 
-fs.writeFileSync(OUTPUT, tree, "utf8");
-console.log(`✔ Project structure written to ${OUTPUT}`);
+run();

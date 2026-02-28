@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { ScrollView, TextInput, View } from "react-native"
 import { useUnistyles } from "react-native-unistyles"
 
@@ -33,6 +34,7 @@ export function SearchPanel({
   includeNotes,
   onIncludeNotesChange,
 }: SearchPanelProps) {
+  const { t } = useTranslation()
   const { theme } = useUnistyles()
 
   return (
@@ -57,7 +59,7 @@ export function SearchPanel({
         <TextInput
           value={value}
           onChangeText={onChange}
-          placeholder="Search by title..."
+          placeholder={t("transactions.search.placeholder")}
           placeholderTextColor={`${theme.colors.onSurface}50`}
           style={[
             filterHeaderStyles.searchInput,

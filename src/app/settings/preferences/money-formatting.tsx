@@ -52,7 +52,7 @@ export default function MoneyFormattingScreen() {
     >
       <View native style={styles.previewSection}>
         <Text variant="small" style={styles.previewLabel}>
-          {t("money_formating_screen.preview_label")}
+          {t("preferences.appearance.moneyFormatting.previewLabel")}
         </Text>
         <Money
           value={exampleAmount}
@@ -63,7 +63,7 @@ export default function MoneyFormattingScreen() {
 
       <View native style={styles.sectionLabel}>
         <Text variant="small" style={styles.sectionLabelText}>
-          {t("money_formating_screen.display_format_label")}
+          {t("preferences.appearance.moneyFormatting.displayFormatLabel")}
         </Text>
       </View>
       <View native style={styles.card}>
@@ -79,12 +79,12 @@ export default function MoneyFormattingScreen() {
                 <View native style={styles.rowContent}>
                   <Text style={styles.rowLabel}>
                     {t(
-                      `money_formating_screen.format_options_items.${option.value}.label`,
+                      `preferences.appearance.moneyFormatting.options.${option.value}.label`,
                     )}
                   </Text>
                   <Text variant="small" style={styles.rowDescription}>
                     {t(
-                      `money_formating_screen.format_options_items.${option.value}.description`,
+                      `preferences.appearance.moneyFormatting.options.${option.value}.description`,
                     )}
                   </Text>
                 </View>

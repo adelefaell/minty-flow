@@ -26,6 +26,7 @@ import {
   useState,
 } from "react"
 import { Controller, type Resolver, useForm } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import {
   ActivityIndicator,
   Linking,
@@ -127,6 +128,7 @@ export function TransactionFormV3({
 }: TransactionFormV3Props) {
   const router = useRouter()
   const navigation = useNavigation()
+  const { t } = useTranslation()
   const { width: windowWidth } = useWindowDimensions()
   const { theme } = useUnistyles()
   const { id } = useLocalSearchParams<{ id: string }>()
@@ -514,12 +516,12 @@ export function TransactionFormV3({
         const fromId = data.accountId
         const toId = data.toAccountId ?? ""
         if (!toId) {
-          Toast.error({ title: "Please select a destination account" })
+          Toast.error({ title: t("transactions.toast.selectDestination") })
           setIsSaving(false)
           return
         }
         if (fromId === toId) {
-          Toast.error({ title: "From and To accounts must be different" })
+          Toast.error({ title: t("transactions.toast.fromToDifferent") })
           setIsSaving(false)
           return
         }
@@ -565,13 +567,13 @@ export function TransactionFormV3({
             ...transferPayload,
             transactionDate: effectiveDate.getTime(),
           })
-          Toast.success({ title: "Transfer created" })
+          Toast.success({ title: t("transactions.toast.transferCreated") })
         } else if (transaction) {
           await editTransfer(transaction, {
             ...transferPayload,
             transactionDate: effectiveDate,
           })
-          Toast.success({ title: "Transfer updated" })
+          Toast.success({ title: t("transactions.toast.transferUpdated") })
         }
         allowNavigation()
         router.back()
@@ -646,19 +648,21 @@ export function TransactionFormV3({
               },
               rules: [rruleStr],
             })
-            Toast.success({ title: "Recurring transaction created" })
+            Toast.success({ title: t("transactions.toast.recurringCreated") })
           } catch (recErr) {
             logger.error("Failed to create recurring rule", {
               message:
                 recErr instanceof Error ? recErr.message : String(recErr),
             })
-            Toast.error({ title: "Failed to create recurring transaction" })
+            Toast.error({
+              title: t("transactions.toast.recurringCreateFailed"),
+            })
             setIsSaving(false)
             return
           }
         } else {
           await createTransactionModel(payload)
-          Toast.success({ title: "Transaction created" })
+          Toast.success({ title: t("transactions.toast.transactionCreated") })
         }
       } else if (transaction) {
         if (transaction.recurringId && recurringRule) {
@@ -681,7 +685,7 @@ export function TransactionFormV3({
           return
         }
         await updateTransactionModel(transaction, payload)
-        Toast.success({ title: "Transaction updated" })
+        Toast.success({ title: t("transactions.toast.transactionUpdated") })
       }
       allowNavigation()
       router.back()
@@ -689,7 +693,7 @@ export function TransactionFormV3({
       logger.error("Failed to save transaction", {
         message: error instanceof Error ? error.message : String(error),
       })
-      Toast.error({ title: "Failed to save transaction" })
+      Toast.error({ title: t("transactions.toast.saveFailed") })
     }
     setIsSaving(false)
   }
@@ -715,30 +719,30 @@ export function TransactionFormV3({
         : deleteTransactionModel(transaction)
     promise
       .then(() => {
-        Toast.success({ title: "Moved to trash" })
+        Toast.success({ title: t("transactions.toast.movedToTrash") })
         allowNavigation()
         router.back()
       })
       .catch((error) => {
         logger.error("Failed to move transaction to trash", { error })
-        Toast.error({ title: "Failed to move to trash" })
+        Toast.error({ title: t("transactions.toast.moveToTrashFailed") })
       })
-  }, [transaction, recurringRule, router, allowNavigation])
+  }, [transaction, recurringRule, router, allowNavigation, t])
 
   const handleRestore = useCallback(async () => {
     if (!transaction?.isDeleted) return
     try {
       await restoreTransactionModel(transaction)
-      Toast.success({ title: "Restored", description: "Transaction restored." })
+      Toast.success({
+        title: t("transactions.toast.restored"),
+        description: t("transactions.toast.restoredDescription"),
+      })
       allowNavigation()
       router.back()
     } catch {
-      Toast.error({
-        title: "Error",
-        description: "Failed to restore transaction.",
-      })
+      Toast.error({ title: t("transactions.toast.restoreFailed") })
     }
-  }, [transaction, router, allowNavigation])
+  }, [transaction, router, allowNavigation, t])
 
   const handleDestroy = useCallback(() => {
     if (!transaction) return
@@ -810,9 +814,9 @@ export function TransactionFormV3({
       })
     } catch (e) {
       logger.error("Document picker error", { e })
-      Toast.error({ title: "Could not select file" })
+      Toast.error({ title: t("transactions.toast.couldNotSelectFile") })
     }
-  }, [addAttachment])
+  }, [addAttachment, t])
 
   const handleTakePhoto = useCallback(async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync()
@@ -904,11 +908,11 @@ export function TransactionFormV3({
       }
       setValue("location", JSON.stringify(loc), { shouldDirty: true })
     } catch {
-      Toast.error({ title: "Could not get location" })
+      Toast.error({ title: t("transactions.toast.couldNotGetLocation") })
     } finally {
       setIsCapturingLocation(false)
     }
-  }, [location, setValue])
+  }, [location, setValue, t])
 
   const handleClearLocation = useCallback(() => {
     setValue("location", undefined, { shouldDirty: true })
@@ -974,7 +978,7 @@ export function TransactionFormV3({
                 <Input
                   value={value}
                   onChangeText={onChange}
-                  placeholder="Untitled transaction"
+                  placeholder={t("transactions.form.titlePlaceholder")}
                   placeholderTextColor={theme.colors.customColors.semi}
                 />
               )}
@@ -993,7 +997,7 @@ export function TransactionFormV3({
               }
               currencyCode={selectedAccount?.currencyCode}
               error={amountError}
-              label="Amount"
+              label={t("transactions.form.amountLabel")}
               placeholder="0"
               type={transactionType}
             />
@@ -1118,7 +1122,9 @@ export function TransactionFormV3({
                                 }
                               }}
                               currencyCode={selectedToAccount.currencyCode}
-                              label="Converted amount"
+                              label={t(
+                                "transactions.form.convertedAmountLabel",
+                              )}
                               placeholder="0"
                             />
                           </View>
@@ -1147,7 +1153,7 @@ export function TransactionFormV3({
                     !categoryId && styles.clearButtonDisabled,
                   ]}
                   pointerEvents={categoryId ? "auto" : "none"}
-                  accessibilityLabel="Clear category"
+                  accessibilityLabel={t("accessibility.clearCategory")}
                   accessibilityState={{ disabled: !categoryId }}
                 >
                   <Text variant="small" style={styles.clearButtonText}>
@@ -1169,7 +1175,7 @@ export function TransactionFormV3({
                       onPress={() => router.push("/settings/categories")}
                       accessible
                       accessibilityRole="button"
-                      accessibilityLabel="Add categories"
+                      accessibilityLabel={t("accessibility.addCategories")}
                     >
                       <DynamicIcon
                         icon="plus"
@@ -1218,7 +1224,12 @@ export function TransactionFormV3({
                           }
                           accessible
                           accessibilityRole="button"
-                          accessibilityLabel={`Select ${category.name} category`}
+                          accessibilityLabel={t(
+                            "accessibility.selectCategory",
+                            {
+                              name: category.name,
+                            },
+                          )}
                           accessibilityState={{ selected: isSelected }}
                         >
                           <DynamicIcon
@@ -1272,7 +1283,7 @@ export function TransactionFormV3({
                       )
                     }}
                     style={styles.clearButton}
-                    accessibilityLabel="Set date and time to now"
+                    accessibilityLabel={t("accessibility.setDateTimeNow")}
                   >
                     <Text variant="small" style={styles.clearButtonText}>
                       Now
@@ -1353,8 +1364,8 @@ export function TransactionFormV3({
             <Pressable
               style={styles.notesPressable}
               onPress={() => setNotesModalVisible(true)}
-              accessibilityLabel="Notes"
-              accessibilityHint="Open notes editor"
+              accessibilityLabel={t("accessibility.notes")}
+              accessibilityHint={t("accessibility.openNotesEditor")}
             >
               <View style={styles.notesHeaderRow}>
                 <DynamicIcon
@@ -1448,7 +1459,7 @@ export function TransactionFormV3({
                       size="icon"
                       style={styles.attachmentRemoveBtn}
                       onPress={() => setAttachmentToRemove(a)}
-                      accessibilityLabel="Remove attachment"
+                      accessibilityLabel={t("accessibility.removeAttachment")}
                       hitSlop={8}
                     >
                       <IconSymbol name="close" size={20} />
@@ -1460,9 +1471,11 @@ export function TransactionFormV3({
             <Pressable
               style={styles.notesHeader}
               onPress={() => setAddFilesExpanded((e) => !e)}
-              accessibilityLabel="Add files"
+              accessibilityLabel={t("accessibility.addFiles")}
               accessibilityHint={
-                addFilesExpanded ? "Collapse options" : "Expand to add files"
+                addFilesExpanded
+                  ? t("accessibility.addFilesCollapseHint")
+                  : t("accessibility.addFilesExpandHint")
               }
             >
               <IconSymbol
@@ -1607,7 +1620,7 @@ export function TransactionFormV3({
                           onPress={() => setRecurringFrequency(option.id)}
                           accessibilityRole="button"
                           accessibilityState={{ selected: isSelected }}
-                          accessibilityLabel={`${displayLabel}${isSelected ? ", selected" : ""}`}
+                          accessibilityLabel={`${displayLabel}${isSelected ? t("accessibility.selectedSuffix") : ""}`}
                         >
                           <Text
                             variant="default"
@@ -1825,7 +1838,7 @@ export function TransactionFormV3({
                     size="icon"
                     style={styles.locationClearBtn}
                     onPress={handleClearLocation}
-                    accessibilityLabel="Clear location"
+                    accessibilityLabel={t("accessibility.clearLocation")}
                     hitSlop={8}
                   >
                     <IconSymbol name="close" size={20} />
@@ -1852,7 +1865,7 @@ export function TransactionFormV3({
                     variant="ghost"
                     onPress={handleRestore}
                     disabled={isSaving}
-                    accessibilityLabel="Restore"
+                    accessibilityLabel={t("accessibility.restore")}
                     accessibilityRole="button"
                   >
                     <IconSymbol name="delete-restore" size={20} />
@@ -1862,7 +1875,7 @@ export function TransactionFormV3({
                     variant="ghost"
                     onPress={handleDestroy}
                     disabled={isSaving}
-                    accessibilityLabel="Destroy permanently"
+                    accessibilityLabel={t("accessibility.destroyPermanently")}
                     accessibilityRole="button"
                   >
                     <IconSymbol
@@ -1871,7 +1884,7 @@ export function TransactionFormV3({
                       style={styles.deleteButtonColor}
                     />
                     <Text variant="default" style={styles.deleteButtonColor}>
-                      Permanently delete
+                      {t("common.modals.deletePermanently")}
                     </Text>
                   </Button>
                 </>
@@ -1881,7 +1894,7 @@ export function TransactionFormV3({
                   style={styles.deleteButton}
                   onPress={handleDeleteConfirm}
                   disabled={isSaving}
-                  accessibilityLabel="Move to trash"
+                  accessibilityLabel={t("accessibility.moveToTrash")}
                   accessibilityRole="button"
                 >
                   <IconSymbol
@@ -2038,10 +2051,10 @@ export function TransactionFormV3({
           allowNavigation()
           handleGoBack()
         }}
-        title="Close without saving?"
+        title={t("common.modals.closeWithoutSaving")}
         description="All changes will be lost."
         confirmLabel="Discard"
-        cancelLabel="Cancel"
+        cancelLabel={t("common.actions.cancel")}
         variant="default"
       />
 
@@ -2049,10 +2062,10 @@ export function TransactionFormV3({
         visible={destroyModalVisible}
         onRequestClose={() => setDestroyModalVisible(false)}
         onConfirm={handleDestroyConfirm}
-        title="Delete permanently?"
+        title={t("common.modals.deletePermanently")}
         description="This transaction will be removed forever and cannot be restored."
         confirmLabel="Delete"
-        cancelLabel="Cancel"
+        cancelLabel={t("common.actions.cancel")}
         variant="destructive"
         icon="trash-can"
       />

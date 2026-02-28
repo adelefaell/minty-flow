@@ -5,6 +5,7 @@
 
 import { useRouter } from "expo-router"
 import { useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { View as RNView, ScrollView } from "react-native"
 import { useUnistyles } from "react-native-unistyles"
 
@@ -51,6 +52,7 @@ export function FormAccountPicker({
   transactionType: _transactionType,
 }: FormAccountPickerProps) {
   const router = useRouter()
+  const { t } = useTranslation()
   const { theme } = useUnistyles()
   const { wrapperRef, scrollIntoView } = useScrollIntoView()
   const [accountPickerOpen, setAccountPickerOpen] = useState(false)
@@ -85,11 +87,11 @@ export function FormAccountPicker({
           }
           style={[styles.clearButton, !accountId && styles.clearButtonDisabled]}
           pointerEvents={accountId ? "auto" : "none"}
-          accessibilityLabel="Clear account"
+          accessibilityLabel={t("accessibility.clearAccount")}
           accessibilityState={{ disabled: !accountId }}
         >
           <Text variant="small" style={styles.clearButtonText}>
-            Clear
+            {t("accessibility.clear")}
           </Text>
         </Pressable>
       </View>
@@ -100,7 +102,11 @@ export function FormAccountPicker({
           accountError && selectedAccount && styles.accountTriggerError,
         ]}
         onPress={handleToggle}
-        accessibilityLabel={accountPickerOpen ? "Cancel" : "Select account"}
+        accessibilityLabel={
+          accountPickerOpen
+            ? t("accessibility.cancel")
+            : t("accessibility.selectAccount")
+        }
       >
         {selectedAccount ? (
           <>
@@ -147,7 +153,7 @@ export function FormAccountPicker({
               style={styles.accountTriggerPlaceholder}
               numberOfLines={1}
             >
-              Select account
+              {t("accessibility.selectAccount")}
             </Text>
             <IconSymbol
               name={accountPickerOpen ? "close" : "chevron-down"}
@@ -160,7 +166,7 @@ export function FormAccountPicker({
       {accountPickerOpen && (
         <View native style={styles.inlineAccountPicker}>
           <Input
-            placeholder="Search accounts..."
+            placeholder={t("accessibility.searchAccountsPlaceholder")}
             value={accountSearchQuery}
             onChangeText={setAccountSearchQuery}
             placeholderTextColor={theme.colors.customColors.semi}
@@ -222,7 +228,7 @@ export function FormAccountPicker({
                 }}
                 accessible
                 accessibilityRole="button"
-                accessibilityLabel="Add account"
+                accessibilityLabel={t("accessibility.addAccount")}
               >
                 <DynamicIcon
                   icon="plus"
@@ -237,7 +243,7 @@ export function FormAccountPicker({
                   style={styles.accountPickerRowAddLabel}
                   numberOfLines={1}
                 >
-                  Add account
+                  {t("accessibility.addAccount")}
                 </Text>
               </Pressable>
             )}

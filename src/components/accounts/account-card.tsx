@@ -70,13 +70,13 @@ export const AccountCard = ({
           <View style={styles.accountTypeRow} variant="muted">
             <Text variant="small" style={styles.accountType}>
               {/* {account.type} */}
-              {t(`system.types.account_types.${account.type}`)}
+              {t(`common.account.types.${account.type}`)}
             </Text>
             {account.isPrimary && (
               <View style={styles.primaryBadge}>
                 <IconSymbol name="star" size={12} />
                 <Text style={styles.primaryBadgeText}>
-                  {t("system.components.AccountCard.primary")}
+                  {t("accounts.card.primary")}
                 </Text>
               </View>
             )}
@@ -94,7 +94,7 @@ export const AccountCard = ({
       {!isArchived && (
         <View variant="muted" style={styles.monthlySummary}>
           <Text variant="small" style={styles.summaryLabel}>
-            {t("system.components.AccountCard.this_month")}
+            {t("accounts.card.thisMonth")}
           </Text>
           <View variant="muted" style={styles.summaryRow}>
             <View variant="muted" style={styles.summaryItem}>
@@ -105,7 +105,7 @@ export const AccountCard = ({
                   color={styles.incomeColor.color}
                 />
                 <Text style={styles.summaryItemLabel}>
-                  {t("system.components.AccountCard.in")}
+                  {t("accounts.card.in")}
                 </Text>
               </View>
 
@@ -125,7 +125,7 @@ export const AccountCard = ({
                   color={styles.expenseColor.color}
                 />
                 <Text style={styles.summaryItemLabel}>
-                  {t("system.components.AccountCard.out")}
+                  {t("accounts.card.out")}
                 </Text>
               </View>
 
@@ -146,7 +146,7 @@ export const AccountCard = ({
                   color={styles.semiColor.color}
                 />
                 <Text style={styles.summaryItemLabel}>
-                  {t("system.components.AccountCard.net")}
+                  {t("accounts.card.net")}
                 </Text>
               </View>
 

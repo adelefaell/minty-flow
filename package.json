@@ -12,9 +12,10 @@
     "lint": "biome check",
     "lint:fix": "biome check --write",
     "lint:fix-unsafe": "biome check --write --unsafe",
-    "android:usb": "node ./scripts/run-android-usb.mjs",
-    "structure": "node ./scripts/generate-structure.mjs",
-    "unused-styles": "node ./scripts/find-unused-styles.mjs"
+    "android:usb": "node ./scripts/run-android-usb.mts",
+    "structure": "node ./scripts/generate-structure.mts",
+    "unused-styles": "node ./scripts/find-unused-styles.mts",
+    "check-i18n-keys": "node ./scripts/check-missing-i18n-keys.mts"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

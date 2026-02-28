@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useNavigation, useRouter } from "expo-router"
 import { useCallback, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 
 import { AccountTypeInline } from "~/components/accounts/account-type-inline"
 import { ChangeIconInline } from "~/components/change-icon-inline"
@@ -43,6 +44,7 @@ export function AccountModifyContent({
   account,
   transactionCount = 0,
 }: AccountModifyContentProps) {
+  const { t } = useTranslation()
   const router = useRouter()
   const isAddMode = accountId === NewEnum.NEW || !accountId
 
@@ -112,7 +114,10 @@ export function AccountModifyContent({
         handleGoBack()
       } else {
         if (!accountModel) {
-          Toast.error({ title: "Error", description: "Account not found" })
+          Toast.error({
+            title: "Error",
+            description: t("accounts.toast.notFound"),
+          })
           setIsSubmitting(false)
           return
         }
@@ -206,7 +211,7 @@ export function AccountModifyContent({
 
           <View style={accountModifyStyles.nameSection}>
             <Text variant="small" style={accountModifyStyles.label}>
-              Account name
+              {t("accounts.form.namePlaceholder")}
             </Text>
             <Controller
               control={control}
@@ -237,7 +242,7 @@ export function AccountModifyContent({
                   value={Number(value) || 0}
                   onChange={(v) => onChange(v)}
                   currencyCode={formCurrencyCode}
-                  label="Initial balance"
+                  label={t("accounts.form.initialBalance")}
                   placeholder="0"
                   error={errors.balance?.message}
                 />
@@ -472,10 +477,10 @@ export function AccountModifyContent({
           setUnsavedModalVisible(false)
           confirmNavigation()
         }}
-        title="Close without saving?"
+        title={t("common.modals.closeWithoutSaving")}
         description="All changes will be lost."
         confirmLabel="Discard"
-        cancelLabel="Cancel"
+        cancelLabel={t("common.actions.cancel")}
         variant="default"
       />
     </View>

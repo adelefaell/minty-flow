@@ -62,7 +62,7 @@ function PermissionWarnings() {
       <Pressable
         onPress={handleRequestPermission}
         style={styles.actionButton}
-        accessibilityLabel="Grant notifications permission"
+        accessibilityLabel={t("reminders.a11y.grantNotifications")}
         accessibilityRole="button"
       >
         <View style={styles.grantPermissionContent}>
@@ -73,7 +73,7 @@ function PermissionWarnings() {
             style={styles.grantPermissionIcon}
           />
           <Text variant="default" style={styles.grantPermissionText}>
-            {t("system.components.PermissionWarnings.text")}
+            {t("reminders.a11y.permissionWarning")}
           </Text>
           <IconSymbol
             name="open-in-new"
@@ -97,6 +97,7 @@ function ToggleRow({
   value: boolean
   onToggle: () => void
 }) {
+  const { t } = useTranslation()
   return (
     <View style={styles.toggleSection}>
       <View style={styles.toggleHeader}>
@@ -107,7 +108,9 @@ function ToggleRow({
             styles.togglePill,
             value ? styles.togglePillOn : styles.togglePillOff,
           ]}
-          accessibilityLabel={value ? "On" : "Off"}
+          accessibilityLabel={
+            value ? t("settings.a11y.toggleOn") : t("settings.a11y.toggleOff")
+          }
           accessibilityRole="switch"
           accessibilityState={{ checked: value }}
         >
@@ -147,7 +150,7 @@ export default function PendingTransactionsPreferencesScreen() {
 
   const choicesMapping = SHOW_ON_HOME_DAYS.map((d) => ({
     value: d,
-    label: t("pending_transaction_screen.choice_chips.days_count", {
+    label: t("pending.chips.daysCount", {
       count: d,
     }),
   }))
@@ -170,13 +173,11 @@ export default function PendingTransactionsPreferencesScreen() {
           size={18}
           color={styles.infoIconColor.color}
         />
-        <Text style={styles.infoText}>
-          {t("pending_transaction_screen.caption_text")}
-        </Text>
+        <Text style={styles.infoText}>{t("pending.caption")}</Text>
       </View>
 
       <ChoiceChips
-        title={t("pending_transaction_screen.choice_chips_title")}
+        title={t("pending.settings.showOnHome")}
         // choices={SHOW_ON_HOME_CHOICES}
         choices={choiceLabels}
         // selectedValue={showOnHomeValue}
@@ -186,18 +187,16 @@ export default function PendingTransactionsPreferencesScreen() {
       />
 
       <ToggleRow
-        title={t("pending_transaction_screen.require_toggle.label")}
-        description={t("pending_transaction_screen.require_toggle.description")}
+        title={t("pending.settings.requireConfirmation.label")}
+        description={t("pending.settings.requireConfirmation.description")}
         value={requireConfirmation}
         onToggle={() => setRequireConfirmation(!requireConfirmation)}
       />
 
       {requireConfirmation && (
         <ToggleRow
-          title={t("pending_transaction_screen.update_confirm_toggle.label")}
-          description={t(
-            "pending_transaction_screen.update_confirm_toggle.description",
-          )}
+          title={t("pending.settings.updateDateOnConfirm.label")}
+          description={t("pending.settings.updateDateOnConfirm.description")}
           value={updateDateUponConfirmation}
           onToggle={() =>
             setUpdateDateUponConfirmation(!updateDateUponConfirmation)

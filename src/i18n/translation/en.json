@@ -1,0 +1,644 @@
+{
+  "common": {
+    "modals": {
+      "closeWithoutSaving": "Close without saving?",
+      "deletePermanently": "Delete permanently"
+    },
+    "actions": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "close": "Close",
+      "reset": "Reset",
+      "retry": "Retry",
+      "restore": "Restore",
+      "confirm": "Confirm"
+    },
+    "states": {
+      "soon": "SOON",
+      "comingSoon": "COMING SOON"
+    },
+    "account": {
+      "types": {
+        "checking": "Checking",
+        "savings": "Savings",
+        "credit": "Credit",
+        "investment": "Investment",
+        "other": "Other"
+      }
+    }
+  },
+
+  "navigation": {
+    "tabs": {
+      "home": "Home",
+      "statistics": "Statistics",
+      "accounts": "Accounts",
+      "settings": "Settings",
+      "addTransaction": "Add Transaction"
+    },
+    "fab": {
+      "income": "Income",
+      "expense": "Expense",
+      "transfer": "Transfer"
+    },
+    "screenTitles": {
+      "editProfile": "Edit Profile",
+      "archivedCategories": "Archived Categories",
+      "categoryDetails": "Category Details",
+      "createCategory": "Create Category",
+      "editCategory": "Edit Category",
+      "addFromPresets": "Add from Presets",
+      "accountDetails": "Account Details",
+      "createAccount": "Create Account",
+      "editAccount": "Edit Account",
+      "createTag": "Create Tag",
+      "editTag": "Edit Tag",
+      "createTransaction": "Create Transaction",
+      "editTransaction": "Edit Transaction",
+      "toastStyle": "Toast Style"
+    }
+  },
+
+  "profile": {
+    "greeting": "Hi",
+    "edit": {
+      "nameLabel": "Name",
+      "namePlaceholder": "Enter your name",
+      "removePhoto": "Remove Photo",
+      "permission": {
+        "title": "Permission Required",
+        "description": "We need access to your photos to set a profile picture."
+      }
+    }
+  },
+
+  "accounts": {
+    "title": "All Accounts",
+    "description": "View all your accounts",
+    "addNew": "Add new account",
+    "addNewAccount": "New Account",
+    "card": {
+      "primary": "Primary",
+      "thisMonth": "THIS MONTH",
+      "in": "IN",
+      "out": "OUT",
+      "net": "NET",
+      "currentBalance": "CURRENT BALANCE",
+      "netThisMonth": "Net this month",
+      "moreOptions": "More options"
+    },
+    "form": {
+      "namePlaceholder": "Account name",
+      "initialBalance": "Initial balance"
+    },
+    "stats": {
+      "hour": "By hour",
+      "day": "By day",
+      "week": "By week",
+      "month": "By month",
+      "year": "By year",
+      "allTime": "All time"
+    },
+    "toast": {
+      "notFound": "Account not found"
+    },
+    "a11y": {
+      "clear": "Clear account",
+      "select": "Select account",
+      "selectTo": "Select to account",
+      "clearTo": "Clear to account",
+      "add": "Add account",
+      "searchPlaceholder": "Search accounts..."
+    }
+  },
+
+  "transactions": {
+    "form": {
+      "titlePlaceholder": "Untitled transaction",
+      "amountLabel": "Amount",
+      "convertedAmountLabel": "Converted amount"
+    },
+    "search": {
+      "placeholder": "Search by title..."
+    },
+    "summary": {
+      "income": "Income",
+      "expense": "Expense"
+    },
+    "toast": {
+      "selectDestination": "Please select a destination account",
+      "fromToDifferent": "From and To accounts must be different",
+      "transferCreated": "Transfer created",
+      "transferUpdated": "Transfer updated",
+      "recurringCreated": "Recurring transaction created",
+      "recurringCreateFailed": "Failed to create recurring transaction",
+      "transactionCreated": "Transaction created",
+      "transactionUpdated": "Transaction updated",
+      "saveFailed": "Failed to save transaction",
+      "movedToTrash": "Moved to trash",
+      "moveToTrashFailed": "Failed to move to trash",
+      "restored": "Restored",
+      "restoredDescription": "Transaction restored.",
+      "restoreFailed": "Failed to restore transaction",
+      "couldNotSelectFile": "Could not select file",
+      "fileOpenFailed": "Could not open file",
+      "couldNotGetLocation": "Could not get location",
+      "deleteRecurringSuccess": "Transaction deleted",
+      "deleteRecurringAllSuccess": "All recurring transactions deleted",
+      "deleteRecurringFutureSuccess": "This and future transactions deleted",
+      "deleteRecurringFailed": "Failed to delete transaction",
+      "editRecurringSuccess": "Transaction updated",
+      "editRecurringFutureSuccess": "This and future transactions updated",
+      "editRecurringFailed": "Failed to save transaction",
+      "upcomingConfirmFailed": "Failed to confirm",
+      "upcomingConfirmAllFailed": "Failed to confirm all"
+    },
+    "recurring": {
+      "deleteModal": {
+        "title": "Delete recurring transaction",
+        "subtitle": "Choose which transactions to remove",
+        "optionThis": "This transaction",
+        "optionThisSublabel": "Only remove this occurrence",
+        "optionAll": "All transactions",
+        "optionAllSublabel": "Remove every occurrence, past and future",
+        "optionFuture": "This and future transactions",
+        "optionFutureSublabel": "Keep the past, remove from here onward",
+        "confirmTitle": "Are you sure?",
+        "confirmMessage": "This action will delete all related transactions, and stop new transactions from being created. Recovering the transactions from trash bin wouldn't cause it to create new transactions.",
+        "cancel": "Cancel",
+        "delete": "Delete"
+      },
+      "editModal": {
+        "title": "Edit recurring transaction",
+        "subtitle": "Choose how far to apply your changes",
+        "optionThis": "This transaction",
+        "optionThisSublabel": "Only update this occurrence",
+        "optionFuture": "This and future transactions",
+        "optionFutureSublabel": "Update from here onward, keep the past",
+        "cancel": "Cancel"
+      }
+    },
+    "upcoming": {
+      "title": "Upcoming",
+      "seeAll": "See all",
+      "recurringCount": "{{count}} recurring",
+      "pendingCount": "{{count}} pending",
+      "subHeaderRecurring": "RECURRING",
+      "subHeaderPending": "PENDING",
+      "cancelTransactionA11y": "Cancel transaction"
+    },
+    "amount": {
+      "entered": "Entered",
+      "resultLabel": "Result: ",
+      "a11y": {
+        "input": "Amount input",
+        "inputHint": "Enter amount or a math expression (e.g. 100/4)",
+        "showMathActions": "Show math actions",
+        "hideMathActions": "Hide math actions",
+        "mathToolbarHint": "Toggles inline math toolbar",
+        "insertOperator": "Insert {{op}}",
+        "operatorTimes": "times",
+        "backspace": "Backspace",
+        "clear": "Clear",
+        "applyResult": "Apply result",
+        "applyResultHint": "Tap to use this result",
+        "confirmAmount": "Confirm amount"
+      }
+    },
+    "fields": {
+      "notes": "Notes",
+      "a11y": {
+        "openNotesEditor": "Open notes editor",
+        "setDateTimeNow": "Set date and time to now",
+        "clearLocation": "Clear location",
+        "clearCategory": "Clear category",
+        "addCategories": "Add categories",
+        "selectCategory": "Select {{name}} category",
+        "clearAllTags": "Clear all tags",
+        "addTag": "Add tag",
+        "removeTag": "Remove {{name}} tag"
+      }
+    },
+    "attachments": {
+      "openFileModal": "Open file",
+      "deleteFileModal": "Delete file",
+      "a11y": {
+        "removeAttachment": "Remove attachment",
+        "addFiles": "Add files",
+        "addFilesHint": "Add photos or files to this transaction",
+        "addFilesExpandHint": "Expand to add files",
+        "addFilesCollapseHint": "Collapse options"
+      }
+    },
+    "a11y": {
+      "closePreview": "Close preview",
+      "selectedSuffix": ", selected"
+    }
+  },
+
+  "categories": {
+    "title": "Categories",
+    "description": "Manage your transaction categories",
+    "subtitle": "Organize how your money flows",
+    "viewArchived": "View Archived {{type}}s ({{count}})",
+    "search": {
+      "placeholder": "Search {{tab}} categories..."
+    },
+    "types": {
+      "expense": "Expense",
+      "income": "Income",
+      "transfer": "Transfer"
+    },
+    "actions": {
+      "addNew": "Add New Category",
+      "addFromPresets": "Add From Presets"
+    },
+    "form": {
+      "namePlaceholder": "Groceries, Dining out, etc."
+    },
+    "empty": {
+      "noCategories": {
+        "title": "No {{type}} categories yet",
+        "description": "Create your first category to start organizing your transactions"
+      },
+      "noResults": {
+        "title": "No results for \"{{query}}\"",
+        "description": "Try a different search term"
+      },
+      "noActive": {
+        "title": "No active {{type}}s",
+        "description": "You have archived all your {{type}} categories."
+      },
+      "noArchived": {
+        "title": "No archived {{type}} categories",
+        "description": "Nothing archived yet."
+      },
+      "allArchived": {
+        "title": "All categories archived",
+        "description": "You have archived all your {{type}} categories."
+      }
+    }
+  },
+
+  "tags": {
+    "title": "Tags",
+    "description": "Manage your transaction tags",
+    "searchPlaceholder": "Search tags...",
+    "newTag": "New tag",
+    "toast": {
+      "notFound": "Tag not found",
+      "deleteFailed": "Failed to delete tag"
+    }
+  },
+
+  "iconPicker": {
+    "title": "Select Icon",
+    "searchPlaceholder": "Search icons...",
+    "pasteImage": "Paste an image",
+    "pickImage": "Pick an image"
+  },
+
+  "colorPicker": {
+    "currentTheme": "Current Theme"
+  },
+
+  "dateRange": {
+    "yearPlaceholder": "Select a year"
+  },
+
+  "selectors": {
+    "contacts": {
+      "searchPlaceholder": "Search contacts...",
+      "title": "Select contact",
+      "triggerLabel": "Select contact from phone",
+      "noContacts": "No contacts found",
+      "permissionDenied": "Contacts permission not granted"
+    },
+    "currency": {
+      "searchPlaceholder": "Search currencies...",
+      "noCurrenciesFound": "No currencies found"
+    }
+  },
+
+  "transfers": {
+    "title": "Transfers",
+    "description": "Layout and totals for transfers",
+    "layout": {
+      "subtitle": "Layout",
+      "caption": "Transfers are always separated in some views.",
+      "options": {
+        "combine": {
+          "label": "Combine",
+          "description": "Single net amount"
+        },
+        "separate": {
+          "label": "Separate",
+          "description": "Outgoing and incoming shown separately"
+        }
+      }
+    },
+    "totals": {
+      "subtitle": "Totals",
+      "excludeToggle": {
+        "label": "Exclude from totals",
+        "description": "Don't count towards total expense or income"
+      }
+    }
+  },
+
+  "pending": {
+    "title": "Pending Transactions",
+    "description": "View and manage pending transactions",
+    "caption": "Pending transactions will not be counted towards income, expenses, and account balance.",
+    "settings": {
+      "showOnHome": "Show on home",
+      "requireConfirmation": {
+        "label": "Require confirmation",
+        "description": "When on, new planned transactions need your approval before they count. Existing transactions keep their original mode."
+      },
+      "updateDateOnConfirm": {
+        "label": "Update date on confirm",
+        "description": "Disable to retain original transaction date."
+      }
+    },
+    "chips": {
+      "daysCount": "Next {{count}} day(s)"
+    },
+    "a11y": {
+      "header": "PENDING",
+      "confirm": "Confirm transaction",
+      "confirmAll": "Confirm all transactions",
+      "confirmAllButton": "Confirm all",
+      "confirmAllModal": {
+        "title": "Confirm all?",
+        "description": "All transactions awaiting confirmation will be confirmed. This cannot be undone."
+      }
+    }
+  },
+
+  "trash": {
+    "title": "Trash",
+    "description": "View and restore deleted transactions",
+    "viewRemovedList": "View removed list",
+    "retention": {
+      "title": "Retention Period",
+      "description": "Automatically clear deleted items after a set period",
+      "daysCount": "{{count}} day",
+      "daysCountPlural": "{{count}} days",
+      "forever": "Forever"
+    },
+    "empty": {
+      "label": "Empty trash bin",
+      "modal": {
+        "title": "Empty Trash",
+        "description": "All items in the trash will be permanently deleted. This action cannot be undone.",
+        "confirm": "Empty Trash",
+        "cancel": "Cancel"
+      },
+      "toast": {
+        "successTitle": "Trash Emptied",
+        "successDescription": "Your trash has been cleared.",
+        "errorTitle": "Cleanup Failed",
+        "errorDescription": "An unexpected error occurred. Please try again."
+      }
+    },
+    "a11y": {
+      "restore": "Restore",
+      "destroyPermanently": "Destroy permanently",
+      "moveToTrash": "Move to trash"
+    }
+  },
+
+  "goals": {
+    "title": "Goals",
+    "description": "Set and track your financial goals"
+  },
+
+  "budgets": {
+    "title": "Budgets",
+    "description": "Create and manage your budgets"
+  },
+
+  "loans": {
+    "title": "Loans",
+    "description": "Track money lent and borrowed"
+  },
+
+  "billSplitter": {
+    "title": "Bill Splitter",
+    "description": "Split bills with friends and family"
+  },
+
+  "exchangeRates": {
+    "title": "Exchange Rates",
+    "apiTitle": "Exchange Rates API",
+    "description": "Configure your preferred exchange rates",
+    "loading": "Loading exchange rates…",
+    "searchPlaceholder": "Search currencies...",
+    "instructionCaption": "Select an entry to set a custom exchange rate. Note: All exchange rate calculations use USD as a reference.",
+    "infoModal": {
+      "title": "Exchange Rates",
+      "description": "Rates are shown as amount per 1 USD. Select an entry to set a custom rate. All calculations use USD as reference.",
+      "ok": "OK"
+    },
+    "errors": {
+      "invalidRate": "Rate must be greater than 0"
+    },
+    "a11y": {
+      "info": "Information about exchange rates"
+    }
+  },
+
+  "privacy": {
+    "title": "Privacy",
+    "description": "Manage privacy and security settings",
+    "settings": {
+      "maskNumber": "Mask money (⁕) at startup",
+      "maskNumberOnShake": "Mask money (⁕) when shaking",
+      "lockApp": "Lock app",
+      "lockAfterClosing": "Lock after closing",
+      "mask-number": "Mask money (⁕) at startup",
+      "mask-number-on-shake": "Mask money (⁕) when shaking",
+      "lock-app": "Lock app",
+      "lock-after-closing": "Lock after closing"
+    },
+    "alert": {
+      "deviceLockRequired": {
+        "title": "Device lock required",
+        "message": "Set a PIN, pattern, password, or biometric in your device settings to use app lock."
+      }
+    }
+  },
+
+  "reminders": {
+    "title": "Reminder",
+    "description": "Set up daily reminders for expense tracking",
+    "testNotification": "Press Test Notification",
+    "remindDaily": {
+      "label": "Remind daily",
+      "description": "Remind me to log my transactions"
+    },
+    "remindAt": "Remind me at",
+    "footerCaption": "Reminders will stop if you don't open the app for 7 consecutive days",
+    "a11y": {
+      "grantNotifications": "Grant notifications permission",
+      "permissionWarning": "Notifications permission not granted"
+    }
+  },
+
+  "dataManagement": {
+    "title": "Data Management",
+    "description": "Backup, import, and export your data",
+    "placeholder": "Data management tools in development",
+    "badge": "COMING SOON"
+  },
+
+  "preferences": {
+    "title": "Preferences",
+    "description": "General preferences",
+    "appearance": {
+      "label": "Appearance",
+      "theme": {
+        "title": "Theme",
+        "description": "Choose your preferred theme"
+      },
+      "moneyFormatting": {
+        "title": "Money Formatting",
+        "description": "Configure how money is displayed",
+        "previewLabel": "Preview",
+        "displayFormatLabel": "Display format",
+        "options": {
+          "symbol": {
+            "label": "Symbol",
+            "description": "e.g., $, €, £"
+          },
+          "code": {
+            "label": "Code",
+            "description": "e.g., USD, EUR, GBP"
+          },
+          "name": {
+            "label": "Name",
+            "description": "e.g., US Dollar, Euro"
+          }
+        }
+      },
+      "toast": {
+        "title": "Toast Style",
+        "description": "Configure your preferred toast style",
+        "resetModal": {
+          "title": "Reset to Defaults",
+          "description": "Are you sure you want to reset all toast style settings to their default values?",
+          "confirmLabel": "Reset",
+          "cancelLabel": "Cancel"
+        },
+        "optionsLabel": "Options",
+        "options": {
+          "position": "Position",
+          "positionTop": "Top",
+          "positionTopDescription": "Appears below the status bar",
+          "positionBottom": "Bottom",
+          "positionBottomDescription": "Appears above the home indicator",
+          "progressBar": "Progress bar",
+          "progressBarDescription": "Visual countdown indicator",
+          "closeIcon": "Close icon",
+          "closeIconDescription": "Manual dismiss button"
+        },
+        "preview": {
+          "label": "Preview",
+          "description": "Test your current settings with live notifications",
+          "showDemo": "Show demo",
+          "hideAll": "Hide all"
+        },
+        "resetButton": "Reset to defaults",
+        "demo": {
+          "successTitle": "Success",
+          "successDescription": "This is a success message",
+          "errorTitle": "Error",
+          "errorDescription": "This is an error message",
+          "infoTitle": "Info",
+          "infoDescription": "This is an info message",
+          "warningTitle": "Warning",
+          "warningDescription": "This is a warning message"
+        }
+      }
+    },
+    "buttonFeedback": {
+      "label": "Button Feedback",
+      "soundHaptic": {
+        "title": "Sound / haptic feedback upon click"
+      },
+      "systemInfo": "This depends on your phone's system settings. Make sure \"Touch interactions\" is enabled in Sound settings."
+    },
+    "language": {
+      "title": "Language",
+      "description": "Language and locale settings",
+      "sectionLabel": "change language"
+    },
+    "transactionLocation": {
+      "title": "Transaction Location",
+      "description": "Configure transaction location settings"
+    }
+  },
+
+  "settings": {
+    "otherLabel": "Other",
+    "a11y": {
+      "toggleOn": "On",
+      "toggleOff": "Off"
+    }
+  },
+
+  "accessibility": {
+    "close": "Close",
+    "save": "Save",
+    "clear": "Clear",
+    "cancel": "Cancel",
+    "clearAccount": "Clear account",
+    "selectAccount": "Select account",
+    "selectToAccount": "Select to account",
+    "clearToAccount": "Clear to account",
+    "addAccount": "Add account",
+    "searchAccountsPlaceholder": "Search accounts...",
+    "clearCategory": "Clear category",
+    "addCategories": "Add categories",
+    "selectCategory": "Select {{name}} category",
+    "setDateTimeNow": "Set date and time to now",
+    "notes": "Notes",
+    "openNotesEditor": "Open notes editor",
+    "removeAttachment": "Remove attachment",
+    "addFiles": "Add files",
+    "addFilesHint": "Add photos or files to this transaction",
+    "addFilesExpandHint": "Expand to add files",
+    "addFilesCollapseHint": "Collapse options",
+    "selectedSuffix": ", selected",
+    "clearLocation": "Clear location",
+    "restore": "Restore",
+    "destroyPermanently": "Destroy permanently",
+    "moveToTrash": "Move to trash",
+    "confirmTransaction": "Confirm transaction",
+    "confirmAllModalTitle": "Confirm all?",
+    "confirmAllModalDescription": "All transactions awaiting confirmation will be confirmed. This cannot be undone.",
+    "confirmAllButton": "Confirm all",
+    "confirmAllTransactions": "Confirm all transactions",
+    "pendingHeader": "PENDING",
+    "closePreview": "Close preview",
+    "clearAllTags": "Clear all tags",
+    "addTag": "Add tag",
+    "removeTag": "Remove {{name}} tag",
+    "grantNotifications": "Grant notifications permission",
+    "toggleOn": "On",
+    "toggleOff": "Off",
+    "infoExchangeRates": "Information about exchange rates",
+    "showMathActions": "Show math actions",
+    "hideMathActions": "Hide math actions",
+    "mathToolbarHint": "Toggles inline math toolbar",
+    "amountInput": "Amount input",
+    "amountInputHint": "Enter amount or a math expression (e.g. 100/4)",
+    "insertOperator": "Insert {{op}}",
+    "operatorTimes": "times",
+    "backspace": "Backspace",
+    "applyResult": "Apply result",
+    "confirmAmount": "Confirm amount",
+    "applyResultHint": "Tap to use this result"
+  }
+}

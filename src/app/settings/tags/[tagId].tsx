@@ -3,6 +3,7 @@ import { withObservables } from "@nozbe/watermelondb/react"
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router"
 import { useState } from "react"
 import { Controller, useForm } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import { StyleSheet } from "react-native-unistyles"
 
 import { ChangeIconInline } from "~/components/change-icon-inline"
@@ -40,6 +41,7 @@ interface EditTagScreenProps {
 }
 
 const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
+  const { t } = useTranslation()
   const router = useRouter()
   const isAddMode = tagId === NewEnum.NEW || !tagId
 
@@ -97,7 +99,7 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
         })
       } else {
         if (!tagModel) {
-          Toast.error({ title: "Error", description: "Tag not found" })
+          Toast.error({ title: "Error", description: t("tags.toast.notFound") })
           return
         }
         await updateTag(tagModel, {
@@ -324,10 +326,10 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
           setUnsavedModalVisible(false)
           confirmNavigation()
         }}
-        title="Close without saving?"
+        title={t("common.modals.closeWithoutSaving")}
         description="All changes will be lost."
         confirmLabel="Discard"
-        cancelLabel="Cancel"
+        cancelLabel={t("common.actions.cancel")}
         variant="default"
       />
     </View>

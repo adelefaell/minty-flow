@@ -11,6 +11,7 @@ import {
   startOfYear,
 } from "date-fns"
 import { useCallback, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Modal, Platform, ScrollView, View } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useUnistyles } from "react-native-unistyles"
@@ -38,6 +39,7 @@ export const DateRangePresetModalContent = ({
   onSave,
   onRequestClose,
 }: DateRangePresetModalContentProps) => {
+  const { t } = useTranslation()
   const { theme } = useUnistyles()
   const insets = useSafeAreaInsets()
   const now = new Date()
@@ -335,7 +337,7 @@ export const DateRangePresetModalContent = ({
           {expandedSection === "byYear" && (
             <View style={styles.expandedContent}>
               <Text variant="small" style={styles.sectionLabel}>
-                Select a year
+                {t("dateRange.yearPlaceholder")}
               </Text>
               <Input
                 value={byYearInput}

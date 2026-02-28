@@ -8,6 +8,7 @@
  */
 
 import { useCallback, useState } from "react"
+import { useTranslation } from "react-i18next"
 import {
   ActivityIndicator,
   Alert,
@@ -112,12 +113,10 @@ export function DeleteRecurringModal({
   onDeleted,
 }: DeleteRecurringModalProps) {
   const [loadingScope, setLoadingScope] = useState<DeleteScope | null>(null)
+  const { t } = useTranslation()
   const { width } = useWindowDimensions()
   const maxCardWidth = Math.min(width - 48, 400)
   const { theme } = useUnistyles()
-
-  const CONFIRM_MESSAGE =
-    "This action will delete all related transactions, and stop new transactions from being created. Recovering the transactions from trash bin wouldn't cause it to create new transactions."
 
   const performDelete = useCallback(
     async (scope: DeleteScope) => {
@@ -129,14 +128,18 @@ export function DeleteRecurringModal({
         switch (scope) {
           case "this": {
             await deleteTransactionModel(transaction)
-            Toast.success({ title: "Transaction deleted" })
+            Toast.success({
+              title: t("transactions.toast.deleteRecurringSuccess"),
+            })
             break
           }
 
           case "all": {
             await deleteAllRecurringInstances(recurringRule.id)
             await disableRecurringRule(recurringRule.id)
-            Toast.success({ title: "All recurring transactions deleted" })
+            Toast.success({
+              title: t("transactions.toast.deleteRecurringAllSuccess"),
+            })
             break
           }
 
@@ -146,7 +149,9 @@ export function DeleteRecurringModal({
               transaction.transactionDate,
             )
             await disableRecurringRule(recurringRule.id)
-            Toast.success({ title: "This and future transactions deleted" })
+            Toast.success({
+              title: t("transactions.toast.deleteRecurringFutureSuccess"),
+            })
             break
           }
         }
@@ -158,29 +163,36 @@ export function DeleteRecurringModal({
           scope,
           error: error instanceof Error ? error.message : String(error),
         })
-        Toast.error({ title: "Failed to delete transaction" })
+        Toast.error({ title: t("transactions.toast.deleteRecurringFailed") })
       }
       setLoadingScope(null)
     },
-    [loadingScope, transaction, recurringRule, onRequestClose, onDeleted],
+    [loadingScope, transaction, recurringRule, onRequestClose, onDeleted, t],
   )
 
   const handleDelete = useCallback(
     (scope: DeleteScope) => {
       if (scope === "all" || scope === "this_and_future") {
-        Alert.alert("Are you sure?", CONFIRM_MESSAGE, [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Delete",
-            style: "destructive",
-            onPress: () => performDelete(scope),
-          },
-        ])
+        Alert.alert(
+          t("transactions.recurring.deleteModal.confirmTitle"),
+          t("transactions.recurring.deleteModal.confirmMessage"),
+          [
+            {
+              text: t("transactions.recurring.deleteModal.cancel"),
+              style: "cancel",
+            },
+            {
+              text: t("transactions.recurring.deleteModal.delete"),
+              style: "destructive",
+              onPress: () => performDelete(scope),
+            },
+          ],
+        )
       } else {
         void performDelete(scope)
       }
     },
-    [performDelete],
+    [performDelete, t],
   )
 
   return (
@@ -195,7 +207,7 @@ export function DeleteRecurringModal({
       <Pressable
         style={[styles.backdrop, { width }]}
         onPress={onRequestClose}
-        accessibilityLabel="Close"
+        accessibilityLabel={t("accessibility.close")}
         accessibilityRole="button"
       >
         <TouchableWithoutFeedback onPress={() => {}}>
@@ -223,30 +235,38 @@ export function DeleteRecurringModal({
                   color={theme.colors.error}
                 />
               </View>
-              <Text style={styles.title}>Delete recurring transaction</Text>
+              <Text style={styles.title}>
+                {t("transactions.recurring.deleteModal.title")}
+              </Text>
               <Text style={styles.subtitle}>
-                Choose which transactions to remove
+                {t("transactions.recurring.deleteModal.subtitle")}
               </Text>
             </View>
 
             <View style={styles.optionsCard}>
               <OptionRow
-                label="This transaction"
-                sublabel="Only remove this occurrence"
+                label={t("transactions.recurring.deleteModal.optionThis")}
+                sublabel={t(
+                  "transactions.recurring.deleteModal.optionThisSublabel",
+                )}
                 onPress={() => handleDelete("this")}
                 loading={loadingScope === "this"}
                 isDestructive
               />
               <OptionRow
-                label="All transactions"
-                sublabel="Remove every occurrence, past and future"
+                label={t("transactions.recurring.deleteModal.optionAll")}
+                sublabel={t(
+                  "transactions.recurring.deleteModal.optionAllSublabel",
+                )}
                 onPress={() => handleDelete("all")}
                 loading={loadingScope === "all"}
                 isDestructive
               />
               <OptionRow
-                label="This and future transactions"
-                sublabel="Keep the past, remove from here onward"
+                label={t("transactions.recurring.deleteModal.optionFuture")}
+                sublabel={t(
+                  "transactions.recurring.deleteModal.optionFutureSublabel",
+                )}
                 onPress={() => handleDelete("this_and_future")}
                 loading={loadingScope === "this_and_future"}
                 isLast
@@ -262,7 +282,9 @@ export function DeleteRecurringModal({
               onPress={onRequestClose}
               disabled={!!loadingScope}
             >
-              <Text style={styles.cancelText}>Cancel</Text>
+              <Text style={styles.cancelText}>
+                {t("transactions.recurring.deleteModal.cancel")}
+              </Text>
             </Pressable>
           </SafeAreaView>
         </TouchableWithoutFeedback>

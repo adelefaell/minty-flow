@@ -4,6 +4,7 @@
  */
 
 import { useCallback, useState } from "react"
+import { useTranslation } from "react-i18next"
 import {
   ActivityIndicator,
   Modal,
@@ -53,6 +54,7 @@ export function ConfirmModal({
   variant = "default",
   icon,
 }: ConfirmModalProps) {
+  const { t } = useTranslation()
   const { width } = useWindowDimensions()
   const maxCardWidth = Math.min(width - 48, 400)
   const [loading, setLoading] = useState(false)
@@ -80,7 +82,7 @@ export function ConfirmModal({
       <Pressable
         style={[styles.backdrop, { width }]}
         onPress={onRequestClose}
-        accessibilityLabel="Close"
+        accessibilityLabel={t("accessibility.close")}
         accessibilityRole="button"
         native
         disableRipple

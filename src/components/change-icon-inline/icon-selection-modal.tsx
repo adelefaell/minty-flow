@@ -1,6 +1,7 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons"
 import type { ComponentProps } from "react"
 import { memo, useCallback, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { FlatList, Modal, Pressable, TextInput, View } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
@@ -110,6 +111,7 @@ export const IconSelectionModal = ({
   onIconSelected,
   initialIcon,
 }: IconSelectionModalProps) => {
+  const { t } = useTranslation()
   const { theme } = useUnistyles()
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedIcon, setSelectedIcon] = useState<string | null>(
@@ -219,7 +221,7 @@ export const IconSelectionModal = ({
       <SafeAreaView style={styles.modalContainer} edges={["top", "bottom"]}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Select Icon</Text>
+          <Text style={styles.headerTitle}>{t("iconPicker.title")}</Text>
           <Button variant="secondary" onPress={onClose}>
             <Text>Cancel</Text>
           </Button>
