@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -5,18 +6,18 @@ import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 
 export default function BudgetsScreen() {
+  const { t } = useTranslation()
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text variant="h2" style={styles.title}>
-        Budgets
+        {t("screens.settings.budgets.title")}
       </Text>
       <Text variant="p" style={styles.description}>
-        Create and manage your budgets. Set spending limits for different
-        categories and track your progress throughout the month.
+        {t("screens.settings.budgets.body")}
       </Text>
       <View style={styles.placeholder}>
         <Text variant="small" style={styles.placeholderText}>
-          No budgets created yet
+          {t("screens.settings.budgets.empty")}
         </Text>
       </View>
     </ScrollView>

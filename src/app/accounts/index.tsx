@@ -123,7 +123,7 @@ const AccountsScreenInner = ({
   return (
     <View style={styles.container}>
       <View style={styles.titleContainer}>
-        <Text variant="h4">Accounts</Text>
+        <Text variant="h4">{t("navigation.tabs.accounts")}</Text>
 
         <View style={styles.actionButtons}>
           {isReorderMode ? (
@@ -145,7 +145,7 @@ const AccountsScreenInner = ({
 
       <View style={styles.header}>
         <Text variant="small" style={styles.sectionLabel}>
-          TOTAL BALANCE
+          {t("screens.accounts.totalBalance")}
         </Text>
 
         <View style={styles.balanceContainer}>
@@ -166,7 +166,7 @@ const AccountsScreenInner = ({
 
         <View style={styles.accountsCountContainer}>
           <Text variant="small" style={styles.sectionLabel}>
-            ACCOUNTS
+            {t("screens.accounts.countLabel")}
           </Text>
           <Text variant="small" style={styles.accountsCount}>
             {filteredModels.length}
@@ -177,7 +177,7 @@ const AccountsScreenInner = ({
       {!isReorderMode && (
         <View style={styles.searchContainer}>
           <SearchInput
-            placeholder="Search accounts..."
+            placeholder={t("screens.accounts.a11y.searchPlaceholder")}
             value={searchQuery}
             onChangeText={setSearchQuery}
             onClear={() => setSearchQuery("")}
@@ -250,7 +250,7 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
     backgroundColor: theme.colors.surface,
     paddingHorizontal: 20,
-    paddingTop: 40,
+    paddingTop: 10,
   },
   scrollView: { flex: 1 },
   scrollContent: {

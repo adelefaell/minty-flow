@@ -62,7 +62,9 @@ const TagsScreenInner = ({ tags }: TagsScreenInnerProps) => {
         {filteredModels.length === 0 ? (
           <View style={styles.emptyState}>
             <Text variant="muted">
-              {searchQuery.trim() ? "No tags found" : "No tags yet"}
+              {searchQuery.trim()
+                ? t("screens.settings.tags.empty.noResults")
+                : t("screens.settings.tags.empty.noTags")}
             </Text>
           </View>
         ) : (

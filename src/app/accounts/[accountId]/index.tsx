@@ -116,7 +116,9 @@ const AccountDetailsScreenInner = ({
     return (
       <View style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Text variant="default">Loading account...</Text>
+          <Text variant="default">
+            {t("screens.accounts.form.loadingText")}
+          </Text>
         </View>
       </View>
     )
@@ -166,7 +168,9 @@ const AccountDetailsScreenInner = ({
                     size={14}
                     color={theme.colors.customColors.warning}
                   />
-                  <Text style={styles.primaryText}>Primary</Text>
+                  <Text style={styles.primaryText}>
+                    {t("screens.accounts.card.primary")}
+                  </Text>
                 </>
               )}
             </View>

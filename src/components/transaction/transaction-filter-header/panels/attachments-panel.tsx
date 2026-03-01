@@ -1,8 +1,9 @@
+import { useTranslation } from "react-i18next"
 import { View } from "react-native"
 
 import { Chip } from "~/components/ui/chips"
 import {
-  ATTACHMENT_OPTIONS,
+  AttachmentsOptionsEnum,
   type AttachmentsOptionsType,
 } from "~/types/transaction-filters"
 
@@ -20,12 +21,28 @@ export function AttachmentsPanel({
   onSelect,
   onDone,
 }: AttachmentsPanelProps) {
+  const { t } = useTranslation()
+  const options = [
+    {
+      id: AttachmentsOptionsEnum.ALL,
+      label: t("components.filters.chips.attachments"),
+    },
+    {
+      id: AttachmentsOptionsEnum.HAS,
+      label: t("components.filters.attachmentOptions.has"),
+    },
+    {
+      id: AttachmentsOptionsEnum.NONE,
+      label: t("components.filters.attachmentOptions.none"),
+    },
+  ]
+
   return (
     <View>
       <View
         style={[filterHeaderStyles.chipWrap, filterHeaderStyles.categoryRow]}
       >
-        {ATTACHMENT_OPTIONS.map((opt) => (
+        {options.map((opt) => (
           <Chip
             key={opt.id}
             label={opt.label}

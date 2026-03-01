@@ -4,7 +4,7 @@
     "name": "Minty Flow",
     "slug": "mint-flow",
     "extra": {
-      "router": {},
+      "supportsRTL": true,
       "eas": {
         "projectId": "7aafeeea-8f93-4fa3-b074-febd59362696"
       }
@@ -14,7 +14,6 @@
     "icon": "./src/assets/images/icon.png",
     "scheme": "mintyflownative",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.mintyflownative",
@@ -35,7 +34,6 @@
         "backgroundImage": "./src/assets/images/android-icon-background.png",
         "monochromeImage": "./src/assets/images/android-icon-monochrome.png"
       },
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.anonymous.mintyflownative"
     },
@@ -57,7 +55,7 @@
           }
         }
       ],
-      "expo-localization",
+      ["expo-localization"],
       "./plugins/withWatermelonDBJSI.js",
       [
         "expo-contacts",
@@ -84,7 +82,10 @@
         {
           "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
         }
-      ]
+      ],
+      "expo-build-properties",
+      "expo-image",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

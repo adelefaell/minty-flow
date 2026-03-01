@@ -1,6 +1,7 @@
 import { withObservables } from "@nozbe/watermelondb/react"
 import { useLocalSearchParams, useRouter } from "expo-router"
 import { useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { FlatList } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -66,6 +67,7 @@ const CategoryPresetsScreenInner = ({
   type,
   categories,
 }: CategoryPresetsScreenInnerProps) => {
+  const { t } = useTranslation()
   const router = useRouter()
   const [selectedPresets, setSelectedPresets] = useState<Set<string>>(new Set())
 
@@ -110,8 +112,8 @@ const CategoryPresetsScreenInner = ({
     } catch (error) {
       logger.error("Error creating preset categories", { error })
       Toast.error({
-        title: "Error",
-        description: "Failed to create categories. Please try again.",
+        title: t("components.categories.form.toast.error"),
+        description: t("components.categories.form.toast.createFailed"),
       })
     }
   }
@@ -144,7 +146,7 @@ const CategoryPresetsScreenInner = ({
         {isAdded ? (
           <View style={styles.addedBadge}>
             <Text variant="small" style={styles.addedText}>
-              Added
+              {t("components.categories.presets.added")}
             </Text>
           </View>
         ) : isSelected ? (
@@ -183,7 +185,9 @@ const CategoryPresetsScreenInner = ({
           style={styles.addButton}
         >
           <Text variant="default" style={styles.addButtonText}>
-            Add {selectedPresets.size} Selected
+            {t("components.categories.presets.addSelected", {
+              count: selectedPresets.size,
+            })}
           </Text>
         </Button>
       </View>

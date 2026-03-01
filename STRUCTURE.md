@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-02-28T19:16:21.482Z
+Generated on: 2026-03-01T19:02:07.126Z
 
 ```
 ./
@@ -36,9 +36,10 @@ Generated on: 2026-02-28T19:16:21.482Z
 │           │   └── 📄 react-compiler.md
 │           └── 📄 SKILL.md
 ├── 📁 .claude/
-│   └── 📁 skills/
-│       ├── 📄 building-native-ui
-│       └── 📄 upgrading-expo
+│   ├── 📁 skills/
+│   │   ├── 📄 building-native-ui
+│   │   └── 📄 upgrading-expo
+│   └── 📄 settings.local.json
 ├── 📁 .github/
 │   └── 📄 CODEOWNERS
 ├── 📁 .husky/
@@ -65,6 +66,8 @@ Generated on: 2026-02-28T19:16:21.482Z
 │   └── 📄 settings.json
 ├── 📁 docs/
 │   └── 📄 beta-todo.md
+├── 📁 memory/
+│   └── 📄 MEMORY.md
 ├── 📁 plugins/
 │   ├── 📄 index.js
 │   ├── 📄 README.md
@@ -223,7 +226,6 @@ Generated on: 2026-02-28T19:16:21.482Z
 │   │   │   ├── 📄 attachment-preview-modal.tsx
 │   │   │   ├── 📄 delete-recurring-modal.tsx
 │   │   │   ├── 📄 edit-recurring-modal.tsx
-│   │   │   ├── 📄 markdown-editor-modal.tsx
 │   │   │   ├── 📄 notes-modal.tsx
 │   │   │   ├── 📄 transaction-item.tsx
 │   │   │   ├── 📄 transaction-section-list.tsx

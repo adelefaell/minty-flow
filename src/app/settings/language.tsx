@@ -1,12 +1,16 @@
+import * as Updates from "expo-updates"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { ScrollView } from "react-native"
+import { DevSettings, ScrollView } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
+import { ConfirmModal } from "~/components/confirm-modal"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import {
+  DirectionEnum,
   LangCodeEnum,
   type LangCodeType,
   useLanguageStore,
@@ -30,53 +34,98 @@ export default function LanguageOptionsScreen() {
   const { t } = useTranslation()
   const { theme } = useUnistyles()
   const languageCode = useLanguageStore((s) => s.languageCode)
+  const direction = useLanguageStore((s) => s.direction)
   const setLanguageCode = useLanguageStore((s) => s.setLanguageCode)
-  const switchLanguage = (code: LangCodeType) => {
-    setLanguageCode(code)
+
+  const [pendingLang, setPendingLang] = useState<LangCodeType | null>(null)
+
+  const handleSelectLanguage = (code: LangCodeType) => {
+    const newDirection =
+      code === LangCodeEnum.AR ? DirectionEnum.RTL : DirectionEnum.LTR
+
+    // If the direction is changing (LTR <-> RTL), show the modal first
+    if (newDirection !== direction) {
+      setPendingLang(code)
+    } else {
+      // If it's just a language change (e.g., EN to FR), just swap it
+      setLanguageCode(code)
+    }
+  }
+
+  const handleConfirmReload = async () => {
+    if (pendingLang) {
+      // Finalize the choice in the store right before the app restarts
+      setLanguageCode(pendingLang)
+
+      try {
+        await Updates.reloadAsync()
+      } catch {
+        DevSettings.reload()
+      }
+    }
+  }
+
+  const handleCancelReload = () => {
+    setPendingLang(null)
   }
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      contentInsetAdjustmentBehavior="automatic"
-      showsVerticalScrollIndicator={false}
-    >
-      <View native style={styles.sectionLabel}>
-        <Text variant="small" style={styles.sectionLabelText}>
-          {t("screens.settings.preferences.language.sectionLabel")}
-        </Text>
-      </View>
-      <View native style={styles.card}>
-        {languageOptions.map((option, index) => {
-          const isSelected = languageCode === option.value
-          const isLast = index === languageOptions.length - 1
-          return (
-            <View key={option.value} native>
-              <Pressable
-                style={styles.row}
-                onPress={() => {
-                  setLanguageCode(option.value)
-                  switchLanguage(option.value)
-                }}
-              >
-                <View native style={styles.rowContent}>
-                  <Text style={styles.rowLabel}>{option.label}</Text>
-                </View>
-                {isSelected ? (
-                  <IconSymbol
-                    name="check"
-                    size={20}
-                    color={theme.colors.primary}
-                  />
-                ) : null}
-              </Pressable>
-              {!isLast ? <View native style={styles.divider} /> : null}
-            </View>
-          )
-        })}
-      </View>
-    </ScrollView>
+    <>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        contentInsetAdjustmentBehavior="automatic"
+        showsVerticalScrollIndicator={false}
+      >
+        <View native style={styles.sectionLabel}>
+          <Text variant="small" style={styles.sectionLabelText}>
+            {t("screens.settings.preferences.language.sectionLabel")}
+          </Text>
+        </View>
+        <View native style={styles.card}>
+          {languageOptions.map((option, index) => {
+            const isSelected = languageCode === option.value
+            const isLast = index === languageOptions.length - 1
+            return (
+              <View key={option.value} native>
+                <Pressable
+                  style={styles.row}
+                  onPress={() => handleSelectLanguage(option.value)}
+                >
+                  <View native style={styles.rowContent}>
+                    <Text style={styles.rowLabel}>{option.label}</Text>
+                  </View>
+                  {isSelected ? (
+                    <IconSymbol
+                      name="check"
+                      size={20}
+                      color={theme.colors.primary}
+                    />
+                  ) : null}
+                </Pressable>
+                {!isLast ? <View native style={styles.divider} /> : null}
+              </View>
+            )
+          })}
+        </View>
+      </ScrollView>
+
+      <ConfirmModal
+        visible={pendingLang !== null}
+        onRequestClose={handleCancelReload}
+        onConfirm={handleConfirmReload}
+        title={t(
+          "screens.settings.preferences.language.rtlReloadConfirm.title",
+        )}
+        description={t(
+          "screens.settings.preferences.language.rtlReloadConfirm.description",
+        )}
+        confirmLabel={t(
+          "screens.settings.preferences.language.rtlReloadConfirm.confirmLabel",
+        )}
+        icon="repeat"
+      />
+    </>
   )
 }
 

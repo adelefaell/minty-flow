@@ -14,6 +14,7 @@ import {
   useMemo,
   useRef,
 } from "react"
+import { useTranslation } from "react-i18next"
 import { SectionList } from "react-native"
 import type { SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable"
 import { StyleSheet } from "react-native-unistyles"
@@ -51,6 +52,7 @@ export function TransactionSectionList({
   showUpcoming = true,
   ListHeaderComponent,
 }: TransactionSectionListProps) {
+  const { t } = useTranslation()
   const router = useRouter()
   const openSwipeableRef = useRef<SwipeableMethods | null>(null)
 
@@ -122,14 +124,14 @@ export function TransactionSectionList({
       <View style={styles.emptyState}>
         <IconSymbol name="wallet" size={48} style={styles.emptyIcon} />
         <Text variant="default" style={styles.emptyTitle}>
-          No transactions yet
+          {t("screens.home.emptyState.title")}
         </Text>
         <Text variant="small" style={styles.emptySubtitle}>
-          Transactions for this period will appear here
+          {t("components.transactionList.emptyDescription")}
         </Text>
       </View>
     ),
-    [],
+    [t],
   )
 
   const renderItem = useCallback(
@@ -194,7 +196,9 @@ export function TransactionSectionList({
                 ))}
               </View>
               <Text variant="small" style={styles.sectionTotal}>
-                • {s.data.length} transactions
+                {t("components.transactionList.transactionCount", {
+                  count: s.data.length,
+                })}
               </Text>
             </View>
           </View>

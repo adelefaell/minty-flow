@@ -1,6 +1,7 @@
 import { withObservables } from "@nozbe/watermelondb/react"
 import { useRouter } from "expo-router"
 import { useCallback, useMemo, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { FlatList } from "react-native"
 import type { SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable"
 import { StyleSheet } from "react-native-unistyles"
@@ -24,6 +25,7 @@ function TrashScreenInner({
 }: {
   transactionsFull: TransactionWithRelations[]
 }) {
+  const { t } = useTranslation()
   const router = useRouter()
   const openSwipeableRef = useRef<SwipeableMethods | null>(null)
   const [pendingDestroyItem, setPendingDestroyItem] =
@@ -59,17 +61,17 @@ function TrashScreenInner({
       await destroyTransactionModel(item.transaction)
       setPendingDestroyItem(null)
       Toast.success({
-        title: "Deleted",
-        description: "Transaction permanently removed.",
+        title: t("components.transactionForm.toast.deleted"),
+        description: t("components.transactionForm.toast.deletedDescription"),
       })
     } catch (e) {
       Toast.error({
-        title: "Error",
-        description: "Failed to delete transaction.",
+        title: t("components.transactionForm.toast.error"),
+        description: t("components.transactionForm.toast.deleteFailed"),
       })
       throw e
     }
-  }, [pendingDestroyItem])
+  }, [pendingDestroyItem, t])
 
   const renderItem = useCallback(
     ({ item }: { item: TransactionWithRelations }) => (
@@ -103,17 +105,17 @@ function TrashScreenInner({
         ListHeaderComponent={
           <>
             <Text variant="h2" style={styles.title}>
-              Trash
+              {t("screens.settings.trash.title")}
             </Text>
             <Text variant="p" style={styles.description}>
-              Tap to open. Swipe left to delete permanently.
+              {t("screens.settings.trash.hint")}
             </Text>
           </>
         }
         ListEmptyComponent={
           <View style={styles.placeholder}>
             <Text variant="small" style={styles.placeholderText}>
-              No deleted transactions
+              {t("screens.settings.trash.empty.noTransactions")}
             </Text>
           </View>
         }
@@ -125,10 +127,10 @@ function TrashScreenInner({
         visible={pendingDestroyItem !== null}
         onRequestClose={() => setPendingDestroyItem(null)}
         onConfirm={handleConfirmDestroy}
-        title="Delete permanently?"
-        description="This transaction will be removed forever and cannot be restored."
-        confirmLabel="Delete"
-        cancelLabel="Cancel"
+        title={t("common.modals.deletePermanently")}
+        description={t("components.transactionForm.destroyModal.description")}
+        confirmLabel={t("common.actions.delete")}
+        cancelLabel={t("common.actions.cancel")}
         variant="destructive"
         icon="trash-can"
       />

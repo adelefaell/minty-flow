@@ -13,7 +13,9 @@
       "add": "إضافة",
       "search": "بحث",
       "clear": "مسح",
-      "apply": "تطبيق"
+      "apply": "تطبيق",
+      "done": "منتهي",
+      "next": "التالي"
     },
     "states": {
       "soon": "قريباً",
@@ -124,6 +126,8 @@
       "description": "عرض جميع حساباتك",
       "addNew": "إضافة حساب جديد",
       "addNewAccount": "حساب جديد",
+      "totalBalance": "الرصيد الإجمالي",
+      "countLabel": "الحسابات",
       "card": {
         "primary": "أساسي",
         "thisMonth": "هذا الشهر",
@@ -166,9 +170,6 @@
       "detail": {
         "title": "تفاصيل الحساب"
       },
-      "toast": {
-        "notFound": "الحساب غير موجود"
-      },
       "a11y": {
         "clear": "مسح الحساب",
         "select": "اختر الحساب",
@@ -181,6 +182,7 @@
     "stats": {
       "title": "الإحصائيات",
       "description": "نظرة عامة على وضعك المالي",
+      "reorderHint": "استخدم الأسهم لإعادة الترتيب",
       "periodSelector": {
         "month": "الشهر",
         "year": "السنة",
@@ -208,6 +210,7 @@
           "theme": {
             "title": "السمة",
             "description": "اختر السمة المفضلة لديك",
+            "selectThemePlaceholder": "اختر سمة",
             "options": {
               "light": "فاتح",
               "dark": "داكن",
@@ -288,7 +291,12 @@
         "language": {
           "title": "اللغة",
           "description": "إعدادات اللغة والمنطقة",
-          "sectionLabel": "تغيير اللغة"
+          "sectionLabel": "تغيير اللغة",
+          "rtlReloadConfirm": {
+            "title": "إعادة التشغيل مطلوبة",
+            "description": "يتطلب التبديل إلى هذه اللغة إعادة تشغيل التطبيق لتطبيق اتجاه النص الجديد.",
+            "confirmLabel": "إعادة التشغيل"
+          }
         },
         "transactionLocation": {
           "title": "موقع المعاملة",
@@ -298,6 +306,7 @@
       "trash": {
         "title": "سلة المحذوفات",
         "description": "عرض واستعادة المعاملات المحذوفة",
+        "hint": "اضغط للفتح. اسحب يساراً للحذف نهائياً.",
         "viewRemovedList": "عرض قائمة المحذوفات",
         "retention": {
           "title": "فترة الاحتفاظ",
@@ -307,6 +316,7 @@
           "forever": "للأبد"
         },
         "empty": {
+          "noTransactions": "لا توجد معاملات محذوفة",
           "label": "إفراغ سلة المحذوفات",
           "modal": {
             "title": "إفراغ سلة المحذوفات",
@@ -330,6 +340,8 @@
       "pending": {
         "title": "المعاملات المعلقة",
         "description": "عرض وإدارة المعاملات المعلقة",
+        "body": "اعرض معاملاتك المعلقة وأدرها. راجع المدفوعات المجدولة والمعاملات التي تنتظر المعالجة.",
+        "empty": "لا توجد معاملات معلقة",
         "caption": "لن يتم احتساب المعاملات المعلقة ضمن الدخل والمصاريف ورصيد الحساب.",
         "settings": {
           "showOnHome": "عرض في الصفحة الرئيسية",
@@ -345,21 +357,31 @@
       },
       "goals": {
         "title": "الأهداف",
-        "description": "تحديد وتتبع أهدافك المالية"
+        "description": "تحديد وتتبع أهدافك المالية",
+        "body": "حدّد أهدافك المالية وتابع تقدمك. راقب مسيرتك وحافظ على دوافعك لتحقيق أهدافك.",
+        "empty": "لا توجد أهداف بعد"
       },
       "budgets": {
         "title": "الميزانيات",
-        "description": "إنشاء وإدارة ميزانياتك"
+        "description": "إنشاء وإدارة ميزانياتك",
+        "body": "أنشئ ميزانياتك وأدرها. حدّد حدوداً للإنفاق لفئات مختلفة وتابع تقدمك طوال الشهر.",
+        "empty": "لا توجد ميزانيات بعد"
       },
       "loans": {
         "title": "القروض",
-        "description": "تتبع الأموال المُعارة والمُقترَضة"
+        "description": "تتبع الأموال المُعارة والمُقترَضة",
+        "body": "تتبع الأموال التي أعرتها للآخرين أو اقترضتها منهم. احتفظ بسجل لجميع معاملات القروض في مكان واحد.",
+        "empty": "لا توجد قروض مسجّلة بعد"
       },
       "tags": {
         "title": "الوسوم",
         "description": "إدارة وسوم معاملاتك",
         "searchPlaceholder": "البحث في الوسوم...",
         "newTag": "وسم جديد",
+        "empty": {
+          "noTags": "لا توجد وسوم بعد",
+          "noResults": "لا توجد وسوم مطابقة"
+        },
         "form": {
           "title": {
             "create": "إنشاء وسم",
@@ -388,19 +410,22 @@
           },
           "toast": {
             "error": "خطأ",
+            "notFound": "الوسم غير موجود",
             "deleteFailed": "فشل حذف الوسم.",
             "createFailed": "فشل إنشاء الوسم.",
             "updateFailed": "فشل تحديث الوسم."
+          },
+          "contactPermission": {
+            "denied": "تم رفض الإذن",
+            "deniedDescription": "نحتاج إذن الوصول إلى جهات الاتصال لاختيار شخص من هاتفك."
           }
-        },
-        "toast": {
-          "notFound": "الوسم غير موجود",
-          "deleteFailed": "فشل حذف الوسم"
         }
       },
       "billSplitter": {
         "title": "تقسيم الفاتورة",
-        "description": "قسّم الفواتير مع الأصدقاء والعائلة"
+        "description": "قسّم الفواتير مع الأصدقاء والعائلة",
+        "body": "قسّم الفواتير مع الأصدقاء والعائلة.",
+        "empty": "لا يوجد مقسّم فواتير بعد"
       },
       "exchangeRates": {
         "title": "أسعار الصرف",
@@ -496,13 +521,9 @@
         "amountLabel": "المبلغ",
         "convertedAmountLabel": "المبلغ المحوّل",
         "notes": "ملاحظات",
+        "notesPlaceholder": "أضف ملاحظات حول هذه المعاملة...",
         "transactionDate": "تاريخ المعاملة",
         "fileAttachments": "مرفقات الملفات"
-      },
-      "datePicker": {
-        "cancel": "إلغاء",
-        "next": "التالي",
-        "done": "تم"
       },
       "save": "حفظ",
       "create": "إنشاء",
@@ -623,6 +644,12 @@
       "description": "إدارة فئات معاملاتك",
       "subtitle": "نظم كيفية تدفق أموالك",
       "viewArchived": "عرض {{type}} المؤرشفة ({{count}})",
+      "archivedSearchPlaceholder": "البحث في الفئات المؤرشفة...",
+      "transactionsComingSoon": "المعاملات قريباً",
+      "presets": {
+        "added": "مُضاف",
+        "addSelected": "إضافة {{count}} محدد"
+      },
       "search": {
         "placeholder": "بحث في فئات {{tab}}..."
       },
@@ -689,7 +716,55 @@
     "filters": {
       "searchPlaceholder": "البحث بالعنوان...",
       "accountSearch": "البحث في الحسابات...",
-      "clearAll": "مسح الكل"
+      "clearAll": "مسح الكل",
+      "includeNotes": "تضمين الملاحظات",
+      "noCategoriesForType": "لا توجد فئات لهذا النوع",
+      "chips": {
+        "accounts": "الحسابات",
+        "allAccounts": "الكل",
+        "accountCount": "{{count}} حساب",
+        "categories": "الفئات",
+        "categoryCount_one": "فئة واحدة",
+        "categoryCount_other": "{{count}} فئات",
+        "tags": "الوسوم",
+        "tagCount_one": "وسم واحد",
+        "tagCount_other": "{{count}} وسوم",
+        "type": "النوع",
+        "allTypes": "جميع الأنواع",
+        "typeCount_one": "{{count}} نوع",
+        "typeCount_other": "{{count}} أنواع",
+        "currency": "العملة",
+        "allCurrencies": "جميع العملات",
+        "currencyCount_one": "عملة واحدة",
+        "currencyCount_other": "{{count}} عملات",
+        "attachments": "المرفقات",
+        "pendingStatus": "حالة المعلقة",
+        "thisMonth": "هذا الشهر",
+        "untitled": "بدون عنوان"
+      },
+      "attachmentOptions": {
+        "has": "بها مرفقات",
+        "none": "بلا مرفقات"
+      },
+      "pendingOptions": {
+        "all": "الكل",
+        "pending": "معلقة",
+        "notPending": "غير معلقة"
+      },
+      "groupByOptions": {
+        "hour": "الساعة",
+        "day": "اليوم",
+        "week": "الأسبوع",
+        "month": "الشهر",
+        "year": "السنة",
+        "allTime": "كل الوقت"
+      },
+      "searchMatch": {
+        "smart": "ذكي",
+        "partial": "مطابقة جزئية",
+        "exact": "مطابقة تامة",
+        "untitled": "بدون عنوان"
+      }
     },
     "iconPicker": {
       "title": "اختر أيقونة",
@@ -715,6 +790,16 @@
         "searchPlaceholder": "البحث عن العملات...",
         "noCurrenciesFound": "لا توجد عملات"
       }
+    },
+    "transactionItem": {
+      "recurring": "متكررة",
+      "pending": "معلقة",
+      "canceled": "تم إلغاء المعاملة",
+      "failedToDelete": "فشل الحذف"
+    },
+    "transactionList": {
+      "emptyDescription": "ستظهر معاملات هذه الفترة هنا",
+      "transactionCount": "• {{count}} معاملات"
     }
   },
   "validation": {
@@ -767,20 +852,34 @@
       }
     },
     "loan": {
-      "name": { "required": "اسم القرض مطلوب" },
-      "amount": { "required": "المبلغ مطلوب", "invalid": "أدخل مبلغاً صحيحاً" },
-      "contact": { "invalidPhone": "أدخل رقماً هاتفياً صحيحاً" }
+      "name": {
+        "required": "اسم القرض مطلوب"
+      },
+      "amount": {
+        "required": "المبلغ مطلوب",
+        "invalid": "أدخل مبلغاً صحيحاً"
+      },
+      "contact": {
+        "invalidPhone": "أدخل رقماً هاتفياً صحيحاً"
+      }
     },
     "goal": {
-      "name": { "required": "اسم الهدف مطلوب" },
+      "name": {
+        "required": "اسم الهدف مطلوب"
+      },
       "targetAmount": {
         "required": "المبلغ المستهدف مطلوب",
         "invalid": "أدخل مبلغاً صحيحاً"
       }
     },
     "budget": {
-      "name": { "required": "اسم الميزانية مطلوب" },
-      "amount": { "required": "المبلغ مطلوب", "invalid": "أدخل مبلغاً صحيحاً" }
+      "name": {
+        "required": "اسم الميزانية مطلوب"
+      },
+      "amount": {
+        "required": "المبلغ مطلوب",
+        "invalid": "أدخل مبلغاً صحيحاً"
+      }
     }
   }
 }

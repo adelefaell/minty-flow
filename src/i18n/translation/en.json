@@ -13,11 +13,13 @@
       "add": "Add",
       "search": "Search",
       "clear": "Clear",
-      "apply": "Apply"
+      "apply": "Apply",
+      "done": "Done",
+      "next": "Next"
     },
     "states": {
-      "soon": "SOON",
-      "comingSoon": "COMING SOON",
+      "soon": "Soon",
+      "comingSoon": "Coming Soon",
       "loading": "Loading…",
       "empty": "No items",
       "error": "Something went wrong",
@@ -88,12 +90,12 @@
         "net": "Net"
       },
       "upcoming": {
-        "header": "UPCOMING",
+        "header": "Upcoming",
         "seeAll": "See all",
         "recurringCount": "{{count}} recurring",
         "pendingCount": "{{count}} pending",
         "subHeaderRecurring": "RECURRING",
-        "subHeaderPending": "PENDING",
+        "subHeaderPending": "Pending",
         "confirmAll": {
           "button": "Confirm all",
           "modalTitle": "Confirm all?",
@@ -107,7 +109,7 @@
           "daysCount": "Next {{count}} day(s)"
         },
         "a11y": {
-          "header": "PENDING",
+          "header": "Pending",
           "confirm": "Confirm transaction",
           "confirmAll": "Confirm all transactions",
           "confirmAllButton": "Confirm all",
@@ -124,13 +126,15 @@
       "description": "View all your accounts",
       "addNew": "Add new account",
       "addNewAccount": "New Account",
+      "totalBalance": "Total Balance",
+      "countLabel": "Accounts",
       "card": {
         "primary": "Primary",
-        "thisMonth": "THIS MONTH",
+        "thisMonth": "This Month",
         "in": "IN",
         "out": "OUT",
         "net": "NET",
-        "currentBalance": "CURRENT BALANCE",
+        "currentBalance": "Current Balance",
         "netThisMonth": "Net this month",
         "moreOptions": "More options"
       },
@@ -166,9 +170,6 @@
       "detail": {
         "title": "Account Details"
       },
-      "toast": {
-        "notFound": "Account not found"
-      },
       "a11y": {
         "clear": "Clear account",
         "select": "Select account",
@@ -181,6 +182,7 @@
     "stats": {
       "title": "Statistics",
       "description": "Your financial overview",
+      "reorderHint": "Use arrows to reorder",
       "periodSelector": {
         "month": "Month",
         "year": "Year",
@@ -208,6 +210,7 @@
           "theme": {
             "title": "Theme",
             "description": "Choose your app theme",
+            "selectThemePlaceholder": "Select a theme",
             "options": {
               "light": "Light",
               "dark": "Dark",
@@ -288,7 +291,12 @@
         "language": {
           "title": "Language",
           "description": "Language and locale settings",
-          "sectionLabel": "change language"
+          "sectionLabel": "change language",
+          "rtlReloadConfirm": {
+            "title": "Restart required",
+            "description": "Switching to this language requires a restart to apply the new text direction.",
+            "confirmLabel": "Restart"
+          }
         },
         "transactionLocation": {
           "title": "Transaction Location",
@@ -298,6 +306,7 @@
       "trash": {
         "title": "Trash",
         "description": "View and restore deleted transactions",
+        "hint": "Tap to open. Swipe left to delete permanently.",
         "viewRemovedList": "View removed list",
         "retention": {
           "title": "Retention Period",
@@ -307,6 +316,7 @@
           "forever": "Forever"
         },
         "empty": {
+          "noTransactions": "No deleted transactions",
           "label": "Empty trash bin",
           "modal": {
             "title": "Empty Trash",
@@ -330,6 +340,8 @@
       "pending": {
         "title": "Pending Transactions",
         "description": "View and manage pending transactions",
+        "body": "View and manage your pending transactions. Review scheduled payments and transactions that are waiting to be processed.",
+        "empty": "No pending transactions",
         "caption": "Pending transactions will not be counted towards income, expenses, and account balance.",
         "settings": {
           "showOnHome": "Show on home",
@@ -345,21 +357,31 @@
       },
       "goals": {
         "title": "Goals",
-        "description": "Set and track your financial goals"
+        "description": "Set and track your financial goals",
+        "body": "Set and track your financial goals. Monitor your progress and stay motivated to achieve your financial objectives.",
+        "empty": "No goals set yet"
       },
       "budgets": {
         "title": "Budgets",
-        "description": "Create and manage your budgets"
+        "description": "Create and manage your budgets",
+        "body": "Create and manage your budgets. Set spending limits for different categories and track your progress throughout the month.",
+        "empty": "No budgets created yet"
       },
       "loans": {
         "title": "Loans",
-        "description": "Track money lent and borrowed"
+        "description": "Track money lent and borrowed",
+        "body": "Track money you've lent to others or borrowed from them. Keep records of all your loan transactions in one place.",
+        "empty": "No loans tracked yet"
       },
       "tags": {
         "title": "Tags",
         "description": "Manage your transaction tags",
         "searchPlaceholder": "Search tags...",
         "newTag": "New tag",
+        "empty": {
+          "noTags": "No tags yet",
+          "noResults": "No tags found"
+        },
         "form": {
           "title": {
             "create": "Create Tag",
@@ -388,19 +410,22 @@
           },
           "toast": {
             "error": "Error",
+            "notFound": "Tag not found",
             "deleteFailed": "Failed to delete tag.",
             "createFailed": "Failed to create tag.",
             "updateFailed": "Failed to update tag."
+          },
+          "contactPermission": {
+            "denied": "Permission denied",
+            "deniedDescription": "We need contacts permission to select a contact from your phone."
           }
-        },
-        "toast": {
-          "notFound": "Tag not found",
-          "deleteFailed": "Failed to delete tag"
         }
       },
       "billSplitter": {
         "title": "Bill Splitter",
-        "description": "Split bills with friends and family"
+        "description": "Split bills with friends and family",
+        "body": "Split bills with friends and family.",
+        "empty": "No bill splitter yet"
       },
       "exchangeRates": {
         "title": "Exchange Rates",
@@ -496,13 +521,9 @@
         "amountLabel": "Amount",
         "convertedAmountLabel": "Converted amount",
         "notes": "Notes",
+        "notesPlaceholder": "Add notes about this transaction...",
         "transactionDate": "Transaction date",
         "fileAttachments": "File attachments"
-      },
-      "datePicker": {
-        "cancel": "Cancel",
-        "next": "Next",
-        "done": "Done"
       },
       "save": "Save",
       "create": "Create",
@@ -623,6 +644,12 @@
       "description": "Manage your transaction categories",
       "subtitle": "Organize how your money flows",
       "viewArchived": "View Archived {{type}}s ({{count}})",
+      "archivedSearchPlaceholder": "Search archived categories...",
+      "transactionsComingSoon": "Transactions coming soon",
+      "presets": {
+        "added": "Added",
+        "addSelected": "Add {{count}} Selected"
+      },
       "search": {
         "placeholder": "Search {{tab}} categories..."
       },
@@ -689,7 +716,55 @@
     "filters": {
       "searchPlaceholder": "Search by title...",
       "accountSearch": "Search accounts...",
-      "clearAll": "Clear all"
+      "clearAll": "Clear all",
+      "includeNotes": "Include notes",
+      "noCategoriesForType": "No categories for this type",
+      "chips": {
+        "accounts": "Accounts",
+        "allAccounts": "All",
+        "accountCount": "{{count}} acct",
+        "categories": "Categories",
+        "categoryCount_one": "{{count}} category",
+        "categoryCount_other": "{{count}} categories",
+        "tags": "Tags",
+        "tagCount_one": "{{count}} tag",
+        "tagCount_other": "{{count}} tags",
+        "type": "Type",
+        "allTypes": "All types",
+        "typeCount_one": "{{count}} type",
+        "typeCount_other": "{{count}} types",
+        "currency": "Currency",
+        "allCurrencies": "All currencies",
+        "currencyCount_one": "{{count}} currency",
+        "currencyCount_other": "{{count}} currencies",
+        "attachments": "Attachments",
+        "pendingStatus": "Pending Status",
+        "thisMonth": "This month",
+        "untitled": "Untitled"
+      },
+      "attachmentOptions": {
+        "has": "Has Attachments",
+        "none": "Has No Attachments"
+      },
+      "pendingOptions": {
+        "all": "All",
+        "pending": "Pending",
+        "notPending": "Not Pending"
+      },
+      "groupByOptions": {
+        "hour": "Hour",
+        "day": "Day",
+        "week": "Week",
+        "month": "Month",
+        "year": "Year",
+        "allTime": "All time"
+      },
+      "searchMatch": {
+        "smart": "Smart",
+        "partial": "Partial match",
+        "exact": "Exact match",
+        "untitled": "Untitled"
+      }
     },
     "iconPicker": {
       "title": "Select Icon",
@@ -715,6 +790,16 @@
         "searchPlaceholder": "Search currencies...",
         "noCurrenciesFound": "No currencies found"
       }
+    },
+    "transactionItem": {
+      "recurring": "Recurring",
+      "pending": "Pending",
+      "canceled": "Transaction canceled",
+      "failedToDelete": "Failed to delete"
+    },
+    "transactionList": {
+      "emptyDescription": "Transactions for this period will appear here",
+      "transactionCount": "• {{count}} transactions"
     }
   },
   "validation": {

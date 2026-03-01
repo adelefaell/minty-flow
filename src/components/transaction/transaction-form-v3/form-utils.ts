@@ -91,16 +91,3 @@ export function getFieldError(
 ): string | undefined {
   return message ?? undefined
 }
-
-export function notesMarkdownStyles(theme: { colors: { onSurface: string } }) {
-  const fg = theme.colors.onSurface
-  return {
-    body: { color: fg, fontSize: 15 },
-    paragraph: { marginVertical: 4 },
-    bullet_list: { marginVertical: 4 },
-    ordered_list: { marginVertical: 4 },
-    list_item: { marginVertical: 2 },
-    strong: { fontWeight: "700" as const },
-    em: { fontStyle: "italic" as const },
-  }
-}

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -5,18 +6,18 @@ import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 
 export default function PendingTransactionsScreen() {
+  const { t } = useTranslation()
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text variant="h2" style={styles.title}>
-        Pending Transactions
+        {t("screens.settings.pending.title")}
       </Text>
       <Text variant="p" style={styles.description}>
-        View and manage your pending transactions. Review scheduled payments and
-        transactions that are waiting to be processed.
+        {t("screens.settings.pending.body")}
       </Text>
       <View style={styles.placeholder}>
         <Text variant="small" style={styles.placeholderText}>
-          No pending transactions
+          {t("screens.settings.pending.empty")}
         </Text>
       </View>
     </ScrollView>

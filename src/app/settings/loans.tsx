@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -5,18 +6,18 @@ import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 
 export default function LoansScreen() {
+  const { t } = useTranslation()
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text variant="h2" style={styles.title}>
-        Loans
+        {t("screens.settings.loans.title")}
       </Text>
       <Text variant="p" style={styles.description}>
-        Track money you've lent to others or borrowed from them. Keep records of
-        all your loan transactions in one place.
+        {t("screens.settings.loans.body")}
       </Text>
       <View style={styles.placeholder}>
         <Text variant="small" style={styles.placeholderText}>
-          No loans tracked yet
+          {t("screens.settings.loans.empty")}
         </Text>
       </View>
     </ScrollView>

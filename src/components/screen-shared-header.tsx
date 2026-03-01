@@ -1,8 +1,8 @@
 import type { NativeStackHeaderProps } from "@react-navigation/native-stack"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { StyleSheet } from "react-native-unistyles"
 
 import { IconSymbol } from "~/components/ui/icon-symbol"
+import { useLanguageStore } from "~/stores/language.store"
 
 import { Button } from "./ui/button"
 import { Text } from "./ui/text"
@@ -14,12 +14,12 @@ export const ScreenSharedHeader = ({
 }: {
   props: NativeStackHeaderProps
 }) => {
-  const insets = useSafeAreaInsets()
+  const isRTL = useLanguageStore((s) => s.isRTL)
   const canGoBack = props.navigation?.canGoBack() ?? false
   const title = props.options?.title ?? ""
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 10 }]}>
+    <View style={[styles.container]}>
       {canGoBack && (
         <Tooltip text="back" position="bottom">
           <Button
@@ -32,13 +32,13 @@ export const ScreenSharedHeader = ({
             }}
             // style={styles.backButton}
           >
-            <IconSymbol name="arrow-left" size={24} />
+            <IconSymbol name={isRTL ? "arrow-right" : "arrow-left"} size={24} />
           </Button>
         </Tooltip>
       )}
 
       {title && (
-        <Text variant="large" style={styles.title}>
+        <Text variant="h4" style={styles.title}>
           {title}
         </Text>
       )}
@@ -51,9 +51,9 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: theme.colors.surface,
-    paddingBottom: 10,
-    paddingHorizontal: 8,
-    gap: 25,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    gap: 20,
     elevation: 5,
   },
   title: {

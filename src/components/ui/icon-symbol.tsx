@@ -28,6 +28,7 @@ export const VALID_ICON_NAMES = defineValidIcons([
   // UI & Navigation
   "arrow-bottom-left",
   "arrow-left",
+  "arrow-right",
   "arrow-top-right",
   "chevron-down",
   "chevron-up",

@@ -1,6 +1,7 @@
 import { withObservables } from "@nozbe/watermelondb/react"
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router"
 import { useLayoutEffect } from "react"
+import { useTranslation } from "react-i18next"
 import { StyleSheet } from "react-native-unistyles"
 
 import { DynamicIcon } from "~/components/dynamic-icon"
@@ -19,6 +20,7 @@ interface CategoryDetailsProps {
 const CategoryDetailsScreenInner = ({ category }: CategoryDetailsProps) => {
   // Convert models to domain types
   // const category = modelToCategory(categoryModel)
+  const { t } = useTranslation()
   const router = useRouter()
   const navigation = useNavigation()
 
@@ -45,7 +47,9 @@ const CategoryDetailsScreenInner = ({ category }: CategoryDetailsProps) => {
     return (
       <View style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Text variant="default">Loading category...</Text>
+          <Text variant="default">
+            {t("components.categories.form.loadingText")}
+          </Text>
         </View>
       </View>
     )
@@ -74,7 +78,7 @@ const CategoryDetailsScreenInner = ({ category }: CategoryDetailsProps) => {
         <View style={styles.placeholderContainer}>
           <IconSymbol name="chart-box" size={48} color="gray" outline />
           <Text variant="default" style={styles.placeholderText}>
-            Transactions coming soon
+            {t("components.categories.transactionsComingSoon")}
           </Text>
         </View>
       </View>

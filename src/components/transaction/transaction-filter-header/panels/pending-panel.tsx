@@ -1,7 +1,8 @@
+import { useTranslation } from "react-i18next"
 import { View } from "react-native"
 
 import { Chip } from "~/components/ui/chips"
-import { PENDING_OPTIONS } from "~/types/transaction-filters"
+import { PendingOptionsEnum } from "~/types/transaction-filters"
 
 import { filterHeaderStyles } from "../filter-header.styles"
 import { PanelDoneButton } from "../panel-done-button"
@@ -15,9 +16,25 @@ interface PendingPanelProps {
 }
 
 export function PendingPanel({ value, onSelect, onDone }: PendingPanelProps) {
+  const { t } = useTranslation()
+  const options = [
+    {
+      id: PendingOptionsEnum.ALL,
+      label: t("components.filters.pendingOptions.all"),
+    },
+    {
+      id: PendingOptionsEnum.PENDING,
+      label: t("components.filters.pendingOptions.pending"),
+    },
+    {
+      id: PendingOptionsEnum.NOT_PENDING,
+      label: t("components.filters.pendingOptions.notPending"),
+    },
+  ]
+
   return (
     <View>
-      {chunk(PENDING_OPTIONS, CHIPS_PER_ROW).map((row) => (
+      {chunk(options, CHIPS_PER_ROW).map((row) => (
         <View
           key={row.map((o) => o.id).join(",")}
           style={[

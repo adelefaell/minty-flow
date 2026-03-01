@@ -1,16 +1,19 @@
-import { useCallback, useState } from "react"
+import { useCallback, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { KeyboardAvoidingView, Modal, Platform, Pressable } from "react-native"
+import {
+  EnrichedTextInput,
+  type EnrichedTextInputInstance,
+  type OnChangeStateEvent,
+} from "react-native-enriched"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import {
   StyleSheet as UnistylesSheet,
   useUnistyles,
 } from "react-native-unistyles"
 
-import { Input } from "~/components/ui/input"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-
-const MAX_NOTES_LENGTH = 500
 
 interface NotesModalProps {
   visible: boolean
@@ -28,14 +31,25 @@ function NotesModalContent({
   onSave: (notes: string) => void
   onRequestClose: () => void
 }) {
+  const { t } = useTranslation()
   const { theme } = useUnistyles()
   const insets = useSafeAreaInsets()
-  const [localValue, setLocalValue] = useState(initialValue)
+  const editorRef = useRef<EnrichedTextInputInstance>(null)
+  const [activeStyles, setActiveStyles] = useState<OnChangeStateEvent | null>(
+    null,
+  )
 
-  const handleSave = useCallback(() => {
-    onSave(localValue.trim())
+  const handleSave = useCallback(async () => {
+    const html = (await editorRef.current?.getHTML()) ?? initialValue
+    onSave(html)
     onRequestClose()
-  }, [localValue, onSave, onRequestClose])
+  }, [initialValue, onSave, onRequestClose])
+
+  const isBold = activeStyles?.bold.isActive ?? false
+  const isItalic = activeStyles?.italic.isActive ?? false
+  const isUL = activeStyles?.unorderedList.isActive ?? false
+  const isOL = activeStyles?.orderedList.isActive ?? false
+  const isChecklist = activeStyles?.checkboxList.isActive ?? false
 
   return (
     <KeyboardAvoidingView
@@ -58,32 +72,132 @@ function NotesModalContent({
           hitSlop={12}
           style={styles.cancelButton}
         >
-          <Text style={styles.cancelText}>Cancel</Text>
+          <Text style={styles.cancelText}>{t("common.actions.cancel")}</Text>
         </Pressable>
-        <Text style={styles.title}>Notes</Text>
+        <Text style={styles.title}>
+          {t("components.transactionForm.fields.notes")}
+        </Text>
         <Pressable onPress={handleSave} hitSlop={12} style={styles.doneButton}>
           <Text style={[styles.doneText, { color: theme.colors.primary }]}>
-            Done
+            {t("common.actions.done")}
           </Text>
         </Pressable>
       </View>
 
-      <View style={[styles.content, { paddingHorizontal: 20 }]}>
-        <Input
-          style={styles.textInput}
-          placeholder="Add notes about this transaction..."
+      <View
+        style={[
+          styles.toolbar,
+          {
+            backgroundColor: theme.colors.secondary,
+            borderBottomColor: theme.colors.customColors.semi,
+          },
+        ]}
+      >
+        <Pressable
+          style={styles.toolbarBtn}
+          onPress={() => editorRef.current?.toggleBold()}
+          hitSlop={4}
+        >
+          <Text
+            style={[
+              styles.toolbarLabel,
+              {
+                color: isBold ? theme.colors.primary : theme.colors.onSurface,
+                fontWeight: "700",
+              },
+            ]}
+          >
+            B
+          </Text>
+        </Pressable>
+        <Pressable
+          style={styles.toolbarBtn}
+          onPress={() => editorRef.current?.toggleItalic()}
+          hitSlop={4}
+        >
+          <Text
+            style={[
+              styles.toolbarLabel,
+              {
+                color: isItalic ? theme.colors.primary : theme.colors.onSurface,
+                fontStyle: "italic",
+              },
+            ]}
+          >
+            I
+          </Text>
+        </Pressable>
+        <Pressable
+          style={styles.toolbarBtn}
+          onPress={() => editorRef.current?.toggleUnorderedList()}
+          hitSlop={4}
+        >
+          <Text
+            style={[
+              styles.toolbarLabel,
+              {
+                color: isUL ? theme.colors.primary : theme.colors.onSurface,
+              },
+            ]}
+          >
+            •
+          </Text>
+        </Pressable>
+        <Pressable
+          style={styles.toolbarBtn}
+          onPress={() => editorRef.current?.toggleOrderedList()}
+          hitSlop={4}
+        >
+          <Text
+            style={[
+              styles.toolbarLabel,
+              {
+                color: isOL ? theme.colors.primary : theme.colors.onSurface,
+              },
+            ]}
+          >
+            1.
+          </Text>
+        </Pressable>
+        <Pressable
+          style={styles.toolbarBtn}
+          onPress={() => editorRef.current?.toggleCheckboxList(false)}
+          hitSlop={4}
+        >
+          <Text
+            style={[
+              styles.toolbarLabel,
+              {
+                color: isChecklist
+                  ? theme.colors.primary
+                  : theme.colors.onSurface,
+              },
+            ]}
+          >
+            ☑
+          </Text>
+        </Pressable>
+      </View>
+
+      <View style={styles.content}>
+        <EnrichedTextInput
+          ref={editorRef}
+          defaultValue={initialValue}
+          autoFocus
+          placeholder={t("components.transactionForm.fields.notesPlaceholder")}
           placeholderTextColor={theme.colors.customColors.semi}
-          value={localValue}
-          onChangeText={(text) =>
-            setLocalValue(text.slice(0, MAX_NOTES_LENGTH))
-          }
-          multiline
-          numberOfLines={8}
-          textAlignVertical="top"
+          onChangeState={(e) => setActiveStyles(e.nativeEvent)}
+          style={{
+            ...styles.editor,
+            color: theme.colors.onSurface,
+            backgroundColor: theme.colors.secondary,
+          }}
+          htmlStyle={{
+            ul: { bulletColor: theme.colors.onSurface },
+            ol: { markerColor: theme.colors.onSurface },
+            ulCheckbox: { boxColor: theme.colors.onSurface },
+          }}
         />
-        <Text style={styles.charCount}>
-          {localValue.length}/{MAX_NOTES_LENGTH}
-        </Text>
       </View>
     </KeyboardAvoidingView>
   )
@@ -146,27 +260,34 @@ const styles = UnistylesSheet.create((theme) => ({
     fontSize: 17,
     fontWeight: "600",
   },
+  toolbar: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    gap: 4,
+    borderBottomWidth: 1,
+  },
+  toolbarBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  toolbarLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
   content: {
     flex: 1,
-    paddingTop: 20,
-    gap: 8,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 16,
   },
-  textInput: {
+  editor: {
     flex: 1,
-    minHeight: 160,
     fontSize: 16,
-    color: theme.colors.onSurface,
     borderRadius: 12,
-    backgroundColor: theme.colors.secondary,
     paddingHorizontal: 16,
-    paddingTop: 14,
-    paddingBottom: 14,
-    borderWidth: 0,
-    textAlignVertical: "top",
-  },
-  charCount: {
-    fontSize: 12,
-    color: theme.colors.customColors.semi,
-    textAlign: "right",
+    paddingVertical: 14,
   },
 }))

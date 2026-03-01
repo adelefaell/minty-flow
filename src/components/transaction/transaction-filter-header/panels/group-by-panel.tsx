@@ -1,8 +1,8 @@
+import { useTranslation } from "react-i18next"
 import { View } from "react-native"
 
 import { Chip } from "~/components/ui/chips"
 import type { GroupByOption } from "~/types/transaction-filters"
-import { GROUP_BY_OPTIONS } from "~/types/transaction-filters"
 
 import { filterHeaderStyles } from "../filter-header.styles"
 import { PanelDoneButton } from "../panel-done-button"
@@ -16,9 +16,19 @@ interface GroupByPanelProps {
 }
 
 export function GroupByPanel({ value, onSelect, onDone }: GroupByPanelProps) {
+  const { t } = useTranslation()
+  const options: { id: GroupByOption; label: string }[] = [
+    { id: "hour", label: t("components.filters.groupByOptions.hour") },
+    { id: "day", label: t("components.filters.groupByOptions.day") },
+    { id: "week", label: t("components.filters.groupByOptions.week") },
+    { id: "month", label: t("components.filters.groupByOptions.month") },
+    { id: "year", label: t("components.filters.groupByOptions.year") },
+    { id: "allTime", label: t("components.filters.groupByOptions.allTime") },
+  ]
+
   return (
     <View>
-      {chunk(GROUP_BY_OPTIONS, CHIPS_PER_ROW).map((row) => (
+      {chunk(options, CHIPS_PER_ROW).map((row) => (
         <View
           key={row.map((o) => o.id).join(",")}
           style={[

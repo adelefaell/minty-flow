@@ -189,12 +189,16 @@ export const TransactionItem = ({
       promise
         .then(() =>
           Toast.success({
-            title: isUpcoming ? "Transaction canceled" : "Moved to trash",
+            title: isUpcoming
+              ? t("components.transactionItem.canceled")
+              : t("components.transactionForm.toast.movedToTrash"),
           }),
         )
         .catch(() =>
           Toast.error({
-            title: isUpcoming ? "Failed to delete" : "Failed to move to trash",
+            title: isUpcoming
+              ? t("components.transactionItem.failedToDelete")
+              : t("components.transactionForm.toast.moveToTrashFailed"),
           }),
         )
         .finally(() => {
@@ -208,6 +212,7 @@ export const TransactionItem = ({
       isUpcoming,
       onDelete,
       onBeforeDelete,
+      t,
     ],
   )
 
@@ -291,7 +296,7 @@ export const TransactionItem = ({
                   { color: theme.colors.customColors.info },
                 ]}
               >
-                Recurring
+                {t("components.transactionItem.recurring")}
               </Text>
             </View>
           )}
@@ -310,7 +315,7 @@ export const TransactionItem = ({
                   { color: theme.colors.customColors.warning },
                 ]}
               >
-                Pending
+                {t("components.transactionItem.pending")}
               </Text>
             </View>
           )}

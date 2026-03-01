@@ -102,7 +102,7 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
         if (!tagModel) {
           Toast.error({
             title: t("screens.settings.tags.form.toast.error"),
-            description: t("screens.settings.tags.toast.notFound"),
+            description: t("screens.settings.tags.form.toast.notFound"),
           })
           return
         }
@@ -254,9 +254,12 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
                   }}
                   onPermissionDenied={() => {
                     Toast.warn({
-                      title: "Permission denied",
-                      description:
-                        "We need contacts permission to select a contact from your phone.",
+                      title: t(
+                        "screens.settings.tags.form.contactPermission.denied",
+                      ),
+                      description: t(
+                        "screens.settings.tags.form.contactPermission.deniedDescription",
+                      ),
                     })
                     logger.warn("Contacts permission denied")
                   }}

@@ -1,4 +1,5 @@
 import { useMemo } from "react"
+import { useTranslation } from "react-i18next"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import { Money } from "~/components/money"
@@ -24,6 +25,7 @@ interface SummarySectionProps {
 export const SummarySection = ({
   transactionsWithRelations,
 }: SummarySectionProps) => {
+  const { t } = useTranslation()
   const excludeFromTotals = useTransfersPreferencesStore(
     (s) => s.excludeFromTotals,
   )
@@ -81,13 +83,13 @@ export const SummarySection = ({
     <View style={styles.sectionContainer}>
       <Card
         type={TransactionTypeEnum.INCOME}
-        label="Income"
+        label={t("screens.home.summary.income")}
         rows={incomeRows}
         extraByCurrency={extraIncomeByCurrency}
       />
       <Card
         type={TransactionTypeEnum.EXPENSE}
-        label="Expense"
+        label={t("screens.home.summary.expense")}
         rows={expenseRows}
         extraByCurrency={extraExpenseByCurrency}
       />

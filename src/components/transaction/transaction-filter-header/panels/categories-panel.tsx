@@ -1,16 +1,17 @@
 import { useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { ScrollView, View } from "react-native"
 
 import { DynamicIcon } from "~/components/dynamic-icon"
 import { Chip } from "~/components/ui/chips"
 import { Text } from "~/components/ui/text"
 import type { Category } from "~/types/categories"
-import type { TransactionType } from "~/types/transactions"
+import { type TransactionType, TransactionTypeEnum } from "~/types/transactions"
 
 import { filterHeaderStyles } from "../filter-header.styles"
 import { PanelClearButton } from "../panel-clear-button"
 import { PanelDoneButton } from "../panel-done-button"
-import { CATEGORY_TYPE_OPTIONS, CHIPS_PER_ROW } from "../types"
+import { CHIPS_PER_ROW } from "../types"
 import { chunk, inferInitialCategoryType } from "../utils"
 
 interface CategoriesPanelProps {
@@ -28,6 +29,7 @@ export function CategoriesPanel({
   onClear,
   onDone,
 }: CategoriesPanelProps) {
+  const { t } = useTranslation()
   const initialType = useMemo(
     () => inferInitialCategoryType(selectedIds, categoriesByType),
     [selectedIds, categoriesByType],
@@ -40,6 +42,21 @@ export function CategoriesPanel({
     selectedType !== null ? (categoriesByType[selectedType] ?? []) : []
 
   const categoryRows = chunk(categories, CHIPS_PER_ROW)
+
+  const typeOptions: { id: TransactionType; label: string }[] = [
+    {
+      id: TransactionTypeEnum.EXPENSE,
+      label: t("components.categories.types.expense"),
+    },
+    {
+      id: TransactionTypeEnum.INCOME,
+      label: t("components.categories.types.income"),
+    },
+    {
+      id: TransactionTypeEnum.TRANSFER,
+      label: t("components.categories.types.transfer"),
+    },
+  ]
 
   const renderCategoryRow = (items: Category[], rowKey: string) => (
     <ScrollView
@@ -73,7 +90,7 @@ export function CategoriesPanel({
   return (
     <View>
       <View style={filterHeaderStyles.chipWrap}>
-        {CATEGORY_TYPE_OPTIONS.map((opt) => (
+        {typeOptions.map((opt) => (
           <Chip
             key={opt.id}
             label={opt.label}
@@ -90,7 +107,7 @@ export function CategoriesPanel({
         </View>
       ) : selectedType !== null && categories.length === 0 ? (
         <Text style={filterHeaderStyles.categoryEmptyHint}>
-          No categories for this type
+          {t("components.filters.noCategoriesForType")}
         </Text>
       ) : null}
 

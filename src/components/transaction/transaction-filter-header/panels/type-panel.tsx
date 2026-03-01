@@ -1,8 +1,9 @@
+import { useTranslation } from "react-i18next"
 import { View } from "react-native"
 
 import { Chip } from "~/components/ui/chips"
-import { TYPE_OPTIONS } from "~/types/transaction-filters"
 import type { TransactionType } from "~/types/transactions"
+import { TransactionTypeEnum } from "~/types/transactions"
 
 import { filterHeaderStyles } from "../filter-header.styles"
 import { PanelClearButton } from "../panel-clear-button"
@@ -23,12 +24,25 @@ export function TypePanel({
   onClear,
   onDone,
 }: TypePanelProps) {
+  const { t } = useTranslation()
+  const options: { id: TransactionType; label: string }[] = [
+    {
+      id: TransactionTypeEnum.EXPENSE,
+      label: t("components.categories.types.expense"),
+    },
+    {
+      id: TransactionTypeEnum.INCOME,
+      label: t("components.categories.types.income"),
+    },
+    {
+      id: TransactionTypeEnum.TRANSFER,
+      label: t("components.categories.types.transfer"),
+    },
+  ]
+
   return (
     <View>
-      {chunk(
-        TYPE_OPTIONS.filter((o) => o.id !== "all"),
-        CHIPS_PER_ROW,
-      ).map((row) => (
+      {chunk(options, CHIPS_PER_ROW).map((row) => (
         <View
           key={row.map((o) => o.id).join(",")}
           style={[
@@ -40,8 +54,8 @@ export function TypePanel({
             <Chip
               key={opt.id}
               label={opt.label}
-              selected={value.includes(opt.id as TransactionType)}
-              onPress={() => onToggle(opt.id as TransactionType)}
+              selected={value.includes(opt.id)}
+              onPress={() => onToggle(opt.id)}
             />
           ))}
         </View>

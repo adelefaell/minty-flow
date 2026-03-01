@@ -92,7 +92,7 @@ export function FormTagsPicker({
           }}
         >
           <Text variant="small" style={styles.clearButtonText}>
-            Clear
+            {t("common.actions.clear")}
           </Text>
         </Pressable>
       </View>

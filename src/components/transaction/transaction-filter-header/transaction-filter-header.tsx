@@ -5,6 +5,7 @@
  */
 
 import { useCallback, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { ScrollView, View } from "react-native"
 import { useUnistyles } from "react-native-unistyles"
 
@@ -20,11 +21,9 @@ import type {
   SearchMatchType,
 } from "~/types/transaction-filters"
 import {
-  ATTACHMENT_OPTIONS,
   AttachmentsOptionsEnum,
   DEFAULT_SEARCH_STATE,
   DEFAULT_TRANSACTION_LIST_FILTER_STATE,
-  PENDING_OPTIONS,
   PendingOptionsEnum,
 } from "~/types/transaction-filters"
 import type { TransactionType } from "~/types/transactions"
@@ -45,7 +44,6 @@ import {
 import {
   EMPTY_HIDDEN_FILTERS,
   type FilterPanelKey,
-  GROUP_BY_LABELS,
   type TransactionFilterHeaderProps,
 } from "./types"
 
@@ -61,6 +59,7 @@ export function TransactionFilterHeader({
   onSearchApply,
   hiddenFilters = EMPTY_HIDDEN_FILTERS,
 }: TransactionFilterHeaderProps) {
+  const { t } = useTranslation()
   const searchState = propSearchState ?? DEFAULT_SEARCH_STATE
   const [expandedPanel, setExpandedPanel] = useState<FilterPanelKey | null>(
     null,
@@ -238,45 +237,51 @@ export function TransactionFilterHeader({
 
   const accountLabel =
     filterState.accountIds.length === 0
-      ? "Accounts"
+      ? t("components.filters.chips.accounts")
       : filterState.accountIds.length === accounts.length
-        ? "All"
-        : `${filterState.accountIds.length} acct`
+        ? t("components.filters.chips.allAccounts")
+        : t("components.filters.chips.accountCount", {
+            count: filterState.accountIds.length,
+          })
 
   const categoryLabel =
     filterState.categoryIds.length === 0
-      ? "Categories"
-      : filterState.categoryIds.length === 1
-        ? "1 category"
-        : `${filterState.categoryIds.length} categories`
+      ? t("components.filters.chips.categories")
+      : t("components.filters.chips.categoryCount", {
+          count: filterState.categoryIds.length,
+        })
 
   const tagLabel =
     filterState.tagIds.length === 0
-      ? "Tags"
-      : filterState.tagIds.length === 1
-        ? "1 tag"
-        : `${filterState.tagIds.length} tags`
+      ? t("components.filters.chips.tags")
+      : t("components.filters.chips.tagCount", {
+          count: filterState.tagIds.length,
+        })
 
   const typeLabel =
     filterState.typeFilters.length === 0
-      ? "Type"
+      ? t("components.filters.chips.type")
       : filterState.typeFilters.length === 3
-        ? "All types"
-        : `${filterState.typeFilters.length} type${filterState.typeFilters.length > 1 ? "s" : ""}`
+        ? t("components.filters.chips.allTypes")
+        : t("components.filters.chips.typeCount", {
+            count: filterState.typeFilters.length,
+          })
 
-  const groupByLabel = GROUP_BY_LABELS[filterState.groupBy]
+  const groupByLabel = t(
+    `components.filters.groupByOptions.${filterState.groupBy}`,
+  )
 
   const attachmentLabel =
     filterState.attachmentFilter === AttachmentsOptionsEnum.ALL
-      ? "Attachments"
-      : (ATTACHMENT_OPTIONS.find((o) => o.id === filterState.attachmentFilter)
-          ?.label ?? "Attachments")
+      ? t("components.filters.chips.attachments")
+      : t(
+          `components.filters.attachmentOptions.${filterState.attachmentFilter}`,
+        )
 
   const pendingLabel =
     filterState.pendingFilter === PendingOptionsEnum.ALL
-      ? "Pending Status"
-      : (PENDING_OPTIONS.find((o) => o.id === filterState.pendingFilter)
-          ?.label ?? "Pending Status")
+      ? t("components.filters.chips.pendingStatus")
+      : t(`components.filters.pendingOptions.${filterState.pendingFilter}`)
 
   // Derive the unique set of currency codes that appear in the current accounts list.
   const availableCurrencies = [
@@ -294,7 +299,7 @@ export function TransactionFilterHeader({
 
   const dateLabel = selectedRange
     ? `${formatShortMonthDay(selectedRange.start)} – ${formatShortMonthDay(selectedRange.end)}`
-    : "This month"
+    : t("components.filters.chips.thisMonth")
 
   const borderColor = theme.colors.customColors.semi
 
@@ -307,7 +312,9 @@ export function TransactionFilterHeader({
     {
       key: "search",
       icon: "magnify",
-      label: isSearchActive ? searchState.query || "Untitled" : "Search",
+      label: isSearchActive
+        ? searchState.query || t("components.filters.chips.untitled")
+        : t("common.actions.search"),
       active: isSearchActive,
     },
     { key: "date", icon: "calendar", label: dateLabel, active: isDateActive },
@@ -385,7 +392,7 @@ export function TransactionFilterHeader({
                 { color: theme.colors.primary },
               ]}
             >
-              Clear all
+              {t("components.filters.clearAll")}
             </Text>
           </Pressable>
         ) : null}

@@ -56,6 +56,7 @@ i18n.use(initReactI18next).init({
   resources: LanguageResources,
   lng: initialLanguage,
   fallbackLng: LangCodeEnum.EN,
+
   debug: false,
 
   interpolation: {

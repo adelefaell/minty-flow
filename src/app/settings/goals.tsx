@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -5,18 +6,18 @@ import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 
 export default function GoalsScreen() {
+  const { t } = useTranslation()
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text variant="h2" style={styles.title}>
-        Goals
+        {t("screens.settings.goals.title")}
       </Text>
       <Text variant="p" style={styles.description}>
-        Set and track your financial goals. Monitor your progress and stay
-        motivated to achieve your financial objectives.
+        {t("screens.settings.goals.body")}
       </Text>
       <View style={styles.placeholder}>
         <Text variant="small" style={styles.placeholderText}>
-          No goals set yet
+          {t("screens.settings.goals.empty")}
         </Text>
       </View>
     </ScrollView>

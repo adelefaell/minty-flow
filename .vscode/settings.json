@@ -4,5 +4,8 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.biome": "explicit",
     "source.organizeImports.biome": "explicit"
-  }
+  },
+  "i18n-ally.localesPaths": ["src/i18n/translation"],
+  "i18n-ally.keystyle": "nested",
+  "i18n-ally.annotations": false
 }

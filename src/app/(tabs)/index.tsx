@@ -242,7 +242,6 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingTop: 20,
   },
   greetingRow: {
     flexDirection: "row",

@@ -1,16 +1,18 @@
+import { useTranslation } from "react-i18next"
 import { StyleSheet } from "react-native-unistyles"
 
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 
 export default function StatsScreen() {
+  const { t } = useTranslation()
   return (
     <View style={styles.container}>
       <Text variant="h1" style={styles.title}>
-        Stats
+        {t("screens.stats.title")}
       </Text>
       <Text variant="muted" style={styles.subtitle}>
-        Use arrows to reorder
+        {t("screens.stats.reorderHint")}
       </Text>
     </View>
   )

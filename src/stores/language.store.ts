@@ -60,19 +60,20 @@ export const useLanguageStore = create<LanguageStore>()(
           setLanguageCode: (value) => {
             const newDirection =
               value === LangCodeEnum.AR ? DirectionEnum.RTL : DirectionEnum.LTR
+            const shouldBeRTL = newDirection === DirectionEnum.RTL
 
             i18n.changeLanguage(value)
             i18n.dir(newDirection)
 
-            // Optional: sync with native layout direction
-            I18nManager.allowRTL(newDirection === DirectionEnum.RTL)
-            I18nManager.forceRTL(newDirection === DirectionEnum.RTL)
+            if (I18nManager.isRTL !== shouldBeRTL) {
+              I18nManager.forceRTL(shouldBeRTL)
+            }
 
             set({
               languageCode: value,
               direction: newDirection,
-              isRTL: newDirection === DirectionEnum.RTL,
-              isLTR: newDirection === DirectionEnum.LTR,
+              isRTL: shouldBeRTL,
+              isLTR: !shouldBeRTL,
             })
           },
 
@@ -95,9 +96,13 @@ export const useLanguageStore = create<LanguageStore>()(
         onRehydrateStorage: () => (state) => {
           if (state?.languageCode) {
             i18n.changeLanguage(state.languageCode)
+
             const isRTL = state.direction === DirectionEnum.RTL
-            I18nManager.allowRTL(isRTL)
-            I18nManager.forceRTL(isRTL)
+            I18nManager.allowRTL(true)
+
+            if (I18nManager.isRTL !== isRTL) {
+              I18nManager.forceRTL(isRTL)
+            }
           }
         },
       },

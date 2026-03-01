@@ -35,7 +35,7 @@ import {
   ScrollView,
   useWindowDimensions,
 } from "react-native"
-import Markdown from "react-native-markdown-display"
+import { EnrichedTextInput } from "react-native-enriched"
 import { useUnistyles } from "react-native-unistyles"
 
 import { ConfirmModal } from "~/components/confirm-modal"
@@ -48,7 +48,7 @@ import {
   EditRecurringModal,
   type RecurringEditPayload,
 } from "~/components/transaction/edit-recurring-modal"
-import { MarkdownEditorModal } from "~/components/transaction/markdown-editor-modal"
+import { NotesModal } from "~/components/transaction/notes-modal"
 import { TransactionTypeSelector } from "~/components/transaction/transaction-type-selector"
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
@@ -114,7 +114,6 @@ import {
   getDefaultValues,
   getFieldError,
   getRecurrenceDisplayLabel,
-  notesMarkdownStyles,
 } from "./form-utils"
 import type { DatePickerTarget, TransactionFormV3Props } from "./types"
 
@@ -1438,9 +1437,22 @@ export function TransactionFormV3({
               </View>
               {description?.trim() ? (
                 <View style={styles.notesFullPreviewWrap} pointerEvents="none">
-                  <Markdown style={notesMarkdownStyles(theme)}>
-                    {description}
-                  </Markdown>
+                  <EnrichedTextInput
+                    key={description}
+                    defaultValue={description}
+                    editable={false}
+                    scrollEnabled={false}
+                    style={{
+                      color: theme.colors.onSurface,
+                      backgroundColor: "transparent",
+                      fontSize: 14,
+                    }}
+                    htmlStyle={{
+                      ul: { bulletColor: theme.colors.onSurface },
+                      ol: { markerColor: theme.colors.onSurface },
+                      ulCheckbox: { boxColor: theme.colors.onSurface },
+                    }}
+                  />
                 </View>
               ) : null}
             </Pressable>
@@ -1451,12 +1463,11 @@ export function TransactionFormV3({
             ) : null}
           </View>
 
-          <MarkdownEditorModal
+          <NotesModal
             visible={notesModalVisible}
-            value={description ?? ""}
-            onSave={(markdown) => {
-              setValue("description", markdown, { shouldDirty: true })
-              setNotesModalVisible(false)
+            initialValue={description ?? ""}
+            onSave={(html) => {
+              setValue("description", html, { shouldDirty: true })
             }}
             onRequestClose={() => setNotesModalVisible(false)}
           />
@@ -2044,7 +2055,7 @@ export function TransactionFormV3({
                     { color: theme.colors.onSurface },
                   ]}
                 >
-                  {t("components.transactionForm.datePicker.cancel")}
+                  {t("common.actions.cancel")}
                 </Text>
               </Pressable>
               <Pressable onPress={confirmIosDate} style={styles.datePickerDone}>
@@ -2055,8 +2066,8 @@ export function TransactionFormV3({
                   ]}
                 >
                   {datePickerMode === "date"
-                    ? t("components.transactionForm.datePicker.next")
-                    : t("components.transactionForm.datePicker.done")}
+                    ? t("common.actions.next")
+                    : t("common.actions.add")}
                 </Text>
               </Pressable>
             </View>

@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next"
+
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Text } from "~/components/ui/text"
@@ -15,6 +17,8 @@ export function PanelDoneButton({
   disabled,
   hideIcon,
 }: PanelDoneButtonProps) {
+  const { t } = useTranslation()
+
   return (
     <Button
       variant="ghost"
@@ -23,7 +27,9 @@ export function PanelDoneButton({
       style={filterHeaderStyles.doneHit}
     >
       {hideIcon ? null : <IconSymbol name="check-circle" size={18} />}
-      <Text style={filterHeaderStyles.doneText}>Done</Text>
+      <Text style={filterHeaderStyles.doneText}>
+        {t("common.actions.done")}
+      </Text>
     </Button>
   )
 }

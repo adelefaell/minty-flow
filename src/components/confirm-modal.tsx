@@ -49,8 +49,8 @@ export function ConfirmModal({
   onConfirm,
   title,
   description,
-  confirmLabel = "Confirm",
-  cancelLabel = "Cancel",
+  confirmLabel,
+  cancelLabel,
   variant = "default",
   icon,
 }: ConfirmModalProps) {
@@ -119,7 +119,9 @@ export function ConfirmModal({
                 style={styles.actionButton}
                 disabled={loading}
               >
-                <Text variant="default">{cancelLabel}</Text>
+                <Text variant="default">
+                  {cancelLabel || t("common.actions.cancel")}
+                </Text>
               </Button>
 
               <Button
@@ -131,7 +133,9 @@ export function ConfirmModal({
                 {loading ? (
                   <ActivityIndicator />
                 ) : (
-                  <Text variant="default">{confirmLabel}</Text>
+                  <Text variant="default">
+                    {confirmLabel || t("common.actions.confirm")}
+                  </Text>
                 )}
               </Button>
             </View>

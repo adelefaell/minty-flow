@@ -48,7 +48,7 @@ export function SearchPanel({
         {SEARCH_MATCH_OPTIONS.map((opt) => (
           <Chip
             key={opt.id}
-            label={opt.label}
+            label={t(`components.filters.searchMatch.${opt.id}`)}
             selected={matchType === opt.id}
             onPress={() => onMatchTypeChange(opt.id)}
           />
@@ -85,7 +85,7 @@ export function SearchPanel({
             { color: theme.colors.onSurface },
           ]}
         >
-          Include notes
+          {t("components.filters.includeNotes")}
         </Text>
         {includeNotes ? (
           <IconSymbol name="check" size={20} color={theme.colors.primary} />

@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { ScrollView } from "react-native"
 
 import { StandaloneThemesSection } from "~/components/theme/standalone-themes-section"
@@ -26,6 +27,7 @@ import {
 } from "~/utils/theme-utils"
 
 const ThemeSettingsScreen = () => {
+  const { t } = useTranslation()
   const setThemeMode = useThemeStore((state) => state.setThemeMode)
   const themeMode = useThemeStore((state) => state.themeMode)
 
@@ -39,13 +41,15 @@ const ThemeSettingsScreen = () => {
   const categoryThemes = getThemesForVariant(selectedCategory, selectedVariant)
 
   const currentThemeDisplayName = (() => {
-    const selected = categoryThemes.find((t) => t.name === themeMode)
+    const selected = categoryThemes.find((thm) => thm.name === themeMode)
     if (selected) return getThemeDisplayName(selected.name)
     const standalone = Object.values(STANDALONE_THEMES).find(
-      (t) => t.name === themeMode,
+      (thm) => thm.name === themeMode,
     )
     if (standalone) return getThemeDisplayName(standalone.name)
-    return "Select a theme"
+    return t(
+      "screens.settings.preferences.appearance.theme.selectThemePlaceholder",
+    )
   })()
 
   const clearSavedTheme = () => {

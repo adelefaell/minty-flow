@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next"
+
 import { Button } from "~/components/ui/button"
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Text } from "~/components/ui/text"
@@ -16,6 +18,7 @@ export function PanelClearButton({
   disabled = false,
   hideIcon = false,
 }: PanelClearButtonProps) {
+  const { t } = useTranslation()
   return (
     <Button
       variant="ghost"
@@ -24,7 +27,9 @@ export function PanelClearButton({
       style={filterHeaderStyles.clearHit}
     >
       {hideIcon ? null : <IconSymbol name="close-circle" size={18} />}
-      <Text style={filterHeaderStyles.clearText}>Clear</Text>
+      <Text style={filterHeaderStyles.clearText}>
+        {t("common.actions.clear")}
+      </Text>
     </Button>
   )
 }
