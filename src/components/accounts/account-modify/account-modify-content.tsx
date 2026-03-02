@@ -116,7 +116,7 @@ export function AccountModifyContent({
       } else {
         if (!accountModel) {
           Toast.error({
-            title: t("screens.accounts.form.toast.error"),
+            title: t("common.toast.error"),
             description: t("screens.accounts.form.toast.notFound"),
           })
           setIsSubmitting(false)
@@ -141,7 +141,7 @@ export function AccountModifyContent({
     } catch (error) {
       logger.error("Error saving account", { error })
       Toast.error({
-        title: t("screens.accounts.form.toast.error"),
+        title: t("common.toast.error"),
         description: isAddMode
           ? t("screens.accounts.form.toast.createFailed")
           : t("screens.accounts.form.toast.updateFailed"),
@@ -164,7 +164,7 @@ export function AccountModifyContent({
     } catch (error) {
       logger.error("Error deleting account", { error })
       Toast.error({
-        title: t("screens.accounts.form.toast.error"),
+        title: t("common.toast.error"),
         description: t("screens.accounts.form.toast.deleteFailed"),
       })
     }
@@ -293,7 +293,7 @@ export function AccountModifyContent({
                   accessibilityState={{ checked: value }}
                 >
                   <View style={accountModifyStyles.switchLeft}>
-                    <IconSymbol name="eye-off" size={24} />
+                    <IconSymbol name="playlist-remove" size={24} />
                     <Text
                       variant="default"
                       style={accountModifyStyles.switchLabel}

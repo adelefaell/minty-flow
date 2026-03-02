@@ -14,8 +14,9 @@
       "search": "بحث",
       "clear": "مسح",
       "apply": "تطبيق",
-      "done": "منتهي",
-      "next": "التالي"
+      "done": "تم",
+      "next": "التالي",
+      "ok": "حسناً"
     },
     "states": {
       "soon": "قريباً",
@@ -53,6 +54,13 @@
         "investment": "استثماري",
         "other": "أخرى"
       }
+    },
+    "toast": {
+      "error": "خطأ",
+      "success": "نجاح",
+      "warning": "تحذير",
+      "info": "معلومات",
+      "deleted": "تم الحذف"
     }
   },
   "navigation": {
@@ -152,6 +160,7 @@
         "archiveLabel": "أرشفة الحساب",
         "deleteLabel": "حذف الحساب نهائياً",
         "archiveWarning": "يمكنك حذف الحساب مع معاملاته نهائياً بعد أرشفته كإجراء أمان.",
+        "typeLabel": "نوع الحساب",
         "loadingText": "جارٍ تحميل الحساب...",
         "deleteModal": {
           "title": "حذف {{name}} نهائياً؟",
@@ -160,7 +169,6 @@
           "descriptionEmpty": "لا يمكن التراجع عن الحذف النهائي لهذا الحساب. هذا الإجراء لا رجعة فيه!"
         },
         "toast": {
-          "error": "خطأ",
           "notFound": "الحساب غير موجود",
           "deleteFailed": "فشل حذف الحساب.",
           "createFailed": "فشل إنشاء الحساب.",
@@ -270,13 +278,9 @@
             "resetButton": "إعادة التعيين إلى الافتراضي",
             "optionsLabel": "خيارات",
             "demo": {
-              "successTitle": "نجاح",
               "successDescription": "هذه رسالة نجاح",
-              "errorTitle": "خطأ",
               "errorDescription": "هذه رسالة خطأ",
-              "infoTitle": "معلومات",
               "infoDescription": "هذه رسالة معلومات",
-              "warningTitle": "تحذير",
               "warningDescription": "هذه رسالة تحذير"
             }
           }
@@ -409,7 +413,6 @@
             "descriptionEmpty": "لا يمكن التراجع عن الحذف النهائي لهذا الوسم."
           },
           "toast": {
-            "error": "خطأ",
             "notFound": "الوسم غير موجود",
             "deleteFailed": "فشل حذف الوسم.",
             "createFailed": "فشل إنشاء الوسم.",
@@ -594,10 +597,9 @@
         "editRecurringFailed": "فشل حفظ المعاملة",
         "upcomingConfirmFailed": "فشل التأكيد",
         "upcomingConfirmAllFailed": "فشل تأكيد الكل",
-        "deleted": "تم الحذف",
+
         "deletedDescription": "تم حذف المعاملة نهائياً.",
-        "deleteFailed": "فشل حذف المعاملة.",
-        "error": "خطأ"
+        "deleteFailed": "فشل حذف المعاملة."
       },
       "a11y": {
         "closePreview": "إغلاق المعاينة",
@@ -670,6 +672,7 @@
         },
         "nameLabel": "اسم الفئة",
         "namePlaceholder": "بقالة، مطاعم، إلخ.",
+        "typeLabel": "النوع",
         "archiveLabel": "أرشفة الفئة",
         "deleteLabel": "حذف نهائي",
         "loadingText": "جارٍ تحميل الفئة...",
@@ -680,7 +683,6 @@
           "descriptionEmpty": "لا يمكن التراجع عن حذف هذه الفئة."
         },
         "toast": {
-          "error": "خطأ",
           "notFound": "الفئة غير موجودة",
           "cannotDelete": "لا يمكن حذف الفئة",
           "cannotDeleteDescription_one": "تحتوي هذه الفئة على {{count}} معاملة. يرجى إزالة أو إعادة تعيين جميع المعاملات قبل الحذف.",
@@ -768,15 +770,56 @@
     },
     "iconPicker": {
       "title": "اختر أيقونة",
+      "iconMode": "أيقونة",
       "searchPlaceholder": "البحث في الأيقونات...",
       "pasteImage": "لصق صورة",
-      "pickImage": "اختيار صورة"
+      "pickImage": "اختيار صورة",
+      "emojiLetter": "إيموجي/حرف",
+      "emojiInstruction": "أدخل إيموجي أو حرفاً لاستخدامه كأيقونة",
+      "imageMode": "صورة",
+      "noIconsFound": "لم يتم العثور على أيقونات",
+      "tryDifferentSearch": "جرب مصطلح بحث مختلف",
+      "errors": {
+        "clipboardRead": "فشل قراءة محتوى الحافظة",
+        "noImageLink": "لا يوجد رابط صورة",
+        "noImageLinkDesc": "لا يوجد رابط للنسخ من الحافظة",
+        "invalidImageLink": "رابط صورة غير صالح",
+        "invalidImageLinkDesc": "الحافظة لا تحتوي على رابط صورة صالح",
+        "permissionRequired": "الإذن مطلوب",
+        "permissionDescription": "نحتاج الوصول إلى صورك لاختيار صورة."
+      }
     },
     "colorPicker": {
-      "currentTheme": "السمة الحالية"
+      "currentTheme": "السمة الحالية",
+      "changeColor": "تغيير اللون",
+      "defaultColor": "اللون الافتراضي",
+      "noVariants": "لا توجد ألوان متاحة للسمة الحالية"
     },
     "dateRange": {
-      "yearPlaceholder": "اختر السنة"
+      "yearPlaceholder": "اختر السنة",
+      "title": "اختر النطاق",
+      "commonOptions": "خيارات شائعة",
+      "customRange": "نطاق مخصص",
+      "startDate": "تاريخ البداية",
+      "endDate": "تاريخ النهاية",
+      "now": "الآن",
+      "yearInputPlaceholder": "السنة",
+      "presets": {
+        "last30": "آخر 30 يوماً",
+        "thisWeek": "هذا الأسبوع",
+        "thisMonth": "هذا الشهر",
+        "thisYear": "هذا العام",
+        "allTime": "كل الوقت"
+      }
+    },
+    "locationPicker": {
+      "title": "اختر الموقع",
+      "gettingLocation": "جاري تحديد الموقع...",
+      "tapOrDrag": "اضغط أو اسحب الدبوس للاختيار",
+      "myLocation": "موقعي",
+      "tapToEdit": "اضغط على الخريطة للتعديل",
+      "addLocation": "إضافة موقع",
+      "removeLocation": "إزالة الموقع"
     },
     "selectors": {
       "contacts": {
@@ -784,11 +827,17 @@
         "title": "اختر جهة اتصال",
         "triggerLabel": "اختر من جهات اتصال الهاتف",
         "noContacts": "لا توجد جهات اتصال",
-        "permissionDenied": "لم يُمنح إذن جهات الاتصال"
+        "permissionDenied": "لم يُمنح إذن جهات الاتصال",
+        "permissionRequired": "الإذن مطلوب",
+        "permissionDescription": "يرجى منح الإذن للوصول إلى جهات اتصالك لاختيار جهة اتصال من هاتفك."
       },
       "currency": {
+        "title": "العملة",
+        "triggerLabel": "العملة",
         "searchPlaceholder": "البحث عن العملات...",
-        "noCurrenciesFound": "لا توجد عملات"
+        "noCurrenciesFound": "لا توجد عملات",
+        "cryptocurrency": "عملة رقمية",
+        "searchPlaceholderEx": "بحث... (بلد، عملة، رمز)"
       }
     },
     "transactionItem": {
@@ -800,6 +849,13 @@
     "transactionList": {
       "emptyDescription": "ستظهر معاملات هذه الفترة هنا",
       "transactionCount": "• {{count}} معاملات"
+    },
+    "categoryRow": {
+      "transactionCount_one": "معاملة واحدة",
+      "transactionCount_other": "{{count}} معاملات"
+    },
+    "searchInput": {
+      "placeholder": "بحث..."
     }
   },
   "validation": {

@@ -64,7 +64,7 @@ export function SmartAmountInput({
   onChange,
   currencyCode,
   error,
-  label = "Amount",
+  label,
   placeholder = "0",
   type,
   decimalPlaces = CALCULATOR_CONFIG.MAX_DECIMALS,
@@ -75,6 +75,8 @@ export function SmartAmountInput({
   const [showMathToolbar, setShowMathToolbar] = useState(false)
   const inputRef = useRef<TextInput>(null)
   const { t } = useTranslation()
+  const resolvedLabel =
+    label ?? t("components.transactionForm.fields.amountLabel")
 
   const currencySymbol = currencyCode
     ? currencyRegistryService.getCurrencySymbol(currencyCode)
@@ -221,7 +223,7 @@ export function SmartAmountInput({
   return (
     <View ref={wrapperRef} style={styles.container}>
       <View style={styles.labelRow}>
-        <Text style={styles.label}>{label}</Text>
+        <Text style={styles.label}>{resolvedLabel}</Text>
         <Pressable
           style={[
             styles.calcIconBtn,

@@ -22,15 +22,13 @@ export function DateRangePresetModal({
       presentationStyle="fullScreen"
       onRequestClose={onRequestClose}
     >
-      {visible ? (
-        <DateRangePresetModalContent
-          key={`${initialStart?.getTime() ?? 0}-${initialEnd?.getTime() ?? 0}`}
-          initialStart={initialStart}
-          initialEnd={initialEnd}
-          onSave={onSave}
-          onRequestClose={onRequestClose}
-        />
-      ) : null}
+      <DateRangePresetModalContent
+        key={`${initialStart?.getTime() ?? 0}-${initialEnd?.getTime() ?? 0}`}
+        initialStart={initialStart}
+        initialEnd={initialEnd}
+        onSave={onSave}
+        onRequestClose={onRequestClose}
+      />
     </Modal>
   )
 }

@@ -61,12 +61,12 @@ function TrashScreenInner({
       await destroyTransactionModel(item.transaction)
       setPendingDestroyItem(null)
       Toast.success({
-        title: t("components.transactionForm.toast.deleted"),
+        title: t("common.toast.deleted"),
         description: t("components.transactionForm.toast.deletedDescription"),
       })
     } catch (e) {
       Toast.error({
-        title: t("components.transactionForm.toast.error"),
+        title: t("common.toast.error"),
         description: t("components.transactionForm.toast.deleteFailed"),
       })
       throw e

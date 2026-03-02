@@ -1,4 +1,5 @@
 import type { ComponentRef, RefObject } from "react"
+import { useTranslation } from "react-i18next"
 import { TextInput as RNTextInput, View } from "react-native"
 
 import { Button } from "~/components/ui/button"
@@ -26,10 +27,12 @@ export function EmojiLetterMode({
   inputRef,
   placeholderTextColor,
 }: EmojiLetterModeProps) {
+  const { t } = useTranslation()
+
   return (
     <View style={styles.modeContent}>
       <Text variant="h3" style={styles.emojiTitle}>
-        Emoji/Letter
+        {t("components.iconPicker.emojiLetter")}
       </Text>
       <View style={styles.emojiPreviewContainer}>
         <Pressable
@@ -51,15 +54,15 @@ export function EmojiLetterMode({
       </View>
       <View style={styles.emojiInstructionContainer}>
         <Text variant="p" style={styles.emojiInstructionText}>
-          Enter an emoji or a letter to use as an icon
+          {t("components.iconPicker.emojiInstruction")}
         </Text>
       </View>
       <View style={styles.modeActions}>
         <Button variant="outline" onPress={onCancel}>
-          <Text>Cancel</Text>
+          <Text>{t("common.actions.cancel")}</Text>
         </Button>
         <Button onPress={onDone} disabled={!isValid}>
-          <Text>Done</Text>
+          <Text>{t("common.actions.done")}</Text>
         </Button>
       </View>
     </View>

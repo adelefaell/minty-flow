@@ -15,7 +15,8 @@
       "clear": "Clear",
       "apply": "Apply",
       "done": "Done",
-      "next": "Next"
+      "next": "Next",
+      "ok": "OK"
     },
     "states": {
       "soon": "Soon",
@@ -53,6 +54,13 @@
         "investment": "Investment",
         "other": "Other"
       }
+    },
+    "toast": {
+      "error": "Error",
+      "success": "Success",
+      "warning": "Warning",
+      "info": "Info",
+      "deleted": "Deleted"
     }
   },
   "navigation": {
@@ -152,6 +160,7 @@
         "archiveLabel": "Archive account",
         "deleteLabel": "Permanently delete account",
         "archiveWarning": "You can permanently delete the account with its transactions after you archive the account for safety measures.",
+        "typeLabel": "Account type",
         "loadingText": "Loading account...",
         "deleteModal": {
           "title": "Permanently delete {{name}}?",
@@ -160,7 +169,6 @@
           "descriptionEmpty": "Permanently deleting this account cannot be undone. This action is irreversible!"
         },
         "toast": {
-          "error": "Error",
           "notFound": "Account not found",
           "deleteFailed": "Failed to delete account.",
           "createFailed": "Failed to create account.",
@@ -270,13 +278,12 @@
             "resetButton": "Reset to defaults",
             "optionsLabel": "Options",
             "demo": {
-              "successTitle": "Success",
               "successDescription": "This is a success message",
-              "errorTitle": "Error",
+
               "errorDescription": "This is an error message",
-              "infoTitle": "Info",
+
               "infoDescription": "This is an info message",
-              "warningTitle": "Warning",
+
               "warningDescription": "This is a warning message"
             }
           }
@@ -409,7 +416,6 @@
             "descriptionEmpty": "Permanently deleting this tag cannot be undone."
           },
           "toast": {
-            "error": "Error",
             "notFound": "Tag not found",
             "deleteFailed": "Failed to delete tag.",
             "createFailed": "Failed to create tag.",
@@ -594,10 +600,9 @@
         "editRecurringFailed": "Failed to save transaction",
         "upcomingConfirmFailed": "Failed to confirm",
         "upcomingConfirmAllFailed": "Failed to confirm all",
-        "deleted": "Deleted",
+
         "deletedDescription": "Transaction permanently removed.",
-        "deleteFailed": "Failed to delete transaction.",
-        "error": "Error"
+        "deleteFailed": "Failed to delete transaction."
       },
       "a11y": {
         "closePreview": "Close preview",
@@ -670,6 +675,7 @@
         },
         "nameLabel": "Category name",
         "namePlaceholder": "Groceries, Dining out, etc.",
+        "typeLabel": "Type",
         "archiveLabel": "Archive category",
         "deleteLabel": "Permanently delete",
         "loadingText": "Loading category...",
@@ -680,7 +686,6 @@
           "descriptionEmpty": "Deleting this category cannot be undone."
         },
         "toast": {
-          "error": "Error",
           "notFound": "Category not found",
           "cannotDelete": "Cannot delete category",
           "cannotDeleteDescription_one": "This category has {{count}} transaction. Please remove or reassign all transactions before deleting.",
@@ -768,15 +773,56 @@
     },
     "iconPicker": {
       "title": "Select Icon",
+      "iconMode": "Icon",
       "searchPlaceholder": "Search icons...",
       "pasteImage": "Paste an image",
-      "pickImage": "Pick an image"
+      "pickImage": "Pick an image",
+      "emojiLetter": "Emoji/Letter",
+      "emojiInstruction": "Enter an emoji or a letter to use as an icon",
+      "imageMode": "Image",
+      "noIconsFound": "No icons found",
+      "tryDifferentSearch": "Try a different search term",
+      "errors": {
+        "clipboardRead": "Failed to read clipboard content",
+        "noImageLink": "No image link",
+        "noImageLinkDesc": "There is no link to copy from clipboard",
+        "invalidImageLink": "Invalid image link",
+        "invalidImageLinkDesc": "The clipboard does not contain a valid image URL",
+        "permissionRequired": "Permission Required",
+        "permissionDescription": "We need access to your photos to select an image."
+      }
     },
     "colorPicker": {
-      "currentTheme": "Current Theme"
+      "currentTheme": "Current Theme",
+      "changeColor": "Change color",
+      "defaultColor": "Default color",
+      "noVariants": "No color variants available for the current theme"
     },
     "dateRange": {
-      "yearPlaceholder": "Select a year"
+      "yearPlaceholder": "Select a year",
+      "title": "Select range",
+      "commonOptions": "Common options",
+      "customRange": "Custom range",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "now": "Now",
+      "yearInputPlaceholder": "Year",
+      "presets": {
+        "last30": "Last 30 days",
+        "thisWeek": "This week",
+        "thisMonth": "This month",
+        "thisYear": "This year",
+        "allTime": "All time"
+      }
+    },
+    "locationPicker": {
+      "title": "Pick Location",
+      "gettingLocation": "Getting location...",
+      "tapOrDrag": "Tap or drag pin to select",
+      "myLocation": "My location",
+      "tapToEdit": "Tap on the map to edit",
+      "addLocation": "Add a location",
+      "removeLocation": "Remove location"
     },
     "selectors": {
       "contacts": {
@@ -784,11 +830,17 @@
         "title": "Select contact",
         "triggerLabel": "Select contact from phone",
         "noContacts": "No contacts found",
-        "permissionDenied": "Contacts permission not granted"
+        "permissionDenied": "Contacts permission not granted",
+        "permissionRequired": "Permission Required",
+        "permissionDescription": "Please grant permission to access your contacts in order to select a contact from your phone."
       },
       "currency": {
+        "title": "Currency",
+        "triggerLabel": "Currency",
         "searchPlaceholder": "Search currencies...",
-        "noCurrenciesFound": "No currencies found"
+        "noCurrenciesFound": "No currencies found",
+        "cryptocurrency": "Cryptocurrency",
+        "searchPlaceholderEx": "Search... (country, currency, code)"
       }
     },
     "transactionItem": {
@@ -800,6 +852,13 @@
     "transactionList": {
       "emptyDescription": "Transactions for this period will appear here",
       "transactionCount": "• {{count}} transactions"
+    },
+    "categoryRow": {
+      "transactionCount_one": "{{count}} transaction",
+      "transactionCount_other": "{{count}} transactions"
+    },
+    "searchInput": {
+      "placeholder": "Search..."
     }
   },
   "validation": {

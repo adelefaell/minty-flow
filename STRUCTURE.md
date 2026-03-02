@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-03-02T14:13:31.747Z
+Generated on: 2026-03-02T19:40:17.131Z
 
 ```
 ./
@@ -209,6 +209,7 @@ Generated on: 2026-03-02T14:13:31.747Z
 │   │   │   ├── 📁 transaction-form-v3/
 │   │   │   │   ├── 📄 constants.ts
 │   │   │   │   ├── 📄 form-account-picker.tsx
+│   │   │   │   ├── 📄 form-location-picker.tsx
 │   │   │   │   ├── 📄 form-tags-picker.tsx
 │   │   │   │   ├── 📄 form-to-account-picker.tsx
 │   │   │   │   ├── 📄 form-utils.ts
@@ -226,6 +227,7 @@ Generated on: 2026-03-02T14:13:31.747Z
 │   │   │   ├── 📄 attachment-preview-modal.tsx
 │   │   │   ├── 📄 delete-recurring-modal.tsx
 │   │   │   ├── 📄 edit-recurring-modal.tsx
+│   │   │   ├── 📄 location-picker-modal.tsx
 │   │   │   ├── 📄 notes-modal.tsx
 │   │   │   ├── 📄 transaction-item.tsx
 │   │   │   ├── 📄 transaction-section-list.tsx
@@ -251,7 +253,6 @@ Generated on: 2026-03-02T14:13:31.747Z
 │   │   ├── 📄 color-variant-inline.tsx
 │   │   ├── 📄 confirm-modal.tsx
 │   │   ├── 📄 dynamic-icon.tsx
-│   │   ├── 📄 emoji-letter-selection-sheet.tsx
 │   │   ├── 📄 external-link.tsx
 │   │   ├── 📄 info-modal.tsx
 │   │   ├── 📄 keyboard-sticky-view-minty.tsx
@@ -411,6 +412,8 @@ Generated on: 2026-03-02T14:13:31.747Z
 ├── 📄 eas.json
 ├── 📄 expo-env.d.ts
 ├── 📄 index.ts
+├── 📄 logo@16.png
+├── 📄 logo@32.png
 ├── 📄 package.json
 ├── 📄 pnpm-lock.yaml
 ├── 📄 pnpm-workspace.yaml

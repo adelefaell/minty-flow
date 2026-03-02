@@ -29,7 +29,6 @@ import { Controller, type Resolver, useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import {
   ActivityIndicator,
-  Linking,
   Modal,
   Platform,
   ScrollView,
@@ -48,6 +47,7 @@ import {
   EditRecurringModal,
   type RecurringEditPayload,
 } from "~/components/transaction/edit-recurring-modal"
+import { LocationPickerModal } from "~/components/transaction/location-picker-modal"
 import { NotesModal } from "~/components/transaction/notes-modal"
 import { TransactionTypeSelector } from "~/components/transaction/transaction-type-selector"
 import { Button } from "~/components/ui/button"
@@ -108,6 +108,7 @@ import { Toast } from "~/utils/toast"
 import { EMPTY_TAG_IDS, RECURRING_OPTIONS } from "./constants"
 import { CATEGORY_CELL_SIZE, CATEGORY_GAP, H_PAD, styles } from "./form.styles"
 import { FormAccountPicker } from "./form-account-picker"
+import { FormLocationPicker } from "./form-location-picker"
 import { FormTagsPicker } from "./form-tags-picker"
 import { FormToAccountPicker } from "./form-to-account-picker"
 import {
@@ -136,7 +137,8 @@ export function TransactionFormV3({
   const requireConfirmation = usePendingTransactionsStore(
     (s) => s.requireConfirmation,
   )
-  const { isEnabled: locationEnabled } = useTransactionLocationStore()
+  const { isEnabled: locationEnabled, autoAttach } =
+    useTransactionLocationStore()
 
   const [unsavedModalVisible, setUnsavedModalVisible] = useState(false)
   const [editRecurringModalVisible, setEditRecurringModalVisible] =
@@ -203,6 +205,7 @@ export function TransactionFormV3({
     onBlock: () => setUnsavedModalVisible(true),
   })
   const [notesModalVisible, setNotesModalVisible] = useState(false)
+  const [locationPickerVisible, setLocationPickerVisible] = useState(false)
   const [datePickerVisible, setDatePickerVisible] = useState(false)
   const [datePickerMode, setDatePickerMode] = useState<"date" | "time">("date")
   const [tempDate, setTempDate] = useState(date)
@@ -777,14 +780,14 @@ export function TransactionFormV3({
     try {
       await destroyTransactionModel(transaction)
       Toast.success({
-        title: t("components.transactionForm.toast.deleted"),
+        title: t("common.toast.deleted"),
         description: t("components.transactionForm.toast.deletedDescription"),
       })
       allowNavigation()
       router.back()
     } catch {
       Toast.error({
-        title: t("components.transactionForm.toast.error"),
+        title: t("common.toast.error"),
         description: t("components.transactionForm.toast.deleteFailed"),
       })
     }
@@ -898,47 +901,50 @@ export function TransactionFormV3({
     }
   }, [addAttachment])
 
-  const handleAttachLocation = useCallback(async () => {
-    if (location != null) return
-    try {
-      const { status } = await Location.getForegroundPermissionsAsync()
+  // Auto-attach location on new transaction when preference is enabled
+  const hasAutoAttachedRef = useRef(false)
+  useEffect(() => {
+    if (!isNew || !locationEnabled || !autoAttach || hasAutoAttachedRef.current)
+      return
+    hasAutoAttachedRef.current = true
 
-      if (status === Location.PermissionStatus.UNDETERMINED) {
-        const { status: requested } =
-          await Location.requestForegroundPermissionsAsync()
-        if (requested !== Location.PermissionStatus.GRANTED) {
-          Toast.error({
-            title: "Permission required",
-            description: "Location access is needed to attach location.",
-          })
-          return
-        }
-      } else if (status === Location.PermissionStatus.DENIED) {
-        Toast.info({
-          title: "Location permission denied",
-          description: "Enable location access in your device settings.",
+    let cancelled = false
+    const attach = async () => {
+      try {
+        const { status } = await Location.getForegroundPermissionsAsync()
+        if (status !== Location.PermissionStatus.GRANTED) return
+        setIsCapturingLocation(true)
+        const position = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
         })
-        await Linking.openSettings()
-        return
+        if (cancelled) return
+        setValue(
+          "location",
+          JSON.stringify({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          }),
+          { shouldDirty: true },
+        )
+      } catch {
+        // Silent failure — user can still add location manually
+      } finally {
+        if (!cancelled) setIsCapturingLocation(false)
       }
-
-      setIsCapturingLocation(true)
-      const position = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      })
-      const loc: TransactionLocation = {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-      }
-      setValue("location", JSON.stringify(loc), { shouldDirty: true })
-    } catch {
-      Toast.error({
-        title: t("components.transactionForm.toast.couldNotGetLocation"),
-      })
-    } finally {
-      setIsCapturingLocation(false)
     }
-  }, [location, setValue, t])
+    attach()
+    return () => {
+      cancelled = true
+    }
+  }, [isNew, locationEnabled, autoAttach, setValue])
+
+  const handleLocationConfirm = useCallback(
+    (loc: TransactionLocation) => {
+      setValue("location", JSON.stringify(loc), { shouldDirty: true })
+      setLocationPickerVisible(false)
+    },
+    [setValue],
+  )
 
   const handleClearLocation = useCallback(() => {
     setValue("location", undefined, { shouldDirty: true })
@@ -1873,55 +1879,12 @@ export function TransactionFormV3({
               <Text variant="small" style={styles.sectionLabel}>
                 Location
               </Text>
-              <Pressable
-                style={styles.inlineDateRow}
-                onPress={location ? undefined : handleAttachLocation}
-                disabled={isCapturingLocation}
-              >
-                <DynamicIcon
-                  icon="map-marker"
-                  size={20}
-                  color={theme.colors.primary}
-                  variant="badge"
-                />
-                <Text
-                  variant="default"
-                  style={
-                    location ? styles.inlineDateText : styles.fieldPlaceholder
-                  }
-                  numberOfLines={1}
-                >
-                  {location
-                    ? (location.address ??
-                      `${location.latitude.toFixed(5)}, ${location.longitude.toFixed(5)}`)
-                    : isCapturingLocation
-                      ? "Getting location..."
-                      : "Tap to attach location"}
-                </Text>
-                {location ? (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    style={styles.locationClearBtn}
-                    onPress={handleClearLocation}
-                    accessibilityLabel={t(
-                      "components.transactionForm.a11y.clearLocation",
-                    )}
-                    hitSlop={8}
-                  >
-                    <IconSymbol name="close" size={20} />
-                  </Button>
-                ) : (
-                  <IconSymbol
-                    name="chevron-right"
-                    size={20}
-                    style={[
-                      styles.chevronIcon,
-                      { color: theme.colors.primary },
-                    ]}
-                  />
-                )}
-              </Pressable>
+              <FormLocationPicker
+                location={location}
+                isCapturingLocation={isCapturingLocation}
+                onPress={() => setLocationPickerVisible(true)}
+                onClear={handleClearLocation}
+              />
             </View>
           )}
 
@@ -1995,7 +1958,7 @@ export function TransactionFormV3({
           style={styles.footerButton}
           disabled={isSaving}
         >
-          <Text style={styles.cancelText}>Cancel</Text>
+          <Text style={styles.cancelText}>{t("common.actions.cancel")}</Text>
         </Button>
         <Button
           variant="default"
@@ -2087,6 +2050,13 @@ export function TransactionFormV3({
       <AttachmentPreviewModal
         attachment={previewAttachment}
         onClose={() => setPreviewAttachment(null)}
+      />
+
+      <LocationPickerModal
+        visible={locationPickerVisible}
+        initialLocation={location}
+        onConfirm={handleLocationConfirm}
+        onRequestClose={() => setLocationPickerVisible(false)}
       />
 
       <ConfirmModal

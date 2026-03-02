@@ -213,7 +213,7 @@ export function NotesModal({
     <Modal
       visible={visible}
       animationType="slide"
-      presentationStyle={Platform.OS === "ios" ? "pageSheet" : "fullScreen"}
+      presentationStyle={"fullScreen"}
       onRequestClose={onRequestClose}
     >
       {visible ? (

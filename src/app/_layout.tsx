@@ -14,7 +14,6 @@ import { setStyle } from "expo-navigation-bar"
 import { useEffect } from "react"
 import { Platform } from "react-native"
 
-import { ScreenSharedHeader } from "~/components/screen-shared-header"
 import { useRecurringTransactionSync } from "~/hooks/use-recurring-transaction-sync"
 import { useRetentionCleanup } from "~/hooks/use-retention-cleanup"
 import { DirectionEnum, useLanguageStore } from "~/stores/language.store"
@@ -50,7 +49,7 @@ export default function RootLayout() {
         key={isRTL ? "rtl-root" : "ltr-root"}
         style={{
           flex: 1,
-          paddingTop: UnistylesRuntime.insets.top,
+          // paddingTop: UnistylesRuntime.insets.top,
           paddingBottom: UnistylesRuntime.insets.bottom,
           direction: isRTL ? DirectionEnum.RTL : DirectionEnum.LTR,
         }}
@@ -68,8 +67,8 @@ export default function RootLayout() {
                 fontWeight: "600",
               },
               headerShadowVisible: false,
-              // TODO: try not to use this component and use the native header when they fix the rtl issue
-              header: (props) => <ScreenSharedHeader props={props} />,
+              // if you decided to use this some screens wont have the edit pen in them so be careful
+              // header: (props) =>   <ScreenSharedHeader props={props} />,
               // animation: "fade",
             }}
           >

@@ -30,6 +30,7 @@ import type {
   ActiveSource,
   DateRangePresetModalContentProps,
   ExpandedSection,
+  PresetButtonId,
   PresetOption,
 } from "./types"
 
@@ -183,7 +184,7 @@ export const DateRangePresetModalContent = ({
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: Math.max(insets.top, 16) }]}>
         <Text variant="h3" style={styles.headerTitle}>
-          Select range
+          {t("components.dateRange.title")}
         </Text>
       </View>
 
@@ -193,7 +194,7 @@ export const DateRangePresetModalContent = ({
         showsVerticalScrollIndicator
       >
         <Text variant="small" style={styles.sectionLabelCommonOptions}>
-          Common options
+          {t("components.dateRange.commonOptions")}
         </Text>
         <View style={styles.presetsRow}>
           {PRESETS.map((preset) => {
@@ -216,7 +217,9 @@ export const DateRangePresetModalContent = ({
                     isSelected && styles.presetButtonTextSelected,
                   ]}
                 >
-                  {preset.label}
+                  {t(
+                    `components.dateRange.presets.${preset.id as PresetButtonId}`,
+                  )}
                 </Text>
               </Pressable>
             )
@@ -229,7 +232,7 @@ export const DateRangePresetModalContent = ({
             style={styles.rowBase}
           >
             <Text variant="default" style={styles.rowText}>
-              By month
+              {t("common.timePeriods.month")}
             </Text>
             <IconSymbol
               name={
@@ -266,7 +269,7 @@ export const DateRangePresetModalContent = ({
                   }}
                   keyboardType="number-pad"
                   maxLength={4}
-                  placeholder="Year"
+                  placeholder={t("components.dateRange.yearInputPlaceholder")}
                   style={styles.monthYearInput}
                 />
                 <Button
@@ -312,7 +315,7 @@ export const DateRangePresetModalContent = ({
                 onPress={handleByMonthNow}
                 style={{ alignSelf: "flex-end" }}
               >
-                <Text variant="default">Now</Text>
+                <Text variant="default">{t("components.dateRange.now")}</Text>
               </Button>
             </View>
           )}
@@ -324,7 +327,7 @@ export const DateRangePresetModalContent = ({
             style={styles.rowBase}
           >
             <Text variant="default" style={styles.rowText}>
-              By year
+              {t("common.timePeriods.year")}
             </Text>
             <IconSymbol
               name={
@@ -341,20 +344,20 @@ export const DateRangePresetModalContent = ({
               </Text>
               <Input
                 value={byYearInput}
-                onChangeText={(t) => {
-                  const digits = t.replace(/\D/g, "").slice(0, 4)
+                onChangeText={(val) => {
+                  const digits = val.replace(/\D/g, "").slice(0, 4)
                   setByYearInput(digits)
                 }}
                 keyboardType="number-pad"
                 maxLength={4}
-                placeholder="Year"
+                placeholder={t("components.dateRange.yearInputPlaceholder")}
               />
               <Button
                 variant="secondary"
                 onPress={handleByYearNow}
                 style={{ alignSelf: "flex-end" }}
               >
-                <Text variant="default">Now</Text>
+                <Text variant="default">{t("components.dateRange.now")}</Text>
               </Button>
             </View>
           )}
@@ -366,7 +369,7 @@ export const DateRangePresetModalContent = ({
             style={styles.rowBase}
           >
             <Text variant="default" style={styles.rowText}>
-              Custom range
+              {t("components.dateRange.customRange")}
             </Text>
             <IconSymbol
               name={
@@ -383,7 +386,7 @@ export const DateRangePresetModalContent = ({
                 style={styles.customRangeRow}
               >
                 <Text variant="default" style={styles.rowText}>
-                  Start date
+                  {t("components.dateRange.startDate")}
                 </Text>
                 <View style={styles.customRangeValue}>
                   <Text variant="default" style={styles.customRangeValueText}>
@@ -401,7 +404,7 @@ export const DateRangePresetModalContent = ({
                 style={styles.customRangeRow}
               >
                 <Text variant="default" style={styles.rowText}>
-                  End date
+                  {t("components.dateRange.endDate")}
                 </Text>
                 <View style={styles.customRangeValue}>
                   <Text variant="default" style={styles.customRangeValueText}>
@@ -421,10 +424,10 @@ export const DateRangePresetModalContent = ({
 
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 16 }]}>
         <Button variant="outline" onPress={onRequestClose} style={{ flex: 1 }}>
-          <Text variant="default">Cancel</Text>
+          <Text variant="default">{t("common.actions.cancel")}</Text>
         </Button>
         <Button variant="default" onPress={handleSave} style={{ flex: 1 }}>
-          <Text variant="default">Save</Text>
+          <Text variant="default">{t("common.actions.save")}</Text>
         </Button>
       </View>
 
@@ -452,18 +455,20 @@ export const DateRangePresetModalContent = ({
                   hitSlop={12}
                 >
                   <Text variant="default" style={styles.mutedText}>
-                    Cancel
+                    {t("common.actions.cancel")}
                   </Text>
                 </Pressable>
                 <Text variant="default" style={styles.iosPickerHeaderTitle}>
-                  {iosPickerTarget === "start" ? "Start date" : "End date"}
+                  {iosPickerTarget === "start"
+                    ? t("components.dateRange.startDate")
+                    : t("components.dateRange.endDate")}
                 </Text>
                 <Pressable
                   onPress={() => setIosPickerTarget(null)}
                   hitSlop={12}
                 >
                   <Text variant="default" style={styles.iosPickerDone}>
-                    Done
+                    {t("common.actions.done")}
                   </Text>
                 </Pressable>
               </View>

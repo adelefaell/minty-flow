@@ -238,7 +238,8 @@ const styles = StyleSheet.create((theme) => ({
   },
   header: {
     marginHorizontal: 20,
-    marginVertical: 10,
+    marginTop: 40,
+    marginBottom: 10,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",

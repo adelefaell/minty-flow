@@ -50,9 +50,7 @@ export default function ToastStyleScreen() {
 
   const handleShowDemoToasts = () => {
     Toast.success({
-      title: t(
-        "screens.settings.preferences.appearance.toast.demo.successTitle",
-      ),
+      title: t("common.toast.success"),
       description: t(
         "screens.settings.preferences.appearance.toast.demo.successDescription",
       ),
@@ -60,9 +58,7 @@ export default function ToastStyleScreen() {
     setTimeout(
       () =>
         Toast.error({
-          title: t(
-            "screens.settings.preferences.appearance.toast.demo.errorTitle",
-          ),
+          title: t("common.toast.error"),
           description: t(
             "screens.settings.preferences.appearance.toast.demo.errorDescription",
           ),
@@ -72,9 +68,7 @@ export default function ToastStyleScreen() {
     setTimeout(
       () =>
         Toast.info({
-          title: t(
-            "screens.settings.preferences.appearance.toast.demo.infoTitle",
-          ),
+          title: t("common.toast.info"),
           description: t(
             "screens.settings.preferences.appearance.toast.demo.infoDescription",
           ),
@@ -84,9 +78,7 @@ export default function ToastStyleScreen() {
     setTimeout(
       () =>
         Toast.warn({
-          title: t(
-            "screens.settings.preferences.appearance.toast.demo.warningTitle",
-          ),
+          title: t("common.toast.warning"),
           description: t(
             "screens.settings.preferences.appearance.toast.demo.warningDescription",
           ),

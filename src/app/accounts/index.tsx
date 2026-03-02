@@ -23,6 +23,7 @@ import {
   updateAccountsOrder,
 } from "~/database/services/account-service"
 import { modelToAccount } from "~/database/utils/model-to-account"
+import { useMoneyFormattingStore } from "~/stores/money-formatting.store"
 import { useTransfersPreferencesStore } from "~/stores/transfers-preferences.store"
 import { NewEnum } from "~/types/new"
 import { logger } from "~/utils/logger"
@@ -38,7 +39,8 @@ const AccountsScreenInner = ({
 }: AccountsScreenInnerProps) => {
   const { t } = useTranslation()
   const router = useRouter()
-
+  const { privacyMode: privacyModeEnabled, togglePrivacyMode: togglePrivacy } =
+    useMoneyFormattingStore()
   const [searchQuery, setSearchQuery] = useState("")
   const [isReorderMode, setIsReorderMode] = useState(false)
   const [reorderedModels, setReorderedModels] = useState<AccountModel[]>([])
@@ -136,9 +138,18 @@ const AccountsScreenInner = ({
               </Button>
             </>
           ) : (
-            <Button variant="ghost" size="icon" onPress={handleToggleReorder}>
-              <IconSymbol name="swap-vertical" size={24} />
-            </Button>
+            <>
+              <Button variant="ghost" size="icon" onPress={handleToggleReorder}>
+                <IconSymbol name="swap-vertical" size={24} />
+              </Button>
+
+              <Button variant="ghost" onPress={togglePrivacy}>
+                <IconSymbol
+                  name={privacyModeEnabled ? "eye-off" : "eye"}
+                  size={24}
+                />
+              </Button>
+            </>
           )}
         </View>
       </View>
@@ -250,7 +261,6 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
     backgroundColor: theme.colors.surface,
     paddingHorizontal: 20,
-    paddingTop: 10,
   },
   scrollView: { flex: 1 },
   scrollContent: {
@@ -261,14 +271,15 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+
+    marginTop: 40,
+    marginBottom: 10,
   },
   actionButtons: {
     flexDirection: "row",
-    gap: 10,
+    gap: 5,
   },
-  header: {
-    marginVertical: 20,
-  },
+  header: {},
   balanceContainer: { gap: 5 },
   sectionLabel: {
     fontSize: 10,

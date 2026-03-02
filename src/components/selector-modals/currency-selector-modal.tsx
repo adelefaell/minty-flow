@@ -37,6 +37,7 @@ const CurrencyRow = memo(function CurrencyRow({
   isSelected,
   onSelect,
 }: CurrencyRowProps) {
+  const { t } = useTranslation()
   return (
     <Pressable
       style={({ pressed }: { pressed: boolean }) => [
@@ -51,7 +52,10 @@ const CurrencyRow = memo(function CurrencyRow({
           {item.name}
         </Text>
         <Text variant="muted" style={currencyItemStyles.countryName}>
-          {item.country || (item.isCrypto ? "Cryptocurrency" : "")}
+          {item.country ||
+            (item.isCrypto
+              ? t("components.selectors.currency.cryptocurrency")
+              : "")}
         </Text>
       </View>
       <View style={modalStyles.itemRight}>
@@ -159,7 +163,7 @@ export function CurrencySelectorModal({
           <View style={triggerStyles.triggerLeft}>
             <IconSymbol name="currency-usd" size={24} />
             <Text variant="default" style={triggerStyles.triggerLabel}>
-              Currency
+              {t("components.selectors.currency.triggerLabel")}
             </Text>
           </View>
           <View style={triggerStyles.triggerRight}>
@@ -190,10 +194,10 @@ export function CurrencySelectorModal({
         >
           <View style={modalStyles.header}>
             <Text variant="default" style={modalStyles.headerTitle}>
-              Currency
+              {t("components.selectors.currency.title")}
             </Text>
             <Button variant="ghost" onPress={close}>
-              <Text variant="default">Cancel</Text>
+              <Text variant="default">{t("common.actions.cancel")}</Text>
             </Button>
           </View>
           <View style={modalStyles.searchContainer}>
@@ -201,7 +205,9 @@ export function CurrencySelectorModal({
               value={searchQuery}
               onChangeText={setSearchQuery}
               onClear={() => setSearchQuery("")}
-              placeholder="Search... (country, currency, code)"
+              placeholder={t(
+                "components.selectors.currency.searchPlaceholderEx",
+              )}
               autoFocus
             />
           </View>

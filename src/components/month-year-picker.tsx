@@ -4,6 +4,7 @@
  */
 
 import { useCallback, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Keyboard } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -42,6 +43,7 @@ export function MonthYearPicker({
   onNow,
   onDone,
 }: MonthYearPickerProps) {
+  const { t } = useTranslation()
   const [localYear, setLocalYear] = useState(initialYear)
   const [localMonth, setLocalMonth] = useState(initialMonth)
   const [yearInputValue, setYearInputValue] = useState(String(initialYear))
@@ -121,14 +123,14 @@ export function MonthYearPicker({
           onPress={handleNow}
           style={styles.nowButton}
         >
-          <Text variant="default">Now</Text>
+          <Text variant="default">{t("components.dateRange.now")}</Text>
         </Button>
         <Button
           variant="secondary"
           onPress={handleDone}
           style={styles.doneButton}
         >
-          <Text variant="default">Done</Text>
+          <Text variant="default">{t("common.actions.done")}</Text>
         </Button>
       </View>
     </View>

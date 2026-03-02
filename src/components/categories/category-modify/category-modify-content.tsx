@@ -110,7 +110,7 @@ export function CategoryModifyContent({
       } else {
         if (!categoryModel) {
           Toast.error({
-            title: t("components.categories.form.toast.error"),
+            title: t("common.toast.error"),
             description: t("components.categories.form.toast.notFound"),
           })
           setIsSubmitting(false)
@@ -130,7 +130,7 @@ export function CategoryModifyContent({
     } catch (error) {
       logger.error("Error saving category", { error })
       Toast.error({
-        title: t("components.categories.form.toast.error"),
+        title: t("common.toast.error"),
         description: isAddMode
           ? t("components.categories.form.toast.createFailed")
           : t("components.categories.form.toast.updateFailed"),
@@ -145,7 +145,7 @@ export function CategoryModifyContent({
     try {
       if (!categoryModel || !category) {
         Toast.error({
-          title: t("components.categories.form.toast.error"),
+          title: t("common.toast.error"),
           description: t("components.categories.form.toast.notFound"),
         })
         return
@@ -171,7 +171,7 @@ export function CategoryModifyContent({
     } catch (error) {
       logger.error("Error deleting category", { error })
       Toast.error({
-        title: t("components.categories.form.toast.error"),
+        title: t("common.toast.error"),
         description: t("components.categories.form.toast.deleteFailed"),
       })
     }

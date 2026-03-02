@@ -6,6 +6,7 @@
 
 import type { Contact } from "expo-contacts"
 import * as Contacts from "expo-contacts"
+import i18n from "i18next"
 import { Suspense, use, useCallback, useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ActivityIndicator, FlatList, Modal, View } from "react-native"
@@ -31,9 +32,10 @@ function createContactsPromise(
       if (!granted) {
         onPermissionDenied?.()
         Toast.warn({
-          title: "Permission Required",
-          description:
-            "Please grant permission to access your contacts in order to select a contact from your phone.",
+          title: i18n.t("components.selectors.contacts.permissionRequired"),
+          description: i18n.t(
+            "components.selectors.contacts.permissionDescription",
+          ),
         })
         return { contacts: [], hasPermission: false }
       }
@@ -72,6 +74,7 @@ function ContactListContent({
   searchQuery,
   onSelectContact,
 }: ContactListContentProps) {
+  const { t } = useTranslation()
   const { contacts, hasPermission } = use(contactsPromise)
 
   const filtered = useMemo(() => {
@@ -103,12 +106,12 @@ function ContactListContent({
       <View style={modalStyles.emptyState}>
         <Text variant="muted">
           {!hasPermission
-            ? "Contacts permission not granted"
-            : "No contacts found"}
+            ? t("components.selectors.contacts.permissionDenied")
+            : t("components.selectors.contacts.noContacts")}
         </Text>
       </View>
     ),
-    [hasPermission],
+    [hasPermission, t],
   )
 
   return (
@@ -254,7 +257,7 @@ export function ContactSelectorModal({
           <View style={triggerStyles.triggerLeft}>
             <IconSymbol name="account-details" size={24} />
             <Text variant="default" style={triggerStyles.triggerLabel}>
-              Select contact from phone
+              {t("components.selectors.contacts.triggerLabel")}
             </Text>
           </View>
           {editable && (
@@ -280,10 +283,10 @@ export function ContactSelectorModal({
         >
           <View style={modalStyles.header}>
             <Text variant="default" style={modalStyles.headerTitle}>
-              Select contact
+              {t("components.selectors.contacts.title")}
             </Text>
             <Button variant="secondary" onPress={close}>
-              <Text variant="default">Cancel</Text>
+              <Text variant="default">{t("common.actions.cancel")}</Text>
             </Button>
           </View>
           <View style={modalStyles.searchContainer}>
