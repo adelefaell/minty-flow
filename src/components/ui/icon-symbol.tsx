@@ -155,6 +155,7 @@ export const VALID_ICON_NAMES = defineValidIcons([
   "chevron-double-up",
   "translate",
   "cellphone-lock",
+  "playlist-remove",
 ] as const)
 
 /**

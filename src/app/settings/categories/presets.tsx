@@ -112,7 +112,7 @@ const CategoryPresetsScreenInner = ({
     } catch (error) {
       logger.error("Error creating preset categories", { error })
       Toast.error({
-        title: t("components.categories.form.toast.error"),
+        title: t("common.toast.error"),
         description: t("components.categories.form.toast.createFailed"),
       })
     }

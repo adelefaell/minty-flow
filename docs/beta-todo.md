@@ -93,7 +93,7 @@
 | Permanently delete (when trashed)                               | ✅      |                                                |
 | Edit existing transaction (prefill)                             | ✅      |                                                |
 | Unsaved changes guard modal                                     | ✅      |                                                |
-| Location tagging                                                | ⬜      | Preference toggle exists; form field not wired |
+| Location tagging                                                | ✅      | `location-picker-modal.tsx` + `form-location-picker.tsx` wired into form |
 
 
 ---
@@ -226,8 +226,8 @@
 | Exchange rates (live fetch, Suspense, custom rate per currency, retry)                     | ✅      |                                                                                 |
 | Trash bin retention period                                                                 | ✅      |                                                                                 |
 | Privacy (blur amounts)                                                                     | ✅      |                                                                                 |
-| Transaction location toggle                                                                | 🚧     | Screen + store exist; form-level location capture not implemented               |
-| Reminder notifications                                                                     | 🚧     | Screen + notification service exist; verify scheduling actually fires on device |
+| Transaction location toggle                                                                | ✅      | Screen, store, and form-level capture all implemented                           |
+| Reminder notifications                                                                     | 🚧     | Screen + service exist; `scheduleForPlannedTransaction()` is a TODO stub — scheduling not wired |
 
 
 ---
@@ -259,7 +259,7 @@
 | Reorder categories (same as accounts)                 | ⬜      |                                       |
 | "Empty all trash" UI button                           | ⬜      | Service ready                         |
 | Android back-gesture guard (outside transaction form) | ⬜      |                                       |
-| TypeScript zero errors (`pnpm types`)                 | 🚧     |                                       |
+| TypeScript zero errors (`pnpm types`)                 | ✅      | `tsc --noEmit` passes clean           |
 | Lint zero warnings (`pnpm lint`)                      | 🚧     |                                       |
 
 
@@ -270,15 +270,14 @@
 1. [ ] **Stats tab** — at minimum a monthly income/expense chart
 2. [ ] **Settings > Pending Transactions screen** — build real list (service + component already exist on home screen)
 3. [ ] **Empty all trash** button — one button, service is ready
-4. [ ] **Reminder notifications** — verify scheduling fires on iOS + Android
+4. [ ] **Reminder notifications** — wire `scheduleForPlannedTransaction()` stub; verify scheduling fires on iOS + Android
 5. [ ] **Goals** — DB + service ready, just needs screens
 6. [ ] **Budgets** — DB + service ready, just needs screens
 7. [ ] **Loans** — DB + service ready, just needs screens
-8. [ ] **Transaction location** — wire location capture into the form
-9. [ ] **Data Management** — at minimum CSV export
-10. [ ] **Bill Splitter** — lowest priority, needs full backend + UI
-11. [ ] Zero TS errors + zero lint warnings before shipping
+8. [ ] **Data Management** — at minimum CSV export
+9. [ ] **Bill Splitter** — lowest priority, needs full backend + UI
+10. [ ] Zero lint warnings (`pnpm lint`) before shipping
 
 ---
 
-*Last updated: 2026-02-24*
+*Last updated: 2026-03-02*

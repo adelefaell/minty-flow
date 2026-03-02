@@ -101,7 +101,7 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
       } else {
         if (!tagModel) {
           Toast.error({
-            title: t("screens.settings.tags.form.toast.error"),
+            title: t("common.toast.error"),
             description: t("screens.settings.tags.form.toast.notFound"),
           })
           return
@@ -118,7 +118,7 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
     } catch (error) {
       logger.error("Error saving tag", { error })
       Toast.error({
-        title: t("screens.settings.tags.form.toast.error"),
+        title: t("common.toast.error"),
         description: isAddMode
           ? t("screens.settings.tags.form.toast.createFailed")
           : t("screens.settings.tags.form.toast.updateFailed"),
@@ -137,7 +137,7 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
     } catch (error) {
       logger.error("Error deleting tag", { error })
       Toast.error({
-        title: t("screens.settings.tags.form.toast.error"),
+        title: t("common.toast.error"),
         description: t("screens.settings.tags.form.toast.deleteFailed"),
       })
     }

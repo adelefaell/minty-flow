@@ -26,10 +26,8 @@ import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import type { TransactionWithRelations } from "~/database/services/transaction-service"
-import { useMinuteTick } from "~/hooks/use-time-reactivity"
 import { useTransfersPreferencesStore } from "~/stores/transfers-preferences.store"
 import type { TransactionListFilterState } from "~/types/transaction-filters"
-import { effectiveIsPending } from "~/utils/pending-transactions"
 import {
   applyTransferLayout,
   buildTransactionSections,
@@ -57,16 +55,15 @@ export function TransactionSectionList({
   const openSwipeableRef = useRef<SwipeableMethods | null>(null)
 
   const list = useMemo(() => transactionsFull ?? [], [transactionsFull])
-  const tick = useMinuteTick()
   const transferLayout = useTransfersPreferencesStore((s) => s.layout)
 
-  // Today/history sections show only CONFIRMED and not future-dated.
-  // Use effective pending (date > now || isPending) so future txs never appear here.
-  // Use tick (minute boundary) to derive "now" without calling Date.now() during render (React purity).
-  const nowMs = tick * 60_000
+  // Confirmed = not manually pending and not a recurring instance.
   const confirmedOnly = useMemo(
-    () => list.filter((r) => !effectiveIsPending(r.transaction, nowMs)),
-    [list, nowMs],
+    () =>
+      list.filter(
+        (r) => !r.transaction.isPending && !r.transaction.recurringId,
+      ),
+    [list],
   )
 
   const listForSections = useMemo(

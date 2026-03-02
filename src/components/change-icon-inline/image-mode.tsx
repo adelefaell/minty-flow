@@ -36,7 +36,7 @@ export function ImageMode({
     >
       <View style={styles.modeContent}>
         <Text variant="h3" style={styles.modeTitle}>
-          Image
+          {t("components.iconPicker.imageMode")}
         </Text>
         <Pressable style={styles.pasteOption} onPress={onPaste}>
           <IconSymbol name="clipboard" size={20} style={styles.optionIcon} />
@@ -78,10 +78,10 @@ export function ImageMode({
         </Pressable>
         <View style={styles.modeActions}>
           <Button variant="outline" onPress={onCancel}>
-            <Text>Cancel</Text>
+            <Text>{t("common.actions.cancel")}</Text>
           </Button>
           <Button variant="default" onPress={onDone} disabled={!imageUri}>
-            <Text>Done</Text>
+            <Text>{t("common.actions.done")}</Text>
           </Button>
         </View>
       </View>

@@ -39,10 +39,11 @@ export function InfoModal({
   onRequestClose,
   title,
   description,
-  okLabel = "OK",
+  okLabel,
   icon,
 }: InfoModalProps) {
   const { t } = useTranslation()
+  const resolvedOkLabel = okLabel ?? t("common.actions.ok")
   const { width } = useWindowDimensions()
   const maxCardWidth = Math.min(width - 48, 400)
 
@@ -93,7 +94,7 @@ export function InfoModal({
               onPress={onRequestClose}
               style={styles.okButton}
             >
-              <Text variant="default">{okLabel}</Text>
+              <Text variant="default">{resolvedOkLabel}</Text>
             </Button>
           </SafeAreaView>
         </TouchableWithoutFeedback>

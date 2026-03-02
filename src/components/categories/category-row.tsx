@@ -1,4 +1,5 @@
 import { useRouter } from "expo-router"
+import { useTranslation } from "react-i18next"
 import { StyleSheet } from "react-native-unistyles"
 
 import { DynamicIcon } from "~/components/dynamic-icon"
@@ -17,6 +18,7 @@ export const CategoryRow = ({
   category,
   transactionCount,
 }: CategoryRowProps) => {
+  const { t } = useTranslation()
   const router = useRouter()
 
   const handleView = () => {
@@ -45,8 +47,9 @@ export const CategoryRow = ({
           </Text>
           {transactionCount > 0 && (
             <Text variant="small" style={styles.count}>
-              {transactionCount} transaction
-              {transactionCount !== 1 ? "s" : ""}
+              {t("components.categoryRow.transactionCount", {
+                count: transactionCount,
+              })}
             </Text>
           )}
         </View>

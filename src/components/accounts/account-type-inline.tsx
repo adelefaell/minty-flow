@@ -4,6 +4,7 @@
  */
 
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { View } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -28,6 +29,7 @@ export function AccountTypeInline({
   onTypeSelected,
   editable = true,
 }: AccountTypeInlineProps) {
+  const { t } = useTranslation()
   const { wrapperRef, scrollIntoView } = useScrollIntoView()
   const [expanded, setExpanded] = useState(false)
 
@@ -60,7 +62,7 @@ export function AccountTypeInline({
         <View style={styles.triggerLeft}>
           <IconSymbol name="shape" size={24} />
           <Text variant="default" style={styles.triggerLabel}>
-            Account type
+            {t("screens.accounts.form.typeLabel")}
           </Text>
         </View>
         <View style={styles.triggerRight}>

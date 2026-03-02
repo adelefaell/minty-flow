@@ -77,12 +77,13 @@ const SearchHeader = memo(
     onClear: () => void
     placeholderTextColor: string
   }) => {
+    const { t } = useTranslation()
     return (
       <View style={styles.searchContainer}>
         <IconSymbol name="magnify" size={20} color={styles.searchIcon.color} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search icons..."
+          placeholder={t("components.iconPicker.searchPlaceholder")}
           placeholderTextColor={placeholderTextColor}
           value={searchQuery}
           onChangeText={onSearchChange}
@@ -225,7 +226,7 @@ export const IconSelectionModal = ({
             {t("components.iconPicker.title")}
           </Text>
           <Button variant="secondary" onPress={onClose}>
-            <Text>Cancel</Text>
+            <Text>{t("common.actions.cancel")}</Text>
           </Button>
         </View>
 
@@ -262,10 +263,10 @@ export const IconSelectionModal = ({
                 color={theme.colors.onSecondary}
               />
               <Text variant="p" style={styles.emptyStateText}>
-                No icons found
+                {t("components.iconPicker.noIconsFound")}
               </Text>
               <Text variant="p" style={styles.emptyStateSubtext}>
-                Try a different search term
+                {t("components.iconPicker.tryDifferentSearch")}
               </Text>
             </View>
           }
@@ -290,7 +291,7 @@ export const IconSelectionModal = ({
             onPress={handleDone}
             disabled={!selectedIcon}
           >
-            <Text>Done</Text>
+            <Text>{t("common.actions.done")}</Text>
           </Button>
         </View>
       </SafeAreaView>

@@ -49,16 +49,15 @@ export function UpcomingTransactionsSection({
   const autoConfirmVersion = useAutoConfirmVersion()
   const foregroundVersion = useAppForeground()
 
-  const nowMs = tick * 60_000
-  const nowDate = useMemo(() => new Date(nowMs), [nowMs])
+  // Start of NEXT minute so transactions created "now" (with seconds) are not
+  // treated as upcoming — matches splitByPendingStatus which uses startOfNextMinute().
+  const nowMs = (tick + 1) * 60_000
 
   const upcoming = useMemo(() => {
     void autoConfirmVersion
     void foregroundVersion
-    return transactions.filter(
-      (r) => !r.transaction.isDeleted && isUpcoming(r, nowDate),
-    )
-  }, [transactions, nowDate, autoConfirmVersion, foregroundVersion])
+    return transactions.filter((r) => !r.transaction.isDeleted && isUpcoming(r))
+  }, [transactions, autoConfirmVersion, foregroundVersion])
 
   const upcomingForDisplay = useMemo(
     () => applyTransferLayout(upcoming, transferLayout),
@@ -80,7 +79,7 @@ export function UpcomingTransactionsSection({
       if (preapproved && canConfirm) {
         toAutoConfirm.push(row.transaction.id)
       } else {
-        if (row.transaction.extra?.recurringId) {
+        if (row.transaction.recurringId) {
           recurringList.push(row)
         } else {
           pendingList.push(row)

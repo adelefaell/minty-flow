@@ -188,9 +188,10 @@ const styles = StyleSheet.create((theme) => ({
   container: {
     flex: 1,
     backgroundColor: theme.colors.surface,
-    paddingTop: 10,
   },
   content: {
+    marginTop: 40,
+    marginBottom: 10,
     paddingBottom: 100,
   },
   section: {

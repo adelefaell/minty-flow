@@ -8,6 +8,13 @@ export interface DateRangePresetModalProps {
   onRequestClose: () => void
 }
 
+export type PresetButtonId =
+  | "last30"
+  | "thisWeek"
+  | "thisMonth"
+  | "thisYear"
+  | "allTime"
+
 export interface PresetOption {
   id: DateRangePresetId
   label: string

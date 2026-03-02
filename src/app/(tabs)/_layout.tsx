@@ -1,7 +1,7 @@
 import { useRouter } from "expo-router"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import PagerView, { usePagerView } from "react-native-pager-view"
+import { usePagerView } from "react-native-pager-view"
 import Animated, {
   createAnimatedComponent,
   Easing,
@@ -92,14 +92,23 @@ const AnimatedFABOption = ({
 const TabLayout = () => {
   const { theme } = useUnistyles()
   const { t } = useTranslation()
-  const { ref: pagerRef, activePage, setPage } = usePagerView()
+  const {
+    AnimatedPagerView,
+    ref,
+    activePage,
+    setPage,
+    onPageSelected,
+    onPageScroll,
+    onPageScrollStateChanged,
+  } = usePagerView()
+
   const [fabExpanded, setFabExpanded] = useState(false)
 
   // Animation values
   const rotation = useSharedValue(0)
   const overlayOpacity = useSharedValue(0)
   const isActiveTab = (index: number) =>
-    activePage === index ? { opacity: 1 } : { opacity: 0.8 }
+    activePage === index ? { opacity: 1 } : { opacity: 0.5 }
 
   const toggleFab = () => {
     const newState = !fabExpanded
@@ -169,17 +178,19 @@ const TabLayout = () => {
 
   return (
     <View style={styles.container}>
-      <PagerView
-        key={isRTL ? "rtl-pager" : "ltr-pager"}
-        ref={pagerRef}
+      <AnimatedPagerView
+        ref={ref}
         style={styles.pager}
         initialPage={0}
         layoutDirection={isRTL ? DirectionEnum.RTL : DirectionEnum.LTR}
+        onPageSelected={onPageSelected}
+        onPageScroll={onPageScroll}
+        onPageScrollStateChanged={onPageScrollStateChanged}
       >
         {tabs.map((tab) => (
           <tab.component key={tab.key} />
         ))}
-      </PagerView>
+      </AnimatedPagerView>
 
       {/* Tab Bar Background & Icons - Lower Z-Index */}
       <View style={[styles.tabBarContainer, { zIndex: 10 }]}>

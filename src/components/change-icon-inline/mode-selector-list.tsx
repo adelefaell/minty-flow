@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next"
+
 import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
@@ -16,6 +18,7 @@ export function ModeSelectorList({
   onEmojiLetterPress,
   onImagePress,
 }: ModeSelectorListProps) {
+  const { t } = useTranslation()
   return (
     <>
       <Pressable
@@ -28,7 +31,7 @@ export function ModeSelectorList({
         <View style={styles.itemLeft}>
           <IconSymbol name="shape" size={24} />
           <Text variant="large" style={styles.itemTitle}>
-            Icon
+            {t("components.iconPicker.iconMode")}
           </Text>
         </View>
         <IconSymbol name="chevron-right" size={20} style={styles.itemChevron} />
@@ -43,7 +46,7 @@ export function ModeSelectorList({
         <View style={styles.itemLeft}>
           <IconSymbol name="tag" size={24} />
           <Text variant="large" style={styles.itemTitle}>
-            Emoji/Letter
+            {t("components.iconPicker.emojiLetter")}
           </Text>
         </View>
         <IconSymbol name="chevron-right" size={20} style={styles.itemChevron} />
@@ -58,7 +61,7 @@ export function ModeSelectorList({
         <View style={styles.itemLeft}>
           <IconSymbol name="image" size={24} />
           <Text variant="large" style={styles.itemTitle}>
-            Image
+            {t("components.iconPicker.imageMode")}
           </Text>
         </View>
         <IconSymbol name="chevron-right" size={20} style={styles.itemChevron} />

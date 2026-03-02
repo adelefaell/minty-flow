@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { View, type ViewStyle } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
@@ -14,12 +15,15 @@ export const SearchInput = ({
   value,
   onChangeText,
   onClear,
-  placeholder = "Search...",
+  placeholder,
   containerStyle,
   style,
   ...props
 }: SearchInputProps) => {
+  const { t } = useTranslation()
   const { theme } = useUnistyles()
+  const resolvedPlaceholder =
+    placeholder ?? t("components.searchInput.placeholder")
   return (
     <View style={[styles.container, containerStyle]}>
       <IconSymbol
@@ -31,7 +35,7 @@ export const SearchInput = ({
       <Input
         value={value}
         onChangeText={onChangeText}
-        placeholder={placeholder}
+        placeholder={resolvedPlaceholder}
         style={[styles.input, style]}
         autoCapitalize="none"
         placeholderTextColor={theme.colors.onSecondary}

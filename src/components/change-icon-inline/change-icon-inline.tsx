@@ -7,6 +7,7 @@ import * as Clipboard from "expo-clipboard"
 import * as ImagePicker from "expo-image-picker"
 import type { ComponentRef } from "react"
 import { useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { TextInput as RNTextInput } from "react-native"
 import { View } from "react-native"
 import { useUnistyles } from "react-native-unistyles"
@@ -34,6 +35,7 @@ export function ChangeIconInline({
   colorScheme: colorSchemeProp,
   iconSize = 64,
 }: ChangeIconInlineProps) {
+  const { t } = useTranslation()
   const { theme } = useUnistyles()
   const [expanded, setExpanded] = useState(false)
   const [mode, setMode] = useState<InlineMode>(null)
@@ -105,16 +107,16 @@ export function ChangeIconInline({
       text = await Clipboard.getStringAsync()
     } catch {
       Toast.error({
-        title: "Error",
-        description: "Failed to read clipboard content",
+        title: t("common.toast.error"),
+        description: t("components.iconPicker.errors.clipboardRead"),
       })
       return
     }
     const trimmed = text ? text.trim() : ""
     if (!trimmed) {
       Toast.error({
-        title: "No image link",
-        description: "There is no link to copy from clipboard",
+        title: t("components.iconPicker.errors.noImageLink"),
+        description: t("components.iconPicker.errors.noImageLinkDesc"),
       })
       return
     }
@@ -122,8 +124,8 @@ export function ChangeIconInline({
       setImageUri(trimmed)
     } else {
       Toast.error({
-        title: "Invalid image link",
-        description: "The clipboard does not contain a valid image URL",
+        title: t("components.iconPicker.errors.invalidImageLink"),
+        description: t("components.iconPicker.errors.invalidImageLinkDesc"),
       })
     }
   }
@@ -132,8 +134,8 @@ export function ChangeIconInline({
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
     if (status !== "granted") {
       Toast.error({
-        title: "Permission Required",
-        description: "We need access to your photos to select an image.",
+        title: t("components.iconPicker.errors.permissionRequired"),
+        description: t("components.iconPicker.errors.permissionDescription"),
       })
       return
     }

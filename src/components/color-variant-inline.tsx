@@ -5,6 +5,7 @@
  */
 
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { View } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -36,6 +37,7 @@ export function ColorVariantInline({
   onColorSelected,
   onClearSelection,
 }: ColorVariantInlineProps) {
+  const { t } = useTranslation()
   const { themeMode } = useThemeStore()
   const { wrapperRef, scrollIntoView } = useScrollIntoView()
   const [expanded, setExpanded] = useState(false)
@@ -135,7 +137,7 @@ export function ColorVariantInline({
         <View style={styles.triggerLeft}>
           <IconSymbol name="palette" size={24} />
           <Text variant="default" style={styles.triggerLabel}>
-            Change color
+            {t("components.colorPicker.changeColor")}
           </Text>
         </View>
         <View style={styles.triggerRight}>
@@ -148,7 +150,7 @@ export function ColorVariantInline({
             />
           ) : (
             <Text variant="default" style={styles.defaultColorText}>
-              Default color
+              {t("components.colorPicker.defaultColor")}
             </Text>
           )}
           <IconSymbol
@@ -203,7 +205,7 @@ export function ColorVariantInline({
             ) : (
               <View style={styles.emptyState}>
                 <Text style={styles.emptyText}>
-                  No color variants available for the current theme
+                  {t("components.colorPicker.noVariants")}
                 </Text>
               </View>
             )}
@@ -216,13 +218,13 @@ export function ColorVariantInline({
                   onPress={handleClearPending}
                   hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                 >
-                  <Text variant="default">Clear</Text>
+                  <Text variant="default">{t("common.actions.clear")}</Text>
                 </Button>
                 <Button
                   onPress={handleDone}
                   hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                 >
-                  <Text variant="default">Done</Text>
+                  <Text variant="default">{t("common.actions.done")}</Text>
                 </Button>
               </View>
             )}

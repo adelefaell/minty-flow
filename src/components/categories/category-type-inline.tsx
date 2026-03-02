@@ -4,6 +4,7 @@
  */
 
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { View } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -12,14 +13,6 @@ import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { useScrollIntoView } from "~/hooks/use-scroll-into-view"
 import type { TransactionType } from "~/types/transactions"
-import { TransactionTypeEnum } from "~/types/transactions"
-
-const TYPE_OPTIONS: { type: TransactionType; label: string }[] = [
-  { type: TransactionTypeEnum.EXPENSE, label: "Expense" },
-  { type: TransactionTypeEnum.INCOME, label: "Income" },
-  { type: TransactionTypeEnum.TRANSFER, label: "Transfer" },
-]
-
 export interface CategoryTypeInlineProps {
   /** Currently selected type. */
   selectedType: TransactionType
@@ -34,6 +27,21 @@ export function CategoryTypeInline({
   onTypeSelected,
   editable = true,
 }: CategoryTypeInlineProps) {
+  const { t } = useTranslation()
+  const typeOptions = [
+    {
+      type: "expense" as TransactionType,
+      label: t("components.categories.types.expense"),
+    },
+    {
+      type: "income" as TransactionType,
+      label: t("components.categories.types.income"),
+    },
+    {
+      type: "transfer" as TransactionType,
+      label: t("components.categories.types.transfer"),
+    },
+  ]
   const { wrapperRef, scrollIntoView } = useScrollIntoView()
   const [expanded, setExpanded] = useState(false)
 
@@ -54,6 +62,7 @@ export function CategoryTypeInline({
   }
 
   const displayLabel =
+    typeOptions.find((o) => o.type === selectedType)?.label ??
     selectedType.charAt(0).toUpperCase() + selectedType.slice(1)
 
   return (
@@ -66,7 +75,7 @@ export function CategoryTypeInline({
         <View style={styles.triggerLeft}>
           <IconSymbol name="shape" size={24} />
           <Text variant="default" style={styles.triggerLabel}>
-            Type
+            {t("components.categories.form.typeLabel")}
           </Text>
         </View>
         <View style={styles.triggerRight}>
@@ -85,25 +94,25 @@ export function CategoryTypeInline({
 
       {editable && expanded && (
         <View style={styles.panel}>
-          {TYPE_OPTIONS.map((t) => (
+          {typeOptions.map((opt) => (
             <Pressable
-              key={t.type}
+              key={opt.type}
               style={[
                 styles.option,
-                selectedType === t.type && styles.optionActive,
+                selectedType === opt.type && styles.optionActive,
               ]}
-              onPress={() => handleSelect(t.type)}
+              onPress={() => handleSelect(opt.type)}
             >
               <Text
                 variant="default"
                 style={[
                   styles.optionText,
-                  selectedType === t.type && styles.optionTextActive,
+                  selectedType === opt.type && styles.optionTextActive,
                 ]}
               >
-                {t.label}
+                {opt.label}
               </Text>
-              {selectedType === t.type && (
+              {selectedType === opt.type && (
                 <IconSymbol name="check" size={20} style={styles.optionCheck} />
               )}
             </Pressable>
