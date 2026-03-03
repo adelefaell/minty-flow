@@ -170,7 +170,6 @@ export const styles = StyleSheet.create((theme) => ({
     fontSize: 13,
     fontWeight: "600",
     color: theme.colors.customColors?.semi ?? theme.colors.onSecondary,
-    textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   conversionRateSummaryValues: {
@@ -524,7 +523,7 @@ export const styles = StyleSheet.create((theme) => ({
     fontSize: 12,
     fontWeight: "600",
     color: theme.colors.customColors.semi,
-    textTransform: "uppercase",
+
     letterSpacing: 0.5,
     marginBottom: SECTION_GAP,
   },

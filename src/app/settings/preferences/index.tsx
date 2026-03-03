@@ -5,112 +5,84 @@ import { StyleSheet } from "react-native-unistyles"
 
 import { ActionItem } from "~/components/action-item"
 import { ToggleItem } from "~/components/toggle-item"
-import { IconSymbol, type IconSymbolName } from "~/components/ui/icon-symbol"
+import type { IconSymbolName } from "~/components/ui/icon-symbol"
+import { InfoBanner } from "~/components/ui/info-banner"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
+import type { TranslationKey } from "~/i18n/config"
 import { useAndroidSoundStore } from "~/stores/android-sound.store"
 
 interface PreferenceItem {
-  id: string
-  title: string
-  description?: string
+  titleKey: TranslationKey
   route: Href
   icon: IconSymbolName
 }
 
 const appearanceItems: PreferenceItem[] = [
   {
-    id: "theme",
-    title: "Theme",
-    description: "Choose your preferred theme",
+    titleKey: "screens.settings.preferences.appearance.theme.title",
     route: "/settings/preferences/theme",
     icon: "palette-swatch",
   },
   {
-    id: "money-formatting",
-    title: "Money Formatting",
-    description: "Configure how money is displayed",
+    titleKey: "screens.settings.preferences.appearance.moneyFormatting.title",
     route: "/settings/preferences/money-formatting",
     icon: "pound",
   },
   {
-    id: "toast",
-    title: "Toast Style",
-    description: "Configure your preferred toast style",
+    titleKey: "screens.settings.preferences.appearance.toast.title",
     route: "/settings/preferences/toast-style",
     icon: "toaster",
+  },
+  {
+    titleKey: "screens.settings.preferences.appearance.transactionStyle.title",
+    route: "/settings/preferences/transaction-appearance",
+    icon: "format-list-bulleted",
   },
 ]
 
 const otherPreferenceItems: PreferenceItem[] = [
   {
-    id: "transfers",
-    title: "Transfers",
-    description: "Layout and totals for transfers",
+    titleKey: "screens.settings.preferences.language.title",
+    route: "/settings/preferences/language",
+    icon: "translate",
+  },
+  {
+    titleKey: "screens.settings.transfers.title",
     route: "/settings/preferences/transfers",
     icon: "swap-horizontal",
   },
   {
-    id: "pending-transactions",
-    title: "Pending transactions",
-    description: "Configure pending transaction settings",
+    titleKey: "screens.settings.pending.title",
     route: "/settings/preferences/pending-transactions",
-    icon: "clock",
+    icon: "progress-clock",
   },
   {
-    id: "exchange-rates",
-    title: "Exchange Rates",
-    description: "Configure your preferred exchange rates",
+    titleKey: "screens.settings.exchangeRates.title",
     route: "/settings/preferences/exchange-rates",
     icon: "wallet",
   },
   {
-    id: "trash-bin",
-    title: "Trash bin",
-    description: "Manage deleted items and retention period",
+    titleKey: "screens.settings.trash.title",
     route: "/settings/preferences/trash-bin",
     icon: "trash-can",
   },
   {
-    id: "privacy",
-    title: "Privacy",
-    description: "Manage privacy and security settings",
+    titleKey: "screens.settings.privacy.title",
     route: "/settings/preferences/privacy",
     icon: "shield-alert",
   },
   {
-    id: "transaction-location",
-    title: "Transaction Location",
-    description: "Configure transaction location settings",
+    titleKey: "screens.settings.preferences.transactionLocation.title",
     route: "/settings/preferences/transaction-location",
     icon: "map-marker",
   },
   {
-    id: "reminder",
-    title: "Reminder",
-    description: "Set up daily reminders for expense tracking",
+    titleKey: "screens.settings.reminders.title",
     route: "/settings/preferences/reminder",
     icon: "bell",
   },
 ]
-
-const APPEARANCE_TITLE_KEYS = {
-  theme: "screens.settings.preferences.appearance.theme.title",
-  "money-formatting":
-    "screens.settings.preferences.appearance.moneyFormatting.title",
-  toast: "screens.settings.preferences.appearance.toast.title",
-} as const
-
-const OTHER_PREFERENCE_TITLE_KEYS = {
-  transfers: "screens.settings.transfers.title",
-  "pending-transactions": "screens.settings.pending.title",
-  "exchange-rates": "screens.settings.exchangeRates.title",
-  "trash-bin": "screens.settings.trash.title",
-  privacy: "screens.settings.privacy.title",
-  "transaction-location":
-    "screens.settings.preferences.transactionLocation.title",
-  reminder: "screens.settings.reminders.title",
-} as const
 
 export default function PreferencesScreen() {
   const router = useRouter()
@@ -125,13 +97,9 @@ export default function PreferencesScreen() {
         <View style={styles.itemsList}>
           {otherPreferenceItems.map((item) => (
             <ActionItem
-              key={item.id}
+              key={item.titleKey}
               icon={item.icon}
-              title={t(
-                OTHER_PREFERENCE_TITLE_KEYS[
-                  item.id as keyof typeof OTHER_PREFERENCE_TITLE_KEYS
-                ],
-              )}
+              title={t(item.titleKey)}
               onPress={() => router.push(item.route)}
             />
           ))}
@@ -140,19 +108,15 @@ export default function PreferencesScreen() {
 
       {/* Appearance Section */}
       <View style={styles.section}>
-        <Text variant="h4" style={styles.sectionTitle}>
+        <Text style={styles.sectionTitle}>
           {t("screens.settings.preferences.appearance.label")}
         </Text>
         <View style={styles.itemsList}>
           {appearanceItems.map((item) => (
             <ActionItem
-              key={item.id}
+              key={item.titleKey}
               icon={item.icon}
-              title={t(
-                APPEARANCE_TITLE_KEYS[
-                  item.id as keyof typeof APPEARANCE_TITLE_KEYS
-                ],
-              )}
+              title={t(item.titleKey)}
               onPress={() => router.push(item.route)}
             />
           ))}
@@ -162,7 +126,7 @@ export default function PreferencesScreen() {
       {/* Feedback Section */}
       {Platform.OS === "android" && (
         <View style={styles.section}>
-          <Text variant="h4" style={styles.sectionTitle}>
+          <Text style={styles.sectionTitle}>
             {t("screens.settings.preferences.buttonFeedback.label")}
           </Text>
 
@@ -177,17 +141,11 @@ export default function PreferencesScreen() {
             />
 
             {!disableSound && (
-              <View style={styles.infoContainer}>
-                <IconSymbol
-                  name="information"
-                  size={16}
-                  color={styles.infoText.color}
-                />
-
-                <Text style={styles.infoText}>
-                  {t("screens.settings.preferences.buttonFeedback.systemInfo")}
-                </Text>
-              </View>
+              <InfoBanner
+                text={t(
+                  "screens.settings.preferences.buttonFeedback.systemInfo",
+                )}
+              />
             )}
           </View>
         </View>
@@ -208,23 +166,15 @@ const styles = StyleSheet.create((theme) => ({
     marginVertical: 10,
   },
   sectionTitle: {
+    fontSize: 11,
     fontWeight: "600",
-    color: theme.colors.onSurface,
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+    color: theme.colors.customColors.semi,
     paddingHorizontal: 20,
-    paddingBottom: 10,
+    marginBottom: 8,
   },
   itemsList: {
     gap: 0,
-  },
-  infoContainer: {
-    flexDirection: "row",
-    paddingHorizontal: 20,
-    marginTop: 10,
-    gap: 5,
-  },
-  infoText: {
-    fontSize: 13,
-    color: theme.colors.customColors.semi,
-    lineHeight: 18,
   },
 }))

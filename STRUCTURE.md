@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-03-02T22:53:57.204Z
+Generated on: 2026-03-03T19:35:39.802Z
 
 ```
 ./
@@ -26,19 +26,93 @@ Generated on: 2026-03-02T22:53:57.204Z
 │       │   │   ├── webgpu-three.md
 │       │   │   └── zoom-transitions.md
 │       │   └── SKILL.md
-│       └── upgrading-expo/
-│           ├── references/
-│           │   ├── expo-av-to-audio.md
-│           │   ├── expo-av-to-video.md
-│           │   ├── native-tabs.md
-│           │   ├── new-architecture.md
-│           │   ├── react-19.md
-│           │   └── react-compiler.md
+│       ├── react-native-best-practices/
+│       │   ├── agents/
+│       │   │   └── openai.yaml
+│       │   ├── references/
+│       │   │   ├── images/
+│       │   │   │   ├── bundle-treemap-source-map-explorer.png
+│       │   │   │   ├── controlled-textinput-pingpong.png
+│       │   │   │   ├── devtools-flamegraph.png
+│       │   │   │   ├── emerge-xray-ios.png
+│       │   │   │   ├── expo-atlas-treemap.png
+│       │   │   │   ├── flashlight-flatlist-vs-flashlist.png
+│       │   │   │   ├── fps-drop-graph.png
+│       │   │   │   ├── memory-heap-snapshot.png
+│       │   │   │   ├── tti-warm-start-diagram.png
+│       │   │   │   ├── view-hierarchy-flattening.png
+│       │   │   │   ├── xcode-instruments-templates.png
+│       │   │   │   └── xcode-thread-view.png
+│       │   │   ├── bundle-analyze-app.md
+│       │   │   ├── bundle-analyze-js.md
+│       │   │   ├── bundle-barrel-exports.md
+│       │   │   ├── bundle-code-splitting.md
+│       │   │   ├── bundle-hermes-mmap.md
+│       │   │   ├── bundle-library-size.md
+│       │   │   ├── bundle-native-assets.md
+│       │   │   ├── bundle-r8-android.md
+│       │   │   ├── bundle-tree-shaking.md
+│       │   │   ├── js-animations-reanimated.md
+│       │   │   ├── js-atomic-state.md
+│       │   │   ├── js-concurrent-react.md
+│       │   │   ├── js-lists-flatlist-flashlist.md
+│       │   │   ├── js-measure-fps.md
+│       │   │   ├── js-memory-leaks.md
+│       │   │   ├── js-profile-react.md
+│       │   │   ├── js-react-compiler.md
+│       │   │   ├── js-uncontrolled-components.md
+│       │   │   ├── native-android-16kb-alignment.md
+│       │   │   ├── native-measure-tti.md
+│       │   │   ├── native-memory-leaks.md
+│       │   │   ├── native-memory-patterns.md
+│       │   │   ├── native-platform-setup.md
+│       │   │   ├── native-profiling.md
+│       │   │   ├── native-sdks-over-polyfills.md
+│       │   │   ├── native-threading-model.md
+│       │   │   ├── native-turbo-modules.md
+│       │   │   └── native-view-flattening.md
+│       │   ├── POWER.md
+│       │   └── SKILL.md
+│       └── ui-ux-pro-max/
+│           ├── data/
+│           │   ├── stacks/
+│           │   │   ├── astro.csv
+│           │   │   ├── flutter.csv
+│           │   │   ├── html-tailwind.csv
+│           │   │   ├── jetpack-compose.csv
+│           │   │   ├── nextjs.csv
+│           │   │   ├── nuxt-ui.csv
+│           │   │   ├── nuxtjs.csv
+│           │   │   ├── react-native.csv
+│           │   │   ├── react.csv
+│           │   │   ├── shadcn.csv
+│           │   │   ├── svelte.csv
+│           │   │   ├── swiftui.csv
+│           │   │   └── vue.csv
+│           │   ├── charts.csv
+│           │   ├── colors.csv
+│           │   ├── icons.csv
+│           │   ├── landing.csv
+│           │   ├── products.csv
+│           │   ├── react-performance.csv
+│           │   ├── styles.csv
+│           │   ├── typography.csv
+│           │   ├── ui-reasoning.csv
+│           │   ├── ux-guidelines.csv
+│           │   └── web-interface.csv
+│           ├── scripts/
+│           │   ├── __pycache__/
+│           │   │   ├── core.cpython-314.pyc
+│           │   │   └── design_system.cpython-314.pyc
+│           │   ├── core.py
+│           │   ├── design_system.py
+│           │   └── search.py
 │           └── SKILL.md
 ├── .claude/
 │   ├── skills/
 │   │   ├── building-native-ui
-│   │   └── upgrading-expo
+│   │   ├── react-native-best-practices
+│   │   └── ui-ux-pro-max
 │   └── settings.local.json
 ├── .github/
 │   └── CODEOWNERS
@@ -100,12 +174,14 @@ Generated on: 2026-03-02T22:53:57.204Z
 │   │   │   │   ├── theme/
 │   │   │   │   ├── exchange-rates.tsx
 │   │   │   │   ├── index.tsx
+│   │   │   │   ├── language.tsx
 │   │   │   │   ├── money-formatting.tsx
 │   │   │   │   ├── pending-transactions.tsx
 │   │   │   │   ├── privacy.tsx
 │   │   │   │   ├── reminder.tsx
 │   │   │   │   ├── theme.tsx
 │   │   │   │   ├── toast-style.tsx
+│   │   │   │   ├── transaction-appearance.tsx
 │   │   │   │   ├── transaction-location.tsx
 │   │   │   │   ├── transfers.tsx
 │   │   │   │   └── trash-bin.tsx
@@ -119,7 +195,6 @@ Generated on: 2026-03-02T22:53:57.204Z
 │   │   │   ├── edit-profile.tsx
 │   │   │   ├── goals.tsx
 │   │   │   ├── index.tsx
-│   │   │   ├── language.tsx
 │   │   │   ├── loans.tsx
 │   │   │   ├── pending-transactions.tsx
 │   │   │   └── trash.tsx
@@ -239,6 +314,7 @@ Generated on: 2026-03-02T22:53:57.204Z
 │   │   │   ├── collapsible.tsx
 │   │   │   ├── icon-symbol.ios.tsx.md
 │   │   │   ├── icon-symbol.tsx
+│   │   │   ├── info-banner.tsx
 │   │   │   ├── input.tsx
 │   │   │   ├── permission-banner.tsx
 │   │   │   ├── pressable.tsx

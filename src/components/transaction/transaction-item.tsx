@@ -20,6 +20,7 @@ import { deleteTransactionModel } from "~/database/services/transaction-service"
 import { deleteTransfer } from "~/database/services/transfer-service"
 import { useIsConfirmable } from "~/hooks/use-time-reactivity"
 import { usePendingTransactionsStore } from "~/stores/pending-transactions.store"
+import { useTransactionItemAppearanceStore } from "~/stores/transaction-item-appearance.store"
 import { useTransfersPreferencesStore } from "~/stores/transfers-preferences.store"
 import { TransactionTypeEnum } from "~/types/transactions"
 import { formatFriendlyDate, formatReadableTime } from "~/utils/time-utils"
@@ -149,6 +150,35 @@ export const TransactionItem = ({
       : TransactionTypeEnum.INCOME
     : transaction.type
 
+  // ── Appearance preferences ──────────────────────────────────────────────────
+  const appearanceVariant = useTransactionItemAppearanceStore((s) => s.variant)
+  const showCategoryInSubtitle = useTransactionItemAppearanceStore(
+    (s) => s.showCategory,
+  )
+  const showCategoryForUntitled = useTransactionItemAppearanceStore(
+    (s) => s.showCategoryForUntitled,
+  )
+  const leadingIconPref = useTransactionItemAppearanceStore(
+    (s) => s.leadingIcon,
+  )
+
+  // Derive display title: replace the sentinel "Untitled Transaction" with
+  // the category name when the user has opted in.
+  const UNTITLED = "Untitled Transaction"
+  const untitledLabel = t("components.transactionForm.fields.titlePlaceholder")
+  const isUntitled =
+    !transaction.title?.trim() || transaction.title === UNTITLED
+  const displayTitle =
+    showCategoryForUntitled && isUntitled
+      ? (category?.name ?? untitledLabel)
+      : transaction.title || untitledLabel
+
+  // Derive leading icon & color scheme based on user preference
+  const displayIcon =
+    leadingIconPref === "account" ? (account.icon ?? icon) : icon
+  const displayColorScheme =
+    leadingIconPref === "account" ? account.colorScheme : colorScheme
+
   const globalRequireConfirmation = usePendingTransactionsStore(
     (s) => s.requireConfirmation,
   )
@@ -158,6 +188,20 @@ export const TransactionItem = ({
   const isUpcoming = variant === "upcoming"
   const isConfirmable = useIsConfirmable(transaction)
   const isAutoRecurring = Boolean(transaction.extra?.recurringId)
+
+  // Derive subtitle string (account · [category] · time) — needs isUpcoming
+  const accountLabel =
+    isCombinedTransfer && relatedAccount
+      ? `${account.name} → ${relatedAccount.name}`
+      : account.name
+  const categorySegment =
+    showCategoryInSubtitle && !isTransfer && category?.name
+      ? ` · ${category.name}`
+      : ""
+  const timeSegment = isUpcoming
+    ? ` · ${formatFriendlyDate(transaction.transactionDate)}, ${formatReadableTime(transaction.transactionDate)}`
+    : ` · ${formatReadableTime(transaction.transactionDate)}`
+  const subtitleText = `${accountLabel}${categorySegment}${timeSegment}`
 
   // Only two badges: Recurring and Pending
   const showRecurringBadge = isUpcoming && isAutoRecurring
@@ -231,27 +275,28 @@ export const TransactionItem = ({
 
   const content = (
     <View style={styles.container}>
-      <Pressable style={styles.mainTouchable} onPress={onPress}>
+      <Pressable
+        style={[
+          styles.mainTouchable,
+          appearanceVariant === "elevated" && styles.mainTouchableElevated,
+        ]}
+        onPress={onPress}
+      >
         <View style={styles.leftSection}>
           <DynamicIcon
-            icon={icon}
+            icon={displayIcon}
             size={20}
-            colorScheme={colorScheme}
+            colorScheme={displayColorScheme}
             variant="badge"
           />
 
           <View style={styles.details}>
             <Text variant="small" style={styles.title} numberOfLines={1}>
-              {transaction.title}
+              {displayTitle}
             </Text>
             <View style={styles.subtitleRow}>
               <Text style={styles.subtitle} numberOfLines={1}>
-                {isCombinedTransfer && relatedAccount
-                  ? `${account.name} → ${relatedAccount.name}`
-                  : account.name}
-                {isUpcoming
-                  ? ` · ${formatFriendlyDate(transaction.transactionDate)}, ${formatReadableTime(transaction.transactionDate)}`
-                  : ` · ${formatReadableTime(transaction.transactionDate)}`}
+                {subtitleText}
               </Text>
             </View>
           </View>
@@ -382,6 +427,9 @@ const styles = StyleSheet.create((theme) => ({
     paddingVertical: 10,
     paddingLeft: 20,
     paddingRight: 20,
+  },
+  mainTouchableElevated: {
+    paddingVertical: 16,
   },
   leftSection: {
     flexDirection: "row",

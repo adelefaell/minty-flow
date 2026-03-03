@@ -1,5 +1,10 @@
+import { createMMKV } from "react-native-mmkv"
 import { create } from "zustand"
-import { devtools, persist } from "zustand/middleware"
+import { createJSONStorage, devtools, persist } from "zustand/middleware"
+
+export const transactionItemAppearanceStorage = createMMKV({
+  id: "flow-transaction-item-appearance-storage",
+})
 
 export type TransactionItemVariant = "compact" | "elevated"
 
@@ -39,7 +44,14 @@ export const useTransactionItemAppearanceStore =
           },
         }),
         {
-          name: "transaction-item-appearance-store",
+          name: "flow.transactionItemAppearance",
+          storage: createJSONStorage(() => ({
+            getItem: (name) =>
+              transactionItemAppearanceStorage.getString(name) ?? null,
+            setItem: (name, value) =>
+              transactionItemAppearanceStorage.set(name, value),
+            removeItem: (name) => transactionItemAppearanceStorage.remove(name),
+          })),
         },
       ),
       { name: "transaction-item-appearance-store-dev" },

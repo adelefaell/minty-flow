@@ -4,7 +4,8 @@ import { Linking, Platform, ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
 import { ChoiceChips } from "~/components/ui/chips"
-import { IconSymbol } from "~/components/ui/icon-symbol"
+import { InfoBanner } from "~/components/ui/info-banner"
+import { PermissionBanner } from "~/components/ui/permission-banner"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
@@ -12,25 +13,6 @@ import { useNotificationPermissionStatus } from "~/hooks/use-notification-permis
 import { usePendingTransactionsStore } from "~/stores/pending-transactions.store"
 
 const SHOW_ON_HOME_DAYS = [1, 2, 3, 5, 7, 14, 30] as const
-// const SHOW_ON_HOME_CHOICES: readonly string[] = SHOW_ON_HOME_DAYS.map(
-//   (d) => `Next ${d} day(s)`,
-// )
-
-// function daysToChoice(days: number): string {
-//   if (SHOW_ON_HOME_DAYS.includes(days as (typeof SHOW_ON_HOME_DAYS)[number])) {
-//     return `Next ${days} day(s)`
-//   }
-//   const closest = SHOW_ON_HOME_DAYS.reduce((prev, curr) =>
-//     Math.abs(curr - days) < Math.abs(prev - days) ? curr : prev,
-//   )
-//   return `Next ${closest} day(s)`
-// }
-
-// function choiceToDays(choice: string): number {
-//   const match = choice.match(/\d+/)
-//   const n = match ? Number.parseInt(match[0], 10) : NaN
-//   return Number.isNaN(n) ? 3 : Math.min(30, Math.max(1, n))
-// }
 
 function PermissionWarnings() {
   const { permissionStatus, refreshPermissionStatus } =
@@ -58,33 +40,14 @@ function PermissionWarnings() {
   if (!showNotificationsRow) return null
 
   return (
-    <View style={styles.permissionSection}>
-      <Pressable
-        onPress={handleRequestPermission}
-        style={styles.actionButton}
-        accessibilityLabel={t(
-          "screens.settings.reminders.a11y.grantNotifications",
-        )}
-        accessibilityRole="button"
-      >
-        <View style={styles.grantPermissionContent}>
-          <IconSymbol
-            name="alert"
-            outline
-            size={20}
-            style={styles.grantPermissionIcon}
-          />
-          <Text variant="default" style={styles.grantPermissionText}>
-            {t("screens.settings.reminders.a11y.permissionWarning")}
-          </Text>
-          <IconSymbol
-            name="open-in-new"
-            size={20}
-            style={styles.grantPermissionIcon}
-          />
-        </View>
-      </Pressable>
-    </View>
+    <PermissionBanner
+      message={t("screens.settings.reminders.a11y.permissionWarning")}
+      onPress={handleRequestPermission}
+      accessibilityLabel={t(
+        "screens.settings.reminders.a11y.grantNotifications",
+      )}
+      accessibilityRole="button"
+    />
   )
 }
 
@@ -163,28 +126,17 @@ export default function PendingTransactionsPreferencesScreen() {
   const handleShowOnHomeSelect = (label: string) => {
     const selected = choicesMapping.find((c) => c.label === label)
     if (selected) {
-      setHomeTimeframe(selected.value) // Saves 1, 2, 3... (Number), not Arabic text
+      setHomeTimeframe(selected.value)
     }
   }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.infoRow}>
-        <IconSymbol
-          name="information"
-          size={18}
-          color={styles.infoIconColor.color}
-        />
-        <Text style={styles.infoText}>
-          {t("screens.settings.pending.caption")}
-        </Text>
-      </View>
+      <InfoBanner text={t("screens.settings.pending.caption")} />
 
       <ChoiceChips
         title={t("screens.settings.pending.settings.showOnHome")}
-        // choices={SHOW_ON_HOME_CHOICES}
         choices={choiceLabels}
-        // selectedValue={showOnHomeValue}
         selectedValue={selectedLabel}
         onSelect={handleShowOnHomeSelect}
         style={styles.choiceSection}
@@ -227,21 +179,6 @@ const styles = StyleSheet.create((theme) => ({
   content: {
     paddingBottom: 40,
   },
-  infoRow: {
-    padding: 20,
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 10,
-  },
-  infoIconColor: {
-    color: theme.colors.customColors.semi,
-  },
-  infoText: {
-    flex: 1,
-    fontSize: 14,
-    color: theme.colors.onSecondary,
-    lineHeight: 20,
-  },
   choiceSection: {
     padding: 20,
   },
@@ -269,12 +206,9 @@ const styles = StyleSheet.create((theme) => ({
   },
   togglePillOff: {
     backgroundColor: theme.colors.secondary,
-    borderWidth: 1,
-    borderColor: theme.colors.rippleColor,
   },
   togglePillOn: {
     backgroundColor: theme.colors.primary,
-    borderWidth: 0,
   },
   togglePillText: {
     fontSize: 14,
@@ -286,31 +220,9 @@ const styles = StyleSheet.create((theme) => ({
   },
   toggleDescription: {
     fontSize: 14,
-    color: theme.colors.onSecondary,
+    color: theme.colors.customColors.semi,
     lineHeight: 20,
     marginTop: 6,
     paddingRight: 60,
-  },
-  permissionSection: {
-    marginTop: 30,
-    gap: 12,
-  },
-  grantPermissionIcon: {
-    color: theme.colors.error,
-  },
-  grantPermissionText: {
-    color: theme.colors.error,
-    fontWeight: "600",
-  },
-  grantPermissionContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  actionButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    justifyContent: "space-between",
-    flexDirection: "row",
   },
 }))

@@ -286,6 +286,36 @@
 
               "warningDescription": "This is a warning message"
             }
+          },
+          "transactionStyle": {
+            "title": "Transaction Style",
+            "sections": {
+              "preview": "Preview",
+              "categoryDisplay": "Category Display",
+              "layout": "Layout",
+              "leadingIcon": "Leading Icon"
+            },
+            "showForUntitled": {
+              "label": "Show category for untitled",
+              "description": "Use the category name as the title when a transaction has no name"
+            },
+            "showAfterAccount": {
+              "label": "Show category after account",
+              "description": "Display the category name in the subtitle below the account"
+            },
+            "lessDense": {
+              "label": "Less dense layout",
+              "description": "Add extra vertical padding to each transaction row"
+            },
+            "iconSource": {
+              "label": "Icon source",
+              "description": "Choose what the leading icon represents"
+            },
+            "options": {
+              "category": "Category",
+              "account": "Account"
+            },
+            "info": "Changes apply immediately to all transaction lists across the app."
           }
         },
         "buttonFeedback": {
@@ -307,7 +337,17 @@
         },
         "transactionLocation": {
           "title": "Transaction Location",
-          "description": "Configure transaction location settings"
+          "description": "Configure transaction location settings",
+          "permissionWarning": "Location permission not granted",
+          "enable": {
+            "label": "Enable",
+            "description": "Auto-capture location on new transactions"
+          },
+          "autoAttach": {
+            "label": "Auto-attach",
+            "description": "Attach location without prompting"
+          },
+          "footerCaption": "When enabled, your current location can be attached to new transactions. You can still add or remove it manually on each transaction."
         }
       },
       "trash": {
@@ -524,6 +564,8 @@
       },
       "fields": {
         "titlePlaceholder": "Untitled transaction",
+        "transferTitle": "Transfer",
+        "transferTitleFull": "From {{from}} to {{to}}",
         "amountLabel": "Amount",
         "convertedAmountLabel": "Converted amount",
         "notes": "Notes",
@@ -620,6 +662,14 @@
       }
     },
     "recurring": {
+      "frequency": {
+        "none": "None",
+        "daily": "Every day",
+        "weekly": "Every week, {{day}}",
+        "biweekly": "Every 2 weeks, {{day}}",
+        "monthly": "Every month, {{date}}",
+        "yearly": "Every year, {{date}}"
+      },
       "deleteModal": {
         "title": "Delete recurring transaction",
         "subtitle": "Choose which transactions to remove",
@@ -932,5 +982,19 @@
         "invalid": "Enter a valid amount"
       }
     }
+  },
+  "dates": {
+    "unknown": "Unknown",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "tomorrow": "Tomorrow",
+    "expired": "Expired",
+    "expiresToday": "Expires today",
+    "expiresTomorrow": "Expires tomorrow",
+    "expiresInDays": "Expires in {{count}} days",
+    "thisDay": "This {{day}}",
+    "lastDay": "Last {{day}}",
+    "nextDay": "Next {{day}}",
+    "weekOf": "Week of {{date}}"
   }
 }

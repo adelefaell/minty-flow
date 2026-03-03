@@ -289,28 +289,19 @@ export function TransactionFormV3({
 
   const balanceAtTransaction = useBalanceAtTransaction(transaction)
 
-  // Default transfer title: "From [From account] to [To account]" when both are selected
-  const title = watch("title")
-  useLayoutEffect(() => {
+  // Derived transfer placeholder title — shown as Input placeholder, not set as value
+  const derivedTransferTitle = useMemo(() => {
     if (
       transactionType !== "transfer" ||
       !selectedAccount ||
-      !selectedToAccount ||
-      !isNew
+      !selectedToAccount
     )
-      return
-    const derivedTitle = `From ${selectedAccount.name} to ${selectedToAccount.name}`
-    if (title === "" || title === "Transfer" || title === derivedTitle) {
-      setValue("title", derivedTitle, { shouldDirty: false })
-    }
-  }, [
-    transactionType,
-    isNew,
-    selectedAccount,
-    selectedToAccount,
-    title,
-    setValue,
-  ])
+      return ""
+    return t("components.transactionForm.fields.transferTitleFull", {
+      from: selectedAccount.name,
+      to: selectedToAccount.name,
+    })
+  }, [transactionType, selectedAccount, selectedToAccount, t])
 
   // Load saved conversion rate when editing a transfer (from transfers table or legacy extra)
   useEffect(() => {
@@ -561,7 +552,10 @@ export function TransactionFormV3({
             ? { conversionRate }
             : {}),
           transactionDate: isNew ? effectiveDate.getTime() : effectiveDate,
-          title: data.title?.trim() || "Transfer",
+          title:
+            data.title?.trim() ||
+            derivedTransferTitle ||
+            t("components.transactionForm.fields.transferTitle"),
           notes: data.description?.trim() || null,
         }
         if (isNew) {
@@ -1011,9 +1005,10 @@ export function TransactionFormV3({
                 <Input
                   value={value}
                   onChangeText={onChange}
-                  placeholder={t(
-                    "components.transactionForm.fields.titlePlaceholder",
-                  )}
+                  placeholder={
+                    derivedTransferTitle ||
+                    t("components.transactionForm.fields.titlePlaceholder")
+                  }
                   placeholderTextColor={theme.colors.customColors.semi}
                 />
               )}

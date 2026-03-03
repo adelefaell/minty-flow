@@ -66,7 +66,7 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 15,
+    paddingVertical: 14,
     paddingHorizontal: 20,
   },
   // actionItemPressed: {

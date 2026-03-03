@@ -143,7 +143,7 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 10,
+    paddingVertical: 14,
     paddingHorizontal: 20,
     gap: 16,
   },

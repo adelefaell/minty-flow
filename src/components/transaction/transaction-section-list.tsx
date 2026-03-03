@@ -168,7 +168,7 @@ export function TransactionSectionList({
         return (
           <View style={styles.sectionHeader}>
             <View style={styles.sectionTitleRow}>
-              <Text variant="h4" style={styles.sectionTitle}>
+              <Text variant="large" style={styles.sectionTitle}>
                 {s.title}
               </Text>
               <View style={styles.sectionDivider} />
@@ -242,8 +242,6 @@ const styles = StyleSheet.create((theme) => ({
   },
   sectionTitle: {
     fontWeight: "bold",
-    fontSize: 18,
-    letterSpacing: -0.3,
   },
   sectionDivider: {
     flex: 1,

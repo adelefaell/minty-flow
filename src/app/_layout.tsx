@@ -158,14 +158,13 @@ export default function RootLayout() {
               options={{ title: t("screens.settings.goals.title") }}
             />
 
+            {/* settings screens preferences */}
             <Stack.Screen
-              name="settings/language"
+              name="settings/preferences/language"
               options={{
                 title: t("screens.settings.preferences.language.title"),
               }}
             />
-
-            {/* settings screens preferences */}
             <Stack.Screen
               name="settings/preferences/theme"
               options={{
@@ -217,6 +216,14 @@ export default function RootLayout() {
             <Stack.Screen
               name="settings/preferences/transfers"
               options={{ title: t("screens.settings.transfers.title") }}
+            />
+            <Stack.Screen
+              name="settings/preferences/transaction-appearance"
+              options={{
+                title: t(
+                  "screens.settings.preferences.appearance.transactionStyle.title",
+                ),
+              }}
             />
             <Stack.Screen
               name="accounts/[accountId]/index"

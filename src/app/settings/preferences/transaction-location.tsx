@@ -1,8 +1,9 @@
 import * as Location from "expo-location"
+import { useTranslation } from "react-i18next"
 import { Linking, ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
-import { IconSymbol } from "~/components/ui/icon-symbol"
+import { InfoBanner } from "~/components/ui/info-banner"
 import { PermissionBanner } from "~/components/ui/permission-banner"
 import { Pressable } from "~/components/ui/pressable"
 import { Switch } from "~/components/ui/switch"
@@ -16,6 +17,7 @@ export default function TransactionLocationScreen() {
     useLocationPermissionStatus()
   const { isEnabled, autoAttach, setIsEnabled, setAutoAttach } =
     useTransactionLocationStore()
+  const { t } = useTranslation()
 
   const isGranted = permissionStatus === Location.PermissionStatus.GRANTED
   const showBanner = permissionStatus !== null && !isGranted
@@ -32,7 +34,9 @@ export default function TransactionLocationScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {showBanner && (
         <PermissionBanner
-          message="Location permission not granted"
+          message={t(
+            "screens.settings.preferences.transactionLocation.permissionWarning",
+          )}
           onPress={handleRequestPermission}
         />
       )}
@@ -43,10 +47,12 @@ export default function TransactionLocationScreen() {
       >
         <View style={styles.labelContainer}>
           <Text variant="p" style={styles.settingLabel}>
-            Enable
+            {t("screens.settings.preferences.transactionLocation.enable.label")}
           </Text>
           <Text variant="small" style={styles.settingLabelDescription}>
-            Auto-capture location on new transactions
+            {t(
+              "screens.settings.preferences.transactionLocation.enable.description",
+            )}
           </Text>
         </View>
         <Switch value={isEnabled} onValueChange={setIsEnabled} />
@@ -59,24 +65,25 @@ export default function TransactionLocationScreen() {
         >
           <View style={styles.labelContainer}>
             <Text variant="p" style={styles.settingLabel}>
-              Auto-attach
+              {t(
+                "screens.settings.preferences.transactionLocation.autoAttach.label",
+              )}
             </Text>
             <Text variant="small" style={styles.settingLabelDescription}>
-              Attach location without prompting
+              {t(
+                "screens.settings.preferences.transactionLocation.autoAttach.description",
+              )}
             </Text>
           </View>
           <Switch value={autoAttach} onValueChange={setAutoAttach} />
         </Pressable>
       )}
 
-      <View style={styles.footer}>
-        <IconSymbol name="information" size={24} style={styles.footerIcon} />
-        <Text style={styles.footerText}>
-          When enabled, your current location can be attached to new
-          transactions. You can still add or remove it manually on each
-          transaction.
-        </Text>
-      </View>
+      <InfoBanner
+        text={t(
+          "screens.settings.preferences.transactionLocation.footerCaption",
+        )}
+      />
     </ScrollView>
   )
 }
@@ -93,7 +100,7 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 10,
+    paddingVertical: 14,
     paddingHorizontal: 20,
     gap: 16,
   },
@@ -107,25 +114,6 @@ const styles = StyleSheet.create((theme) => ({
   settingLabelDescription: {
     fontSize: 13,
     fontWeight: "400",
-  },
-  footer: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 8,
-    paddingHorizontal: 20,
-    paddingTop: 16,
-  },
-  footerIcon: {
-    color: theme.colors.onSecondary,
-    opacity: 0.7,
-    marginTop: 2,
-  },
-  footerText: {
-    fontSize: 13,
-    color: theme.colors.onSecondary,
-    opacity: 0.7,
-    lineHeight: 18,
-    flex: 1,
-    fontStyle: "italic",
+    color: theme.colors.customColors.semi,
   },
 }))

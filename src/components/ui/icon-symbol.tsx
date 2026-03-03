@@ -157,6 +157,7 @@ export const VALID_ICON_NAMES = defineValidIcons([
   "translate",
   "cellphone-lock",
   "playlist-remove",
+  "format-list-bulleted",
 ] as const)
 
 /**
