@@ -28,6 +28,7 @@
     "expo-blur": "~55.0.8",
     "expo-build-properties": "^55.0.9",
     "expo-clipboard": "~55.0.8",
+    "expo-constants": "~55.0.7",
     "expo-contacts": "~55.0.8",
     "expo-device": "~55.0.9",
     "expo-document-picker": "~55.0.8",
@@ -91,7 +92,8 @@
       "reactNativeDirectoryCheck": {
         "exclude": [
           "@nozbe/watermelondb",
-          "@nozbe/simdjson"
+          "@nozbe/simdjson",
+          "react-native-restart"
         ]
       }
     }

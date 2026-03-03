@@ -41,7 +41,7 @@ const styles = StyleSheet.create((theme) => ({
   toggleItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 20,
     minHeight: 56,
     backgroundColor: theme.colors.surface,
@@ -65,7 +65,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   toggleItemDescription: {
     fontSize: 13,
-    color: theme.colors.onSecondary,
+    color: theme.colors.customColors.semi,
     lineHeight: 18,
   },
 }))

@@ -143,7 +143,7 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.surface,
   },
   content: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 0,
     paddingTop: 12,
     paddingBottom: 48,
   },
@@ -151,31 +151,29 @@ const styles = StyleSheet.create((theme) => ({
   previewSection: {
     alignItems: "center",
     paddingVertical: 28,
+    paddingHorizontal: 20,
     gap: 8,
   },
   previewLabel: {
     fontSize: 11,
     fontWeight: "600",
     letterSpacing: 1,
-    textTransform: "uppercase",
     opacity: 0.5,
   },
 
   sectionLabel: {
-    paddingHorizontal: 4,
+    paddingHorizontal: 20,
     marginBottom: 8,
     marginTop: 8,
   },
   sectionLabelText: {
+    fontSize: 11,
     fontWeight: "600",
-    letterSpacing: 1,
-
+    letterSpacing: 0.8,
     color: theme.colors.customColors?.semi,
   },
 
   card: {
-    backgroundColor: theme.colors.secondary,
-    borderRadius: theme.colors.radius,
     overflow: "hidden",
   },
   row: {
@@ -183,7 +181,7 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: "center",
     justifyContent: "space-between",
     paddingVertical: 14,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     minHeight: 56,
   },
   rowContent: {
@@ -193,14 +191,15 @@ const styles = StyleSheet.create((theme) => ({
   rowLabel: {
     fontSize: 16,
     fontWeight: "500",
-    color: theme.colors.onSecondary,
+    color: theme.colors.onSurface,
   },
   rowDescription: {
     fontSize: 13,
     color: theme.colors.customColors.semi,
   },
   divider: {
-    height: 1,
+    height: 0.5,
     backgroundColor: theme.colors.customColors?.semi,
+    opacity: 0.4,
   },
 }))

@@ -406,7 +406,6 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 12,
     fontWeight: "600",
     color: theme.colors.onSurface,
-    textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   nameSection: {

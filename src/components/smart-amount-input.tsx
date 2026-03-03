@@ -410,7 +410,6 @@ const styles = StyleSheet.create((t) => ({
     fontSize: 12,
     fontWeight: "bold",
     letterSpacing: 1,
-    textTransform: "uppercase",
   },
   inputContainer: {
     flexDirection: "row",

@@ -262,15 +262,15 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.surface,
   },
   content: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 0,
     paddingTop: 12,
     paddingBottom: 48,
   },
 
   sectionLabel: {
-    paddingHorizontal: 4,
+    paddingHorizontal: 20,
     marginBottom: 8,
-    marginTop: 24,
+    marginTop: 28,
   },
   sectionLabelFirst: {
     marginTop: 8,
@@ -278,13 +278,11 @@ const styles = StyleSheet.create((theme) => ({
   sectionLabelText: {
     fontSize: 11,
     fontWeight: "600",
-    letterSpacing: 1,
+    letterSpacing: 0.8,
     color: theme.colors.customColors?.semi,
   },
 
   card: {
-    backgroundColor: theme.colors.secondary,
-    borderRadius: theme.colors.radius,
     overflow: "hidden",
   },
   row: {
@@ -292,7 +290,7 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: "center",
     justifyContent: "space-between",
     paddingVertical: 14,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     minHeight: 56,
   },
   rowContent: {
@@ -302,23 +300,19 @@ const styles = StyleSheet.create((theme) => ({
   rowLabel: {
     fontSize: 16,
     fontWeight: "500",
-    color: theme.colors.onSecondary,
+    color: theme.colors.onSurface,
   },
   rowDescription: {
     fontSize: 13,
-    color: theme.colors.onSecondary,
-    opacity: 0.7,
+    color: theme.colors.customColors?.semi,
   },
   divider: {
-    height: 1,
+    height: 0.5,
     backgroundColor: theme.colors.customColors?.semi,
+    opacity: 0.4,
   },
 
   toggleCard: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.colors.radius,
-    borderWidth: 1,
-    borderColor: theme.colors.customColors?.semi,
     overflow: "hidden",
   },
   toggleRow: {
@@ -326,7 +320,7 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: "center",
     justifyContent: "space-between",
     paddingVertical: 14,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     minHeight: 56,
   },
   toggleRowContent: {
@@ -345,12 +339,12 @@ const styles = StyleSheet.create((theme) => ({
 
   previewDescription: {
     fontSize: 13,
-    color: theme.colors.onSecondary,
-    opacity: 0.7,
+    color: theme.colors.customColors?.semi,
   },
   previewButtons: {
     flexDirection: "row",
     gap: 10,
+    paddingHorizontal: 20,
   },
   previewBtnPrimary: {
     flex: 1,
@@ -369,6 +363,7 @@ const styles = StyleSheet.create((theme) => ({
 
   resetSection: {
     marginTop: 32,
+    paddingHorizontal: 20,
   },
   resetButton: {
     borderRadius: theme.colors.radius,

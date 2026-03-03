@@ -205,7 +205,7 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 11,
     fontWeight: "500",
     color: theme.colors.customColors.semi,
-    textTransform: "uppercase",
+
     letterSpacing: 0.5,
   },
   primaryBadge: {
@@ -221,7 +221,7 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 9,
     fontWeight: "600",
     color: theme.colors.onSurface,
-    textTransform: "uppercase",
+
     letterSpacing: 0.2,
   },
   balance: {
@@ -239,7 +239,7 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 10,
     fontWeight: "600",
     color: theme.colors.customColors.semi,
-    textTransform: "uppercase",
+
     letterSpacing: 0.8,
   },
   summaryRow: {
@@ -259,7 +259,7 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 11,
     fontWeight: "500",
     color: theme.colors.customColors.semi,
-    textTransform: "uppercase",
+
     letterSpacing: 0.5,
   },
   summaryAmount: {

@@ -87,7 +87,9 @@ const AccountsScreenInner = ({
 
   const handleToggleReorder = () => {
     // Clear search first
-    setSearchQuery("")
+    if (searchQuery.length > 0) {
+      setSearchQuery("")
+    }
 
     if (!isReorderMode) {
       setReorderedModels(accountModels) // use the full list here
@@ -185,16 +187,15 @@ const AccountsScreenInner = ({
         </View>
       </View>
 
-      {!isReorderMode && (
-        <View style={styles.searchContainer}>
-          <SearchInput
-            placeholder={t("screens.accounts.a11y.searchPlaceholder")}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            onClear={() => setSearchQuery("")}
-          />
-        </View>
-      )}
+      <View style={styles.searchContainer}>
+        <SearchInput
+          placeholder={t("screens.accounts.a11y.searchPlaceholder")}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          onClear={() => setSearchQuery("")}
+          editable={!isReorderMode}
+        />
+      </View>
 
       <ReorderableListV2
         data={displayModels}
@@ -285,7 +286,6 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 10,
     fontWeight: "600",
     color: theme.colors.customColors.semi,
-    textTransform: "uppercase",
     letterSpacing: 0.8,
   },
   balanceRow: {

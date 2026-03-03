@@ -283,6 +283,36 @@
               "infoDescription": "هذه رسالة معلومات",
               "warningDescription": "هذه رسالة تحذير"
             }
+          },
+          "transactionStyle": {
+            "title": "مظهر المعاملات",
+            "sections": {
+              "preview": "معاينة",
+              "categoryDisplay": "عرض الفئة",
+              "layout": "التخطيط",
+              "leadingIcon": "الأيقونة الأمامية"
+            },
+            "showForUntitled": {
+              "label": "إظهار الفئة للمعاملات بدون اسم",
+              "description": "استخدام اسم الفئة كعنوان عندما لا يكون للمعاملة اسم"
+            },
+            "showAfterAccount": {
+              "label": "إظهار الفئة بعد الحساب",
+              "description": "عرض اسم الفئة في الترجمة أسفل الحساب"
+            },
+            "lessDense": {
+              "label": "تخطيط أقل كثافة",
+              "description": "إضافة مسافة رأسية إضافية لكل صف معاملة"
+            },
+            "iconSource": {
+              "label": "مصدر الأيقونة",
+              "description": "اختر ما تمثله الأيقونة الأمامية"
+            },
+            "options": {
+              "category": "الفئة",
+              "account": "الحساب"
+            },
+            "info": "تُطبَّق التغييرات فوراً على جميع قوائم المعاملات في التطبيق."
           }
         },
         "buttonFeedback": {
@@ -304,7 +334,17 @@
         },
         "transactionLocation": {
           "title": "موقع المعاملة",
-          "description": "إعدادات موقع المعاملة"
+          "description": "إعدادات موقع المعاملة",
+          "permissionWarning": "لم يتم منح إذن الموقع",
+          "enable": {
+            "label": "تمكين",
+            "description": "التقاط الموقع تلقائياً للمعاملات الجديدة"
+          },
+          "autoAttach": {
+            "label": "الإرفاق التلقائي",
+            "description": "إرفاق الموقع دون طلب تأكيد"
+          },
+          "footerCaption": "عند التمكين، يمكن إرفاق موقعك الحالي بالمعاملات الجديدة. يمكنك إضافته أو إزالته يدوياً في كل معاملة."
         }
       },
       "trash": {
@@ -521,6 +561,8 @@
       },
       "fields": {
         "titlePlaceholder": "معاملة بدون عنوان",
+        "transferTitle": "تحويل",
+        "transferTitleFull": "من {{from}} إلى {{to}}",
         "amountLabel": "المبلغ",
         "convertedAmountLabel": "المبلغ المحوّل",
         "notes": "ملاحظات",
@@ -597,7 +639,6 @@
         "editRecurringFailed": "فشل حفظ المعاملة",
         "upcomingConfirmFailed": "فشل التأكيد",
         "upcomingConfirmAllFailed": "فشل تأكيد الكل",
-
         "deletedDescription": "تم حذف المعاملة نهائياً.",
         "deleteFailed": "فشل حذف المعاملة."
       },
@@ -617,6 +658,14 @@
       }
     },
     "recurring": {
+      "frequency": {
+        "none": "لا شيء",
+        "daily": "كل يوم",
+        "weekly": "كل أسبوع، {{day}}",
+        "biweekly": "كل أسبوعين، {{day}}",
+        "monthly": "كل شهر، {{date}}",
+        "yearly": "كل عام، {{date}}"
+      },
       "deleteModal": {
         "title": "حذف المعاملة المتكررة",
         "subtitle": "اختر المعاملات المراد إزالتها",
@@ -937,5 +986,19 @@
         "invalid": "أدخل مبلغاً صحيحاً"
       }
     }
+  },
+  "dates": {
+    "unknown": "مجهول",
+    "today": "اليوم",
+    "yesterday": "أمس",
+    "tomorrow": "غداً",
+    "weekOf": "أسبوع {{التاريخ}}",
+    "expired": "منتهي الصلاحية",
+    "expiresToday": "تنتهي صلاحيته اليوم",
+    "expiresTomorrow": "تنتهي غدا",
+    "expiresInDays": "تنتهي صلاحيته خلال {{count}} يوم",
+    "thisDay": "هذا {{اليوم}}",
+    "lastDay": "آخر {{يوم}}",
+    "nextDay": "{{اليوم}} القادم"
   }
 }

@@ -9,7 +9,8 @@ import { Linking, Platform, ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
 import { Button } from "~/components/ui/button"
-import { IconSymbol } from "~/components/ui/icon-symbol"
+import { InfoBanner } from "~/components/ui/info-banner"
+import { PermissionBanner } from "~/components/ui/permission-banner"
 import { Pressable } from "~/components/ui/pressable"
 import { Switch } from "~/components/ui/switch"
 import { Text } from "~/components/ui/text"
@@ -52,7 +53,6 @@ export default function ReminderScreen() {
   const [showIosPicker, setShowIosPicker] = useState(false)
 
   const handleRequestPermission = async () => {
-    // Android notification channel setup
     if (Platform.OS === "android") {
       await Notifications.setNotificationChannelAsync("default", {
         name: "Default",
@@ -64,14 +64,11 @@ export default function ReminderScreen() {
     await refreshPermissionStatus()
 
     if (status !== Notifications.PermissionStatus.GRANTED) {
-      // If it's still not granted (e.g. user denied or it's already denied),
-      // open settings as a fallback for the user.
       await Linking.openSettings()
     }
   }
 
   const scheduleDailyReminder = async (time: Date) => {
-    // Cancel the specific daily reminder if it exists
     await Notifications.cancelScheduledNotificationAsync(DAILY_REMINDER_ID)
 
     await Notifications.scheduleNotificationAsync({
@@ -134,30 +131,12 @@ export default function ReminderScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/*  TODO: make this a reusable component and use it in the other screens */}
       {permissionStatus !== null &&
         permissionStatus !== Notifications.PermissionStatus.GRANTED && (
-          <Pressable
+          <PermissionBanner
+            message={t("screens.settings.reminders.a11y.permissionWarning")}
             onPress={handleRequestPermission}
-            style={styles.actionButton}
-          >
-            <View style={styles.grantPermissionContent}>
-              <IconSymbol
-                name="alert"
-                outline
-                size={20}
-                style={styles.grantPermissionIcon}
-              />
-              <Text variant="default" style={styles.grantPermissionText}>
-                {t("screens.settings.reminders.a11y.permissionWarning")}
-              </Text>
-              <IconSymbol
-                name="open-in-new"
-                size={20}
-                style={styles.grantPermissionIcon}
-              />
-            </View>
-          </Pressable>
+          />
         )}
 
       {/* Remind daily */}
@@ -180,52 +159,43 @@ export default function ReminderScreen() {
       </Pressable>
 
       {isDailyReminderEnabled && (
-        <View style={styles.section}>
-          <Text style={styles.headerLabel}>
-            {t("screens.settings.reminders.remindAt")}
-          </Text>
-
-          {/* The Main Time Card */}
-          <Pressable style={styles.timeCard} onPress={showTimePicker}>
-            <Text style={styles.timeText}>
-              {formatReadableTime(dailyReminderDate)}
+        <>
+          <View style={styles.section}>
+            <Text style={styles.headerLabel}>
+              {t("screens.settings.reminders.remindAt")}
             </Text>
-          </Pressable>
 
-          {/* iOS Native Picker Modal */}
-          {Platform.OS === "ios" && showIosPicker && (
-            <DateTimePicker
-              value={dailyReminderDate}
-              mode="time"
-              display="spinner"
-              onChange={onIosTimeChange}
-            />
-          )}
+            {/* The Main Time Card */}
+            <Pressable style={styles.timeCard} onPress={showTimePicker}>
+              <Text style={styles.timeText}>
+                {formatReadableTime(dailyReminderDate)}
+              </Text>
+            </Pressable>
 
-          {/* The Info Footer */}
-          <View style={styles.footer}>
-            <IconSymbol
-              name="information"
-              size={24}
-              style={styles.footerIcon}
-            />
-            <Text style={styles.footerText}>
-              {t("screens.settings.reminders.footerCaption")}
-            </Text>
+            {/* iOS Native Picker Modal */}
+            {Platform.OS === "ios" && showIosPicker && (
+              <DateTimePicker
+                value={dailyReminderDate}
+                mode="time"
+                display="spinner"
+                onChange={onIosTimeChange}
+              />
+            )}
+
+            {/* TODO: DELETE LATER */}
+            <Button
+              variant="default"
+              onPress={async () => await schedulePushNotification()}
+              style={[styles.actionButton, { marginTop: 100 }]}
+            >
+              <Text variant="default">
+                {t("screens.settings.reminders.testNotification")}
+              </Text>
+            </Button>
           </View>
 
-          {/* TODO: DELETE LATER */}
-          {/* Press to schedule a notification */}
-          <Button
-            variant="default"
-            onPress={async () => await schedulePushNotification()}
-            style={[styles.actionButton, { marginTop: 100 }]}
-          >
-            <Text variant="default">
-              {t("screens.settings.reminders.testNotification")}
-            </Text>
-          </Button>
-        </View>
+          <InfoBanner text={t("screens.settings.reminders.footerCaption")} />
+        </>
       )}
     </ScrollView>
   )
@@ -258,29 +228,11 @@ const styles = StyleSheet.create((theme) => ({
     paddingVertical: 10,
     paddingHorizontal: 20,
   },
-  grantPermissionIcon: {
-    color: theme.colors.error,
-  },
-  grantPermissionText: {
-    color: theme.colors.error,
-    fontWeight: "600",
-  },
-  grantPermissionContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  actionButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    justifyContent: "space-between",
-    flexDirection: "row",
-  },
   settingRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 10,
+    paddingVertical: 14,
     paddingHorizontal: 20,
     gap: 16,
   },
@@ -294,6 +246,7 @@ const styles = StyleSheet.create((theme) => ({
   settingLabelDescription: {
     fontSize: 13,
     fontWeight: "400",
+    color: theme.colors.customColors.semi,
   },
   headerLabel: {
     fontSize: 18,
@@ -314,22 +267,10 @@ const styles = StyleSheet.create((theme) => ({
     height: 64,
     textAlignVertical: "center",
   },
-  footer: {
+  actionButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    justifyContent: "space-between",
     flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 8,
-    paddingHorizontal: 4,
-  },
-  footerIcon: {
-    color: theme.colors.onSecondary,
-    opacity: 0.7,
-    marginTop: 5,
-  },
-  footerText: {
-    fontSize: 13,
-    color: theme.colors.onSecondary,
-    opacity: 0.7,
-    lineHeight: 18,
-    flex: 1,
   },
 }))

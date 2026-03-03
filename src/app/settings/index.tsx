@@ -8,120 +8,74 @@ import { ProfileSection } from "~/components/profile/profile-section"
 import type { IconSymbolName } from "~/components/ui/icon-symbol"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
+import type { TranslationKey } from "~/i18n/config"
 
 interface SettingsItem {
-  id: string
-  title: string
-  description?: string
+  titleKey: TranslationKey
   route: Href
   icon: IconSymbolName
+  soon?: boolean
 }
 
 const moneyManagementItems: SettingsItem[] = [
   {
-    id: "all-accounts",
-    title: "All Accounts",
-    description: "View all your accounts",
+    titleKey: "screens.accounts.title",
     route: "/settings/all-accounts",
     icon: "wallet-bifold",
   },
   {
-    id: "loans",
-    title: "Loans",
-    description: "Track money lent and borrowed",
+    titleKey: "screens.settings.loans.title",
     route: "/settings/loans",
     icon: "handshake",
   },
   {
-    id: "categories",
-    title: "Categories",
-    description: "Manage your transaction categories",
+    titleKey: "components.categories.title",
     route: "/settings/categories",
     icon: "shape",
   },
   {
-    id: "tags",
-    title: "Tags",
-    description: "Manage your transaction tags",
+    titleKey: "screens.settings.tags.title",
     route: "/settings/tags",
     icon: "tag-multiple",
   },
   {
-    id: "trash",
-    title: "Trash",
-    description: "View and restore deleted transactions",
+    titleKey: "screens.settings.trash.title",
     route: "/settings/trash",
     icon: "trash-can",
   },
   {
-    id: "goals",
-    title: "Goals",
-    description: "Set and track your financial goals",
+    titleKey: "screens.settings.goals.title",
     route: "/settings/goals",
     icon: "target",
   },
   {
-    id: "budgets",
-    title: "Budgets",
-    description: "Create and manage your budgets",
+    titleKey: "screens.settings.budgets.title",
     route: "/settings/budgets",
     icon: "chart-pie",
   },
   {
-    id: "pending-transactions",
-    title: "Pending Transactions",
-    description: "View and manage pending transactions",
+    titleKey: "screens.settings.pending.title",
     route: "/settings/pending-transactions",
-    icon: "clock",
+    icon: "progress-clock",
   },
   {
-    id: "bill-splitter",
-    title: "Bill Splitter",
-    description: "Split bills with friends and family",
+    titleKey: "screens.settings.billSplitter.title",
     route: "/settings/bill-splitter",
     icon: "format-page-split",
   },
 ]
 
-const MONEY_MANAGEMENT_TITLE_KEYS = {
-  "all-accounts": "screens.accounts.title",
-  loans: "screens.settings.loans.title",
-  categories: "components.categories.title",
-  tags: "screens.settings.tags.title",
-  trash: "screens.settings.trash.title",
-  goals: "screens.settings.goals.title",
-  budgets: "screens.settings.budgets.title",
-  "pending-transactions": "screens.settings.pending.title",
-  "bill-splitter": "screens.settings.billSplitter.title",
-} as const
-
-const OTHER_SETTINGS_TITLE_KEYS = {
-  preferences: "screens.settings.preferences.title",
-  language: "screens.settings.preferences.language.title",
-  "data-management": "screens.settings.dataManagement.title",
-} as const
-
 const otherSettingsItems: SettingsItem[] = [
   {
-    id: "preferences",
-    title: "Preferences",
-    description: "General preferences",
+    titleKey: "screens.settings.preferences.title",
     route: "/settings/preferences",
     icon: "puzzle-edit",
   },
   {
-    id: "language",
-    title: "Language",
-    description: "Language and locale settings",
-    route: "/settings/language",
-    icon: "translate",
-  },
-  {
-    id: "data-management",
-    title: "Data Management",
-    description: "Backup, import, and export your data",
+    titleKey: "screens.settings.dataManagement.title",
     route: "/settings/data-management",
     icon: "server",
+    soon: true,
   },
 ]
 
@@ -146,13 +100,9 @@ export default function SettingsScreen() {
         <View>
           {moneyManagementItems.map((item) => (
             <ActionItem
-              key={item.id}
+              key={item.titleKey}
               icon={item.icon}
-              title={t(
-                MONEY_MANAGEMENT_TITLE_KEYS[
-                  item.id as keyof typeof MONEY_MANAGEMENT_TITLE_KEYS
-                ],
-              )}
+              title={t(item.titleKey)}
               onPress={() => router.push(item.route)}
             />
           ))}
@@ -167,14 +117,10 @@ export default function SettingsScreen() {
         <View>
           {otherSettingsItems.map((item) => (
             <ActionItem
-              key={item.id}
+              key={item.titleKey}
               icon={item.icon}
-              title={t(
-                OTHER_SETTINGS_TITLE_KEYS[
-                  item.id as keyof typeof OTHER_SETTINGS_TITLE_KEYS
-                ],
-              )}
-              soon={item.id === "data-management"}
+              title={t(item.titleKey)}
+              soon={item.soon}
               onPress={() => router.push(item.route)}
             />
           ))}
@@ -199,9 +145,10 @@ const styles = StyleSheet.create((theme) => ({
   },
   sectionTitle: {
     paddingHorizontal: 20,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "600",
-    letterSpacing: 0.5,
-    color: theme.colors.onSecondary,
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+    color: theme.colors.customColors.semi,
   },
 }))

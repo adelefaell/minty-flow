@@ -1,4 +1,5 @@
 import type TransactionModel from "~/database/models/transaction"
+import i18n from "~/i18n/config"
 import type { TransactionFormValues } from "~/schemas/transactions.schema"
 import type { Account } from "~/types/accounts"
 import type { RecurringFrequency, TransactionType } from "~/types/transactions"
@@ -11,21 +12,31 @@ import {
 export function getRecurrenceDisplayLabel(
   frequency: RecurringFrequency,
   startDate: Date,
-): string {
-  if (frequency === null) return "None"
+) {
+  const { t } = i18n
+
+  if (frequency === null) return t("components.recurring.frequency.none")
   switch (frequency) {
     case "daily":
-      return "Every day"
+      return t("components.recurring.frequency.daily")
     case "weekly":
-      return `Every week, ${formatDayName(startDate)}`
+      return t("components.recurring.frequency.weekly", {
+        day: formatDayName(startDate),
+      })
     case "biweekly":
-      return `Every 2 weeks, ${formatDayName(startDate)}`
+      return t("components.recurring.frequency.biweekly", {
+        day: formatDayName(startDate),
+      })
     case "monthly":
-      return `Every month, ${formatOrdinalDay(startDate)}`
+      return t("components.recurring.frequency.monthly", {
+        date: formatOrdinalDay(startDate),
+      })
     case "yearly":
-      return `Every year, ${formatMonthDay(startDate)}`
+      return t("components.recurring.frequency.yearly", {
+        date: formatMonthDay(startDate),
+      })
     default:
-      return "None"
+      return t("components.recurring.frequency.none")
   }
 }
 
@@ -46,7 +57,7 @@ export function getDefaultValues(
       accountId: defaultAccountId,
       toAccountId: transactionType === "transfer" ? "" : undefined,
       categoryId: null,
-      title: transactionType === "transfer" ? "Transfer" : "",
+      title: "",
       description: "",
       isPending: false,
       tags: [],

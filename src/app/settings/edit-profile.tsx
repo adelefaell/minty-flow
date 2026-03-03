@@ -197,7 +197,6 @@ const styles = StyleSheet.create((theme) => ({
     fontWeight: "600",
     color: theme.colors.onSecondary,
     marginBottom: 8,
-    textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   buttonContainer: {

@@ -1,5 +1,7 @@
 import {
   addWeeks,
+  type Day,
+  differenceInCalendarDays,
   differenceInDays,
   format,
   formatDistanceToNow,
@@ -9,9 +11,23 @@ import {
   isTomorrow,
   isValid,
   isYesterday,
+  startOfDay,
   startOfWeek,
   subWeeks,
 } from "date-fns"
+import { ar, enUS } from "date-fns/locale"
+
+import i18n from "~/i18n/config"
+import { LangCodeEnum, type LangCodeType } from "~/i18n/language.constants"
+
+// import { useLanguageStore } from "~/stores/language.store"
+
+const { t } = i18n
+
+export const DATE_FNS_LOCALES = {
+  [LangCodeEnum.EN]: enUS,
+  [LangCodeEnum.AR]: ar,
+} as const
 
 export const WEEK_STARTS_ON = 1 // Monday
 export const MONTH_NAMES = [
@@ -41,7 +57,12 @@ export type DateRangePresetId =
 
 type DateInput = Date | string | undefined | null
 
-/** All date-fns format pattern keys used in the app — single source of truth */
+/** * Using localized date-fns tokens:
+ * P = localized date (05/29/1453)
+ * PP = localized medium date (May 29, 1453)
+ * p = localized time (12:00 AM)
+ * PPpp = localized date and time
+ */
 const FORMAT = {
   DAY_NAME: "EEEE",
   ORDINAL_DAY: "do",
@@ -56,10 +77,18 @@ const FORMAT = {
   MONTH_KEY: "yyyy-MM",
   MONTH_TITLE: "MMMM yyyy",
   YEAR: "yyyy",
-  FRIENDLY_FALLBACK: "MM/dd/yyyy",
-  CREATED_AT: "MMM d yyyy hh:mm a",
+  FRIENDLY_FALLBACK: "P",
+  CREATED_AT: "PPpp",
   READABLE_TIME: "p",
+  LOAN_DATE: "PP",
 } as const
+
+// Helper to get the current locale object from the store
+function getCurrentLocale() {
+  // const code = useLanguageStore.getState().languageCode
+  const code = i18n.language as LangCodeType
+  return (code && DATE_FNS_LOCALES[code]) || enUS
+}
 
 function toDate(date: DateInput): Date | null {
   if (date == null) return null
@@ -70,35 +99,33 @@ function toDate(date: DateInput): Date | null {
 function formatWithPattern(date: DateInput, pattern: string): string {
   const dateObj = toDate(date)
   if (!dateObj) return ""
-  return format(dateObj, pattern)
+
+  // Pass the locale here
+  return format(dateObj, pattern, { locale: getCurrentLocale() })
 }
 
-/**
- * Formats a date as relative time (e.g., "2 minutes ago", "in 3 hours").
- *
- * @param date - Date to format (Date, string, or null/undefined)
- * @returns Formatted relative time string or "Unknown" if invalid
- */
+/** RELATIVE TIME: "2 minutes ago" */
 export function formatRelativeTime(date: DateInput): string {
   const dateObj = toDate(date)
-  if (!dateObj) return "Unknown"
-  return formatDistanceToNow(dateObj, { addSuffix: true })
+  if (!dateObj) return t("dates.unknown")
+  return formatDistanceToNow(dateObj, {
+    addSuffix: true,
+    locale: getCurrentLocale(),
+  })
 }
 
-/**
- * Formats an expiry date with days until expiration.
- *
- * @param date - Expiry date to format
- * @returns Formatted expiry string (e.g., "Expires in 5 days", "Expired")
- */
+/** EXPIRY: "Expires in 5 days" */
 export function formatExpiryDate(date: DateInput): string {
   const dateObj = toDate(date)
-  if (!dateObj) return "Unknown"
-  const daysDiff = differenceInDays(dateObj, new Date())
-  if (daysDiff < 0) return "Expired"
-  if (daysDiff === 0) return "Expires today"
-  if (daysDiff === 1) return "Expires tomorrow"
-  return `Expires in ${daysDiff} days`
+  if (!dateObj) return t("dates.unknown")
+
+  // Normalize to start of day for accurate day counting
+  const daysDiff = differenceInDays(startOfDay(dateObj), startOfDay(new Date()))
+
+  if (daysDiff < 0) return t("dates.expired")
+  if (daysDiff === 0) return t("dates.expiresToday")
+  if (daysDiff === 1) return t("dates.expiresTomorrow")
+  return t("dates.expiresInDays", { count: daysDiff })
 }
 
 /**
@@ -110,46 +137,43 @@ export function formatExpiryDate(date: DateInput): string {
 export function formatReadableTime(date: DateInput): string {
   const dateObj = toDate(date)
   if (!dateObj) return "Unknown"
-  return format(dateObj, FORMAT.READABLE_TIME)
+  return format(dateObj, FORMAT.READABLE_TIME, { locale: getCurrentLocale() })
 }
 
-/**
- * Formats a date in a friendly, human-readable format.
- *
- * @remarks
- * Returns:
- * - "Today", "Yesterday", "Tomorrow" for immediate days
- * - "This Wednesday", "Last Friday", "Next Tuesday" for week-based dates
- * - "MM/dd/yyyy" for other dates
- *
- * @param date - Date to format
- * @returns Friendly date string or "Unknown" if invalid
- */
+/** FRIENDLY: "Today", "Last Wednesday", etc. */
 export function formatFriendlyDate(date: DateInput): string {
   const dateObj = toDate(date)
-  if (!dateObj) return "Unknown"
+  if (!dateObj) return t("dates.unknown")
 
-  if (isToday(dateObj)) return "Today"
-  if (isYesterday(dateObj)) return "Yesterday"
-  if (isTomorrow(dateObj)) return "Tomorrow"
+  const locale = getCurrentLocale()
+  if (isToday(dateObj)) return t("dates.today")
+  if (isYesterday(dateObj)) return t("dates.yesterday")
+  if (isTomorrow(dateObj)) return t("dates.tomorrow")
 
   const now = new Date()
+  const options = { weekStartsOn: WEEK_STARTS_ON as Day, locale }
 
-  if (isThisWeek(dateObj, { weekStartsOn: 1 })) {
-    return `This ${format(dateObj, FORMAT.DAY_NAME)}`
+  if (isThisWeek(dateObj, options)) {
+    return t("dates.thisDay", {
+      day: format(dateObj, FORMAT.DAY_NAME, { locale }),
+    })
   }
 
-  const lastWeekStart = startOfWeek(subWeeks(now, 1), { weekStartsOn: 1 })
-  if (isSameWeek(dateObj, lastWeekStart, { weekStartsOn: 1 })) {
-    return `Last ${format(dateObj, FORMAT.DAY_NAME)}`
+  const lastWeekStart = startOfWeek(subWeeks(now, 1), options)
+  if (isSameWeek(dateObj, lastWeekStart, options)) {
+    return t("dates.lastDay", {
+      day: format(dateObj, FORMAT.DAY_NAME, { locale }),
+    })
   }
 
-  const nextWeekStart = startOfWeek(addWeeks(now, 1), { weekStartsOn: 1 })
-  if (isSameWeek(dateObj, nextWeekStart, { weekStartsOn: 1 })) {
-    return `Next ${format(dateObj, FORMAT.DAY_NAME)}`
+  const nextWeekStart = startOfWeek(addWeeks(now, 1), options)
+  if (isSameWeek(dateObj, nextWeekStart, options)) {
+    return t("dates.nextDay", {
+      day: format(dateObj, FORMAT.DAY_NAME, { locale }),
+    })
   }
 
-  return format(dateObj, FORMAT.FRIENDLY_FALLBACK)
+  return format(dateObj, FORMAT.FRIENDLY_FALLBACK, { locale })
 }
 
 /**
@@ -160,7 +184,7 @@ export function formatFriendlyDate(date: DateInput): string {
  */
 export function formatDate(date: DateInput): string {
   const dateObj = toDate(date)
-  if (!dateObj) return "Unknown"
+  if (!dateObj) return t("dates.unknown")
   return format(dateObj, FORMAT.FRIENDLY_FALLBACK)
 }
 
@@ -204,9 +228,10 @@ export function formatWeekKey(weekStart: DateInput): string {
   return formatWithPattern(weekStart, FORMAT.WEEK_KEY)
 }
 
-/** Week title (e.g. "Week of Feb 15"). Pass week start date. */
+/** WEEK TITLE: "Week of Feb 15" */
 export function formatWeekTitle(weekStart: DateInput): string {
-  return `Week of ${formatWithPattern(weekStart, FORMAT.WEEK_TITLE_SHORT)}`
+  const formatted = formatWithPattern(weekStart, FORMAT.WEEK_TITLE_SHORT)
+  return formatted ? t("dates.weekOf", { date: formatted }) : ""
 }
 
 /** Short month and day (e.g. "Feb 15") — for range labels and compact headers. */
@@ -229,20 +254,11 @@ export function formatYear(date: DateInput): string {
   return formatWithPattern(date, FORMAT.YEAR)
 }
 
-/**
- * Section header title for a transaction date: "Today", "Yesterday", "This Wednesday", or "EEEE, MMM d".
- *
- * @param date - Date to format
- * @returns Friendly section title or "Unknown" if invalid
- */
 export function formatSectionDateTitle(date: DateInput): string {
   const dateObj = toDate(date)
-  if (!dateObj) return "Unknown"
-  const today = new Date()
-  const dateKey = format(dateObj, FORMAT.DATE_KEY)
-  const todayKey = format(today, FORMAT.DATE_KEY)
-  if (dateKey === todayKey) return "Today"
-  return format(dateObj, FORMAT.DATE_TITLE)
+  if (!dateObj) return t("dates.unknown")
+  if (isToday(dateObj)) return t("dates.today")
+  return formatWithPattern(dateObj, FORMAT.DATE_TITLE)
 }
 
 /**
@@ -253,32 +269,13 @@ export function formatSectionDateTitle(date: DateInput): string {
  */
 export function formatCreatedAt(date: DateInput): string {
   const dateObj = toDate(date)
-  if (!dateObj) return "Unknown"
-  return format(dateObj, FORMAT.CREATED_AT)
+  if (!dateObj) return t("dates.unknown")
+  return formatWithPattern(date, FORMAT.CREATED_AT)
 }
 
-/**
- * Formats a loan date consistently across the app.
- *
- * @param date - Date to format
- * @param options - Intl.DateTimeFormatOptions for customization
- * @returns Formatted date string or empty string if invalid
- */
-export function formatLoanDate(
-  date: DateInput,
-  options?: Intl.DateTimeFormatOptions,
-): string {
-  const dateObj = toDate(date)
-  if (!dateObj) return ""
-
-  const defaultOptions: Intl.DateTimeFormatOptions = {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    ...options,
-  }
-
-  return new Intl.DateTimeFormat("en-US", defaultOptions).format(dateObj)
+/** LOAN DATE: Localized medium date (Feb 15, 2024) */
+export function formatLoanDate(date: DateInput): string {
+  return formatWithPattern(date, FORMAT.LOAN_DATE)
 }
 
 /**
@@ -289,20 +286,15 @@ export function formatLoanDate(
  */
 export function calculateDaysUntilDue(
   dueDate: Date | string | null | undefined,
-): { days: number; isOverdue: boolean; isDueToday: boolean } | null {
+) {
   const due = toDate(dueDate)
   if (!due) return null
 
-  const now = new Date()
-  const dueMidnight = new Date(due.getFullYear(), due.getMonth(), due.getDate())
-  const nowMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-
-  const diffTime = dueMidnight.getTime() - nowMidnight.getTime()
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  const days = differenceInCalendarDays(startOfDay(due), startOfDay(new Date()))
 
   return {
-    days: diffDays,
-    isOverdue: diffDays < 0,
-    isDueToday: diffDays === 0,
+    days,
+    isOverdue: days < 0,
+    isDueToday: days === 0,
   }
 }
