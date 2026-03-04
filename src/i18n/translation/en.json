@@ -378,10 +378,15 @@
             "errorDescription": "An unexpected error occurred. Please try again."
           }
         },
+        "swipeInfo": {
+          "title": "Swipe Gestures",
+          "description": "Swipe left to permanently delete a transaction.\nSwipe right to restore it to your transactions."
+        },
         "a11y": {
           "restore": "Restore",
           "destroyPermanently": "Destroy permanently",
-          "moveToTrash": "Move to trash"
+          "moveToTrash": "Move to trash",
+          "infoButton": "Swipe gesture help"
         }
       },
       "pending": {

@@ -96,21 +96,33 @@ const AccountDetailsScreenInner = ({
     navigation.setOptions({
       title: account.name,
       headerRight: () => (
-        <Button
-          variant="ghost"
-          size="icon"
-          onPress={() =>
-            router.push({
-              pathname: "/accounts/[accountId]/modify",
-              params: { accountId: account.id },
-            })
-          }
-        >
-          <IconSymbol name="pencil" size={20} />
-        </Button>
+        <View style={{ flexDirection: "row", gap: 4, alignItems: "center" }}>
+          <Button
+            variant={"ghost"}
+            size="icon"
+            onPress={() => setShowFilters((v) => !v)}
+          >
+            <IconSymbol
+              name={showFilters ? "filter-variant-remove" : "filter-variant"}
+              size={20}
+            />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onPress={() =>
+              router.push({
+                pathname: "/accounts/[accountId]/modify",
+                params: { accountId: account.id },
+              })
+            }
+          >
+            <IconSymbol name="pencil" size={20} />
+          </Button>
+        </View>
       ),
     })
-  }, [navigation, router, account.id, account.name])
+  }, [navigation, router, account.id, account.name, showFilters])
 
   if (!account) {
     return (
@@ -271,22 +283,6 @@ const AccountDetailsScreenInner = ({
         </View>
       )}
 
-      {/* Row: By month | More options */}
-      <View style={styles.filterToggleRow}>
-        <Text style={styles.byLabel}>
-          {t(`common.timePeriods.${filterState.groupBy}`)}
-        </Text>
-        <Button
-          variant="ghost"
-          onPress={() => setShowFilters((v) => !v)}
-          style={styles.moreOptionsButton}
-        >
-          <Text style={styles.moreOptionsText}>
-            {t("screens.accounts.card.moreOptions")}
-          </Text>
-        </Button>
-      </View>
-
       {/* Filter header (when More options is on) */}
       {showFilters && (
         <TransactionFilterHeader
@@ -431,26 +427,6 @@ const styles = StyleSheet.create((theme) => ({
     borderRadius: theme.colors.radius,
     overflow: "hidden",
   },
-  filterToggleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-  },
-  byLabel: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: theme.colors.customColors.semi,
-  },
-  moreOptionsButton: {
-    alignSelf: "flex-end",
-  },
-  moreOptionsText: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: theme.colors.customColors.semi,
-  },
-
   // ── Summary: Income & Expense pills + Net card ─────────────────
   summaryRow: {
     flexDirection: "row",

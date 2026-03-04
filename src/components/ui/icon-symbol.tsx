@@ -135,6 +135,7 @@ export const VALID_ICON_NAMES = defineValidIcons([
   "trending-up",
   "trending-down",
   "filter-variant",
+  "filter-variant-remove",
   "account-details",
   "map",
   "account",
@@ -158,6 +159,7 @@ export const VALID_ICON_NAMES = defineValidIcons([
   "cellphone-lock",
   "playlist-remove",
   "format-list-bulleted",
+  "restore",
 ] as const)
 
 /**

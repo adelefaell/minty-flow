@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-03-03T19:37:04.877Z
+Generated on: 2026-03-04T00:21:23.306Z
 
 ```
 ./
@@ -140,8 +140,6 @@ Generated on: 2026-03-03T19:37:04.877Z
 │   └── settings.json
 ├── docs/
 │   └── beta-todo.md
-├── memory/
-│   └── MEMORY.md
 ├── plugins/
 │   ├── index.js
 │   ├── README.md
@@ -486,6 +484,7 @@ Generated on: 2026-03-03T19:37:04.877Z
 ├── app.json
 ├── babel.config.js
 ├── biome.json
+├── CLAUDE.md
 ├── eas.json
 ├── expo-env.d.ts
 ├── index.ts

@@ -38,9 +38,12 @@ interface TransactionItemProps {
   onDelete?: () => void
   /** If provided and returns true, parent handles delete (e.g. shows recurring modal); item will not delete and only close swipe. */
   onBeforeDelete?: (row: TransactionWithRelations) => boolean | Promise<boolean>
+  /** Left-swipe restore action. Only shown when the transaction is already deleted (trash). */
+  onRestore?: () => void
   onConfirm?: () => void
   onWillOpen?: (methods: SwipeableMethods) => void
   rightActionAccessibilityLabel?: string
+  leftActionAccessibilityLabel?: string
   variant?: TransactionItemVariant
 }
 
@@ -108,14 +111,74 @@ const rightActionStyles = StyleSheet.create((theme) => ({
   },
 }))
 
+function LeftAction({
+  progress,
+  onRestorePress,
+  accessibilityLabel,
+}: {
+  progress: SharedValue<number>
+  translation: SharedValue<number>
+  onRestorePress: () => void
+  accessibilityLabel?: string
+}) {
+  const iconStyle = useAnimatedStyle(() => {
+    const scale = interpolate(progress.value, [0, 1], [0.5, 1], "clamp")
+    const opacity = interpolate(
+      progress.value,
+      [0, 0.5, 1],
+      [0, 0.5, 1],
+      "clamp",
+    )
+    return { transform: [{ scale }], opacity }
+  })
+
+  return (
+    <View style={leftActionStyles.container}>
+      <Pressable
+        style={leftActionStyles.pressable}
+        onPress={onRestorePress}
+        accessibilityLabel={accessibilityLabel}
+      >
+        <Animated.View style={iconStyle}>
+          <IconSymbol
+            name="restore"
+            size={24}
+            color={leftActionStyles.restoreIcon.color}
+          />
+        </Animated.View>
+      </Pressable>
+    </View>
+  )
+}
+
+const leftActionStyles = StyleSheet.create((theme) => ({
+  container: {
+    width: TRASH_ACTION_WIDTH,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: theme.colors.customColors.success,
+  },
+  pressable: {
+    flex: 1,
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  restoreIcon: {
+    color: theme.colors.onError,
+  },
+}))
+
 export const TransactionItem = ({
   transactionWithRelations,
   onPress,
   onDelete,
   onBeforeDelete,
+  onRestore,
   onConfirm,
   onWillOpen,
   rightActionAccessibilityLabel,
+  leftActionAccessibilityLabel,
   variant = "default",
 }: TransactionItemProps) => {
   const swipeableRef = useRef<SwipeableMethods | null>(null)
@@ -206,6 +269,30 @@ export const TransactionItem = ({
   // Only two badges: Recurring and Pending
   const showRecurringBadge = isUpcoming && isAutoRecurring
   const showPendingBadge = isUpcoming && !isAutoRecurring
+
+  const handleRestorePress = useCallback(
+    (closeSwipe: () => void) => {
+      closeSwipe()
+      onRestore?.()
+    },
+    [onRestore],
+  )
+
+  const renderLeftActions = useCallback(
+    (
+      progress: SharedValue<number>,
+      translation: SharedValue<number>,
+      swipeableMethods: { close: () => void },
+    ) => (
+      <LeftAction
+        progress={progress}
+        translation={translation}
+        onRestorePress={() => handleRestorePress(swipeableMethods.close)}
+        accessibilityLabel={leftActionAccessibilityLabel}
+      />
+    ),
+    [handleRestorePress, leftActionAccessibilityLabel],
+  )
 
   // When isDeleted is false: move to trash (soft delete). When isDeleted is true: parent handles (e.g. confirm then destroy).
   const handleTrashPress = useCallback(
@@ -395,12 +482,15 @@ export const TransactionItem = ({
       ref={swipeableRef}
       friction={1}
       rightThreshold={TRASH_ACTION_WIDTH / 2}
+      leftThreshold={onRestore ? TRASH_ACTION_WIDTH / 2 : undefined}
       overshootRight={false}
+      overshootLeft={false}
       containerStyle={[
         styles.swipeableContainer,
         { backgroundColor: theme.colors.error },
       ]}
       renderRightActions={renderRightActions}
+      renderLeftActions={onRestore ? renderLeftActions : undefined}
       onSwipeableWillOpen={() => {
         const methods = swipeableRef.current
         if (methods) onWillOpen?.(methods)

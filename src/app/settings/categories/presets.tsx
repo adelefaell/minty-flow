@@ -12,9 +12,9 @@ import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import {
+  type CategoryPreset,
   ExpensePresets,
   IncomePresets,
-  TransferPresets,
 } from "~/constants/pre-sets-categories"
 import {
   createCategory,
@@ -25,18 +25,15 @@ import { type TransactionType, TransactionTypeEnum } from "~/types/transactions"
 import { logger } from "~/utils/logger"
 import { Toast } from "~/utils/toast"
 
-const PRESETS_BY_TYPE: Record<
-  TransactionType,
-  readonly (Category & { id: string })[]
-> = {
+const PRESETS_BY_TYPE: Record<TransactionType, readonly CategoryPreset[]> = {
   expense: ExpensePresets,
   income: IncomePresets,
-  transfer: TransferPresets,
+  transfer: [],
 }
 
-function alreadyAddedPresetIds(
+function alreadyAddedPresetNames(
   categories: Category[],
-  presets: readonly (Category & { id: string })[],
+  presets: readonly CategoryPreset[],
 ): Set<string> {
   const added = new Set<string>()
   for (const preset of presets) {
@@ -45,7 +42,7 @@ function alreadyAddedPresetIds(
         c.name.trim().toLowerCase() === preset.name.trim().toLowerCase() &&
         c.type === preset.type,
     )
-    if (match) added.add(preset.id)
+    if (match) added.add(preset.name)
   }
   return added
 }
@@ -73,17 +70,17 @@ const CategoryPresetsScreenInner = ({
 
   const presets = PRESETS_BY_TYPE[type] ?? []
   const addedPresets = useMemo(
-    () => alreadyAddedPresetIds(categories, presets),
+    () => alreadyAddedPresetNames(categories, presets),
     [categories, presets],
   )
 
-  const togglePreset = (presetId: string) => {
+  const togglePreset = (presetName: string) => {
     setSelectedPresets((prev) => {
       const next = new Set(prev)
-      if (next.has(presetId)) {
-        next.delete(presetId)
+      if (next.has(presetName)) {
+        next.delete(presetName)
       } else {
-        next.add(presetId)
+        next.add(presetName)
       }
       return next
     })
@@ -91,8 +88,8 @@ const CategoryPresetsScreenInner = ({
 
   const handleAddSelected = async () => {
     const selected = presets.filter((preset) =>
-      selectedPresets.has(preset.id),
-    ) as Category[]
+      selectedPresets.has(preset.name),
+    )
 
     if (selected.length === 0) return
 
@@ -119,15 +116,15 @@ const CategoryPresetsScreenInner = ({
   }
 
   const renderPresetItem = ({ item }: { item: (typeof presets)[0] }) => {
-    const isSelected = selectedPresets.has(item.id)
-    const isAdded = addedPresets.has(item.id)
+    const isSelected = selectedPresets.has(item.name)
+    const isAdded = addedPresets.has(item.name)
 
     return (
       <Pressable
         style={styles.presetItem}
         onPress={() => {
           if (!isAdded) {
-            togglePreset(item.id)
+            togglePreset(item.name)
           }
         }}
         disabled={isAdded}
@@ -170,7 +167,7 @@ const CategoryPresetsScreenInner = ({
     <View style={styles.container}>
       <FlatList
         data={presets}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.name}
         renderItem={renderPresetItem}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
