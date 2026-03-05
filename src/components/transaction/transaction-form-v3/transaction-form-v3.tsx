@@ -76,6 +76,7 @@ import {
   transactionSchema,
 } from "~/schemas/transactions.schema"
 import { exchangeRatesService } from "~/services"
+import { synchronizePlannedTransactionNotifications } from "~/services/pending-transaction-notifications"
 import { useExchangeRatesPreferencesStore } from "~/stores/exchange-rates-preferences.store"
 import { usePendingTransactionsStore } from "~/stores/pending-transactions.store"
 import { useTransactionLocationStore } from "~/stores/transaction-location.store"
@@ -666,6 +667,7 @@ export function TransactionFormV3({
           }
         } else {
           await createTransactionModel(payload)
+          synchronizePlannedTransactionNotifications().catch(() => {})
           Toast.success({
             title: t("components.transactionForm.toast.transactionCreated"),
           })
@@ -691,6 +693,7 @@ export function TransactionFormV3({
           return
         }
         await updateTransactionModel(transaction, payload)
+        synchronizePlannedTransactionNotifications().catch(() => {})
         Toast.success({
           title: t("components.transactionForm.toast.transactionUpdated"),
         })
@@ -727,6 +730,7 @@ export function TransactionFormV3({
         : deleteTransactionModel(transaction)
     promise
       .then(() => {
+        synchronizePlannedTransactionNotifications().catch(() => {})
         Toast.success({
           title: t("components.transactionForm.toast.movedToTrash"),
         })
@@ -745,6 +749,7 @@ export function TransactionFormV3({
     if (!transaction?.isDeleted) return
     try {
       await restoreTransactionModel(transaction)
+      synchronizePlannedTransactionNotifications().catch(() => {})
       Toast.success({
         title: t("components.transactionForm.toast.restored"),
         description: t("components.transactionForm.toast.restoredDescription"),

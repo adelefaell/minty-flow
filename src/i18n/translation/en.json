@@ -404,6 +404,18 @@
           "updateDateOnConfirm": {
             "label": "Update date on confirm",
             "description": "Disable to retain original transaction date."
+          },
+          "notify": {
+            "label": "Notify me",
+            "description": "Schedule a reminder when a planned transaction is due."
+          },
+          "earlyReminder": {
+            "label": "Early reminder",
+            "30min": "30 min",
+            "1h": "1 hour",
+            "3h": "3 hours",
+            "1day": "1 day",
+            "2days": "2 days"
           }
         }
       },

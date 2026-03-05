@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-03-04T00:21:23.306Z
+Generated on: 2026-03-05T00:15:35.441Z
 
 ```
 ./
@@ -389,6 +389,7 @@ Generated on: 2026-03-04T00:21:23.306Z
 │   │   ├── use-location-permission-status.ts
 │   │   ├── use-navigation-guard.ts
 │   │   ├── use-notification-permission-status.ts
+│   │   ├── use-notification-sync.ts
 │   │   ├── use-recurring-rule.ts
 │   │   ├── use-recurring-transaction-sync.ts
 │   │   ├── use-retention-cleanup.ts

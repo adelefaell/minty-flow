@@ -32,7 +32,7 @@
 | Privacy mode toggle                                                                                        | ✅      |                                     |
 | Profile greeting + avatar tap → Edit Profile                                                               | ✅      |                                     |
 | Upcoming section (recurring + pending, confirm / confirm-all / cancel)                                     | ✅      |                                     |
-| Empty state when no transactions                                                                           | ⬜      | Just an empty list, no illustration |
+| Empty state when no transactions                                                                           | ✅      | Wallet icon + title + subtitle in `transaction-section-list.tsx` |
 
 
 ---
@@ -156,7 +156,7 @@
 
 | Item                                   | Status | Notes                                                                                                               |
 | -------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------- |
-| Settings > Pending Transactions screen | ⬜      | Static placeholder — the home upcoming section already has the real UI; this dedicated screen needs to be built out |
+| Settings > Pending Transactions screen | ✅      | Month/year navigator, filter header, search, swipe-to-delete/restore, empty state — `settings/pending-transactions.tsx` |
 
 
 ### Goals
@@ -227,7 +227,7 @@
 | Trash bin retention period                                                                 | ✅      |                                                                                 |
 | Privacy (blur amounts)                                                                     | ✅      |                                                                                 |
 | Transaction location toggle                                                                | ✅      | Screen, store, and form-level capture all implemented                           |
-| Reminder notifications                                                                     | 🚧     | Screen + service exist; `scheduleForPlannedTransaction()` is a TODO stub — scheduling not wired |
+| Reminder notifications                                                                     | ✅      | Stubs implemented; `useNotificationSync` wired in `_layout.tsx`; notify toggle + early-reminder chips in pending-transactions preferences |
 
 
 ---
@@ -255,9 +255,9 @@
 
 | Item                                                  | Status | Notes                                 |
 | ----------------------------------------------------- | ------ | ------------------------------------- |
-| Empty state illustrations for all list screens        | ⬜      | Goals, Budgets, Loans, Pending screen |
+| Empty state illustrations for all list screens        | ⬜      | Goals, Budgets, Loans screens only (Pending now done) |
 | Reorder categories (same as accounts)                 | ⬜      |                                       |
-| "Empty all trash" UI button                           | ⬜      | Service ready                         |
+| "Empty all trash" UI button                           | ✅      | In Preferences > Trash Bin; confirm modal + toast wired |
 | Android back-gesture guard (outside transaction form) | ⬜      |                                       |
 | TypeScript zero errors (`pnpm types`)                 | ✅      | `tsc --noEmit` passes clean           |
 | Lint zero warnings (`pnpm lint`)                      | 🚧     |                                       |
@@ -268,16 +268,14 @@
 ## 🚀 Beta Release Priority Order
 
 1. [ ] **Stats tab** — at minimum a monthly income/expense chart
-2. [ ] **Settings > Pending Transactions screen** — build real list (service + component already exist on home screen)
-3. [ ] **Empty all trash** button — one button, service is ready
-4. [ ] **Reminder notifications** — wire `scheduleForPlannedTransaction()` stub; verify scheduling fires on iOS + Android
-5. [ ] **Goals** — DB + service ready, just needs screens
-6. [ ] **Budgets** — DB + service ready, just needs screens
-7. [ ] **Loans** — DB + service ready, just needs screens
-8. [ ] **Data Management** — at minimum CSV export
-9. [ ] **Bill Splitter** — lowest priority, needs full backend + UI
-10. [ ] Zero lint warnings (`pnpm lint`) before shipping
+2. [ ] **Goals** — DB + service ready, just needs screens
+4. [ ] **Budgets** — DB + service ready, just needs screens
+5. [ ] **Loans** — DB + service ready, just needs screens
+6. [ ] **Data Management** — at minimum CSV export
+7. [ ] **Error boundary / crash screen** — no error boundary exists anywhere in the app
+8. [ ] **Bill Splitter** — lowest priority, needs full backend + UI
+9. [ ] Zero lint warnings (`pnpm lint`) before shipping
 
 ---
 
-*Last updated: 2026-03-02*
+*Last updated: 2026-03-04 — reminder notifications complete*

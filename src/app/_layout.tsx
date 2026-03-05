@@ -11,9 +11,11 @@ import { TooltipProvider } from "~/components/ui/tooltip"
 import "react-native-reanimated"
 
 import { setStyle } from "expo-navigation-bar"
+import * as Notifications from "expo-notifications"
 import { useEffect } from "react"
 import { Platform } from "react-native"
 
+import { useNotificationSync } from "~/hooks/use-notification-sync"
 import { useRecurringTransactionSync } from "~/hooks/use-recurring-transaction-sync"
 import { useRetentionCleanup } from "~/hooks/use-retention-cleanup"
 import { DirectionEnum, useLanguageStore } from "~/stores/language.store"
@@ -38,10 +40,18 @@ export default function RootLayout() {
     const { maskOnShake, _startShakeListener } =
       useMoneyFormattingStore.getState()
     if (maskOnShake) _startShakeListener()
+
+    if (Platform.OS === "android") {
+      Notifications.setNotificationChannelAsync("transaction-reminders", {
+        name: "Transaction Reminders",
+        importance: Notifications.AndroidImportance.HIGH,
+      }).catch(() => {})
+    }
   }, [])
 
   useRetentionCleanup()
   useRecurringTransactionSync()
+  useNotificationSync()
 
   return (
     <KeyboardProvider>

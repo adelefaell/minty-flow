@@ -10,9 +10,18 @@ import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import { useNotificationPermissionStatus } from "~/hooks/use-notification-permission-status"
+import type { TranslationKey } from "~/i18n/config"
 import { usePendingTransactionsStore } from "~/stores/pending-transactions.store"
 
 const SHOW_ON_HOME_DAYS = [1, 2, 3, 5, 7, 14, 30] as const
+
+const EARLY_REMINDER_OPTIONS = [
+  { seconds: 1800, key: "30min" },
+  { seconds: 3600, key: "1h" },
+  { seconds: 10800, key: "3h" },
+  { seconds: 86400, key: "1day" },
+  { seconds: 172800, key: "2days" },
+] as const
 
 function PermissionWarnings() {
   const { permissionStatus, refreshPermissionStatus } =
@@ -110,6 +119,17 @@ export default function PendingTransactionsPreferencesScreen() {
   const setUpdateDateUponConfirmation = usePendingTransactionsStore(
     (s) => s.setUpdateDateUponConfirmation,
   )
+  const notify = usePendingTransactionsStore((s) => s.notify)
+  const setNotify = usePendingTransactionsStore((s) => s.setNotify)
+  const earlyReminderInSeconds = usePendingTransactionsStore(
+    (s) => s.earlyReminderInSeconds,
+  )
+  const setEarlyReminderInSeconds = usePendingTransactionsStore(
+    (s) => s.setEarlyReminderInSeconds,
+  )
+
+  const { permissionStatus, refreshPermissionStatus } =
+    useNotificationPermissionStatus()
 
   const { t } = useTranslation()
 
@@ -128,6 +148,40 @@ export default function PendingTransactionsPreferencesScreen() {
     if (selected) {
       setHomeTimeframe(selected.value)
     }
+  }
+
+  const handleNotifyToggle = async () => {
+    const next = !notify
+    setNotify(next)
+    if (next && permissionStatus !== Notifications.PermissionStatus.GRANTED) {
+      if (Platform.OS === "android") {
+        await Notifications.setNotificationChannelAsync("default", {
+          name: "Default",
+          importance: Notifications.AndroidImportance.MAX,
+        })
+      }
+      const { status } = await Notifications.requestPermissionsAsync()
+      await refreshPermissionStatus()
+      if (status !== Notifications.PermissionStatus.GRANTED) {
+        await Linking.openSettings()
+      }
+    }
+  }
+
+  const earlyReminderChoicesMapping = EARLY_REMINDER_OPTIONS.map((o) => ({
+    seconds: o.seconds,
+    label: t(
+      `screens.settings.pending.settings.earlyReminder.${o.key}` as TranslationKey,
+    ),
+  }))
+  const earlyChoiceLabels = earlyReminderChoicesMapping.map((c) => c.label)
+  const selectedEarlyLabel =
+    earlyReminderChoicesMapping.find(
+      (c) => c.seconds === earlyReminderInSeconds,
+    )?.label || earlyReminderChoicesMapping[3].label
+  const handleEarlyReminderSelect = (label: string) => {
+    const selected = earlyReminderChoicesMapping.find((c) => c.label === label)
+    if (selected) setEarlyReminderInSeconds(selected.seconds)
   }
 
   return (
@@ -167,6 +221,28 @@ export default function PendingTransactionsPreferencesScreen() {
       )}
 
       {requireConfirmation && <PermissionWarnings />}
+
+      <ToggleRow
+        title={t("screens.settings.pending.settings.notify.label")}
+        description={t("screens.settings.pending.settings.notify.description")}
+        value={notify}
+        onToggle={handleNotifyToggle}
+      />
+
+      {notify && (
+        <>
+          {permissionStatus !== Notifications.PermissionStatus.GRANTED && (
+            <PermissionWarnings />
+          )}
+          <ChoiceChips
+            title={t("screens.settings.pending.settings.earlyReminder.label")}
+            choices={earlyChoiceLabels}
+            selectedValue={selectedEarlyLabel}
+            onSelect={handleEarlyReminderSelect}
+            style={styles.choiceSection}
+          />
+        </>
+      )}
     </ScrollView>
   )
 }
