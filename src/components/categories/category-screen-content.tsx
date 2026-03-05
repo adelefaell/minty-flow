@@ -69,10 +69,6 @@ export function CategoryScreenContent({
             value: TransactionTypeEnum.INCOME,
             label: t("components.categories.types.income"),
           },
-          {
-            value: TransactionTypeEnum.TRANSFER,
-            label: t("components.categories.types.transfer"),
-          },
         ]}
         activeValue={activeTab}
         onValueChange={setActiveTab}

@@ -1,14 +1,15 @@
 import type { Category } from "~/types/categories"
 
+export type CategoryPreset = Omit<Category, "id">
+
 /**
  * Preset expense categories for quick setup.
  *
  * @remarks
  * These are default categories that users can use when setting up their account.
  */
-export const ExpensePresets: Category[] = [
+export const ExpensePresets: CategoryPreset[] = [
   {
-    id: "exp_groceries",
     name: "Groceries",
     type: "expense",
     icon: "basket-outline",
@@ -18,7 +19,6 @@ export const ExpensePresets: Category[] = [
     updatedAt: new Date(),
   },
   {
-    id: "exp_transportation",
     name: "Transportation",
     type: "expense",
     icon: "car-outline",
@@ -28,7 +28,6 @@ export const ExpensePresets: Category[] = [
     updatedAt: new Date(),
   },
   {
-    id: "exp_healthcare",
     name: "Healthcare",
     type: "expense",
     icon: "heart-outline",
@@ -38,7 +37,6 @@ export const ExpensePresets: Category[] = [
     updatedAt: new Date(),
   },
   {
-    id: "exp_education",
     name: "Education",
     type: "expense",
     icon: "school-outline",
@@ -48,7 +46,6 @@ export const ExpensePresets: Category[] = [
     updatedAt: new Date(),
   },
   {
-    id: "exp_shopping",
     name: "Shopping",
     type: "expense",
     icon: "shopping-outline",
@@ -65,9 +62,8 @@ export const ExpensePresets: Category[] = [
  * @remarks
  * These are default categories that users can use when setting up their account.
  */
-export const IncomePresets: Category[] = [
+export const IncomePresets: CategoryPreset[] = [
   {
-    id: "inc_salary",
     name: "Salary",
     type: "income",
     icon: "wallet",
@@ -77,7 +73,6 @@ export const IncomePresets: Category[] = [
     updatedAt: new Date(),
   },
   {
-    id: "inc_freelance",
     name: "Freelance",
     type: "income",
     icon: "briefcase-outline",
@@ -87,7 +82,6 @@ export const IncomePresets: Category[] = [
     updatedAt: new Date(),
   },
   {
-    id: "inc_investment",
     name: "Investment",
     type: "income",
     icon: "trending-up",
@@ -97,7 +91,6 @@ export const IncomePresets: Category[] = [
     updatedAt: new Date(),
   },
   {
-    id: "inc_business",
     name: "Business",
     type: "income",
     icon: "office-building-outline",
@@ -107,59 +100,9 @@ export const IncomePresets: Category[] = [
     updatedAt: new Date(),
   },
   {
-    id: "inc_gift",
     name: "Gift",
     type: "income",
     icon: "gift-outline",
-    colorSchemeName: "",
-    transactionCount: 0,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-]
-
-/**
- * Preset transfer categories for quick setup.
- *
- * @remarks
- * These are default categories that users can use when setting up their account.
- */
-export const TransferPresets: Category[] = [
-  {
-    id: "trf_savings",
-    name: "Savings",
-    type: "transfer",
-    icon: "piggy-bank-outline",
-    colorSchemeName: "",
-    transactionCount: 0,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "trf_investment",
-    name: "Investment",
-    type: "transfer",
-    icon: "chart-line",
-    colorSchemeName: "",
-    transactionCount: 0,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "trf_retirement",
-    name: "Retirement",
-    type: "transfer",
-    icon: "clock-outline",
-    colorSchemeName: "",
-    transactionCount: 0,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "trf_debt_payment",
-    name: "Debt Payment",
-    type: "transfer",
-    icon: "credit-card-outline",
     colorSchemeName: "",
     transactionCount: 0,
     createdAt: new Date(),

@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-03-03T19:37:04.877Z
+Generated on: 2026-03-05T17:24:00.166Z
 
 ```
 ./
@@ -140,8 +140,6 @@ Generated on: 2026-03-03T19:37:04.877Z
 │   └── settings.json
 ├── docs/
 │   └── beta-todo.md
-├── memory/
-│   └── MEMORY.md
 ├── plugins/
 │   ├── index.js
 │   ├── README.md
@@ -172,6 +170,7 @@ Generated on: 2026-03-03T19:37:04.877Z
 │   │   │   │   └── presets.tsx
 │   │   │   ├── preferences/
 │   │   │   │   ├── theme/
+│   │   │   │   ├── button-placement.tsx
 │   │   │   │   ├── exchange-rates.tsx
 │   │   │   │   ├── index.tsx
 │   │   │   │   ├── language.tsx
@@ -345,6 +344,7 @@ Generated on: 2026-03-03T19:37:04.877Z
 │   │   ├── tabs-minty.tsx
 │   │   └── toggle-item.tsx
 │   ├── constants/
+│   │   ├── fab-button.ts
 │   │   ├── minty-icons-selection.ts
 │   │   ├── pre-sets-categories.ts
 │   │   └── site-data.ts
@@ -391,6 +391,7 @@ Generated on: 2026-03-03T19:37:04.877Z
 │   │   ├── use-location-permission-status.ts
 │   │   ├── use-navigation-guard.ts
 │   │   ├── use-notification-permission-status.ts
+│   │   ├── use-notification-sync.ts
 │   │   ├── use-recurring-rule.ts
 │   │   ├── use-recurring-transaction-sync.ts
 │   │   ├── use-retention-cleanup.ts
@@ -416,6 +417,7 @@ Generated on: 2026-03-03T19:37:04.877Z
 │   ├── stores/
 │   │   ├── android-sound.store.ts
 │   │   ├── app-lock.store.ts
+│   │   ├── button-placement.store.ts
 │   │   ├── exchange-rates-preferences.store.ts
 │   │   ├── language.store.ts
 │   │   ├── letter-emoji.store.ts
@@ -486,6 +488,7 @@ Generated on: 2026-03-03T19:37:04.877Z
 ├── app.json
 ├── babel.config.js
 ├── biome.json
+├── CLAUDE.md
 ├── eas.json
 ├── expo-env.d.ts
 ├── index.ts

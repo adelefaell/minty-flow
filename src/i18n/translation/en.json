@@ -316,6 +316,11 @@
               "account": "Account"
             },
             "info": "Changes apply immediately to all transaction lists across the app."
+          },
+          "buttonPlacement": {
+            "title": "Button Placement",
+            "subtitle": "Drag the buttons to reorder",
+            "info": "This order is reflected in the transaction buttons on the home screen"
           }
         },
         "buttonFeedback": {
@@ -378,10 +383,15 @@
             "errorDescription": "An unexpected error occurred. Please try again."
           }
         },
+        "swipeInfo": {
+          "title": "Swipe Gestures",
+          "description": "Swipe left to permanently delete a transaction.\nSwipe right to restore it to your transactions."
+        },
         "a11y": {
           "restore": "Restore",
           "destroyPermanently": "Destroy permanently",
-          "moveToTrash": "Move to trash"
+          "moveToTrash": "Move to trash",
+          "infoButton": "Swipe gesture help"
         }
       },
       "pending": {
@@ -399,6 +409,18 @@
           "updateDateOnConfirm": {
             "label": "Update date on confirm",
             "description": "Disable to retain original transaction date."
+          },
+          "notify": {
+            "label": "Notify me",
+            "description": "Schedule a reminder when a planned transaction is due."
+          },
+          "earlyReminder": {
+            "label": "Early reminder",
+            "30min": "30 min",
+            "1h": "1 hour",
+            "3h": "3 hours",
+            "1day": "1 day",
+            "2days": "2 days"
           }
         }
       },

@@ -1,3 +1,5 @@
+import * as Notifications from "expo-notifications"
+
 import type TransactionModel from "~/database/models/transaction"
 import { getPendingTransactionModels } from "~/database/services/transaction-service"
 import { usePendingTransactionsStore } from "~/stores/pending-transactions.store"
@@ -10,25 +12,72 @@ import { startOfNextMinute } from "~/utils/pending-transactions"
 export interface TransactionReminderPayload {
   itemType: "txn"
   id: string
+  [key: string]: unknown
 }
 
 /**
  * Clear all scheduled notifications of type "transaction".
- * Stub: implement with expo-notifications when wiring UI.
  */
 export async function clearPlannedTransactionNotifications(): Promise<void> {
-  // TODO: expo-notifications: get pending, filter by content.data.itemType === "txn", cancel each
+  const scheduled = await Notifications.getAllScheduledNotificationsAsync()
+  const txnNotifs = scheduled.filter(
+    (n) =>
+      (n.content.data as TransactionReminderPayload | undefined)?.itemType ===
+      "txn",
+  )
+  await Promise.all(
+    txnNotifs.map((n) =>
+      Notifications.cancelScheduledNotificationAsync(n.identifier),
+    ),
+  )
 }
 
 /**
- * Schedule a single notification at transactionDate and optionally at transactionDate - earlyReminderInSeconds.
- * Stub: implement with expo-notifications when wiring UI.
+ * Schedule a single notification at transactionDate and optionally at
+ * transactionDate - earlyReminderSeconds.
  */
 export async function scheduleForPlannedTransaction(
-  _transaction: TransactionModel,
-  _earlyReminderSeconds: number,
+  transaction: TransactionModel,
+  earlyReminderSeconds: number,
 ): Promise<void> {
-  // TODO: expo-notifications: schedule at transactionDate; if earlyReminderSeconds >= 60, also schedule at transactionDate - earlyReminderSeconds
+  const now = Date.now()
+  const dueMs = transaction.transactionDate.getTime()
+  const title = transaction.title || "Pending Transaction"
+  const data: TransactionReminderPayload = {
+    itemType: "txn",
+    id: transaction.id,
+  }
+
+  if (dueMs > now) {
+    await Notifications.scheduleNotificationAsync({
+      identifier: `txn-${transaction.id}`,
+      content: {
+        title,
+        body: "Your planned transaction is due now.",
+        data,
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: transaction.transactionDate,
+      },
+    })
+  }
+
+  const earlyMs = dueMs - earlyReminderSeconds * 1000
+  if (earlyReminderSeconds >= 60 && earlyMs > now) {
+    await Notifications.scheduleNotificationAsync({
+      identifier: `txn-early-${transaction.id}`,
+      content: {
+        title: `Upcoming: ${title}`,
+        body: "You have a planned transaction coming up.",
+        data,
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: new Date(earlyMs),
+      },
+    })
+  }
 }
 
 /**
