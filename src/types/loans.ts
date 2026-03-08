@@ -39,15 +39,16 @@ export interface Loan {
   totalAmountWithInterest: number
 }
 
-export interface LoanFormData {
-  name: string
-  description?: string
-  principalAmount: number
-  interestRate?: number
-  currencyCode: string
-  loanType: LoanType
-  contactName?: string
-  contactPhone?: string
-  dueDate?: Date
-  accountId?: string
-}
+// TODO: Redo with zod
+// export interface LoanFormData {
+//   name: string
+//   description?: string
+//   principalAmount: number
+//   interestRate?: number
+//   currencyCode: string
+//   loanType: LoanType
+//   contactName?: string
+//   contactPhone?: string
+//   dueDate?: Date
+//   accountId?: string
+// }

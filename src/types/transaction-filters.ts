@@ -1,5 +1,4 @@
 import type { TransactionType } from "./transactions"
-import { TransactionTypeEnum } from "./transactions"
 
 export const PendingOptionsEnum = {
   ALL: "all",
@@ -54,28 +53,6 @@ export type GroupByOption =
   | "year"
   | "allTime"
 
-export const GROUP_BY_OPTIONS: { id: GroupByOption; label: string }[] = [
-  { id: "hour", label: "Hour" },
-  { id: "day", label: "Day" },
-  { id: "week", label: "Week" },
-  { id: "month", label: "Month" },
-  { id: "year", label: "Year" },
-  { id: "allTime", label: "All time" },
-]
-
-export const PENDING_OPTIONS = [
-  { id: PendingOptionsEnum.ALL, label: "All" },
-  { id: PendingOptionsEnum.PENDING, label: "Pending" },
-  { id: PendingOptionsEnum.NOT_PENDING, label: "Not Pending" },
-]
-
-export const TYPE_OPTIONS: { id: TransactionType | "all"; label: string }[] = [
-  { id: "all", label: "All" },
-  { id: TransactionTypeEnum.TRANSFER, label: "Transfer" },
-  { id: TransactionTypeEnum.INCOME, label: "Income" },
-  { id: TransactionTypeEnum.EXPENSE, label: "Expense" },
-]
-
 export const AttachmentsOptionsEnum = {
   ALL: "all",
   HAS: "has",
@@ -84,12 +61,6 @@ export const AttachmentsOptionsEnum = {
 
 export type AttachmentsOptionsType =
   (typeof AttachmentsOptionsEnum)[keyof typeof AttachmentsOptionsEnum]
-
-export const ATTACHMENT_OPTIONS = [
-  { id: AttachmentsOptionsEnum.ALL, label: "Attachments" },
-  { id: AttachmentsOptionsEnum.HAS, label: "Has Attachments" },
-  { id: AttachmentsOptionsEnum.NONE, label: "Has No Attachments" },
-]
 
 export const DEFAULT_TRANSACTION_LIST_FILTER_STATE: TransactionListFilterState =
   {

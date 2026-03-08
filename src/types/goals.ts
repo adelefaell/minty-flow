@@ -38,12 +38,13 @@ export interface Goal {
   remainingAmount: number
 }
 
-export interface GoalFormData {
-  name: string
-  description?: string
-  targetAmount: number
-  currencyCode: string
-  targetDate?: Date
-  icon?: string
-  color?: string
-}
+// TODO: Redo with zod
+// interface GoalFormData {
+//   name: string
+//   description?: string
+//   targetAmount: number
+//   currencyCode: string
+//   targetDate?: Date
+//   icon?: string
+//   color?: string
+// }

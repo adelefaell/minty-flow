@@ -29,24 +29,9 @@ const getCategoryCollection = () => {
 }
 
 /**
- * Get all categories
- */
-export const getCategories = async (
-  includeArchived = false,
-): Promise<CategoryModel[]> => {
-  const categories = getCategoryCollection()
-  if (includeArchived) {
-    return await categories.query().fetch()
-  }
-  return await categories.query(Q.where("is_archived", false)).fetch()
-}
-
-/**
  * Find a category by ID
  */
-export const findCategory = async (
-  id: string,
-): Promise<CategoryModel | null> => {
+const findCategory = async (id: string): Promise<CategoryModel | null> => {
   try {
     return await getCategoryCollection().find(id)
   } catch {
@@ -174,25 +159,6 @@ export const updateCategory = async (
 }
 
 /**
- * Update category by ID
- */
-export const updateCategoryById = async (
-  id: string,
-  updates: Partial<{
-    name: string
-    icon: string | null | undefined
-    colorSchemeName: string | null | undefined
-    isArchived: boolean
-  }>,
-): Promise<CategoryModel> => {
-  const category = await findCategory(id)
-  if (!category) {
-    throw new Error(`Category with id ${id} not found`)
-  }
-  return await updateCategory(category, updates)
-}
-
-/**
  * Delete category completely. All transactions that belonged to this category
  * are updated to the target category (or uncategorized). The category is then
  * permanently removed.
@@ -224,7 +190,7 @@ export const destroyCategory = async (
 /**
  * Recalculate transaction count for a category based on actual transactions
  */
-export const recalculateCategoryTransactionCount = async (
+const recalculateCategoryTransactionCount = async (
   categoryId: string,
 ): Promise<number> => {
   const transactions = await getTransactionModels({
@@ -246,15 +212,3 @@ export const recalculateCategoryTransactionCount = async (
 
   return count
 }
-
-/**
- * Recalculate transaction counts for all categories
- */
-export const recalculateAllCategoryTransactionCounts =
-  async (): Promise<void> => {
-    const categories = await getCategories(true) // Include archived
-
-    for (const category of categories) {
-      await recalculateCategoryTransactionCount(category.id)
-    }
-  }

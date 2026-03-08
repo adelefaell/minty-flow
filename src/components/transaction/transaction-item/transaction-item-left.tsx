@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next"
 import { DynamicIcon } from "~/components/dynamic-icon"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import type { MintyColorScheme } from "~/styles/theme"
+import type { MintyColorScheme } from "~/styles/theme/types"
 
 import { transactionItemStyles } from "./styles"
 

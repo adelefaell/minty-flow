@@ -14,7 +14,7 @@ import { WEEK_STARTS_ON } from "~/utils/time-utils"
 
 import type { PresetOption } from "./types"
 
-export function getPresetOptions(): PresetOption[] {
+function getPresetOptions(): PresetOption[] {
   const now = new Date()
   return [
     {

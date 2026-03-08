@@ -5,7 +5,7 @@ import { createJSONStorage, devtools, persist } from "zustand/middleware"
 /**
  * MMKV storage for transfer display preferences.
  */
-export const transfersPreferencesStorage = createMMKV({
+const transfersPreferencesStorage = createMMKV({
   id: "flow-transfers-preferences-storage",
 })
 
@@ -17,7 +17,7 @@ export const TransferLayoutEnum = {
 export type TransferLayoutType =
   (typeof TransferLayoutEnum)[keyof typeof TransferLayoutEnum]
 
-export interface TransfersPreferences {
+interface TransfersPreferences {
   /** How transfers are shown in lists: combined as one or separate in/out. */
   layout: TransferLayoutType
   /** Don't count transfers towards total expense/income. */

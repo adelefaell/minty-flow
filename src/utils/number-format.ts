@@ -18,7 +18,7 @@ export const CALCULATOR_CONFIG = {
 // ------------------------
 let cachedLocale: string | null = null
 
-export const getDefaultLocale = (): string => {
+const getDefaultLocale = (): string => {
   if (cachedLocale) return cachedLocale
   cachedLocale = Localization.getLocales()[0]?.languageTag ?? DEFAULT_LOCALE
   return cachedLocale
@@ -129,7 +129,7 @@ const getCachedFormatted = (
 // ------------------------
 // Public formatter options
 // ------------------------
-export interface FormatDisplayValueOptions {
+interface FormatDisplayValueOptions {
   currency?: string
   currencyDisplay?: Intl.NumberFormatOptions["currencyDisplay"]
   locale?: string
@@ -230,18 +230,4 @@ export const formatDisplayValue = (
   }
 
   return result
-}
-
-// ------------------------
-// Numeric utilities (non-display)
-// ------------------------
-export const roundToDecimals = (num: number, decimals: number): number => {
-  if (decimals < 0) {
-    throw new Error("decimals must be non-negative")
-  }
-  if (!Number.isFinite(num)) return num
-
-  const factor = 10 ** decimals
-  const rounded = Math.round((num + Number.EPSILON) * factor) / factor
-  return Number(rounded.toFixed(decimals))
 }

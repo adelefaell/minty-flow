@@ -210,9 +210,14 @@ const buildTransactionQuery = (filters?: TransactionListFilters) => {
         : Q.where("description", Q.like(pattern))
       query = query.extend(notesCondition)
     } else {
+      const isSmart = matchType === "smart"
+      // Smart mode also matches null-titled (untitled) transactions so they
+      // aren't invisible to search just because they have no title.
       const titleCondition = isExact
         ? Q.where("title", searchTrimmed)
-        : Q.where("title", Q.like(pattern))
+        : isSmart
+          ? Q.or(Q.where("title", null), Q.where("title", Q.like(pattern)))
+          : Q.where("title", Q.like(pattern))
       if (includeNotes) {
         const notesCondition = isExact
           ? Q.where("description", searchTrimmed)
@@ -234,30 +239,6 @@ const buildTransactionQuery = (filters?: TransactionListFilters) => {
     query = query.extend(Q.where("has_attachments", false))
   }
 
-  return query
-}
-
-/**
- * Query for pending/planned transactions (is_pending === true), sorted by
- * transaction_date ascending — closest upcoming first. Excludes deleted.
- * Matches migration guide: "pending list should always be sorted by scheduled
- * date ascending".
- */
-export function pendingTransactionsQuery(options?: {
-  fromDate?: number
-  toDate?: number
-}) {
-  let query = transactionsCollection().query(
-    Q.where("is_deleted", false),
-    Q.where("is_pending", true),
-    Q.sortBy("transaction_date", Q.asc),
-  )
-  if (options?.fromDate !== undefined) {
-    query = query.extend(Q.where("transaction_date", Q.gte(options.fromDate)))
-  }
-  if (options?.toDate !== undefined) {
-    query = query.extend(Q.where("transaction_date", Q.lte(options.toDate)))
-  }
   return query
 }
 
@@ -324,7 +305,7 @@ export const getPendingTransactionModelsFull = async (options?: {
 /* CONFIRM PENDING */
 /* ------------------------------------------------------------------ */
 
-export interface ConfirmTransactionOptions {
+interface ConfirmTransactionOptions {
   /** When true, set transactionDate to now on confirm; when false, keep original date. */
   updateTransactionDate: boolean
   /**
@@ -410,45 +391,11 @@ export const getTransactionModels = async (
   return buildTransactionQuery(filters).fetch()
 }
 
-/** Number of transactions for an account (non-deleted by default). */
-export const getTransactionCountByAccountId = async (
-  accountId: string,
-  includeDeleted = false,
-): Promise<number> => {
-  const rows = await buildTransactionQuery({
-    accountId,
-    includeDeleted,
-  }).fetch()
-  return rows.length
-}
-
 /** Observable count of transactions for an account (non-deleted). */
 export const observeTransactionCountByAccountId = (
   accountId: string,
 ): Observable<number> =>
   observeTransactionModels({ accountId }).pipe(map((rows) => rows.length))
-
-/** Number of transactions for a category (non-deleted by default). */
-export const getTransactionCountByCategoryId = async (
-  categoryId: string,
-  includeDeleted = false,
-): Promise<number> => {
-  const rows = await buildTransactionQuery({
-    categoryId,
-    includeDeleted,
-  }).fetch()
-  return rows.length
-}
-
-/** Number of transactions linked to a tag (via transaction_tags). */
-export const getTransactionTagCountByTagId = async (
-  tagId: string,
-): Promise<number> => {
-  const rows = await transactionTagsCollection()
-    .query(Q.where("tag_id", tagId))
-    .fetch()
-  return rows.length
-}
 
 /**
  * Unlink a tag from all transactions (removes all transaction_tags for this tag).
@@ -467,7 +414,7 @@ export const unlinkTagFromAllTransactions = async (
   })
 }
 
-export const findTransactionModel = async (
+const findTransactionModel = async (
   id: string,
 ): Promise<TransactionModel | null> => {
   try {
@@ -509,28 +456,6 @@ export const observeTransactionModelById = (
 }
 
 /* ------------------------------------------------------------------ */
-/* READ – fully hydrated */
-/* ------------------------------------------------------------------ */
-
-export const getTransactionModelsFull = async (
-  filters?: TransactionListFilters,
-): Promise<TransactionWithRelations[]> => {
-  const rows = await buildTransactionQuery(filters).fetch()
-  return Promise.all(rows.map(hydrateTransaction))
-}
-
-export const findTransactionModelFull = async (
-  id: string,
-): Promise<TransactionWithRelations | null> => {
-  try {
-    const transaction = await transactionsCollection().find(id)
-    return hydrateTransaction(transaction)
-  } catch {
-    return null
-  }
-}
-
-/* ------------------------------------------------------------------ */
 /* OBSERVE – fully hydrated */
 /* ------------------------------------------------------------------ */
 
@@ -563,26 +488,9 @@ export const observeTransactionModelsFull = (
   )
 }
 
-export const observeTransactionModelFullById = (
-  id: string,
-): Observable<TransactionWithRelations> => {
-  return transactionsCollection()
-    .findAndObserve(id)
-    .pipe(switchMap((t) => from(hydrateTransaction(t))))
-}
-
 /* ------------------------------------------------------------------ */
 /* Tag helpers (for edit screen) */
 /* ------------------------------------------------------------------ */
-
-export const getTransactionTagIds = async (
-  transactionId: string,
-): Promise<string[]> => {
-  const rows = await transactionTagsCollection()
-    .query(Q.where("transaction_id", transactionId))
-    .fetch()
-  return rows.map((row) => row.tagId)
-}
 
 export const observeTransactionTagIds = (
   transactionId: string,
@@ -596,34 +504,6 @@ export const observeTransactionTagIds = (
 /* ------------------------------------------------------------------ */
 /* WRITE */
 /* ------------------------------------------------------------------ */
-
-/**
- * Create a pending (planned) transaction with a future scheduled date.
- * Mirrors migration guide: "add future transaction" — isPending = true,
- * no balance update until confirmed.
- */
-export const createPendingTransaction = async (data: {
-  title?: string
-  description?: string
-  amount: number
-  type: TransactionType
-  scheduledDate: Date
-  accountId: string
-  categoryId?: string | null
-  recurringId?: string | null
-  notes?: Record<string, string>
-  requiresManualConfirmation?: boolean
-  tags?: string[]
-}): Promise<TransactionModel> => {
-  const { scheduledDate, notes, tags, ...rest } = data
-  return createTransactionModel({
-    ...rest,
-    transactionDate: scheduledDate,
-    isPending: true,
-    extra: notes,
-    tags: tags ?? [],
-  })
-}
 
 export const createTransactionModel = async (
   data: TransactionFormValues,
@@ -850,17 +730,6 @@ export const updateTransactionModel = async (
 
     return updatedTransaction
   })
-}
-
-export const updateTransactionModelById = async (
-  id: string,
-  updates: Partial<TransactionFormValues>,
-): Promise<TransactionModel> => {
-  const transaction = await findTransactionModel(id)
-  if (!transaction) {
-    throw new Error(`Transaction with id ${id} not found`)
-  }
-  return updateTransactionModel(transaction, updates)
 }
 
 /* ------------------------------------------------------------------ */

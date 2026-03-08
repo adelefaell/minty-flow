@@ -10,11 +10,9 @@ import { View } from "~/components/ui/view"
 import type { RecurringEndType, RecurringFrequency } from "~/types/transactions"
 import { formatCreatedAt } from "~/utils/time-utils"
 
-import { RECURRING_OPTIONS } from "./constants"
+import { ENDS_ON_OCCURRENCE_PRESETS, RECURRING_OPTIONS } from "./constants"
 import { transactionFormStyles } from "./form.styles"
 import { getRecurrenceDisplayLabel } from "./form-utils"
-
-const ENDS_ON_OCCURRENCE_PRESETS = [2, 4, 6, 8, 10, 12, 14]
 
 type Props = {
   enabled: boolean

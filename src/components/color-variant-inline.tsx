@@ -20,7 +20,7 @@ import type { MintyColorScheme } from "~/styles/theme/types"
 import { Button } from "./ui/button"
 import { ChevronIcon } from "./ui/chevron-icon"
 
-export interface ColorVariantInlineProps {
+interface ColorVariantInlineProps {
   /** Currently selected scheme name (for controlled component). */
   selectedSchemeName?: string | null
   /** Callback when a color variant is selected - returns the scheme name. */

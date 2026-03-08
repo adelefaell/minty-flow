@@ -5,19 +5,10 @@
 /**
  * Light theme entry: primary, secondary, and onSecondary all change per variant
  */
-export interface MintyLightColorEntry {
+interface MintyLightColorEntry {
   primary: string
   secondary: string
   onSecondary: string
-  lightThemeName: string
-  darkThemeName: string
-}
-
-/**
- * Dark/OLED: only primary changes; surface/secondary from base
- */
-export interface ColorEntry {
-  color: string
   lightThemeName: string
   darkThemeName: string
 }
@@ -161,27 +152,3 @@ export const MINTY_DARK_PRIMARY_COLORS: readonly string[] = [
   "#C2C0FF", // driedLilac
   "#DAC0FF", // neonBoneyard
 ] as const
-
-/**
- * Primary colors (light theme primary hex) — for backward compatibility
- * @deprecated Prefer MINTY_LIGHT_COLORS for full primary/secondary/onSecondary
- */
-export const PRIMARY_COLORS: readonly ColorEntry[] = MINTY_LIGHT_COLORS.map(
-  (entry) => ({
-    color: entry.primary,
-    lightThemeName: entry.lightThemeName,
-    darkThemeName: entry.darkThemeName,
-  }),
-)
-
-/**
- * Accent colors (light theme secondary hex) — for backward compatibility
- * @deprecated Prefer MINTY_LIGHT_COLORS
- */
-export const ACCENT_COLORS: readonly ColorEntry[] = MINTY_LIGHT_COLORS.map(
-  (entry) => ({
-    color: entry.secondary,
-    lightThemeName: entry.lightThemeName,
-    darkThemeName: entry.darkThemeName,
-  }),
-)

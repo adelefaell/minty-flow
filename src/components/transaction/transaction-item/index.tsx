@@ -28,7 +28,7 @@ import { TransactionItemRight } from "./transaction-item-right"
 
 const TRASH_ACTION_WIDTH = 100
 
-export type TransactionItemVariant = "default" | "upcoming"
+type TransactionItemVariant = "default" | "upcoming"
 
 interface TransactionItemProps {
   transactionWithRelations: TransactionWithRelations

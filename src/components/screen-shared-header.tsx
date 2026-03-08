@@ -19,7 +19,7 @@ export const ScreenSharedHeader = ({
   const title = props.options?.title ?? ""
 
   return (
-    <View style={[styles.container]}>
+    <View style={styles.container}>
       {canGoBack && (
         <Tooltip text="back" position="bottom">
           <Button

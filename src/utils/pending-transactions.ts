@@ -1,4 +1,4 @@
-import type TransactionModel from "~/database/models/transaction"
+import type { Transaction } from "~/types/transactions"
 
 /**
  * Utility functions for pending transactions.
@@ -8,25 +8,6 @@ import type TransactionModel from "~/database/models/transaction"
  * when the transaction is confirmed (!isPending). Pending transactions must never
  * bleed into the live balance.
  */
-
-export interface Transaction {
-  transactionDate: Date
-  isPending: boolean
-  isDeleted?: boolean
-}
-
-/**
- * "Effective" pending for display/filtering: true when the transaction should
- * be shown as upcoming. Flutter derives isPending from date (transactionDate > now);
- * we also store is_pending so we support manual "hold" for today/past.
- * Use this when building pending lists or excluding from balance.
- */
-export function effectiveIsPending(
-  tx: { transactionDate: Date; isPending: boolean },
-  now: number = Date.now(),
-): boolean {
-  return tx.transactionDate.getTime() > now || tx.isPending === true
-}
 
 /**
  * Start of the next minute from the given date (or now).
@@ -44,7 +25,7 @@ export function startOfNextMinute(anchor?: Date): Date {
  * End of the next minute (same as start of the minute after that).
  * Used for confirmable check: planned time has passed.
  */
-export function endOfNextMinute(anchor?: Date): Date {
+function endOfNextMinute(anchor?: Date): Date {
   const d = anchor ?? new Date()
   const next = new Date(d)
   next.setSeconds(59, 999)
@@ -74,40 +55,4 @@ export function confirmable(
   if (!transaction.isPending) return false
   const ref = anchor ?? endOfNextMinute().getTime()
   return transaction.transactionDate.getTime() <= ref
-}
-
-/**
- * Whether the transaction can be "held" (edge case: future and explicitly pending).
- * Not holdable if deleted or not pending.
- * Holdable if transactionDate is in the future and isPending is true.
- */
-export function holdable(
-  transaction: TransactionModel,
-  anchor?: Date,
-): boolean {
-  if (transaction.isDeleted || !transaction.isPending) return false
-  const ref = anchor ?? startOfNextMinute()
-  return transaction.transactionDate.getTime() > ref.getTime()
-}
-
-/**
- * Split a list of transactions into confirmed (for balance/history) and pending.
- * - Confirmed: transactionDate <= now && isPending !== true → use for flow/balance.
- * - Pending: transactionDate > now || isPending === true → show in Pending section.
- */
-export function splitByPendingStatus<
-  T extends { transactionDate: Date; isPending: boolean },
->(
-  items: T[],
-  now: Date = startOfNextMinute(),
-): { confirmed: T[]; pending: T[] } {
-  const confirmed: T[] = []
-  const pending: T[] = []
-  for (const item of items) {
-    const isPending =
-      item.transactionDate.getTime() > now.getTime() || item.isPending === true
-    if (isPending) pending.push(item)
-    else confirmed.push(item)
-  }
-  return { confirmed, pending }
 }

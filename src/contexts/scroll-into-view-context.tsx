@@ -17,7 +17,7 @@ const ScrollIntoViewContext = createContext<ScrollIntoViewContextValue | null>(
   null,
 )
 
-export interface ScrollIntoViewProviderProps {
+interface ScrollIntoViewProviderProps {
   children: ReactNode
   /** Optional style for the ScrollView. */
   scrollViewStyle?: StyleProp<ViewStyle>

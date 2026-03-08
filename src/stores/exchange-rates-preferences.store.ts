@@ -6,12 +6,12 @@ import { createJSONStorage, devtools, persist } from "zustand/middleware"
  * MMKV storage for custom exchange rate overrides.
  * All rates are per 1 USD. Used when converting or displaying amounts in other currencies.
  */
-export const exchangeRatesPreferencesStorage = createMMKV({
+const exchangeRatesPreferencesStorage = createMMKV({
   id: "flow-exchange-rates-preferences-storage",
 })
 
 /** Custom rates: currency code (uppercase) -> amount per 1 USD */
-export interface CustomExchangeRates {
+interface CustomExchangeRates {
   customRates: Record<string, number>
 }
 

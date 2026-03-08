@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next"
 import { Keyboard, type TextInput } from "react-native"
 
 import { useScrollIntoView } from "~/hooks/use-scroll-into-view"
-import { currencyRegistryService } from "~/services"
+import { currencyRegistryService } from "~/services/currency-registry"
 import type { TransactionType } from "~/types/transactions"
 import { CALCULATOR_CONFIG, formatDisplayValue } from "~/utils/number-format"
 import {

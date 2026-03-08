@@ -4,7 +4,7 @@ import {
 } from "react-native"
 import { useUnistyles } from "react-native-unistyles"
 
-export interface SwitchProps extends RNSwitchProps {
+interface SwitchProps extends RNSwitchProps {
   native?: boolean
 }
 

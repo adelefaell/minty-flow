@@ -54,23 +54,23 @@ export const isSingleEmojiOrLetter = (str: string): boolean => {
  * Returns the first grapheme cluster from a string (for single-char/emoji inputs).
  * Uses Intl.Segmenter when available, otherwise falls back to first code point.
  */
-export function getFirstGrapheme(str: string): string {
-  if (!str || typeof str !== "string") return ""
-  const trimmed = str.trim()
-  if (!trimmed) return ""
-  try {
-    const Segmenter = (Intl as unknown as { Segmenter?: typeof Intl.Segmenter })
-      .Segmenter
-    if (typeof Segmenter === "function") {
-      const segmenter = new Segmenter("en", { granularity: "grapheme" })
-      const segments = [...segmenter.segment(trimmed)]
-      return segments[0]?.segment ?? trimmed.slice(0, 1)
-    }
-  } catch {
-    // ignore
-  }
-  return Array.from(trimmed)[0] ?? ""
-}
+// export function getFirstGrapheme(str: string): string {
+//   if (!str || typeof str !== "string") return ""
+//   const trimmed = str.trim()
+//   if (!trimmed) return ""
+//   try {
+//     const Segmenter = (Intl as unknown as { Segmenter?: typeof Intl.Segmenter })
+//       .Segmenter
+//     if (typeof Segmenter === "function") {
+//       const segmenter = new Segmenter("en", { granularity: "grapheme" })
+//       const segments = [...segmenter.segment(trimmed)]
+//       return segments[0]?.segment ?? trimmed.slice(0, 1)
+//     }
+//   } catch {
+//     // ignore
+//   }
+//   return Array.from(trimmed)[0] ?? ""
+// }
 
 /**
  * Returns the last grapheme cluster from a string.

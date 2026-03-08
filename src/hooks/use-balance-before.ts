@@ -1,37 +1,7 @@
 import { useEffect, useState } from "react"
 
 import type TransactionModel from "~/database/models/transaction"
-import {
-  getBalanceAtTransaction,
-  getBalanceBeforeTransaction,
-} from "~/database/services/balance-service"
-
-/**
- * Compute the account balance before a given transaction (read-time).
- * Used on the transaction detail screen. Source-verified: Flow does not store
- * "balance before" on the entity; it is computed dynamically.
- */
-export function useBalanceBefore(
-  transaction: TransactionModel | null,
-): number | null {
-  const [balanceBefore, setBalanceBefore] = useState<number | null>(null)
-
-  useEffect(() => {
-    if (!transaction) {
-      setBalanceBefore(null)
-      return
-    }
-    const ts =
-      transaction.transactionDate instanceof Date
-        ? transaction.transactionDate.getTime()
-        : transaction.transactionDate
-    getBalanceBeforeTransaction(transaction.accountId, ts).then(
-      setBalanceBefore,
-    )
-  }, [transaction])
-
-  return balanceBefore
-}
+import { getBalanceAtTransaction } from "~/database/services/balance-service"
 
 /**
  * Returns the account's running balance at the moment this transaction settled.

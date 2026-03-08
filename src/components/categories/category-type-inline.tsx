@@ -15,7 +15,8 @@ import { useScrollIntoView } from "~/hooks/use-scroll-into-view"
 import type { TransactionType } from "~/types/transactions"
 
 import { ChevronIcon } from "../ui/chevron-icon"
-export interface CategoryTypeInlineProps {
+
+interface CategoryTypeInlineProps {
   /** Currently selected type. */
   selectedType: TransactionType
   /** Called when user selects a type (select and close). */

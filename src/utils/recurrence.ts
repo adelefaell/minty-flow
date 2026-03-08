@@ -2,7 +2,7 @@ import { RRule, rrulestr } from "rrule"
 
 import type { RecurringFrequency } from "~/types/transactions"
 
-export interface TimeRange {
+interface TimeRange {
   from: number // Unix ms
   to: number // Unix ms
 }

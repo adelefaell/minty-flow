@@ -4,7 +4,7 @@
  * No bottom sheets — filters are shown directly in the view.
  */
 
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ScrollView, View } from "react-native"
 import { useUnistyles } from "react-native-unistyles"
@@ -66,8 +66,6 @@ export function TransactionFilterHeader({
   )
   const [dateModalVisible, setDateModalVisible] = useState(false)
   const { theme } = useUnistyles()
-  const filterStateRef = useRef(filterState)
-  filterStateRef.current = filterState
 
   const togglePanel = useCallback((key: FilterPanelKey) => {
     setExpandedPanel((prev) => (prev === key ? null : key))
@@ -193,11 +191,11 @@ export function TransactionFilterHeader({
   const setAttachment = useCallback(
     (value: AttachmentsOptionsType) => {
       onFilterChange({
-        ...filterStateRef.current,
+        ...filterState,
         attachmentFilter: value,
       })
     },
-    [onFilterChange],
+    [filterState, onFilterChange],
   )
 
   const handleClearAll = useCallback(() => {

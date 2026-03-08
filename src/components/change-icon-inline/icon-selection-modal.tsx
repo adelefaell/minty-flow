@@ -17,7 +17,7 @@ import type { MintyColorScheme } from "~/styles/theme/types"
 import { DynamicIcon } from "../dynamic-icon"
 import { IconSymbol } from "../ui/icon-symbol"
 
-export interface IconSelectionModalProps {
+interface IconSelectionModalProps {
   visible: boolean
   onClose: () => void
   onIconSelected?: (icon: string | null) => void

@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-03-08T14:42:09.514Z
+Generated on: 2026-03-08T17:30:28.292Z
 
 ```
 ./
@@ -583,7 +583,6 @@ Generated on: 2026-03-08T14:42:09.514Z
 │   │   │   │   ├── account-modify-content.tsx
 │   │   │   │   ├── account-modify.styles.ts
 │   │   │   │   ├── account-switches-section.tsx
-│   │   │   │   ├── index.ts
 │   │   │   │   ├── types.ts
 │   │   │   │   └── use-account-form.ts
 │   │   │   ├── account-card.tsx
@@ -594,7 +593,6 @@ Generated on: 2026-03-08T14:42:09.514Z
 │   │   │   │   ├── category-form-modals.tsx
 │   │   │   │   ├── category-modify-content.tsx
 │   │   │   │   ├── category-modify.styles.ts
-│   │   │   │   ├── index.ts
 │   │   │   │   └── types.ts
 │   │   │   ├── category-list.tsx
 │   │   │   ├── category-row.tsx
@@ -602,18 +600,16 @@ Generated on: 2026-03-08T14:42:09.514Z
 │   │   │   └── category-type-inline.tsx
 │   │   ├── change-icon-inline/
 │   │   │   ├── change-icon-inline.styles.ts
-│   │   │   ├── change-icon-inline.tsx
 │   │   │   ├── emoji-letter-mode.tsx
 │   │   │   ├── icon-selection-modal.tsx
 │   │   │   ├── image-mode.tsx
-│   │   │   ├── index.ts
+│   │   │   ├── index.tsx
 │   │   │   ├── mode-selector-list.tsx
 │   │   │   └── types.ts
 │   │   ├── date-range-preset-modal/
 │   │   │   ├── date-range-preset-modal-content.tsx
 │   │   │   ├── date-range-preset-modal.styles.ts
-│   │   │   ├── date-range-preset-modal.tsx
-│   │   │   ├── index.ts
+│   │   │   ├── index.tsx
 │   │   │   ├── presets.ts
 │   │   │   └── types.ts
 │   │   ├── location/
@@ -623,7 +619,6 @@ Generated on: 2026-03-08T14:42:09.514Z
 │   │   ├── selector-modals/
 │   │   │   ├── contact-selector-modal.tsx
 │   │   │   ├── currency-selector-modal.tsx
-│   │   │   ├── index.ts
 │   │   │   └── styles.ts
 │   │   ├── smart-amount-input/
 │   │   │   ├── amount-input-row.tsx
@@ -662,10 +657,9 @@ Generated on: 2026-03-08T14:42:09.514Z
 │   │   │   │   │   ├── tags-panel.tsx
 │   │   │   │   │   └── type-panel.tsx
 │   │   │   │   ├── filter-header.styles.ts
-│   │   │   │   ├── index.ts
+│   │   │   │   ├── index.tsx
 │   │   │   │   ├── panel-clear-button.tsx
 │   │   │   │   ├── panel-done-button.tsx
-│   │   │   │   ├── transaction-filter-header.tsx
 │   │   │   │   ├── types.ts
 │   │   │   │   └── utils.ts
 │   │   │   ├── transaction-form-v3/
@@ -699,10 +693,9 @@ Generated on: 2026-03-08T14:42:09.514Z
 │   │   │   │   ├── transaction-item-left.tsx
 │   │   │   │   └── transaction-item-right.tsx
 │   │   │   ├── upcoming-transactions-section/
-│   │   │   │   ├── index.ts
+│   │   │   │   ├── index.tsx
 │   │   │   │   ├── types.ts
 │   │   │   │   ├── upcoming-transactions-section.styles.ts
-│   │   │   │   ├── upcoming-transactions-section.tsx
 │   │   │   │   ├── use-app-foreground.ts
 │   │   │   │   └── utils.ts
 │   │   │   ├── attachment-preview-modal.tsx
@@ -742,7 +735,6 @@ Generated on: 2026-03-08T14:42:09.514Z
 │   │   ├── money.tsx
 │   │   ├── month-year-picker.tsx
 │   │   ├── privacy-eye-control.tsx
-│   │   ├── reorderable-list-v1.tsx
 │   │   ├── reorderable-list-v2.tsx
 │   │   ├── screen-shared-header.tsx
 │   │   ├── search-input.tsx
@@ -774,7 +766,6 @@ Generated on: 2026-03-08T14:42:09.514Z
 │   │   │   ├── budget-service.ts
 │   │   │   ├── category-service.ts
 │   │   │   ├── goal-service.ts
-│   │   │   ├── index.ts
 │   │   │   ├── loan-service.ts
 │   │   │   ├── README.md
 │   │   │   ├── recurring-transaction-service.ts
@@ -792,8 +783,6 @@ Generated on: 2026-03-08T14:42:09.514Z
 │   ├── hooks/
 │   │   ├── exchange-rates-editor.reducer.ts
 │   │   ├── use-balance-before.ts
-│   │   ├── use-boolean.ts
-│   │   ├── use-color-scheme.ts
 │   │   ├── use-location-permission-status.ts
 │   │   ├── use-navigation-guard.ts
 │   │   ├── use-notification-permission-status.ts
@@ -818,7 +807,6 @@ Generated on: 2026-03-08T14:42:09.514Z
 │   │   ├── auto-confirmation-service.ts
 │   │   ├── currency-registry.ts
 │   │   ├── exchange-rates.ts
-│   │   ├── index.ts
 │   │   └── pending-transaction-notifications.ts
 │   ├── stores/
 │   │   ├── android-sound.store.ts
@@ -836,7 +824,6 @@ Generated on: 2026-03-08T14:42:09.514Z
 │   │   ├── toast.store.ts
 │   │   ├── transaction-item-appearance.store.ts
 │   │   ├── transaction-location.store.ts
-│   │   ├── transaction-sheet-controls.store.ts
 │   │   ├── transfers-preferences.store.ts
 │   │   ├── trash-bin.store.ts
 │   │   └── upcoming-section.store.ts
@@ -849,7 +836,6 @@ Generated on: 2026-03-08T14:42:09.514Z
 │   │   │   ├── base.ts
 │   │   │   ├── colors.ts
 │   │   │   ├── factory.ts
-│   │   │   ├── index.ts
 │   │   │   ├── registry.ts
 │   │   │   ├── types.ts
 │   │   │   ├── typography.ts
@@ -866,7 +852,6 @@ Generated on: 2026-03-08T14:42:09.514Z
 │   │   ├── goals.ts
 │   │   ├── loans.ts
 │   │   ├── new.ts
-│   │   ├── scroll-into-view.ts
 │   │   ├── tags.ts
 │   │   ├── transaction-filters.ts
 │   │   ├── transactions.ts
@@ -875,10 +860,8 @@ Generated on: 2026-03-08T14:42:09.514Z
 │       ├── account-types-list.ts
 │       ├── file-icon.ts
 │       ├── format-file-size.ts
-│       ├── icon-helpers.ts
 │       ├── is-image-url.ts
 │       ├── is-single-emoji-or-letter.ts
-│       ├── is-valid-icon-name.ts
 │       ├── logger.ts
 │       ├── number-format.ts
 │       ├── open-file.ts

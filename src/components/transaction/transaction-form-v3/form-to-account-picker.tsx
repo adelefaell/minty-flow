@@ -24,7 +24,7 @@ import { NewEnum } from "~/types/new"
 
 import { transactionFormStyles } from "./form.styles"
 
-export interface FormToAccountPickerProps {
+interface FormToAccountPickerProps {
   accounts: Account[]
   toAccountId: string | undefined
   accountId: string

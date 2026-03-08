@@ -18,7 +18,7 @@ import { Text } from "~/components/ui/text"
 
 import { Pressable } from "./ui/pressable"
 
-export interface InfoModalProps {
+interface InfoModalProps {
   /** Whether the modal is visible. */
   visible: boolean
   /** Called when the user dismisses (OK button or backdrop tap). */

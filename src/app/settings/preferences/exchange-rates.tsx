@@ -22,8 +22,8 @@ import { IconSymbol } from "~/components/ui/icon-symbol"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import { exchangeRatesService } from "~/services"
 import type { ExchangeRates } from "~/services/exchange-rates"
+import { exchangeRatesService } from "~/services/exchange-rates"
 import { useExchangeRatesPreferencesStore } from "~/stores/exchange-rates-preferences.store"
 
 import {

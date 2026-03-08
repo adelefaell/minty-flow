@@ -11,13 +11,13 @@ export type FabButtonType = "income" | "expense" | "transfer"
  */
 export type ButtonPlacementOrder = [FabButtonType, FabButtonType, FabButtonType]
 
-export const DEFAULT_BUTTON_ORDER: ButtonPlacementOrder = [
+const DEFAULT_BUTTON_ORDER: ButtonPlacementOrder = [
   "income",
   "expense",
   "transfer",
 ]
 
-export const buttonPlacementStorage = createMMKV({
+const buttonPlacementStorage = createMMKV({
   id: "button-placement-storage",
 })
 

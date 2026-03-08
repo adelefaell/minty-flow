@@ -183,7 +183,7 @@ function NotesModalContent({
         <EnrichedTextInput
           ref={editorRef}
           defaultValue={initialValue}
-          autoFocus
+          // autoFocus
           placeholder={t("components.transactionForm.fields.notesPlaceholder")}
           placeholderTextColor={theme.colors.customColors.semi}
           onChangeState={(e) => setActiveStyles(e.nativeEvent)}

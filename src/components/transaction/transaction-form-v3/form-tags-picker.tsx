@@ -22,7 +22,7 @@ import type { Tag } from "~/types/tags"
 
 import { transactionFormStyles } from "./form.styles"
 
-export interface FormTagsPickerProps {
+interface FormTagsPickerProps {
   tags: Tag[]
   tagIds: string[] | undefined
   setValue: (

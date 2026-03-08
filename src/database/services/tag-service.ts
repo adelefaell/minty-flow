@@ -23,33 +23,6 @@ const getTagCollection = () => {
 }
 
 /**
- * Get all tags
- */
-export const getTags = async (): Promise<TagModel[]> => {
-  const tags = getTagCollection()
-  return await tags.query().fetch()
-}
-
-/**
- * Find a tag by ID
- */
-export const findTag = async (id: string): Promise<TagModel | null> => {
-  try {
-    return await getTagCollection().find(id)
-  } catch {
-    return null
-  }
-}
-
-/**
- * Find a tag by name (first match). Used e.g. for recurring extension tags.
- */
-export const findTagByName = async (name: string): Promise<TagModel | null> => {
-  const rows = await getTagCollection().query(Q.where("name", name)).fetch()
-  return rows[0] ?? null
-}
-
-/**
  * Observe all tags reactively
  */
 export const observeTags = (): Observable<Tag[]> => {
@@ -127,28 +100,6 @@ export const updateTag = async (
 }
 
 /**
- * Update tag by ID
- */
-export const updateTagById = async (
-  id: string,
-  updates: Partial<{
-    name: string
-    type: TagKindType
-    colorSchemeName: string | null | undefined
-    icon: string | null | undefined
-    transactionCount: number
-  }>,
-): Promise<TagModel> => {
-  const tag = await findTag(id).then((tag) => {
-    if (!tag) {
-      throw new Error(`Tag with id ${id} not found`)
-    }
-    return tag
-  })
-  return await updateTag(tag, updates)
-}
-
-/**
  * Delete tag permanently.
  * Unlinks this tag from all transactions first, then permanently destroys the tag.
  */
@@ -158,12 +109,4 @@ export const deleteTag = async (tag: TagModel): Promise<void> => {
       await tag.destroyPermanently()
     })
   })
-}
-
-/**
- * Permanently destroy tag (same as deleteTag).
- * Unlinks this tag from all transactions first, then permanently destroys the tag.
- */
-export const destroyTag = async (tag: TagModel): Promise<void> => {
-  await deleteTag(tag)
 }

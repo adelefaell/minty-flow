@@ -11,7 +11,7 @@ import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import { getDisplayMonthTitle, getMonthNames } from "~/utils/time-utils"
 
-export interface MonthYearPickerProps {
+interface MonthYearPickerProps {
   initialYear: number
   initialMonth: number
   onSelect: (year: number, month: number) => void
@@ -36,9 +36,11 @@ export function MonthYearPicker({
   const { t } = useTranslation()
 
   const [monthPickerOpen, setMonthPickerOpen] = useState(false)
-  const [localYear, setLocalYear] = useState(initialYear)
-  const [localMonth, setLocalMonth] = useState(initialMonth)
-  const [yearInputValue, setYearInputValue] = useState(String(initialYear))
+  const [localYear, setLocalYear] = useState(() => initialYear)
+  const [localMonth, setLocalMonth] = useState(() => initialMonth)
+  const [yearInputValue, setYearInputValue] = useState(() =>
+    String(initialYear),
+  )
 
   const MONTH_NAMES = getMonthNames()
 

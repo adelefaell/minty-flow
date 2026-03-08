@@ -1,7 +1,7 @@
 import { Model } from "@nozbe/watermelondb"
 import { date, field } from "@nozbe/watermelondb/decorators"
 
-import { getThemeStrict } from "~/styles/theme"
+import { getThemeStrict } from "~/styles/theme/registry"
 
 import type { Tag, TagKindType } from "../../types/tags"
 

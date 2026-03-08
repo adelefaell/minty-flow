@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react"
 
 import type TransactionModel from "~/database/models/transaction"
 import { getConversionRateForTransaction } from "~/database/services/transfer-service"
-import { exchangeRatesService } from "~/services"
+import { exchangeRatesService } from "~/services/exchange-rates"
 import { useExchangeRatesPreferencesStore } from "~/stores/exchange-rates-preferences.store"
 import type { Account } from "~/types/accounts"
 import type { TransactionType } from "~/types/transactions"

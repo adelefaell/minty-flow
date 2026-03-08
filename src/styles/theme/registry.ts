@@ -2,7 +2,6 @@
 // Minty Theming System - Theme Registry
 // ============================================================================
 
-import { DEFAULT_DARK_BASE, DEFAULT_LIGHT_BASE } from "./base"
 import {
   catppuccinFrappeSchemes,
   catppuccinMacchiatoSchemes,
@@ -92,25 +91,6 @@ export const ALL_THEMES: Record<string, MintyColorScheme> = {
       {} as Record<string, MintyColorScheme>,
     ),
   ...STANDALONE_THEMES,
-}
-
-/**
- * Get a theme by name with fallback
- */
-export const getTheme = (
-  themeName: string | null,
-  preferDark: boolean = false,
-): MintyColorScheme => {
-  if (themeName && ALL_THEMES[themeName]) {
-    return ALL_THEMES[themeName]
-  }
-  return preferDark ? DEFAULT_DARK_BASE : DEFAULT_LIGHT_BASE
-}
-/**
- * Check if a theme name exists
- */
-export const validateThemeName = (themeName: string): boolean => {
-  return themeName in ALL_THEMES
 }
 
 /**

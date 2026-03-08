@@ -8,7 +8,7 @@ import { createJSONStorage, devtools, persist } from "zustand/middleware"
  *
  * @see https://github.com/mrousavy/react-native-mmkv
  */
-export const androidSoundStorage = createMMKV({
+const androidSoundStorage = createMMKV({
   id: "android-sound-storage",
 })
 

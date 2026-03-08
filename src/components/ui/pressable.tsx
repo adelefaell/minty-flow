@@ -6,7 +6,7 @@ import { StyleSheet } from "react-native-unistyles"
 
 import { useAndroidSoundStore } from "~/stores/android-sound.store"
 
-export interface PressableProps extends RNPressableProps {
+interface PressableProps extends RNPressableProps {
   native?: boolean
   disableRipple?: boolean
 }

@@ -5,7 +5,7 @@ import { createJSONStorage, devtools, persist } from "zustand/middleware"
 /**
  * MMKV storage instance for transaction location preferences.
  */
-export const transactionLocationStorage = createMMKV({
+const transactionLocationStorage = createMMKV({
   id: "transaction-location-preferences-storage",
 })
 

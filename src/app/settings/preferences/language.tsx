@@ -14,8 +14,8 @@ import {
   DirectionEnum,
   LangCodeEnum,
   type LangCodeType,
-  useLanguageStore,
-} from "~/stores/language.store"
+} from "~/i18n/language.constants"
+import { useLanguageStore } from "~/stores/language.store"
 import { logger } from "~/utils/logger"
 
 const languageOptions: {

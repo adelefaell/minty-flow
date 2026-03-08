@@ -38,14 +38,15 @@ export interface Budget {
   isCurrentlyActive: boolean
 }
 
-export interface BudgetFormData {
-  name: string
-  amount: number
-  currencyCode: string
-  period: BudgetPeriod
-  startDate: Date
-  endDate?: Date
-  categoryId?: string
-  alertThreshold?: number
-  isActive?: boolean
-}
+// TODO: Redo with zod
+// interface BudgetFormData {
+//   name: string
+//   amount: number
+//   currencyCode: string
+//   period: BudgetPeriod
+//   startDate: Date
+//   endDate?: Date
+//   categoryId?: string
+//   alertThreshold?: number
+//   isActive?: boolean
+// }

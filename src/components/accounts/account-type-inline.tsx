@@ -17,7 +17,7 @@ import { accountTypesList } from "~/utils/account-types-list"
 
 import { ChevronIcon } from "../ui/chevron-icon"
 
-export interface AccountTypeInlineProps {
+interface AccountTypeInlineProps {
   /** Currently selected type. */
   selectedType: AccountType
   /** Called when user selects a type (select and close). */

@@ -35,7 +35,7 @@ const styles = StyleSheet.create(() => ({
   },
 }))
 
-export interface AttachmentPreviewModalProps {
+interface AttachmentPreviewModalProps {
   attachment: TransactionAttachment | null
   onClose: () => void
 }

@@ -12,7 +12,7 @@ import type { ToastPosition } from "./toast.store"
  *
  * @see https://github.com/mrousavy/react-native-mmkv
  */
-export const toastStyleStorage = createMMKV({
+const toastStyleStorage = createMMKV({
   id: "toast-style-storage",
 })
 

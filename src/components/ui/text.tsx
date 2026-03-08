@@ -46,7 +46,7 @@ const ARIA_LEVEL: Partial<Record<TextVariant, number>> = {
   h4: 4,
 }
 
-export interface TextProps extends RNTextProps {
+interface TextProps extends RNTextProps {
   variant?: TextVariant
   native?: boolean
 }

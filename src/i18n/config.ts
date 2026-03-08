@@ -34,7 +34,7 @@ const _en = en satisfies TranslationShape
 const _ar = ar satisfies TranslationShape
 
 // ✅ Resources for i18next
-export const LanguageResources = {
+const LanguageResources = {
   [LangCodeEnum.EN]: { translation: _en },
   [LangCodeEnum.AR]: { translation: _ar },
 }

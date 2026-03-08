@@ -81,20 +81,6 @@ export async function getConversionRateForTransaction(
 }
 
 /* ------------------------------------------------------------------ */
-/* Queries */
-/* ------------------------------------------------------------------ */
-
-/** All transfers for an account (both debit and credit rows), sorted by date desc. */
-export function transfersQuery(accountId: string) {
-  return transactionsCollection().query(
-    Q.where("account_id", accountId),
-    Q.where("is_transfer", true),
-    Q.where("is_deleted", false),
-    Q.sortBy("transaction_date", Q.desc),
-  )
-}
-
-/* ------------------------------------------------------------------ */
 /* Create */
 /* ------------------------------------------------------------------ */
 
@@ -230,8 +216,6 @@ export async function createTransfer({
 /* ------------------------------------------------------------------ */
 /* Edit */
 /* ------------------------------------------------------------------ */
-
-export type { EditTransferFields } from "~/schemas/transactions.schema"
 
 /**
  * Edit both halves of a transfer atomically.

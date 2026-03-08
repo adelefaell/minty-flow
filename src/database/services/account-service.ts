@@ -36,32 +36,9 @@ const getAccountCollection = () => {
 }
 
 /**
- * Get all accounts
- */
-export const getAccounts = async (
-  includeArchived = false,
-): Promise<AccountModel[]> => {
-  const accounts = getAccountCollection()
-  if (includeArchived) {
-    return await accounts.query(Q.sortBy("sort_order", Q.asc)).fetch()
-  }
-  return await accounts
-    .query(Q.where("is_archived", false), Q.sortBy("sort_order", Q.asc))
-    .fetch()
-}
-
-/**
- * Get all accounts
- */
-export const observeArchivedAccounts = () =>
-  getAccountCollection()
-    .query(Q.where("is_archived", true), Q.sortBy("sort_order", Q.asc))
-    .observe()
-
-/**
  * Find an account by ID
  */
-export const findAccount = async (id: string): Promise<AccountModel | null> => {
+const findAccount = async (id: string): Promise<AccountModel | null> => {
   try {
     return await getAccountCollection().find(id)
   } catch {
@@ -139,7 +116,7 @@ export const observeAccountById = (id: string): Observable<AccountModel> => {
  * Observe a specific account by ID
  * Observes specific columns to ensure reactivity to field changes
  */
-export const observeAccountDetailsById = (id: string): Observable<Account> => {
+const observeAccountDetailsById = (id: string): Observable<Account> => {
   return getAccountCollection()
     .query(Q.where("id", id))
     .observeWithColumns([
@@ -163,43 +140,8 @@ export const observeAccountDetailsById = (id: string): Observable<Account> => {
     )
 }
 
-/**
- * Observe a single account with its current-month transaction totals (in, out, net).
- * Use for account detail screen header. Includes archived accounts.
- */
-export const observeAccountWithMonthTotalsById = (
-  id: string,
-): Observable<AccountWithMonthTotals> => {
-  const { fromDate, toDate } = getCurrentMonthRange()
-  const account$ = observeAccountDetailsById(id)
-  const transactions$ = observeTransactionModels({
-    accountId: id,
-    fromDate,
-    toDate,
-    includeDeleted: false,
-  })
-
-  return combineLatest([account$, transactions$]).pipe(
-    map(([account, transactions]) => {
-      let in_ = 0
-      let out = 0
-      for (const t of transactions) {
-        if (t.type === TransactionTypeEnum.INCOME) in_ += t.amount
-        else if (t.type === TransactionTypeEnum.EXPENSE) out += t.amount
-      }
-      return {
-        ...account,
-        monthIn: in_,
-        monthOut: out,
-        monthNet: in_ - out,
-        monthTransactionCount: transactions.length,
-      }
-    }),
-  )
-}
-
 /** Current calendar month as Unix timestamps (start 00:00:00, end 23:59:59.999) */
-export const getCurrentMonthRange = (): {
+const getCurrentMonthRange = (): {
   fromDate: number
   toDate: number
 } => {
@@ -474,20 +416,6 @@ export const updateAccount = async (
   }
 
   return updated
-}
-
-/**
- * Update account by ID
- */
-export const updateAccountById = async (
-  id: string,
-  updates: Partial<UpdateAccountsFormSchema>,
-): Promise<AccountModel> => {
-  const account = await findAccount(id)
-  if (!account) {
-    throw new Error(`Account with id ${id} not found`)
-  }
-  return await updateAccount(account, updates)
 }
 
 /**

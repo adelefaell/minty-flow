@@ -120,23 +120,3 @@ export interface TransactionListFilters {
   /** Filter by attachment presence (DB column has_attachments). */
   attachmentFilter?: "all" | "has" | "none"
 }
-
-/**
- * Display shape for a transaction row when account and category are resolved.
- * Use this for list item props when you have hydrated data (e.g. TransactionWithRelations).
- */
-/** Display row: transaction + resolved account/category. Currency from account. */
-export interface TransactionDisplayRow {
-  id: string
-  type: TransactionType
-  transactionDate: Date
-  title?: string
-  amount: number
-  isPending: boolean
-  accountName: string
-  accountIcon?: string
-  accountColorSchemeName?: string
-  categoryName: string | null
-  categoryIcon?: string | null
-  categoryColorSchemeName?: string | null
-}

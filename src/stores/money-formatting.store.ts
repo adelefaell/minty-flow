@@ -7,7 +7,7 @@ import { createJSONStorage, devtools, persist } from "zustand/middleware"
 const SHAKE_UPDATE_INTERVAL_MS = 500
 const SHAKE_THRESHOLD = 550
 
-export const moneyFormattingStorage = createMMKV({
+const moneyFormattingStorage = createMMKV({
   id: "money-formatting-storage",
 })
 

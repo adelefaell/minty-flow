@@ -14,7 +14,7 @@ type ViewVariant =
   | "elevated"
   | "section"
 
-export interface ViewProps extends RNViewProps {
+interface ViewProps extends RNViewProps {
   variant?: ViewVariant
   native?: boolean
   ref?: Ref<ComponentRef<typeof RNView>>

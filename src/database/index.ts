@@ -55,14 +55,3 @@ export const database = new Database({
     TransferModel,
   ],
 })
-
-export type { default as AccountModel } from "./models/account"
-export type { default as BudgetModel } from "./models/budget"
-export type { default as CategoryModel } from "./models/category"
-export type { default as GoalModel } from "./models/goal"
-export type { default as LoanModel } from "./models/loan"
-export type { default as RecurringTransactionModel } from "./models/recurring-transaction"
-export type { default as TagModel } from "./models/tag"
-export type { default as TransactionModel } from "./models/transaction"
-export type { default as TransactionTagModel } from "./models/transaction-tag"
-export type { default as TransferModel } from "./models/transfer"

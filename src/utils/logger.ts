@@ -1,4 +1,4 @@
-export type LogLevel = "debug" | "info" | "warn" | "error"
+type LogLevel = "debug" | "info" | "warn" | "error"
 
 const ICONS: Record<LogLevel, string> = {
   debug: "🔍",

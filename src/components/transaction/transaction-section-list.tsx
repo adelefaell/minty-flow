@@ -33,7 +33,7 @@ import {
   buildTransactionSections,
 } from "~/utils/transaction-list-utils"
 
-export interface TransactionSectionListProps {
+interface TransactionSectionListProps {
   /** All transactions including pending/upcoming. Used for filtering + upcoming section. */
   transactionsFull: TransactionWithRelations[]
   /** Current filter state. */

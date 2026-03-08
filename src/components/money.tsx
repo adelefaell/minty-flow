@@ -7,7 +7,7 @@ import { useMoneyFormattingStore } from "~/stores/money-formatting.store"
 import { type TransactionType, TransactionTypeEnum } from "~/types/transactions"
 import { formatDisplayValue } from "~/utils/number-format"
 
-export interface MoneyProps {
+interface MoneyProps {
   value: string | number
   currency?: string
   locale?: string

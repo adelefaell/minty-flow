@@ -10,7 +10,7 @@ import { createJSONStorage, devtools, persist } from "zustand/middleware"
  *
  * @see https://github.com/mrousavy/react-native-mmkv
  */
-export const profileStorage = createMMKV({
+const profileStorage = createMMKV({
   id: "user-profile-storage",
 })
 

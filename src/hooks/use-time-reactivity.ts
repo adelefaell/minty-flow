@@ -113,7 +113,7 @@ const timestampScheduler = new TimestampScheduler()
  * Returns true once the specified date has passed.
  * Updates **exactly** when the date passes (no polling, no delay).
  */
-export function useHasPassed(date: Date): boolean {
+function useHasPassed(date: Date): boolean {
   const timestamp = date.getTime()
 
   return useSyncExternalStore(
@@ -127,7 +127,7 @@ export function useHasPassed(date: Date): boolean {
 /* Transaction-Specific Hooks                                          */
 /* ------------------------------------------------------------------ */
 
-export interface ConfirmableTransaction {
+interface ConfirmableTransaction {
   transactionDate: Date
   isPending: boolean
   isDeleted?: boolean
@@ -146,25 +146,6 @@ export function useIsConfirmable(transaction: ConfirmableTransaction): boolean {
   }, [transaction.isPending, transaction.isDeleted, hasPassed])
 }
 
-/**
- * Returns true if a transaction is upcoming (pending OR future date).
- * Re-checks every minute.
- */
-export function useIsUpcoming(transaction: {
-  transactionDate: Date
-  isPending: boolean
-}): boolean {
-  const tick = useMinuteTick()
-
-  return useMemo(() => {
-    void tick // Re-check every minute
-    return (
-      transaction.isPending ||
-      transaction.transactionDate.getTime() > Date.now()
-    )
-  }, [transaction.transactionDate, transaction.isPending, tick])
-}
-
 /* ------------------------------------------------------------------ */
 /* Debug Helper                                                        */
 /* ------------------------------------------------------------------ */
@@ -173,13 +154,13 @@ export function useIsUpcoming(transaction: {
  * Returns current timestamp that updates every second.
  * **Only for debugging** - use `useMinuteTick` or `useHasPassed` in production.
  */
-export function useNowDebug(): number {
-  return useSyncExternalStore(
-    (callback) => {
-      const interval = setInterval(callback, 1000)
-      return () => clearInterval(interval)
-    },
-    () => Date.now(),
-    () => Date.now(),
-  )
-}
+// export function useNowDebug(): number {
+//   return useSyncExternalStore(
+//     (callback) => {
+//       const interval = setInterval(callback, 1000)
+//       return () => clearInterval(interval)
+//     },
+//     () => Date.now(),
+//     () => Date.now(),
+//   )
+// }

@@ -12,14 +12,7 @@ import {
   type LangCodeType,
 } from "~/i18n/language.constants"
 
-export {
-  DirectionEnum,
-  type DirectionType,
-  LangCodeEnum,
-  type LangCodeType,
-} from "~/i18n/language.constants"
-
-export const LanguageStorage = createMMKV({
+const LanguageStorage = createMMKV({
   id: "language-storage",
 })
 

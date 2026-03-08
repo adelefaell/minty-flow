@@ -1,11 +1,8 @@
 import {
   addWeeks,
   type Day,
-  differenceInCalendarDays,
-  differenceInDays,
   type FormatOptions,
   format,
-  formatDistanceToNow,
   isSameWeek,
   isThisWeek,
   isToday,
@@ -13,7 +10,6 @@ import {
   isValid,
   isYesterday,
   type Locale,
-  startOfDay,
   startOfWeek,
   subWeeks,
 } from "date-fns"
@@ -24,7 +20,7 @@ import { LangCodeEnum, type LangCodeType } from "~/i18n/language.constants"
 
 const { t } = i18n
 
-export const DATE_FNS_LOCALES = {
+const DATE_FNS_LOCALES = {
   [LangCodeEnum.EN]: enUS,
   [LangCodeEnum.AR]: ar,
 } as const
@@ -76,7 +72,7 @@ const FORMAT = {
  * Return the current date-fns Locale object (from i18n).
  * Exported so components can default to app locale when caller doesn't pass a locale.
  */
-export function getCurrentLocale(): Locale {
+function getCurrentLocale(): Locale {
   const code = (i18n.language || LangCodeEnum.EN) as LangCodeType
   return (DATE_FNS_LOCALES[code] as Locale) || enUS
 }
@@ -101,30 +97,6 @@ function formatWithPattern(date: DateInput, pattern: string): string {
 
   // Pass the locale here
   return fmt(dateObj, pattern)
-}
-
-/** RELATIVE TIME: "2 minutes ago" */
-export function formatRelativeTime(date: DateInput): string {
-  const dateObj = toDate(date)
-  if (!dateObj) return t("dates.unknown")
-  return formatDistanceToNow(dateObj, {
-    addSuffix: true,
-    locale: getCurrentLocale(),
-  })
-}
-
-/** EXPIRY: "Expires in 5 days" */
-export function formatExpiryDate(date: DateInput): string {
-  const dateObj = toDate(date)
-  if (!dateObj) return t("dates.unknown")
-
-  // Normalize to start of day for accurate day counting
-  const daysDiff = differenceInDays(startOfDay(dateObj), startOfDay(new Date()))
-
-  if (daysDiff < 0) return t("dates.expired")
-  if (daysDiff === 0) return t("dates.expiresToday")
-  if (daysDiff === 1) return t("dates.expiresTomorrow")
-  return t("dates.expiresInDays", { count: daysDiff })
 }
 
 /**
@@ -171,18 +143,6 @@ export function formatFriendlyDate(date: DateInput): string {
     })
   }
 
-  return fmt(dateObj, FORMAT.FRIENDLY_FALLBACK)
-}
-
-/**
- * Formats a date as "MM/dd/yyyy".
- *
- * @param date - Date to format
- * @returns Formatted date string or "Unknown" if invalid
- */
-export function formatDate(date: DateInput): string {
-  const dateObj = toDate(date)
-  if (!dateObj) return t("dates.unknown")
   return fmt(dateObj, FORMAT.FRIENDLY_FALLBACK)
 }
 
@@ -277,27 +237,6 @@ export function formatLoanDate(date: DateInput): string {
 }
 
 /**
- * Calculates days until a due date.
- *
- * @param dueDate - Due date as Date or string
- * @returns Object with days until due, isOverdue flag, and isDueToday flag, or null if invalid
- */
-export function calculateDaysUntilDue(
-  dueDate: Date | string | null | undefined,
-) {
-  const due = toDate(dueDate)
-  if (!due) return null
-
-  const days = differenceInCalendarDays(startOfDay(due), startOfDay(new Date()))
-
-  return {
-    days,
-    isOverdue: days < 0,
-    isDueToday: days === 0,
-  }
-}
-
-/**
  * Return all 12 month names localized (stand-alone form).
  * Uses "LLLL" token (stand-alone month) which is appropriate for UI labels.
  */
@@ -306,13 +245,6 @@ export function getMonthNames(): string[] {
   return Array.from({ length: 12 }, (_, i) =>
     fmt(new Date(2026, i, 1), FORMAT.MONTH_NAME),
   )
-}
-
-/**
- * Return one month name by index (0-11), localized.
- */
-export function getMonthName(monthIndex: number): string {
-  return getMonthNames()[monthIndex] ?? ""
 }
 
 /**

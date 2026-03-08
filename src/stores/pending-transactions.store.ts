@@ -6,11 +6,11 @@ import { createJSONStorage, devtools, persist } from "zustand/middleware"
  * MMKV storage for pending transaction preferences.
  * Namespace: flow.pendingTransactions (via store name).
  */
-export const pendingTransactionsStorage = createMMKV({
+const pendingTransactionsStorage = createMMKV({
   id: "flow-pending-transactions-storage",
 })
 
-export interface PendingTransactionsPreferences {
+interface PendingTransactionsPreferences {
   /** If true, planned (future) transactions require user to confirm; when creating a future transaction, set isPending: true. */
   requireConfirmation: boolean
   /** Number of days of planned transactions to show in home/list. */

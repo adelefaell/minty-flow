@@ -11,7 +11,7 @@ const APP_LOCK_MMKV_KEY = "app-lock-storage"
 
 const PROMPT_MESSAGE = `Unlock ${SiteData.name}.`
 
-export const appLockStorage = createMMKV({ id: APP_LOCK_MMKV_KEY })
+const appLockStorage = createMMKV({ id: APP_LOCK_MMKV_KEY })
 
 interface AppLockStore {
   lockAppEnabled: boolean

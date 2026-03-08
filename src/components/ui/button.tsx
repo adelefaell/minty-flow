@@ -21,7 +21,7 @@ type ButtonVariant =
   | "link"
 type ButtonSize = "default" | "sm" | "lg" | "icon"
 
-export interface ButtonProps extends PressableProps {
+interface ButtonProps extends PressableProps {
   variant?: ButtonVariant
   size?: ButtonSize
 }

@@ -9,7 +9,7 @@ import { startOfNextMinute } from "~/utils/pending-transactions"
  * Payload type for transaction reminder notifications.
  * Use itemType: "txn" and id: transaction.id (or uuid when available).
  */
-export interface TransactionReminderPayload {
+interface TransactionReminderPayload {
   itemType: "txn"
   id: string
   [key: string]: unknown
@@ -18,7 +18,7 @@ export interface TransactionReminderPayload {
 /**
  * Clear all scheduled notifications of type "transaction".
  */
-export async function clearPlannedTransactionNotifications(): Promise<void> {
+async function clearPlannedTransactionNotifications(): Promise<void> {
   const scheduled = await Notifications.getAllScheduledNotificationsAsync()
   const txnNotifs = scheduled.filter(
     (n) =>
@@ -36,7 +36,7 @@ export async function clearPlannedTransactionNotifications(): Promise<void> {
  * Schedule a single notification at transactionDate and optionally at
  * transactionDate - earlyReminderSeconds.
  */
-export async function scheduleForPlannedTransaction(
+async function scheduleForPlannedTransaction(
   transaction: TransactionModel,
   earlyReminderSeconds: number,
 ): Promise<void> {

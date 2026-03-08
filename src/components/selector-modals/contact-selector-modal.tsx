@@ -56,7 +56,7 @@ function createContactsPromise(
   })()
 }
 
-export interface ContactSelectorModalProps {
+interface ContactSelectorModalProps {
   onContactSelected: (contact: Contacts.Contact) => void
   onPermissionDenied?: () => void
   editable?: boolean

@@ -21,7 +21,7 @@ import { logger } from "~/utils/logger"
 
 import { Pressable } from "./ui/pressable"
 
-export interface ConfirmModalProps {
+interface ConfirmModalProps {
   /** Whether the modal is visible. */
   visible: boolean
   /** Called when the user requests close (backdrop tap or cancel). */

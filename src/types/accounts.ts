@@ -6,7 +6,7 @@
  * The WatermelonDB model implements these types, not the other way around.
  */
 
-import type { MintyColorScheme } from "~/styles/theme"
+import type { MintyColorScheme } from "~/styles/theme/types"
 
 export const AccountTypeEnum = {
   CHECKING: "checking",

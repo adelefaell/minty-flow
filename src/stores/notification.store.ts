@@ -5,7 +5,7 @@ import { createJSONStorage, devtools, persist } from "zustand/middleware"
 /**
  * MMKV storage instance for notification preferences.
  */
-export const notificationStorage = createMMKV({
+const notificationStorage = createMMKV({
   id: "notification-preferences-storage",
 })
 

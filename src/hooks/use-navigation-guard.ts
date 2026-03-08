@@ -4,21 +4,21 @@ import { useEffect, useRef } from "react"
 type BeforeRemoveEvent = EventArg<"beforeRemove", true, { action: unknown }>
 
 /** Navigation object that supports the beforeRemove listener (e.g. from useNavigation()). */
-export type NavigationWithBeforeRemove = {
+type NavigationWithBeforeRemove = {
   addListener(
     event: "beforeRemove",
     callback: (e: BeforeRemoveEvent) => void,
   ): () => void
 }
 
-export type UseNavigationGuardOptions = {
+type UseNavigationGuardOptions = {
   navigation: NavigationWithBeforeRemove
   when: boolean
   onConfirm: () => void
   onBlock: () => void
 }
 
-export type UseNavigationGuardReturn = {
+type UseNavigationGuardReturn = {
   /** Call when the user confirms they want to leave (e.g. "Discard" in modal). */
   confirmNavigation: () => void
   /** Call before programmatic navigation (e.g. after submit/delete) so the guard allows the next transition. */

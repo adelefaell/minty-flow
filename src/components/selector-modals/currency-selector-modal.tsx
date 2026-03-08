@@ -21,7 +21,7 @@ import type { Currency } from "~/types/currency"
 
 import { modalStyles, triggerStyles } from "./styles"
 
-export interface CurrencySelectorModalProps {
+interface CurrencySelectorModalProps {
   selectedCurrencyCode: string
   onCurrencySelected: (code: string) => void
   editable?: boolean

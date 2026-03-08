@@ -2,11 +2,11 @@ import { createMMKV } from "react-native-mmkv"
 import { create } from "zustand"
 import { createJSONStorage, devtools, persist } from "zustand/middleware"
 
-export const transactionItemAppearanceStorage = createMMKV({
+const transactionItemAppearanceStorage = createMMKV({
   id: "flow-transaction-item-appearance-storage",
 })
 
-export type TransactionItemVariant = "compact" | "elevated"
+type TransactionItemVariant = "compact" | "elevated"
 
 type LeadingIcon = "category" | "account"
 

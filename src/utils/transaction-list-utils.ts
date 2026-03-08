@@ -49,7 +49,7 @@ import {
 } from "~/utils/time-utils"
 
 /** Signed contribution for aggregation: income adds, expense subtracts, transfer is neutral. */
-export function transactionContribution(
+function transactionContribution(
   type: TransactionType,
   amount: number,
 ): number {
@@ -59,7 +59,7 @@ export function transactionContribution(
 }
 
 /** Default date range: current month extended by timeframeDays so upcoming (e.g. recurring) can show. */
-export function getDefaultDateRange(timeframeDays: number) {
+function getDefaultDateRange(timeframeDays: number) {
   const now = new Date()
   const from = startOfMonth(now)
   const endOfMonthDate = endOfMonth(now)
@@ -146,7 +146,7 @@ export function buildTransactionListFilters(
   return filters
 }
 
-export function getSectionKeyAndTitle(
+function getSectionKeyAndTitle(
   date: Date,
   groupBy: GroupByOption,
 ): { key: string; title: string } {
@@ -188,7 +188,7 @@ export function getSectionKeyAndTitle(
   }
 }
 
-export interface TransactionSection {
+interface TransactionSection {
   title: string
   data: TransactionWithRelations[]
   totals: Record<string, number>

@@ -224,7 +224,7 @@ export const TooltipProvider = ({ children }: { children: ReactNode }) => {
   )
 }
 
-export type TooltipProps = {
+type TooltipProps = {
   text: string
   children: ReactElement<PressableProps>
   delayLongPress?: number

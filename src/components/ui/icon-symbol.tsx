@@ -13,9 +13,7 @@ type MaterialName = ComponentProps<typeof MaterialCommunityIcons>["name"]
  * Helper function to ensure all icon names are valid MaterialCommunityIcons names.
  * This provides type safety at compile time.
  */
-export function defineValidIcons<T extends readonly MaterialName[]>(
-  icons: T,
-): T {
+function defineValidIcons<T extends readonly MaterialName[]>(icons: T): T {
   return icons
 }
 

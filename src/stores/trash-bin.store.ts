@@ -5,12 +5,12 @@ import { createJSONStorage, devtools, persist } from "zustand/middleware"
 /**
  * MMKV storage instance for trash bin.
  */
-export const trashBinStorage = createMMKV({
+const trashBinStorage = createMMKV({
   id: "trash-bin-storage",
 })
 
 // Retention period choices
-export const RetentionPeriodEnum = {
+const RetentionPeriodEnum = {
   ONE_DAY: "1 day",
   SEVEN_DAYS: "7 days",
   FOURTEEN_DAYS: "14 days",
@@ -22,7 +22,7 @@ export const RetentionPeriodEnum = {
 } as const
 
 // Retention period type
-export type RetentionPeriodType =
+type RetentionPeriodType =
   (typeof RetentionPeriodEnum)[keyof typeof RetentionPeriodEnum]
 
 /**

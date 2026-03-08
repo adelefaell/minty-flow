@@ -13,7 +13,7 @@ import { currencyRegistryService } from "./currency-registry"
 
 // Types for API response
 // The API returns: { date: string, [baseCurrency]: { [currencyCode]: number } }
-export interface ExchangeRatesResponse {
+interface ExchangeRatesResponse {
   date: string
   [baseCurrency: string]: string | Record<string, number>
 }
@@ -405,4 +405,4 @@ class ExchangeRatesService {
 export const exchangeRatesService = ExchangeRatesService.getInstance()
 
 // Export for testing or advanced usage
-export { ExchangeRatesService }
+// export { ExchangeRatesService }
