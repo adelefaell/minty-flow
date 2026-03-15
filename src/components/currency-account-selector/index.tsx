@@ -326,7 +326,7 @@ export function CurrencyAccountSelector({
               accessibilityState={{ expanded: accountPanelOpen }}
             >
               <View style={triggerStyles.triggerLeft}>
-                <IconSvg name="building-bank" size={24} />
+                <IconSvg name="wallet" size={24} />
                 {selectedAccountNames ? (
                   <Text numberOfLines={1} style={styles.accountTriggerValue}>
                     {selectedAccountNames}

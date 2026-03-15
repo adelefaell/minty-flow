@@ -185,6 +185,12 @@ export default function RootLayout() {
                 options={{ title: t("screens.settings.goals.title") }}
               />
               <Stack.Screen
+                name="settings/goals/archived"
+                options={{
+                  title: t("screens.settings.goals.archived.title"),
+                }}
+              />
+              <Stack.Screen
                 name="settings/goals/[goalId]/modify"
                 options={({ route }) => {
                   const params = route.params as { goalId?: string } | undefined

@@ -146,6 +146,7 @@ export const schema = appSchema({
         { name: "icon", type: "string", isOptional: true },
         { name: "color_scheme_name", type: "string", isOptional: true },
         { name: "is_completed", type: "boolean" },
+        { name: "is_archived", type: "boolean" },
         { name: "created_at", type: "number" },
         { name: "updated_at", type: "number" },
       ],

@@ -7,6 +7,7 @@ import { StyleSheet } from "react-native-unistyles"
 
 import { SearchInput } from "~/components/search-input"
 import { TagCard } from "~/components/tags/tag-card"
+import { EmptyState } from "~/components/ui/empty-state"
 import { IconSvg } from "~/components/ui/icon-svg"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
@@ -60,13 +61,14 @@ const TagsScreenInner = ({ tags }: TagsScreenInnerProps) => {
         </Pressable>
 
         {filteredModels.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text variant="muted">
-              {searchQuery.trim()
+          <EmptyState
+            icon={searchQuery.trim() ? "search" : "tags"}
+            title={
+              searchQuery.trim()
                 ? t("screens.settings.tags.empty.noResults")
-                : t("screens.settings.tags.empty.noTags")}
-            </Text>
-          </View>
+                : t("screens.settings.tags.empty.noTags")
+            }
+          />
         ) : (
           <View style={styles.list}>
             {filteredModels.map((tag) => (
@@ -115,10 +117,5 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 16,
     fontWeight: "500",
     color: theme.colors.onSurface,
-  },
-  emptyState: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 40,
   },
 }))

@@ -56,53 +56,70 @@ export const observeAccountIdsForGoal = (
     .observe()
     .pipe(map((rows) => rows.map((r) => r.accountId)))
 
-/**
- * Observe all goals, optionally including archived ones.
- *
- * Uses observeWithColumns so the list reacts to field changes, not just
- * record additions/deletions. The goal_accounts join table is also observed
- * so that account link changes trigger list re-renders.
- */
-export const observeGoals = (): Observable<Goal[]> => {
-  const query = getGoalCollection().query(Q.sortBy("name", Q.asc))
+const GOAL_OBSERVED_COLUMNS = [
+  "name",
+  "description",
+  "target_amount",
+  "current_amount",
+  "currency_code",
+  "target_date",
+  "icon",
+  "color_scheme_name",
+  "is_completed",
+  "is_archived",
+] as const
 
-  // Observe the join table so changes to linked accounts also trigger updates
+/**
+ * Shared pipeline: merges join-table accountIds into each Goal domain object.
+ */
+const toGoalsObservable = (
+  baseQuery: ReturnType<ReturnType<typeof getGoalCollection>["query"]>,
+): Observable<Goal[]> => {
   const joinRows$ = getGoalAccountCollection().query().observe()
 
-  return query
-    .observeWithColumns([
-      "name",
-      "description",
-      "target_amount",
-      "current_amount",
-      "currency_code",
-      "target_date",
-      "icon",
-      "color_scheme_name",
-      "is_completed",
-    ])
-    .pipe(
-      switchMap((goalModels) =>
-        combineLatest([of(goalModels), joinRows$]).pipe(
-          map(([latestGoalModels, allJoinRows]) => {
-            if (latestGoalModels.length === 0) return []
+  return baseQuery.observeWithColumns([...GOAL_OBSERVED_COLUMNS]).pipe(
+    switchMap((goalModels) =>
+      combineLatest([of(goalModels), joinRows$]).pipe(
+        map(([latestGoalModels, allJoinRows]) => {
+          if (latestGoalModels.length === 0) return []
 
-            // Group accountIds by goal_id
-            const accountIdsByGoal = new Map<string, string[]>()
-            for (const row of allJoinRows) {
-              const existing = accountIdsByGoal.get(row.goalId) ?? []
-              existing.push(row.accountId)
-              accountIdsByGoal.set(row.goalId, existing)
-            }
+          const accountIdsByGoal = new Map<string, string[]>()
+          for (const row of allJoinRows) {
+            const existing = accountIdsByGoal.get(row.goalId) ?? []
+            existing.push(row.accountId)
+            accountIdsByGoal.set(row.goalId, existing)
+          }
 
-            return latestGoalModels.map((model) =>
-              modelToGoal(model, accountIdsByGoal.get(model.id) ?? []),
-            )
-          }),
-        ),
+          return latestGoalModels.map((model) =>
+            modelToGoal(model, accountIdsByGoal.get(model.id) ?? []),
+          )
+        }),
       ),
-    )
+    ),
+  )
 }
+
+/**
+ * Observe active (non-archived) goals, sorted by name.
+ */
+export const observeGoals = (): Observable<Goal[]> =>
+  toGoalsObservable(
+    getGoalCollection().query(
+      Q.where("is_archived", false),
+      Q.sortBy("name", Q.asc),
+    ),
+  )
+
+/**
+ * Observe archived goals, sorted by name.
+ */
+export const observeArchivedGoals = (): Observable<Goal[]> =>
+  toGoalsObservable(
+    getGoalCollection().query(
+      Q.where("is_archived", true),
+      Q.sortBy("name", Q.asc),
+    ),
+  )
 
 /**
  * Observe a single goal model by ID (raw model, for edit screens).
@@ -140,6 +157,7 @@ export const createGoal = async (
       g.icon = data.icon ?? null
       g.setColorScheme(data.colorSchemeName ?? null)
       g.isCompleted = data.isCompleted ?? false
+      g.isArchived = false
       g.createdAt = new Date()
       g.updatedAt = new Date()
     })
@@ -201,6 +219,30 @@ export const updateGoal = async (
     }
 
     return updated
+  })
+}
+
+/**
+ * Archive a goal (hides it from the active list, shown in archived sheet).
+ */
+export const archiveGoal = async (goal: GoalModel): Promise<void> => {
+  await database.write(async () => {
+    await goal.update((g) => {
+      g.isArchived = true
+      g.updatedAt = new Date()
+    })
+  })
+}
+
+/**
+ * Unarchive a goal (restores it to the active list).
+ */
+export const unarchiveGoal = async (goal: GoalModel): Promise<void> => {
+  await database.write(async () => {
+    await goal.update((g) => {
+      g.isArchived = false
+      g.updatedAt = new Date()
+    })
   })
 }
 

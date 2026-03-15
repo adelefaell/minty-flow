@@ -529,6 +529,13 @@
         "body": "Set savings targets and track progress",
         "empty": "No goals yet. Create one to start saving.",
         "addNew": "New Goal",
+        "archivedButton": "Archived",
+        "archiveSuccess": "Goal archived",
+        "unarchiveSuccess": "Goal restored",
+        "archived": {
+          "title": "Archived Goals",
+          "empty": "No archived goals"
+        },
         "card": {
           "saved": "Saved",
           "of": "of",
@@ -554,7 +561,15 @@
           "accountsLabel": "Funding Accounts",
           "accountsPlaceholder": "Select accounts",
           "deleteLabel": "Delete Goal",
+          "archiveLabel": "Archive Goal",
+          "unarchiveLabel": "Restore Goal",
           "loadingText": "Loading goal...",
+          "archiveModal": {
+            "archiveTitle": "Archive this goal?",
+            "archiveConfirm": "Archive",
+            "unarchiveTitle": "Restore this goal?",
+            "unarchiveConfirm": "Restore"
+          },
           "toast": {
             "notFound": "Goal not found.",
             "createFailed": "Failed to create goal.",
@@ -582,7 +597,8 @@
           "of": "of",
           "remaining": "remaining",
           "noCategory": "All Categories",
-          "overBudget": "Over budget"
+          "overBudget": "Over budget",
+          "alertThresholdReached": "Alert threshold reached"
         },
         "form": {
           "title": {

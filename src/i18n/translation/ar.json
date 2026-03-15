@@ -529,6 +529,13 @@
         "body": "حدد أهداف الادخار وتتبع التقدم",
         "empty": "لا توجد أهداف بعد. أنشئ واحدة للبدء.",
         "addNew": "هدف جديد",
+        "archivedButton": "المؤرشفة",
+        "archiveSuccess": "تم أرشفة الهدف",
+        "unarchiveSuccess": "تمت استعادة الهدف",
+        "archived": {
+          "title": "الأهداف المؤرشفة",
+          "empty": "لا توجد أهداف مؤرشفة"
+        },
         "card": {
           "saved": "تم الادخار",
           "of": "من",
@@ -554,7 +561,15 @@
           "accountsLabel": "حسابات التمويل",
           "accountsPlaceholder": "اختر الحسابات",
           "deleteLabel": "حذف الهدف",
+          "archiveLabel": "أرشفة الهدف",
+          "unarchiveLabel": "استعادة الهدف",
           "loadingText": "جاري تحميل الهدف...",
+          "archiveModal": {
+            "archiveTitle": "أرشفة هذا الهدف؟",
+            "archiveConfirm": "أرشفة",
+            "unarchiveTitle": "استعادة هذا الهدف؟",
+            "unarchiveConfirm": "استعادة"
+          },
           "toast": {
             "notFound": "الهدف غير موجود.",
             "createFailed": "فشل إنشاء الهدف.",
@@ -582,7 +597,8 @@
           "of": "من",
           "remaining": "متبقي",
           "noCategory": "جميع الفئات",
-          "overBudget": "تجاوز الميزانية"
+          "overBudget": "تجاوز الميزانية",
+          "alertThresholdReached": "تم بلوغ حد التنبيه"
         },
         "form": {
           "title": {

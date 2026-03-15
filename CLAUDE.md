@@ -39,7 +39,7 @@ Root providers (in order): `KeyboardProvider` → `GestureHandlerRootView` (keye
 
 ### Database (WatermelonDB)
 
-DB name: `minty_flow_db` | Schema version: 1 | JSI adapter enabled via `plugins/withWatermelonDBJSI.js`
+DB name: `minty_flow_db` | Schema version: 2 | JSI adapter enabled via `plugins/withWatermelonDBJSI.js`
 
 - Schema defined in `src/database/schema.ts`
 - Models in `src/database/models/` (one file per table)
@@ -88,7 +88,7 @@ Budgets track spending against a limit for a given period. Each budget links to 
 - Service: `src/database/services/budget-service.ts` — full CRUD + reactive queries
   - `observeBudgetSpent(accountIds, categoryIds, period, startDate, endDate)` computes total expense transactions within the period window reactively; filters out transfers, pending, and deleted transactions
   - Period types: `daily | weekly | monthly | yearly | custom` (`BudgetPeriodEnum` in `src/types/budgets.ts`)
-  - `alert_threshold` (1–100%) is stored and surfaced in `BudgetCard` but no in-app alert fires yet — that is a future feature
+  - `alert_threshold` (1–100%) is stored and surfaced in `BudgetCard`; a warning toast fires once per mount when `spent / limit >= alertThreshold / 100`
 - Mapper: `src/database/utils/model-to-budget.ts` — takes `accountIds[]` and `categoryIds[]` as args (fetched from join tables by the service)
 - Screens: `src/app/settings/budgets/index.tsx` (list) + `src/app/settings/budgets/[budgetId]/modify.tsx` (create/edit)
 - Components: `src/components/budgets/budget-card.tsx`, `src/components/budgets/budget-modify/`
@@ -101,7 +101,7 @@ Goals track savings progress toward a target amount. Each goal links to accounts
 - Models: `src/database/models/goal.ts`, `goal-account.ts`
 - Service: `src/database/services/goal-service.ts` — full CRUD + reactive queries
   - `observeGoalProgress(accountIds)` sums the current balances of all linked accounts reactively — this is the live progress, **not** the `current_amount` DB field (that field is stale/unused)
-  - `isCompleted` flag is stored and shown in `GoalCard`; no dedicated archive/filter UI exists yet
+  - `isCompleted` flag is stored and shown in `GoalCard`; `isArchived` flag added in schema v2 — archive/unarchive via edit form button + confirm modal, archived goals visible at `settings/goals/archived`
 - Mapper: `src/database/utils/model-to-goal.ts` — takes `accountIds[]` as arg (fetched from join table by the service)
 - Screens: `src/app/settings/goals/index.tsx` (list) + `src/app/settings/goals/[goalId]/modify.tsx` (create/edit)
 - Components: `src/components/goals/goal-card.tsx`, `src/components/goals/goal-modify/`
@@ -112,7 +112,7 @@ Goals track savings progress toward a target amount. Each goal links to accounts
 
 ### Component Conventions
 
-- UI primitives in `src/components/ui/`: `Button`, `Text`, `View`, `Pressable`, `Input`, `Switch`, `Chips`, `Toast`, `Tooltip`, `IconSvg`
+- UI primitives in `src/components/ui/`: `Button`, `Text`, `View`, `Pressable`, `Input`, `Switch`, `Chips`, `Toast`, `Tooltip`, `IconSvg`, `EmptyState`
 - Feature components grouped by domain: `accounts/`, `categories/`, `tags/`, `transaction/`, `theme/`
 - Complex components use a directory with `index.ts` barrel, `*.styles.ts`, `types.ts`, and split sub-files
 - `ActionItem` (`src/components/action-item.tsx`) is the standard settings-row component

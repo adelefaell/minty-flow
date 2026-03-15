@@ -21,6 +21,7 @@ export const modelToGoal = (model: GoalModel, accountIds: string[]): Goal => {
     colorSchemeName: model.colorSchemeName,
     colorScheme: model.colorScheme, // Computed getter from model
     isCompleted: model.isCompleted,
+    isArchived: model.isArchived,
     accountIds,
     createdAt: model.createdAt,
     updatedAt: model.updatedAt,

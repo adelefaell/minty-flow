@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-03-15T18:58:11.695Z
+Generated on: 2026-03-15T20:15:32.944Z
 
 ```
 ./
@@ -407,6 +407,7 @@ Generated on: 2026-03-15T18:58:11.695Z
 │   │   │   ├── goals/
 │   │   │   │   ├── [goalId]/
 │   │   │   │   │   └── modify.tsx
+│   │   │   │   ├── archived.tsx
 │   │   │   │   └── index.tsx
 │   │   │   ├── preferences/
 │   │   │   │   ├── button-placement.tsx
@@ -6698,6 +6699,7 @@ Generated on: 2026-03-15T18:58:11.695Z
 │   │   │   ├── chevron-icon.tsx
 │   │   │   ├── chips.tsx
 │   │   │   ├── collapsible.tsx
+│   │   │   ├── empty-state.tsx
 │   │   │   ├── icon-svg.tsx
 │   │   │   ├── info-banner.tsx
 │   │   │   ├── input.tsx
@@ -6736,6 +6738,7 @@ Generated on: 2026-03-15T18:58:11.695Z
 │   │   └── scroll-into-view-context.tsx
 │   ├── database/
 │   │   ├── migrations/
+│   │   │   └── index.ts
 │   │   ├── models/
 │   │   │   ├── account.ts
 │   │   │   ├── budget-account.ts

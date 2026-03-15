@@ -1,13 +1,15 @@
 import { withObservables } from "@nozbe/watermelondb/react"
-import { useRouter } from "expo-router"
+import { type Href, useNavigation, useRouter } from "expo-router"
+import { useLayoutEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { FlatList } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import { GoalCard } from "~/components/goals/goal-card"
+import { Button } from "~/components/ui/button"
+import { EmptyState } from "~/components/ui/empty-state"
 import { IconSvg } from "~/components/ui/icon-svg"
 import { Pressable } from "~/components/ui/pressable"
-import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import { observeGoals } from "~/database/services/goal-service"
 import type { Goal } from "~/types/goals"
@@ -21,6 +23,22 @@ function GoalsListContent({ goals }: GoalsListContentProps) {
   const { theme } = useUnistyles()
   const { t } = useTranslation()
   const router = useRouter()
+  const navigation = useNavigation()
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Button
+          variant="ghost"
+          size="icon"
+          onPress={() => router.push("/settings/goals/archived" as Href)}
+          accessibilityLabel={t("screens.settings.goals.archivedButton")}
+        >
+          <IconSvg name="archive" size={20} />
+        </Button>
+      ),
+    })
+  }, [navigation, router, t])
 
   const handleAddGoal = () => {
     router.push(`/settings/goals/${NewEnum.NEW}/modify`)
@@ -37,11 +55,7 @@ function GoalsListContent({ goals }: GoalsListContentProps) {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Text variant="small" style={styles.emptyText}>
-              {t("screens.settings.goals.empty")}
-            </Text>
-          </View>
+          <EmptyState icon="target" title={t("screens.settings.goals.empty")} />
         }
         renderItem={({ item }) => (
           <GoalCard goal={item} onPress={() => handleGoalPress(item.id)} />
@@ -77,19 +91,6 @@ const styles = StyleSheet.create((t) => ({
     padding: 16,
     paddingBottom: 96,
     gap: 12,
-  },
-  emptyState: {
-    paddingVertical: 48,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: t.colors.secondary,
-    borderRadius: t.radius,
-    marginTop: 8,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: t.colors.onSecondary,
-    textAlign: "center",
   },
   separator: {
     height: 0,

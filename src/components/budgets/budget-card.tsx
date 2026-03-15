@@ -1,4 +1,5 @@
 import { withObservables } from "@nozbe/watermelondb/react"
+import { useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import { View as RNView } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
@@ -11,6 +12,7 @@ import { observeBudgetSpent } from "~/database/services/budget-service"
 import { observeCategoryNamesByIds } from "~/database/services/category-service"
 import type { TranslationKey } from "~/i18n/config"
 import type { Budget } from "~/types/budgets"
+import { Toast } from "~/utils/toast"
 
 interface BudgetCardInnerProps {
   budget: Budget
@@ -34,6 +36,22 @@ function BudgetCardInner({
 
   const spent = spentAmount
   const limit = budget.amount
+
+  const hasAlertedRef = useRef(false)
+
+  useEffect(() => {
+    if (!budget.alertThreshold || hasAlertedRef.current || limit <= 0) return
+    if (spent / limit >= budget.alertThreshold / 100) {
+      hasAlertedRef.current = true
+      Toast.show({
+        type: "info",
+        title: budget.name,
+        description: t(
+          "screens.settings.budgets.card.alertThresholdReached" as TranslationKey,
+        ),
+      })
+    }
+  }, [spent, limit, budget.alertThreshold, budget.name, t])
   const ratio = limit > 0 ? Math.min(spent / limit, 1) : 0
   const isOverBudget = spent > limit
   const remaining = limit - spent

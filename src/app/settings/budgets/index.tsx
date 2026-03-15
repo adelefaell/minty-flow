@@ -5,9 +5,9 @@ import { FlatList } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import { BudgetCard } from "~/components/budgets/budget-card"
+import { EmptyState } from "~/components/ui/empty-state"
 import { IconSvg } from "~/components/ui/icon-svg"
 import { Pressable } from "~/components/ui/pressable"
-import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import { observeBudgets } from "~/database/services/budget-service"
 import type { Budget } from "~/types/budgets"
@@ -41,11 +41,10 @@ function BudgetListContentInner({ budgets }: BudgetListContentInnerProps) {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Text variant="small" style={styles.emptyText}>
-              {t("screens.settings.budgets.empty")}
-            </Text>
-          </View>
+          <EmptyState
+            icon="chart-pie"
+            title={t("screens.settings.budgets.empty")}
+          />
         }
         renderItem={({ item }) => (
           <BudgetCard budget={item} onPress={() => handleEditBudget(item.id)} />
@@ -82,19 +81,6 @@ const styles = StyleSheet.create((t) => ({
     paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 96,
-  },
-  emptyState: {
-    paddingVertical: 48,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: t.colors.secondary,
-    borderRadius: t.radius,
-    marginTop: 8,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: t.colors.onSecondary,
-    textAlign: "center",
   },
   separator: {
     height: 0,

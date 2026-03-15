@@ -2,8 +2,8 @@ import { useTranslation } from "react-i18next"
 import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
+import { EmptyState } from "~/components/ui/empty-state"
 import { Text } from "~/components/ui/text"
-import { View } from "~/components/ui/view"
 
 export default function LoansScreen() {
   const { t } = useTranslation()
@@ -15,11 +15,10 @@ export default function LoansScreen() {
       <Text variant="p" style={styles.description}>
         {t("screens.settings.loans.body")}
       </Text>
-      <View style={styles.placeholder}>
-        <Text variant="small" style={styles.placeholderText}>
-          {t("screens.settings.loans.empty")}
-        </Text>
-      </View>
+      <EmptyState
+        icon="cash-banknote"
+        title={t("screens.settings.loans.empty")}
+      />
     </ScrollView>
   )
 }
@@ -43,16 +42,5 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.onSecondary,
     lineHeight: 22,
     marginBottom: 24,
-  },
-  placeholder: {
-    padding: 40,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: theme.colors.secondary,
-    borderRadius: theme.radius,
-  },
-  placeholderText: {
-    fontSize: 14,
-    color: theme.colors.onSecondary,
   },
 }))

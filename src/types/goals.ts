@@ -39,6 +39,7 @@ export interface Goal {
   colorSchemeName: string | null
   colorScheme: MintyColorScheme | null // Computed from colorSchemeName via registry
   isCompleted: boolean
+  isArchived: boolean
   accountIds: string[] // Derived from goal_accounts join table by service
   createdAt: Date
   updatedAt: Date

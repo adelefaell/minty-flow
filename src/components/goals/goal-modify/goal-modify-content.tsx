@@ -21,8 +21,10 @@ import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import { ScrollIntoViewProvider } from "~/contexts/scroll-into-view-context"
 import {
+  archiveGoal,
   createGoal,
   destroyGoal,
+  unarchiveGoal,
   updateGoal,
 } from "~/database/services/goal-service"
 import { useNavigationGuard } from "~/hooks/use-navigation-guard"
@@ -83,6 +85,7 @@ export function GoalModifyContent({
   const formTargetDate = watch("targetDate")
 
   const navigation = useNavigation()
+
   const [unsavedModalVisible, setUnsavedModalVisible] = useState(false)
   const { confirmNavigation, allowNavigation } = useNavigationGuard({
     navigation,
@@ -92,6 +95,7 @@ export function GoalModifyContent({
   })
 
   const [deleteModalVisible, setDeleteModalVisible] = useState(false)
+  const [archiveModalVisible, setArchiveModalVisible] = useState(false)
   const [datePickerVisible, setDatePickerVisible] = useState(false)
   // Temp date used while the iOS date picker is open before confirmation
   const [tempDate, setTempDate] = useState<Date>(
@@ -171,6 +175,28 @@ export function GoalModifyContent({
           "screens.settings.goals.form.toast.deleteFailed" as TranslationKey,
         ),
       })
+    }
+  }
+
+  const handleArchive = async () => {
+    try {
+      if (!goalModel || !goal) return
+      if (goal.isArchived) {
+        await unarchiveGoal(goalModel)
+        Toast.success({
+          title: t("screens.settings.goals.unarchiveSuccess" as TranslationKey),
+        })
+      } else {
+        await archiveGoal(goalModel)
+        Toast.success({
+          title: t("screens.settings.goals.archiveSuccess" as TranslationKey),
+        })
+      }
+      allowNavigation()
+      router.back()
+    } catch (error) {
+      logger.error("Error archiving goal", { error })
+      Toast.error({ title: t("common.toast.error") })
     }
   }
 
@@ -404,9 +430,29 @@ export function GoalModifyContent({
           {!isAddMode && <Separator />}
         </View>
 
-        {/* Delete button — edit mode only */}
+        {/* Archive / delete buttons — edit mode only */}
         {!isAddMode && (
           <View style={goalModifyStyles.deleteSection}>
+            <Button
+              variant="ghost"
+              onPress={() => setArchiveModalVisible(true)}
+              style={goalModifyStyles.actionButton}
+            >
+              <IconSvg
+                name={goal?.isArchived ? "archive-off" : "archive"}
+                size={20}
+                color={goalModifyStyles.archiveIcon.color}
+              />
+              <Text variant="default" style={goalModifyStyles.archiveText}>
+                {goal?.isArchived
+                  ? t(
+                      "screens.settings.goals.form.unarchiveLabel" as TranslationKey,
+                    )
+                  : t(
+                      "screens.settings.goals.form.archiveLabel" as TranslationKey,
+                    )}
+              </Text>
+            </Button>
             <Button
               variant="ghost"
               onPress={() => setDeleteModalVisible(true)}
@@ -436,12 +482,15 @@ export function GoalModifyContent({
 
       <GoalFormModals
         deleteModalVisible={deleteModalVisible}
+        archiveModalVisible={archiveModalVisible}
         unsavedModalVisible={unsavedModalVisible}
         isAddMode={isAddMode}
         goal={goal}
         onCloseDeleteModal={() => setDeleteModalVisible(false)}
+        onCloseArchiveModal={() => setArchiveModalVisible(false)}
         onCloseUnsavedModal={() => setUnsavedModalVisible(false)}
         onConfirmDelete={handleDelete}
+        onConfirmArchive={handleArchive}
         onDiscardAndNavigate={() => {
           setUnsavedModalVisible(false)
           confirmNavigation()

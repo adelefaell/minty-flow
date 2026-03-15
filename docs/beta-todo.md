@@ -40,14 +40,17 @@
 ## 📊 Tab 2 — Stats Screen
 
 
-| Item                                    | Status | Notes                                                    |
-| --------------------------------------- | ------ | -------------------------------------------------------- |
-| Stats screen                            | ⬜      | Completely empty placeholder — entire tab needs building |
-| Period selector (month / year / custom) | ⬜      |                                                          |
-| Income vs Expense chart                 | ⬜      |                                                          |
-| Category breakdown chart                | ⬜      |                                                          |
-| Top spending categories                 | ⬜      |                                                          |
-| Net worth / balance over time           | ⬜      |                                                          |
+| Item                                    | Status | Notes                                                                          |
+| --------------------------------------- | ------ | ------------------------------------------------------------------------------ |
+| Stats screen                            | ✅      | Per-currency sections with hero cards, charts, and category breakdown          |
+| Period selector (month / year / custom) | ✅      | `MonthYearPicker` + `DateRangePresetModal` with range label                    |
+| Income vs Expense chart                 | ✅      | `CurrencyHeroRow` (expense / income / net) + `DailyExpenseLineChart`           |
+| Category breakdown chart                | ✅      | `StatsCategoryPie` — interactive donut with per-slice tap                      |
+| Top spending categories                 | ✅      | Category list ranked by amount shown alongside pie chart                       |
+| Averages row (daily avg vs prior month) | ✅      | `StatsAveragesRow` with delta badges                                           |
+| Pending + uncategorized alerts          | ✅      | `StatsPendingNotice` + `StatsUncategorizedAlert` with action links             |
+| Loading skeleton + empty states         | ✅      | `StatsSkeleton`, `StatsEmptyState` (no data / no transactions for range)       |
+| Net worth / balance over time           | ⬜      |                                                                                |
 
 
 ---
@@ -89,7 +92,7 @@
 | Balance at transaction display                                  | ✅      |                                                |
 | Attachments (camera, file picker, preview, open in app, remove) | ✅      |                                                |
 | Move to trash                                                   | ✅      |                                                |
-| Restore from trash (shown when opened from Trash screen)        | ✅      |                                                |
+| Restore from trash (shown when opened from Trash screen)        | ✅      | Via transaction form                           |
 | Permanently delete (when trashed)                               | ✅      |                                                |
 | Edit existing transaction (prefill)                             | ✅      |                                                |
 | Unsaved changes guard modal                                     | ✅      |                                                |
@@ -162,23 +165,26 @@
 ### Goals
 
 
-| Item                    | Status | Notes                                                                           |
-| ----------------------- | ------ | ------------------------------------------------------------------------------- |
-| Goals list              | ✅      | Reactive list with GoalCard + edit navigation                                   |
-| Create / Edit goal form | ✅      | Full form: name, description, icon, color, currency, accounts, amount, date     |
-| Goal progress tracking  | ✅      | `observeGoalProgress()` sums linked account balances reactively                 |
-| Archive / complete goal | 🚧     | `isCompleted` flag stored + shown in card; no dedicated archive/filter UI yet   |
+| Item                                     | Status | Notes                                                                       |
+| ---------------------------------------- | ------ | --------------------------------------------------------------------------- |
+| Goals list                               | ✅      | Reactive list with GoalCard + edit navigation                               |
+| Create / Edit goal form                  | ✅      | Full form: name, description, icon, color, currency, accounts, amount, date |
+| Goal progress tracking                   | ✅      | `observeGoalProgress()` sums linked account balances reactively             |
+| Archive / unarchive goal                 | ✅      | Archive button in edit form (confirm modal); archived goals list screen     |
+| Archived goals screen                    | ✅      | Stack screen at `settings/goals/archived` via header button                 |
+| `isCompleted` badge on card              | ✅      | Shown in GoalCard; toggled via form checkbox                                |
 
 
 ### Budgets
 
 
-| Item                         | Status | Notes                                                                                       |
-| ---------------------------- | ------ | ------------------------------------------------------------------------------------------- |
-| Budgets list                 | ✅      | Reactive list with BudgetCard + edit navigation                                             |
-| Create / Edit budget form    | ✅      | Full form: name, icon, color, currency, accounts, categories, period, amount, alert         |
-| Spending progress per budget | ✅      | `observeBudgetSpent()` queries expense transactions reactively; progress bar + over-budget  |
-| Alert threshold notifications | ⬜     | `alert_threshold` field collected in form but no in-app alert fires when threshold exceeded |
+| Item                          | Status | Notes                                                                                      |
+| ----------------------------- | ------ | ------------------------------------------------------------------------------------------ |
+| Budgets list                  | ✅      | Reactive list with BudgetCard + edit navigation                                            |
+| Create / Edit budget form     | ✅      | Full form: name, icon, color, currency, accounts, categories, period, amount, alert        |
+| Spending progress per budget  | ✅      | `observeBudgetSpent()` queries expense transactions reactively; progress bar + over-budget |
+| Alert threshold notifications | ✅      | Toast fires once per mount when `spent / limit >= alertThreshold / 100`                    |
+| Budget duplicate / copy       | ⬜      | Clone existing budget with same settings                                                   |
 
 
 ### Loans
@@ -254,49 +260,15 @@
 ## 🧹 Polish
 
 
-| Item                                                  | Status | Notes                                 |
-| ----------------------------------------------------- | ------ | ------------------------------------- |
-| Empty state illustrations for all list screens        | ⬜      | Goals, Budgets, Loans screens only (Pending now done) |
-| Reorder categories (same as accounts)                 | ⬜      |                                       |
+| Item                                                  | Status | Notes                                                   |
+| ----------------------------------------------------- | ------ | ------------------------------------------------------- |
+| Empty state illustrations for all list screens        | ✅      | Shared `EmptyState` component; Goals, Budgets, Loans, Tags, Trash all updated |
 | "Empty all trash" UI button                           | ✅      | In Preferences > Trash Bin; confirm modal + toast wired |
-| Android back-gesture guard (outside transaction form) | ⬜      |                                       |
-| TypeScript zero errors (`pnpm types`)                 | ✅      | `tsc --noEmit` passes clean           |
-| Lint zero warnings (`pnpm lint`)                      | 🚧     |                                       |
+| Android back-gesture guard (outside transaction form) | ⬜      |                                                         |
+| TypeScript zero errors (`pnpm types`)                 | ✅      | `tsc --noEmit` passes clean                             |
+| Lint zero warnings (`pnpm lint`)                      | ✅      | Biome passes clean                                      |
 
 
 ---
 
-## 🚀 Beta Release Priority Order
-
-1. [x] **Stats tab** — at minimum a monthly income/expense chart
-2. [x] **Goals** — fully implemented (list, form, progress tracking)
-3. [x] **Budgets** — fully implemented (list, form, spending progress)
-4. [ ] **Loans** — DB + service ready, just needs screens
-5. [ ] **Data Management** — at minimum CSV export
-6. [ ] **Error boundary / crash screen** — no error boundary exists anywhere in the app
-7. [ ] **Budget alert threshold** — UI collects threshold, trigger logic not implemented
-8. [ ] **Bill Splitter** — lowest priority, needs full backend + UI
-9. [ ] Zero lint warnings (`pnpm lint`) before shipping
-
----
-
-## 🔮 Future Features
-
-| Feature | Notes |
-| ------- | ----- |
-| Budget alert threshold notifications | `alert_threshold` stored; need in-app alert when spending crosses threshold |
-| Goal archive / filter | `isCompleted` exists; add archive toggle + filter in goals list |
-| Stats tab charts | Income/expense chart, category breakdown, net worth over time |
-| Loans screen | DB model + service exist; full UI needed |
-| Bill splitter | No backend at all; needs full design + implementation |
-| Data management | CSV/JSON export + import, backup/restore, wipe all data |
-| Error boundary / crash screen | No error boundary anywhere in the app |
-| Onboarding / first-launch flow | Not started |
-| Budget duplicate/copy | Clone existing budget with same settings |
-| Category reorder | Same drag-to-reorder pattern as accounts |
-| Android back-gesture guard | Outside transaction form |
-| Empty state illustrations | Goals, Budgets, Loans screens |
-
----
-
-*Last updated: 2026-03-15 — goals + budgets fully implemented; i18n validation keys added*
+*Last updated: 2026-03-15 — stats fully implemented; goals archive done; budget alert threshold done; reusable EmptyState component across all list screens*

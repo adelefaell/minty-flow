@@ -34,6 +34,7 @@ export default class GoalModel extends Model implements Goal {
   @field("icon") icon!: string | null
   @field("color_scheme_name") colorSchemeName!: string | null
   @field("is_completed") isCompleted!: boolean
+  @field("is_archived") isArchived!: boolean
   @date("created_at") createdAt!: Date
   @date("updated_at") updatedAt!: Date
 

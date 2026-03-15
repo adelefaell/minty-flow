@@ -100,6 +100,14 @@ export const goalModifyStyles = StyleSheet.create((theme) => ({
     fontWeight: "600",
     color: theme.colors.error,
   },
+  archiveIcon: {
+    color: theme.colors.onSecondary,
+  },
+  archiveText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: theme.colors.onSecondary,
+  },
   actions: {
     flexDirection: "row",
     gap: 10,
