@@ -32,7 +32,7 @@
 | Privacy mode toggle                                                                                        | ✅      |                                     |
 | Profile greeting + avatar tap → Edit Profile                                                               | ✅      |                                     |
 | Upcoming section (recurring + pending, confirm / confirm-all / cancel)                                     | ✅      |                                     |
-| Empty state when no transactions                                                                           | ✅      | Wallet icon + title + subtitle in `transaction-section-list.tsx` |
+| Empty state when no transactions                                                                           | ✅      | `buildTransactionSections` returns `[]` for empty lists so `ListEmptyComponent` renders; wrapper view adds `paddingHorizontal: 20` |
 
 
 ---
@@ -165,26 +165,33 @@
 ### Goals
 
 
-| Item                                     | Status | Notes                                                                       |
-| ---------------------------------------- | ------ | --------------------------------------------------------------------------- |
-| Goals list                               | ✅      | Reactive list with GoalCard + edit navigation                               |
-| Create / Edit goal form                  | ✅      | Full form: name, description, icon, color, currency, accounts, amount, date |
-| Goal progress tracking                   | ✅      | `observeGoalProgress()` sums linked account balances reactively             |
-| Archive / unarchive goal                 | ✅      | Archive button in edit form (confirm modal); archived goals list screen     |
-| Archived goals screen                    | ✅      | Stack screen at `settings/goals/archived` via header button                 |
-| `isCompleted` badge on card              | ✅      | Shown in GoalCard; toggled via form checkbox                                |
+| Item                                                    | Status | Notes                                                                              |
+| ------------------------------------------------------- | ------ | ---------------------------------------------------------------------------------- |
+| Goals list                                              | ✅      | Reactive list with GoalCard + edit navigation                                      |
+| Goal detail screen                                      | ✅      | `settings/goals/[goalId]` — transactions, progress bar, type badge, deadline       |
+| Create / Edit goal form                                 | ✅      | Full form: name, description, icon, color, currency, accounts, amount, date, type  |
+| Goal progress tracking                                  | ✅      | `observeGoalTransactionProgress()` sums linked account transactions reactively     |
+| Archive / unarchive goal                                | ✅      | Archive button in edit form (confirm modal); archived goals list screen            |
+| Archived goals screen                                   | ✅      | Stack screen at `settings/goals/archived` via header button                        |
+| `isCompleted` badge on card                             | ✅      | Computed as `progress >= 1`; DB column kept but not mapped                         |
+| Pending transactions excluded from progress (no notice) | ✅      | Always-visible info row in goal detail screen                                      |
 
 
 ### Budgets
 
 
-| Item                          | Status | Notes                                                                                      |
-| ----------------------------- | ------ | ------------------------------------------------------------------------------------------ |
-| Budgets list                  | ✅      | Reactive list with BudgetCard + edit navigation                                            |
-| Create / Edit budget form     | ✅      | Full form: name, icon, color, currency, accounts, categories, period, amount, alert        |
-| Spending progress per budget  | ✅      | `observeBudgetSpent()` queries expense transactions reactively; progress bar + over-budget |
-| Alert threshold notifications | ✅      | Toast fires once per mount when `spent / limit >= alertThreshold / 100`                    |
-| Budget duplicate / copy       | ⬜      | Clone existing budget with same settings                                                   |
+| Item                                          | Status | Notes                                                                                      |
+| --------------------------------------------- | ------ | ------------------------------------------------------------------------------------------ |
+| Budgets list                                  | ✅      | Reactive list with BudgetCard + edit navigation                                            |
+| Budget detail screen                          | ✅      | `settings/budgets/[budgetId]` — transactions, progress bar, spent/remaining, period badge  |
+| Create / Edit budget form                     | ✅      | Full form: name, icon, color, currency, accounts, categories, period, amount, alert        |
+| Spending progress per budget                  | ✅      | `observeBudgetSpent()` queries expense transactions reactively; progress bar + over-budget |
+| Alert threshold notifications                 | ✅      | Toast fires once per app session per budget; module-level `Set` in `budget-card.tsx` persists across navigation |
+| `isActive` toggle in form                     | ✅      | Switch row in budget form; defaults to true for new budgets                               |
+| `isActive` disabled badge on card             | ✅      | Period badge replaced by gray "Disabled" badge when `isActive = false`                    |
+| Inactive budgets sorted to bottom             | ✅      | `observeBudgets` JS-sorts active first, then inactive; both groups by name asc            |
+| Custom period requires end date               | ✅      | `CUSTOM` chip added; start/end date pickers shown; zod `superRefine` enforces `endDate`   |
+| Budget duplicate / copy                       | ✅      | `duplicateBudget()` in service + ghost button in edit form; navigates back after           |
 
 
 ### Loans
@@ -264,6 +271,9 @@
 | ----------------------------------------------------- | ------ | ------------------------------------------------------- |
 | Empty state illustrations for all list screens        | ✅      | Shared `EmptyState` component; Goals, Budgets, Loans, Tags, Trash all updated |
 | "Empty all trash" UI button                           | ✅      | In Preferences > Trash Bin; confirm modal + toast wired |
+| CurrencyAccountSelector — no-accounts CTA             | ✅      | When no accounts exist the inline panel shows a "Create an account" button navigating to account creation |
+| InlineCategoryPicker — no-categories CTA              | ✅      | When no categories exist the expanded panel shows a "Create a category" button navigating to category creation |
+| Budget form field order (alertThreshold before isActive) | ✅   | isActive toggle moved below alert threshold input; `amountSection` gets `paddingTop: 12` for spacing |
 | Android back-gesture guard (outside transaction form) | ⬜      |                                                         |
 | TypeScript zero errors (`pnpm types`)                 | ✅      | `tsc --noEmit` passes clean                             |
 | Lint zero warnings (`pnpm lint`)                      | ✅      | Biome passes clean                                      |
@@ -271,4 +281,4 @@
 
 ---
 
-*Last updated: 2026-03-15 — stats fully implemented; goals archive done; budget alert threshold done; reusable EmptyState component across all list screens*
+*Last updated: 2026-03-17 — goals & budgets detail screens confirmed; isCompleted removed from Goals type/schema (now purely `progress >= 1`); pending notice added to goal detail; budget isActive toggle + disabled badge + inactive-sort + custom period date pickers + zod endDate validation + duplicate button all implemented; empty state fix (`buildTransactionSections` returns `[]` for empty list); CurrencyAccountSelector + InlineCategoryPicker no-data CTAs added; budget form isActive moved below alertThreshold*

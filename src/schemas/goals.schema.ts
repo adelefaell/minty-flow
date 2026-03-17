@@ -1,6 +1,9 @@
 import { z } from "zod"
 
+import { GoalTypeEnum } from "~/types/goals"
+
 const addGoalSchema = z.object({
+  goalType: z.enum([GoalTypeEnum.SAVINGS, GoalTypeEnum.EXPENSE]),
   name: z.string().min(1, "validation.goal.name.required"),
   description: z.string().nullable().optional(),
   icon: z.string().nullable().optional(),
@@ -9,7 +12,6 @@ const addGoalSchema = z.object({
   accountIds: z.array(z.string()).min(1, "validation.goal.accounts.required"),
   targetAmount: z.number().positive("validation.goal.targetAmount.positive"),
   targetDate: z.number().nullable().optional(), // Unix timestamp
-  isCompleted: z.boolean(),
 })
 
 const updateGoalSchema = addGoalSchema

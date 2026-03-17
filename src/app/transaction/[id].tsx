@@ -15,12 +15,15 @@ import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import type TransactionModel from "~/database/models/transaction"
 import { observeAccounts } from "~/database/services/account-service"
+import { observeBudgets } from "~/database/services/budget-service"
 import { observeCategoriesByType } from "~/database/services/category-service"
+import { observeGoalsByType } from "~/database/services/goal-service"
 import { observeTags } from "~/database/services/tag-service"
 import {
   observeTransactionModelById,
   observeTransactionTagIds,
 } from "~/database/services/transaction-service"
+import { GoalTypeEnum } from "~/types/goals"
 import { NewEnum } from "~/types/new"
 import { type TransactionType, TransactionTypeEnum } from "~/types/transactions"
 
@@ -37,12 +40,20 @@ function parseTransactionType(type: string | undefined): TransactionType {
   return TransactionTypeEnum.EXPENSE
 }
 
+function transactionTypeToGoalType(transactionType: TransactionType) {
+  if (transactionType === TransactionTypeEnum.INCOME)
+    return GoalTypeEnum.SAVINGS
+  return GoalTypeEnum.EXPENSE
+}
+
 const EnhancedTransactionForm = withObservables(
   ["transactionType"],
   ({ transactionType }: { transactionType: TransactionType }) => ({
     accounts: observeAccounts(),
     categories: observeCategoriesByType(transactionType),
     tags: observeTags(),
+    goals: observeGoalsByType(transactionTypeToGoalType(transactionType)),
+    budgets: observeBudgets(),
   }),
 )(TransactionFormV3)
 

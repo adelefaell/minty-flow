@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next"
 
 import { ConfirmModal } from "~/components/confirm-modal"
-import type { TranslationKey } from "~/i18n/config"
 import type { Goal } from "~/types/goals"
 
 interface GoalFormModalsProps {
@@ -58,22 +57,14 @@ export function GoalFormModals({
           onConfirm={onConfirmArchive}
           title={
             isArchived
-              ? t(
-                  "screens.settings.goals.form.archiveModal.unarchiveTitle" as TranslationKey,
-                )
-              : t(
-                  "screens.settings.goals.form.archiveModal.archiveTitle" as TranslationKey,
-                )
+              ? t("screens.settings.goals.form.archiveModal.unarchiveTitle")
+              : t("screens.settings.goals.form.archiveModal.archiveTitle")
           }
           description={goal.name}
           confirmLabel={
             isArchived
-              ? t(
-                  "screens.settings.goals.form.archiveModal.unarchiveConfirm" as TranslationKey,
-                )
-              : t(
-                  "screens.settings.goals.form.archiveModal.archiveConfirm" as TranslationKey,
-                )
+              ? t("screens.settings.goals.form.archiveModal.unarchiveConfirm")
+              : t("screens.settings.goals.form.archiveModal.archiveConfirm")
           }
           cancelLabel={t("common.actions.cancel")}
           variant="default"

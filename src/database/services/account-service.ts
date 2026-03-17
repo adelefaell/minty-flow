@@ -1,7 +1,7 @@
 import { Q } from "@nozbe/watermelondb"
 import type { Observable } from "@nozbe/watermelondb/utils/rx"
 import { endOfMonth, startOfMonth } from "date-fns"
-import { combineLatest } from "rxjs"
+import { combineLatest, of } from "rxjs"
 import { filter, map } from "rxjs/operators"
 
 import type {
@@ -89,6 +89,17 @@ export const observeAccounts = (): Observable<Account[]> => {
       "sort_order",
     ])
     .pipe(map((accounts) => accounts.map((account) => modelToAccount(account))))
+}
+
+export const observeAccountNamesByIds = (
+  ids: string[],
+): Observable<string[]> => {
+  if (ids.length === 0) return of([])
+  return database
+    .get<AccountModel>("accounts")
+    .query(Q.where("id", Q.oneOf(ids)))
+    .observe()
+    .pipe(map((rows) => rows.map((r) => r.name)))
 }
 
 /**

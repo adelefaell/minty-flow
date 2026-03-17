@@ -7,12 +7,13 @@ import type {
   AddGoalFormSchema,
   UpdateGoalFormSchema,
 } from "~/schemas/goals.schema"
-import type { Goal } from "~/types/goals"
+import type { Goal, GoalType } from "~/types/goals"
 
 import { database } from "../index"
 import type AccountModel from "../models/account"
 import type GoalModel from "../models/goal"
 import type GoalAccountModel from "../models/goal-account"
+import type TransactionModel from "../models/transaction"
 import { modelToGoal } from "../utils/model-to-goal"
 
 /**
@@ -60,12 +61,11 @@ const GOAL_OBSERVED_COLUMNS = [
   "name",
   "description",
   "target_amount",
-  "current_amount",
   "currency_code",
   "target_date",
   "icon",
   "color_scheme_name",
-  "is_completed",
+  "goal_type",
   "is_archived",
 ] as const
 
@@ -146,17 +146,15 @@ export const createGoal = async (
 ): Promise<GoalModel> => {
   return database.write(async () => {
     const goal = await getGoalCollection().create((g) => {
+      g.goalType = data.goalType ?? "savings"
       g.name = data.name
       g.description = data.description ?? null
       g.targetAmount = data.targetAmount
-      // currentAmount starts at 0; progress is computed from account balances
-      g.currentAmount = 0
       g.currencyCode = data.currencyCode
       // WatermelonDB @date fields accept Date objects; schema stores as Unix ms
       g.targetDate = data.targetDate != null ? new Date(data.targetDate) : null
       g.icon = data.icon ?? null
       g.setColorScheme(data.colorSchemeName ?? null)
-      g.isCompleted = data.isCompleted ?? false
       g.isArchived = false
       g.createdAt = new Date()
       g.updatedAt = new Date()
@@ -184,6 +182,7 @@ export const updateGoal = async (
 ): Promise<GoalModel> => {
   return database.write(async () => {
     const updated = await goal.update((g) => {
+      if (updates.goalType !== undefined) g.goalType = updates.goalType
       if (updates.name !== undefined) g.name = updates.name
       if (updates.description !== undefined)
         g.description = updates.description ?? null
@@ -197,7 +196,6 @@ export const updateGoal = async (
       if (updates.icon !== undefined) g.icon = updates.icon ?? null
       if (updates.colorSchemeName !== undefined)
         g.setColorScheme(updates.colorSchemeName ?? null)
-      if (updates.isCompleted !== undefined) g.isCompleted = updates.isCompleted
       g.updatedAt = new Date()
     })
 
@@ -283,6 +281,8 @@ export const computeGoalProgress = async (
  * Observe the current progress toward a goal reactively.
  * Sums the balances of all linked accounts and emits whenever any
  * account balance changes or the list of accounts changes.
+ *
+ * @deprecated Use observeGoalTransactionProgress for transaction-based progress.
  */
 export const observeGoalProgress = (
   accountIds: string[],
@@ -298,3 +298,71 @@ export const observeGoalProgress = (
       ),
     )
 }
+
+/* ------------------------------------------------------------------ */
+/* Transaction-based progress                                         */
+/* ------------------------------------------------------------------ */
+
+const getTransactionCollection = () =>
+  database.get<TransactionModel>("transactions")
+
+/**
+ * Observe goal progress from linked transactions.
+ * For savings goals: sums income transaction amounts.
+ * For expense goals: sums expense transaction amounts.
+ */
+export const observeGoalTransactionProgress = (
+  goalId: string,
+  goalType: GoalType,
+): Observable<number> => {
+  const typeFilter = goalType === "expense" ? "expense" : "income"
+  return getTransactionCollection()
+    .query(
+      Q.where("goal_id", goalId),
+      Q.where("type", typeFilter),
+      Q.where("is_deleted", false),
+      Q.where("is_pending", false),
+    )
+    .observeWithColumns([
+      "amount",
+      "type",
+      "is_deleted",
+      "is_pending",
+      "goal_id",
+    ])
+    .pipe(map((txs) => txs.reduce((sum, tx) => sum + tx.amount, 0)))
+}
+
+/**
+ * Observe transactions linked to a goal (for goal detail page).
+ */
+export const observeGoalTransactions = (
+  goalId: string,
+): Observable<TransactionModel[]> =>
+  getTransactionCollection()
+    .query(
+      Q.where("goal_id", goalId),
+      Q.where("is_deleted", false),
+      Q.sortBy("transaction_date", Q.desc),
+    )
+    .observeWithColumns([
+      "title",
+      "transaction_date",
+      "amount",
+      "type",
+      "is_deleted",
+      "goal_id",
+    ])
+
+/**
+ * Observe active goals filtered by goal type (for transaction form picker).
+ * Maps income transactions → savings goals, expense transactions → expense goals.
+ */
+export const observeGoalsByType = (goalType: GoalType): Observable<Goal[]> =>
+  toGoalsObservable(
+    getGoalCollection().query(
+      Q.where("is_archived", false),
+      Q.where("goal_type", goalType),
+      Q.sortBy("name", Q.asc),
+    ),
+  )

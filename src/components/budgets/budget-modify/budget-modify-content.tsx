@@ -1,8 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod"
+import type { DateTimePickerEvent } from "@react-native-community/datetimepicker"
+import DateTimePicker from "@react-native-community/datetimepicker"
 import { useNavigation, useRouter } from "expo-router"
 import { useCallback, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
+import { Modal, Platform } from "react-native"
+import { useUnistyles } from "react-native-unistyles"
 
 import { ChangeIconInline } from "~/components/change-icon-inline"
 import { ColorVariantInline } from "~/components/color-variant-inline"
@@ -13,13 +17,16 @@ import { Button } from "~/components/ui/button"
 import { Chip } from "~/components/ui/chips"
 import { IconSvg } from "~/components/ui/icon-svg"
 import { Input } from "~/components/ui/input"
+import { Pressable } from "~/components/ui/pressable"
 import { Separator } from "~/components/ui/separator"
+import { Switch } from "~/components/ui/switch"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import { ScrollIntoViewProvider } from "~/contexts/scroll-into-view-context"
 import {
   createBudget,
   destroyBudget,
+  duplicateBudget,
   updateBudget,
 } from "~/database/services/budget-service"
 import { useNavigationGuard } from "~/hooks/use-navigation-guard"
@@ -39,13 +46,17 @@ import { BudgetFormModals } from "./budget-form-modals"
 import { budgetModifyStyles } from "./budget-modify.styles"
 import type { BudgetModifyContentProps } from "./types"
 
-// Period options for the chips selector
+// Period options for the chips selector — custom is last
 const PERIOD_OPTIONS = [
   BudgetPeriodEnum.DAILY,
   BudgetPeriodEnum.WEEKLY,
   BudgetPeriodEnum.MONTHLY,
   BudgetPeriodEnum.YEARLY,
+  BudgetPeriodEnum.CUSTOM,
 ] as const
+
+// Which field this date picker controls
+type DatePickerField = "startDate" | "endDate"
 
 export function BudgetModifyContent({
   budgetModifyId,
@@ -56,6 +67,7 @@ export function BudgetModifyContent({
 }: BudgetModifyContentProps) {
   const { t } = useTranslation()
   const router = useRouter()
+  const { theme } = useUnistyles()
 
   const isAddMode = budgetModifyId === NewEnum.NEW || !budgetModifyId
 
@@ -95,6 +107,8 @@ export function BudgetModifyContent({
   const watchedPeriod = watch("period")
   const watchedCategoryIds = watch("categoryIds")
   const watchedAlertThreshold = watch("alertThreshold")
+  const watchedStartDate = watch("startDate")
+  const watchedEndDate = watch("endDate")
 
   const navigation = useNavigation()
   const [unsavedModalVisible, setUnsavedModalVisible] = useState(false)
@@ -106,6 +120,11 @@ export function BudgetModifyContent({
   })
 
   const [deleteModalVisible, setDeleteModalVisible] = useState(false)
+
+  // Date picker state — tracks which field is being edited and temp value
+  const [datePickerField, setDatePickerField] =
+    useState<DatePickerField | null>(null)
+  const [tempDate, setTempDate] = useState<Date>(new Date())
 
   const onSubmit = async (data: AddBudgetFormSchema) => {
     const trimmedName = data.name.trim()
@@ -120,9 +139,7 @@ export function BudgetModifyContent({
         if (!budgetModel) {
           Toast.error({
             title: t("common.toast.error"),
-            description: t(
-              "screens.settings.budgets.form.toast.notFound" as TranslationKey,
-            ),
+            description: t("screens.settings.budgets.form.toast.notFound"),
           })
           return
         }
@@ -138,8 +155,8 @@ export function BudgetModifyContent({
         title: t("common.toast.error"),
         description: t(
           isAddMode
-            ? ("screens.settings.budgets.form.toast.createFailed" as TranslationKey)
-            : ("screens.settings.budgets.form.toast.updateFailed" as TranslationKey),
+            ? "screens.settings.budgets.form.toast.createFailed"
+            : "screens.settings.budgets.form.toast.updateFailed",
         ),
       })
     }
@@ -152,9 +169,7 @@ export function BudgetModifyContent({
       if (!budgetModel || !budget) {
         Toast.error({
           title: t("common.toast.error"),
-          description: t(
-            "screens.settings.budgets.form.toast.notFound" as TranslationKey,
-          ),
+          description: t("screens.settings.budgets.form.toast.notFound"),
         })
         return
       }
@@ -167,10 +182,31 @@ export function BudgetModifyContent({
       logger.error("Error deleting budget", { error })
       Toast.error({
         title: t("common.toast.error"),
-        description: t(
-          "screens.settings.budgets.form.toast.deleteFailed" as TranslationKey,
-        ),
+        description: t("screens.settings.budgets.form.toast.deleteFailed"),
       })
+    }
+  }
+
+  const handleDuplicate = async () => {
+    try {
+      if (!budget) {
+        Toast.error({
+          title: t("common.toast.error"),
+          description: t("screens.settings.budgets.form.toast.notFound"),
+        })
+        return
+      }
+
+      await duplicateBudget(budget)
+
+      Toast.success({
+        title: t("screens.settings.budgets.form.duplicateSuccess"),
+      })
+      allowNavigation()
+      router.back()
+    } catch (error) {
+      logger.error("Error duplicating budget", { error })
+      Toast.error({ title: t("common.toast.error") })
     }
   }
 
@@ -186,14 +222,71 @@ export function BudgetModifyContent({
     setValue("colorSchemeName", undefined, { shouldDirty: true })
   }
 
+  // Open a date picker for the given field — seed temp date from current value
+  const handleOpenDatePicker = (field: DatePickerField) => {
+    const currentTs = field === "startDate" ? watchedStartDate : watchedEndDate
+    setTempDate(currentTs ? new Date(currentTs) : new Date())
+    setDatePickerField(field)
+  }
+
+  const handleDatePickerChange = (_evt: DateTimePickerEvent, date?: Date) => {
+    if (date) {
+      if (Platform.OS === "android") {
+        // Android resolves immediately; commit and close
+        if (datePickerField === "startDate") {
+          setValue("startDate", date.getTime(), { shouldDirty: true })
+        } else if (datePickerField === "endDate") {
+          setValue("endDate", date.getTime(), { shouldDirty: true })
+        }
+        setDatePickerField(null)
+      } else {
+        // iOS — update temp until the user taps Done
+        setTempDate(date)
+      }
+    } else if (Platform.OS === "android") {
+      // User dismissed Android picker without a selection
+      setDatePickerField(null)
+    }
+  }
+
+  const handleDatePickerConfirm = () => {
+    if (datePickerField === "startDate") {
+      setValue("startDate", tempDate.getTime(), { shouldDirty: true })
+    } else if (datePickerField === "endDate") {
+      setValue("endDate", tempDate.getTime(), { shouldDirty: true })
+    }
+    setDatePickerField(null)
+  }
+
+  const handleDatePickerCancel = () => {
+    setDatePickerField(null)
+  }
+
   const currentColorScheme = getThemeStrict(formColorSchemeName)
+
+  // Formatted display strings for the date rows
+  const formattedStartDate = watchedStartDate
+    ? new Date(watchedStartDate).toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })
+    : null
+
+  const formattedEndDate = watchedEndDate
+    ? new Date(watchedEndDate).toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })
+    : null
 
   if (!isAddMode && !budget) {
     return (
       <View style={budgetModifyStyles.container}>
         <View style={budgetModifyStyles.loadingContainer}>
           <Text variant="default">
-            {t("screens.settings.budgets.form.loadingText" as TranslationKey)}
+            {t("screens.settings.budgets.form.loadingText")}
           </Text>
         </View>
       </View>
@@ -217,7 +310,7 @@ export function BudgetModifyContent({
           {/* Name section */}
           <View style={budgetModifyStyles.nameSection}>
             <Text variant="small" style={budgetModifyStyles.label}>
-              {t("screens.settings.budgets.form.nameLabel" as TranslationKey)}
+              {t("screens.settings.budgets.form.nameLabel")}
             </Text>
             <Controller
               control={control}
@@ -228,7 +321,7 @@ export function BudgetModifyContent({
                   onChangeText={onChange}
                   onBlur={onBlur}
                   placeholder={t(
-                    "screens.settings.budgets.form.namePlaceholder" as TranslationKey,
+                    "screens.settings.budgets.form.namePlaceholder",
                   )}
                   error={!!errors.name}
                 />
@@ -241,15 +334,8 @@ export function BudgetModifyContent({
             )}
           </View>
 
-          {/* Settings list: color, currency/accounts, period, category, amount, alert threshold */}
+          {/* Settings list: currency/accounts, amount, category, color, period, date pickers, isActive, alert threshold */}
           <View style={budgetModifyStyles.settingsList}>
-            {/* Color selector */}
-            <ColorVariantInline
-              selectedSchemeName={formColorSchemeName ?? undefined}
-              onColorSelected={handleColorSelected}
-              onClearSelection={handleColorCleared}
-            />
-
             {/* Currency + Accounts selector */}
             <CurrencyAccountSelector
               accounts={accounts}
@@ -261,39 +347,6 @@ export function BudgetModifyContent({
               onAccountIdsChange={(ids) =>
                 setValue("accountIds", ids, { shouldDirty: true })
               }
-            />
-
-            {/* Period chips row */}
-            <View style={budgetModifyStyles.periodSection}>
-              <Text variant="small" style={budgetModifyStyles.periodLabel}>
-                {t(
-                  "screens.settings.budgets.form.periodLabel" as TranslationKey,
-                )}
-              </Text>
-              <View style={budgetModifyStyles.periodChipsRow}>
-                {PERIOD_OPTIONS.map((period) => (
-                  <Chip
-                    key={period}
-                    label={t(
-                      `screens.settings.budgets.periods.${period}` as TranslationKey,
-                    )}
-                    selected={watchedPeriod === period}
-                    onPress={() =>
-                      setValue("period", period, { shouldDirty: true })
-                    }
-                  />
-                ))}
-              </View>
-            </View>
-
-            {/* Category picker row */}
-            <InlineCategoryPicker
-              categories={categories}
-              selectedIds={watchedCategoryIds}
-              onSelectionChange={(ids) =>
-                setValue("categoryIds", ids, { shouldDirty: true })
-              }
-              label={t("screens.settings.budgets.form.categoryLabel")}
             />
 
             {/* Amount input */}
@@ -317,12 +370,102 @@ export function BudgetModifyContent({
               />
             </View>
 
+            {/* Category picker row */}
+            <InlineCategoryPicker
+              categories={categories}
+              selectedIds={watchedCategoryIds}
+              onSelectionChange={(ids) =>
+                setValue("categoryIds", ids, { shouldDirty: true })
+              }
+              label={t("screens.settings.budgets.form.categoryLabel")}
+            />
+
+            {/* Color selector */}
+            <ColorVariantInline
+              selectedSchemeName={formColorSchemeName ?? undefined}
+              onColorSelected={handleColorSelected}
+              onClearSelection={handleColorCleared}
+            />
+
+            {/* Period chips row */}
+            <View style={budgetModifyStyles.periodSection}>
+              <Text variant="small" style={budgetModifyStyles.periodLabel}>
+                {t("screens.settings.budgets.form.periodLabel")}
+              </Text>
+              <View style={budgetModifyStyles.periodChipsRow}>
+                {PERIOD_OPTIONS.map((period) => (
+                  <Chip
+                    key={period}
+                    label={t(`screens.settings.budgets.periods.${period}`)}
+                    selected={watchedPeriod === period}
+                    onPress={() =>
+                      setValue("period", period, { shouldDirty: true })
+                    }
+                  />
+                ))}
+              </View>
+            </View>
+
+            {/* Custom period date pickers — only shown when period === 'custom' */}
+            {watchedPeriod === BudgetPeriodEnum.CUSTOM && (
+              <>
+                {/* Start Date row */}
+                <Pressable
+                  style={budgetModifyStyles.switchRow}
+                  onPress={() => handleOpenDatePicker("startDate")}
+                  accessibilityRole="button"
+                >
+                  <View style={budgetModifyStyles.switchLeft}>
+                    <IconSvg name="calendar" size={24} />
+                    <Text
+                      variant="default"
+                      style={budgetModifyStyles.switchLabel}
+                    >
+                      {t("screens.settings.budgets.form.startDateLabel")}
+                    </Text>
+                  </View>
+                  <Text
+                    variant="default"
+                    style={budgetModifyStyles.switchLabel}
+                  >
+                    {formattedStartDate ?? "—"}
+                  </Text>
+                </Pressable>
+
+                {/* End Date row */}
+                <Pressable
+                  style={budgetModifyStyles.switchRow}
+                  onPress={() => handleOpenDatePicker("endDate")}
+                  accessibilityRole="button"
+                >
+                  <View style={budgetModifyStyles.switchLeft}>
+                    <IconSvg name="calendar" size={24} />
+                    <Text
+                      variant="default"
+                      style={budgetModifyStyles.switchLabel}
+                    >
+                      {t("screens.settings.budgets.form.endDateLabel")}
+                    </Text>
+                  </View>
+                  <Text
+                    variant="default"
+                    style={budgetModifyStyles.switchLabel}
+                  >
+                    {formattedEndDate ?? "—"}
+                  </Text>
+                </Pressable>
+                {errors.endDate && (
+                  <Text variant="small" style={budgetModifyStyles.errorText}>
+                    {t(errors.endDate.message as TranslationKey)}
+                  </Text>
+                )}
+              </>
+            )}
+
             {/* Alert threshold input (optional %) */}
             <View style={budgetModifyStyles.amountSection}>
               <Text variant="small" style={budgetModifyStyles.label}>
-                {t(
-                  "screens.settings.budgets.form.alertThresholdLabel" as TranslationKey,
-                )}
+                {t("screens.settings.budgets.form.alertThresholdLabel")}
               </Text>
               <Controller
                 control={control}
@@ -355,12 +498,29 @@ export function BudgetModifyContent({
                 </Text>
               )}
             </View>
+
+            {/* isActive toggle row */}
+            <View style={budgetModifyStyles.switchRow}>
+              <View style={budgetModifyStyles.switchLeft}>
+                <IconSvg name="circle-dot" size={24} />
+                <Text variant="default" style={budgetModifyStyles.switchLabel}>
+                  {t("screens.settings.budgets.form.isActiveLabel")}
+                </Text>
+              </View>
+              <Controller
+                control={control}
+                name="isActive"
+                render={({ field: { onChange, value } }) => (
+                  <Switch value={value} onValueChange={onChange} />
+                )}
+              />
+            </View>
           </View>
 
-          <Separator />
+          {!isAddMode && <Separator />}
         </View>
 
-        {/* Delete button (edit mode only) */}
+        {/* Delete + Duplicate buttons (edit mode only) */}
         {!isAddMode && (
           <View style={budgetModifyStyles.deleteSection}>
             <Button
@@ -374,9 +534,21 @@ export function BudgetModifyContent({
                 color={budgetModifyStyles.deleteIcon.color}
               />
               <Text variant="default" style={budgetModifyStyles.deleteText}>
-                {t(
-                  "screens.settings.budgets.form.deleteLabel" as TranslationKey,
-                )}
+                {t("screens.settings.budgets.form.deleteLabel")}
+              </Text>
+            </Button>
+            <Button
+              variant="ghost"
+              onPress={handleDuplicate}
+              style={budgetModifyStyles.actionButton}
+            >
+              <IconSvg
+                name="copy"
+                size={20}
+                color={budgetModifyStyles.switchLabel.color}
+              />
+              <Text variant="default" style={budgetModifyStyles.switchLabel}>
+                {t("screens.settings.budgets.form.duplicateLabel")}
               </Text>
             </Button>
           </View>
@@ -405,6 +577,81 @@ export function BudgetModifyContent({
           confirmNavigation()
         }}
       />
+
+      {/* iOS date picker — slide-up modal sheet, same pattern as goal form */}
+      {Platform.OS === "ios" && datePickerField !== null && (
+        <Modal
+          visible
+          transparent
+          animationType="slide"
+          onRequestClose={handleDatePickerCancel}
+          accessibilityViewIsModal
+        >
+          <Pressable
+            style={budgetModifyStyles.datePickerOverlay}
+            onPress={handleDatePickerCancel}
+          />
+          <View
+            style={[
+              budgetModifyStyles.datePickerModal,
+              { backgroundColor: theme.colors.surface },
+            ]}
+          >
+            <View
+              style={[
+                budgetModifyStyles.datePickerHeader,
+                { borderBottomColor: `${theme.colors.onSurface}20` },
+              ]}
+            >
+              <Pressable
+                onPress={handleDatePickerCancel}
+                style={budgetModifyStyles.datePickerCancel}
+              >
+                <Text
+                  style={[
+                    budgetModifyStyles.datePickerCancelText,
+                    { color: theme.colors.onSurface },
+                  ]}
+                >
+                  {t("common.actions.cancel")}
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={handleDatePickerConfirm}
+                style={budgetModifyStyles.datePickerDone}
+              >
+                <Text
+                  style={[
+                    budgetModifyStyles.datePickerDoneText,
+                    { color: theme.colors.primary },
+                  ]}
+                >
+                  {t("common.actions.done")}
+                </Text>
+              </Pressable>
+            </View>
+            <View style={budgetModifyStyles.datePickerBody}>
+              <DateTimePicker
+                value={tempDate}
+                mode="date"
+                display="spinner"
+                onChange={handleDatePickerChange}
+                textColor={theme.colors.onSurface}
+              />
+            </View>
+          </View>
+        </Modal>
+      )}
+
+      {/* Android inline date picker */}
+      {Platform.OS === "android" && datePickerField !== null && (
+        <DateTimePicker
+          value={tempDate}
+          mode="date"
+          display="default"
+          onChange={handleDatePickerChange}
+        />
+      )}
     </View>
   )
 }

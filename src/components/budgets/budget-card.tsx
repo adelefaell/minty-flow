@@ -1,10 +1,11 @@
 import { withObservables } from "@nozbe/watermelondb/react"
-import { useEffect, useRef } from "react"
+import { useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { View as RNView } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 
 import { DynamicIcon } from "~/components/dynamic-icon"
+import { Money } from "~/components/money"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
@@ -12,7 +13,12 @@ import { observeBudgetSpent } from "~/database/services/budget-service"
 import { observeCategoryNamesByIds } from "~/database/services/category-service"
 import type { TranslationKey } from "~/i18n/config"
 import type { Budget } from "~/types/budgets"
+import { formatCustomPeriodRange } from "~/utils/time-utils"
 import { Toast } from "~/utils/toast"
+
+// Tracks which budget IDs have already fired an alert this app session.
+// Module-level so it survives component unmount/remount caused by navigation.
+const alertedBudgetIds = new Set<string>()
 
 interface BudgetCardInnerProps {
   budget: Budget
@@ -37,21 +43,19 @@ function BudgetCardInner({
   const spent = spentAmount
   const limit = budget.amount
 
-  const hasAlertedRef = useRef(false)
-
   useEffect(() => {
-    if (!budget.alertThreshold || hasAlertedRef.current || limit <= 0) return
+    if (!budget.alertThreshold || alertedBudgetIds.has(budget.id) || limit <= 0)
+      return
     if (spent / limit >= budget.alertThreshold / 100) {
-      hasAlertedRef.current = true
+      alertedBudgetIds.add(budget.id)
       Toast.show({
         type: "info",
         title: budget.name,
-        description: t(
-          "screens.settings.budgets.card.alertThresholdReached" as TranslationKey,
-        ),
+        description: t("screens.settings.budgets.card.alertThresholdReached"),
       })
     }
-  }, [spent, limit, budget.alertThreshold, budget.name, t])
+  }, [spent, limit, budget.id, budget.alertThreshold, budget.name, t])
+
   const ratio = limit > 0 ? Math.min(spent / limit, 1) : 0
   const isOverBudget = spent > limit
   const remaining = limit - spent
@@ -60,11 +64,10 @@ function BudgetCardInner({
     ? theme.colors.customColors.expense
     : theme.colors.primary
 
-  const periodKey =
-    `screens.settings.budgets.periods.${budget.period}` as TranslationKey
-
-  const formatAmount = (amount: number) =>
-    `${budget.currencyCode} ${Math.abs(amount).toFixed(2)}`
+  const periodLabel =
+    budget.period === "custom"
+      ? formatCustomPeriodRange(budget.startDate, budget.endDate)
+      : t(`screens.settings.budgets.periods.${budget.period}` as TranslationKey)
 
   return (
     <Pressable style={styles.card} onPress={onPress} accessibilityRole="button">
@@ -87,18 +90,24 @@ function BudgetCardInner({
             >
               {categoryNames.length > 0
                 ? categoryNames.join(", ")
-                : t(
-                    "screens.settings.budgets.card.noCategory" as TranslationKey,
-                  )}
+                : t("screens.settings.budgets.card.noCategory")}
             </Text>
           </View>
         </View>
         <View style={styles.row1Right}>
-          <View style={styles.periodBadge}>
-            <Text variant="small" style={styles.periodText}>
-              {t(periodKey)}
-            </Text>
-          </View>
+          {budget.isActive ? (
+            <View style={styles.periodBadge}>
+              <Text variant="small" style={styles.periodText}>
+                {periodLabel}
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.disabledBadge}>
+              <Text variant="small" style={styles.disabledText}>
+                {t("screens.settings.budgets.card.disabled")}
+              </Text>
+            </View>
+          )}
         </View>
       </View>
 
@@ -118,7 +127,22 @@ function BudgetCardInner({
       {/* Row 3: spent label and remaining label */}
       <View style={styles.row3}>
         <Text variant="small" style={styles.spentLabel}>
-          {`${t("screens.settings.budgets.card.spent" as TranslationKey)}: ${formatAmount(spent)} ${t("screens.settings.budgets.card.of" as TranslationKey)} ${formatAmount(limit)}`}
+          {t("screens.settings.budgets.card.spent")}:{" "}
+          <Money
+            value={spent}
+            currency={budget.currencyCode}
+            variant="small"
+            tone="transfer"
+            hideSign
+          />{" "}
+          {t("screens.settings.budgets.card.of")}{" "}
+          <Money
+            value={limit}
+            currency={budget.currencyCode}
+            variant="small"
+            tone="transfer"
+            hideSign
+          />
         </Text>
         <Text
           variant="small"
@@ -127,9 +151,29 @@ function BudgetCardInner({
             isOverBudget && { color: theme.colors.customColors.expense },
           ]}
         >
-          {isOverBudget
-            ? `${t("screens.settings.budgets.card.overBudget" as TranslationKey)} ${formatAmount(Math.abs(remaining))}`
-            : `${formatAmount(remaining)} ${t("screens.settings.budgets.card.remaining" as TranslationKey)}`}
+          {isOverBudget ? (
+            <>
+              {t("screens.settings.budgets.card.overBudget")}{" "}
+              <Money
+                value={Math.abs(remaining)}
+                currency={budget.currencyCode}
+                variant="small"
+                tone="transfer"
+                hideSign
+              />
+            </>
+          ) : (
+            <>
+              <Money
+                value={remaining}
+                currency={budget.currencyCode}
+                variant="small"
+                tone="transfer"
+                hideSign
+              />{" "}
+              {t("screens.settings.budgets.card.remaining")}
+            </>
+          )}
         </Text>
       </View>
     </Pressable>
@@ -152,11 +196,13 @@ export const BudgetCard = withObservables(
 
 const styles = StyleSheet.create((t) => ({
   card: {
-    backgroundColor: t.colors.secondary,
+    backgroundColor: t.colors.surface,
     borderRadius: t.radius,
-    padding: 16,
+    borderWidth: 1,
+    borderColor: t.colors.customColors.semi,
+    padding: 14,
     marginBottom: 12,
-    gap: 12,
+    gap: 10,
   },
   row1: {
     flexDirection: "row",
@@ -192,19 +238,30 @@ const styles = StyleSheet.create((t) => ({
     flexShrink: 0,
   },
   periodBadge: {
-    backgroundColor: t.colors.surface,
+    backgroundColor: t.colors.secondary,
     borderRadius: t.radius,
     paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingVertical: 3,
   },
   periodText: {
-    fontSize: 11,
+    fontSize: 10,
+    color: t.colors.onSecondary,
+    fontWeight: "600",
+  },
+  disabledBadge: {
+    backgroundColor: t.colors.secondary,
+    borderRadius: t.radius,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  disabledText: {
+    fontSize: 10,
     color: t.colors.onSecondary,
     fontWeight: "600",
   },
   progressTrack: {
     height: 6,
-    backgroundColor: t.colors.surface,
+    backgroundColor: t.colors.secondary,
     borderRadius: 3,
     overflow: "hidden",
   },
@@ -224,9 +281,8 @@ const styles = StyleSheet.create((t) => ({
     flex: 1,
   },
   remainingLabel: {
-    color: t.colors.primary,
+    color: t.colors.onSecondary,
     fontSize: 12,
-    fontWeight: "600",
-    textAlign: "right",
+    flexShrink: 0,
   },
 }))

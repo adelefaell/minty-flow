@@ -12,15 +12,14 @@ export const modelToGoal = (model: GoalModel, accountIds: string[]): Goal => {
   return {
     id: model.id,
     name: model.name,
+    goalType: model.goalType || "savings",
     description: model.description,
     targetAmount: model.targetAmount,
-    currentAmount: model.currentAmount,
     currencyCode: model.currencyCode,
     targetDate: model.targetDate,
     icon: model.icon,
     colorSchemeName: model.colorSchemeName,
     colorScheme: model.colorScheme, // Computed getter from model
-    isCompleted: model.isCompleted,
     isArchived: model.isArchived,
     accountIds,
     createdAt: model.createdAt,

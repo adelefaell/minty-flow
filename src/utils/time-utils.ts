@@ -271,3 +271,13 @@ export function formatDayYear(date: DateInput): string {
 export function formatShortMonthDayYear(date: DateInput): string {
   return formatWithPattern(date, FORMAT.SHORT_MONTH_DAY_YEAR)
 }
+
+/** Budget custom period range label (e.g. "Jan 15 – Feb 28"), locale-aware. */
+export function formatCustomPeriodRange(
+  startDate: Date,
+  endDate: Date | null,
+): string {
+  const start = formatShortMonthDay(startDate)
+  const end = endDate ? formatShortMonthDay(endDate) : "?"
+  return `${start} – ${end}`
+}

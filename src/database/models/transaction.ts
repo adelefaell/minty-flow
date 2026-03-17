@@ -56,6 +56,12 @@ export default class TransactionModel extends Model implements Transaction {
   /** Set when this transaction is an instance of a recurring template. Indexed for fast "all instances of recurrence X" queries. */
   @field("recurring_id") recurringId!: string | null
 
+  /** Optional link to a goal this transaction contributes to. */
+  @field("goal_id") goalId!: string | null
+
+  /** Optional link to a budget this transaction counts against. */
+  @field("budget_id") budgetId!: string | null
+
   @field("location") private locationJson!: string | null
 
   @date("created_at") createdAt!: Date

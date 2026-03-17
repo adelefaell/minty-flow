@@ -233,6 +233,12 @@ const buildTransactionQuery = (filters?: TransactionListFilters) => {
       Q.on("transaction_tags", Q.where("tag_id", Q.oneOf(filters.tagIds))),
     )
   }
+  if (filters?.goalId) {
+    query = query.extend(Q.where("goal_id", filters.goalId))
+  }
+  if (filters?.budgetId) {
+    query = query.extend(Q.where("budget_id", filters.budgetId))
+  }
   if (filters?.attachmentFilter === "has") {
     query = query.extend(Q.where("has_attachments", true))
   } else if (filters?.attachmentFilter === "none") {
@@ -439,6 +445,8 @@ const TRANSACTION_OBSERVE_COLUMNS = [
   "is_transfer",
   "transfer_id",
   "related_account_id",
+  "goal_id",
+  "budget_id",
 ] as const
 
 export const observeTransactionModels = (
@@ -536,6 +544,8 @@ export const createTransactionModel = async (
       t.hasAttachments = hasAttachmentsFromExtra(data.extra ?? null)
       t.subtype = data.subtype ?? null
       t.location = data.location ?? null
+      t.goalId = data.goalId ?? null
+      t.budgetId = data.budgetId ?? null
       // Transfer link fields: single-row (income/expense or legacy transfer) have no pair
       t.isTransfer = data.type === TransactionTypeEnum.TRANSFER
       t.transferId = null
@@ -637,6 +647,12 @@ export const updateTransactionModel = async (
       }
       if (updates.recurringId !== undefined) {
         t.recurringId = updates.recurringId ?? null
+      }
+      if (updates.goalId !== undefined) {
+        t.goalId = updates.goalId ?? null
+      }
+      if (updates.budgetId !== undefined) {
+        t.budgetId = updates.budgetId ?? null
       }
     })
 

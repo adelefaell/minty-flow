@@ -98,8 +98,7 @@ export const transactionFormStyles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingLeft: H_PAD,
-    paddingRight: H_PAD + 8,
+    paddingHorizontal: H_PAD,
     marginBottom: SECTION_GAP,
   },
   sectionLabelInRow: {
@@ -306,7 +305,7 @@ export const transactionFormStyles = StyleSheet.create((theme) => ({
     marginBottom: SECTION_GAP,
   },
   pickerList: {
-    height: 180,
+    // height: 180,
   },
   pickerListContent: {
     // paddingRight: CARD_PAD,
@@ -355,37 +354,24 @@ export const transactionFormStyles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     alignItems: "center",
     alignSelf: "flex-start",
-    gap: SECTION_GAP,
-    paddingVertical: TRIGGER_PAD,
-    paddingHorizontal: TRIGGER_PAD,
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     borderRadius: theme.radius,
-    borderWidth: 2,
-    borderColor: "transparent",
-  },
-  tagChip: {
-    backgroundColor: theme.colors.secondary,
-    borderColor: theme.colors.primary,
-  },
-  tagPickerChip: {
-    backgroundColor: theme.colors.secondary,
-  },
-  tagChipText: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: theme.colors.onSurface,
-  },
-  tagChipRemoveIcon: {
-    color: theme.colors.customColors.semi,
+    borderWidth: 1,
+    borderColor: theme.colors.customColors.semi,
   },
   tagChipAdd: {
     borderStyle: "dashed",
     borderColor: theme.colors.primary,
+    backgroundColor: "transparent",
   },
   tagChipCancel: {
     borderColor: theme.colors.customColors.semi,
+    backgroundColor: "transparent",
   },
   tagChipAddText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: "500",
     color: theme.colors.primary,
   },
