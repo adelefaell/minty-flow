@@ -77,6 +77,8 @@ export interface Transaction {
 
   categoryId: string | null
   accountId: string
+  goalId: string | null
+  budgetId: string | null
   location: string | null
   createdAt: Date
   updatedAt: Date
@@ -117,6 +119,10 @@ export interface TransactionListFilters {
   maxAmount?: number
   /** When set and non-empty, only transactions that have at least one of these tags (DB join). */
   tagIds?: string[]
+  /** When set, filter to transactions linked to this goal. */
+  goalId?: string
+  /** When set, filter to transactions linked to this budget. */
+  budgetId?: string
   /** Filter by attachment presence (DB column has_attachments). */
   attachmentFilter?: "all" | "has" | "none"
 }

@@ -200,7 +200,7 @@ export function buildTransactionSections(
   groupBy: GroupByOption,
 ): TransactionSection[] {
   if (list.length === 0) {
-    return [{ title: "", data: [], totals: {} }]
+    return []
   }
 
   const sortedList = [...list].sort((a, b) => {

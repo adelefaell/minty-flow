@@ -1,7 +1,9 @@
 import type { RecurringEditPayload } from "~/components/transaction/edit-recurring-modal"
 import type TransactionModel from "~/database/models/transaction"
 import type { Account } from "~/types/accounts"
+import type { Budget } from "~/types/budgets"
 import type { Category } from "~/types/categories"
+import type { Goal } from "~/types/goals"
 import type { Tag } from "~/types/tags"
 import type {
   RecurringFrequency,
@@ -16,6 +18,8 @@ export interface TransactionFormV3Props {
   accounts: Account[]
   categories: Category[]
   tags: Tag[]
+  goals: Goal[]
+  budgets: Budget[]
   transactionType: TransactionType
   onTransactionTypeChange: (type: TransactionType) => void
   initialTagIds?: string[]

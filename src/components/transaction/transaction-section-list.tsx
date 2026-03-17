@@ -22,7 +22,7 @@ import { StyleSheet } from "react-native-unistyles"
 import { Money } from "~/components/money"
 import { TransactionItem } from "~/components/transaction/transaction-item"
 import { UpcomingTransactionsSection } from "~/components/transaction/upcoming-transactions-section"
-import { IconSvg } from "~/components/ui/icon-svg"
+import { EmptyState } from "~/components/ui/empty-state"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import type { TransactionWithRelations } from "~/database/services/transaction-service"
@@ -118,14 +118,12 @@ export function TransactionSectionList({
 
   const renderEmptyList = useCallback(
     () => (
-      <View style={styles.emptyState}>
-        <IconSvg name="wallet" size={48} style={styles.emptyIcon} />
-        <Text variant="default" style={styles.emptyTitle}>
-          {t("screens.home.emptyState.title")}
-        </Text>
-        <Text variant="small" style={styles.emptySubtitle}>
-          {t("components.transactionList.emptyDescription")}
-        </Text>
+      <View style={styles.emptyStateWrapper}>
+        <EmptyState
+          icon="receipt"
+          title={t("screens.home.emptyState.title")}
+          description={t("components.transactionList.emptyDescription")}
+        />
       </View>
     ),
     [t],
@@ -213,23 +211,8 @@ const styles = StyleSheet.create((theme) => ({
     paddingBottom: 120,
     flexGrow: 1,
   },
-  emptyState: {
-    paddingVertical: 48,
-    paddingHorizontal: 24,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  emptyIcon: {
-    opacity: 0.5,
-    marginBottom: 16,
-  },
-  emptyTitle: {
-    fontWeight: "600",
-    marginBottom: 8,
-  },
-  emptySubtitle: {
-    color: theme.colors.onSecondary,
-    textAlign: "center",
+  emptyStateWrapper: {
+    paddingHorizontal: 20,
   },
   sectionHeader: {
     paddingHorizontal: 20,

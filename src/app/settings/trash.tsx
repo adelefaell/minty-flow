@@ -223,10 +223,12 @@ function TrashScreenInner({
           transactionsFull.length === 0 && styles.contentEmpty,
         ]}
         ListEmptyComponent={
-          <EmptyState
-            icon="trash-off"
-            title={t("screens.settings.trash.empty.noTransactions")}
-          />
+          <View style={styles.emptyStateWrapper}>
+            <EmptyState
+              icon="trash-off"
+              title={t("screens.settings.trash.empty.noTransactions")}
+            />
+          </View>
         }
         data={transactionsFull}
         keyExtractor={keyExtractor}
@@ -335,5 +337,8 @@ const styles = StyleSheet.create((theme) => ({
   },
   contentEmpty: {
     flexGrow: 1,
+  },
+  emptyStateWrapper: {
+    marginHorizontal: 20,
   },
 }))

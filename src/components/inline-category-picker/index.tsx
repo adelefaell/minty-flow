@@ -4,7 +4,9 @@
  * Trigger row toggles a wrapping grid panel — same cell style as FormCategoryPicker.
  */
 
+import { useRouter } from "expo-router"
 import { useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -16,6 +18,7 @@ import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import { getThemeStrict } from "~/styles/theme/registry"
 import type { Category } from "~/types/categories"
+import { NewEnum } from "~/types/new"
 
 import { Button } from "../ui/button"
 
@@ -43,6 +46,15 @@ export function InlineCategoryPicker({
   icon = "category",
 }: InlineCategoryPickerProps) {
   const [open, setOpen] = useState(false)
+  const { t } = useTranslation()
+  const router = useRouter()
+
+  const handleCreateCategory = () => {
+    router.push({
+      pathname: "/settings/categories/[categoryId]/modify",
+      params: { categoryId: NewEnum.NEW },
+    })
+  }
 
   const selectedNames = useMemo(() => {
     return selectedIds.length
@@ -93,16 +105,35 @@ export function InlineCategoryPicker({
       </Pressable>
 
       {/* ---- Grid panel ---- */}
-      {open && (
-        <ScrollView
-          style={styles.gridScroll}
-          contentContainerStyle={styles.gridContent}
-          nestedScrollEnabled
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Select all / Deselect all */}
-          {categories.length > 0 && (
+      {open &&
+        (categories.length === 0 ? (
+          <View style={styles.emptyPanel}>
+            <Text style={styles.emptyText}>
+              {t("components.inlineCategoryPicker.noCategories")}
+            </Text>
+            <Pressable
+              style={styles.createButton}
+              onPress={handleCreateCategory}
+            >
+              <IconSvg
+                name="plus"
+                size={16}
+                color={styles.createButtonIcon.color}
+              />
+              <Text style={styles.createButtonText}>
+                {t("components.inlineCategoryPicker.createCategory")}
+              </Text>
+            </Pressable>
+          </View>
+        ) : (
+          <ScrollView
+            style={styles.gridScroll}
+            contentContainerStyle={styles.gridContent}
+            nestedScrollEnabled
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Select all / Deselect all */}
             <Button
               variant="ghost"
               style={styles.selectAllRow}
@@ -114,35 +145,34 @@ export function InlineCategoryPicker({
                 {allSelected ? "Deselect all" : "Select all"}
               </Text>
             </Button>
-          )}
 
-          {/* Category grid */}
-          <View style={styles.grid}>
-            {categories.map((category) => {
-              const isSelected = selectedIds.includes(category.id)
-              return (
-                <Pressable
-                  key={category.id}
-                  style={[styles.cell, isSelected && styles.cellSelected]}
-                  onPress={() => toggleItem(category.id)}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: isSelected }}
-                >
-                  <DynamicIcon
-                    icon={category.icon || "tag"}
-                    size={32}
-                    colorScheme={getThemeStrict(category.colorSchemeName)}
-                    variant="badge"
-                  />
-                  <Text style={styles.cellLabel} numberOfLines={1}>
-                    {category.name}
-                  </Text>
-                </Pressable>
-              )
-            })}
-          </View>
-        </ScrollView>
-      )}
+            {/* Category grid */}
+            <View style={styles.grid}>
+              {categories.map((category) => {
+                const isSelected = selectedIds.includes(category.id)
+                return (
+                  <Pressable
+                    key={category.id}
+                    style={[styles.cell, isSelected && styles.cellSelected]}
+                    onPress={() => toggleItem(category.id)}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: isSelected }}
+                  >
+                    <DynamicIcon
+                      icon={category.icon || "tag"}
+                      size={32}
+                      colorScheme={getThemeStrict(category.colorSchemeName)}
+                      variant="badge"
+                    />
+                    <Text style={styles.cellLabel} numberOfLines={1}>
+                      {category.name}
+                    </Text>
+                  </Pressable>
+                )
+              })}
+            </View>
+          </ScrollView>
+        ))}
     </View>
   )
 }
@@ -231,6 +261,37 @@ const styles = StyleSheet.create((theme) => ({
   },
   selectAllText: {
     fontSize: 13,
+    fontWeight: "600",
+    color: theme.colors.primary,
+  },
+
+  // ---- Empty state ----
+  emptyPanel: {
+    paddingVertical: 24,
+    paddingHorizontal: H_PAD,
+    alignItems: "center",
+    gap: 12,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: theme.colors.onSecondary,
+    opacity: 0.6,
+    textAlign: "center",
+  },
+  createButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: `${theme.colors.primary}15`,
+    borderRadius: theme.radius,
+  },
+  createButtonIcon: {
+    color: theme.colors.primary,
+  },
+  createButtonText: {
+    fontSize: 14,
     fontWeight: "600",
     color: theme.colors.primary,
   },

@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-03-15T20:15:32.944Z
+Generated on: 2026-03-17T02:54:57.980Z
 
 ```
 ./
@@ -396,6 +396,7 @@ Generated on: 2026-03-15T20:15:32.944Z
 │   │   ├── settings/
 │   │   │   ├── budgets/
 │   │   │   │   ├── [budgetId]/
+│   │   │   │   │   ├── index.tsx
 │   │   │   │   │   └── modify.tsx
 │   │   │   │   └── index.tsx
 │   │   │   ├── categories/
@@ -406,6 +407,7 @@ Generated on: 2026-03-15T20:15:32.944Z
 │   │   │   │   └── presets.tsx
 │   │   │   ├── goals/
 │   │   │   │   ├── [goalId]/
+│   │   │   │   │   ├── index.tsx
 │   │   │   │   │   └── modify.tsx
 │   │   │   │   ├── archived.tsx
 │   │   │   │   └── index.tsx
@@ -6654,12 +6656,14 @@ Generated on: 2026-03-15T20:15:32.944Z
 │   │   │   │   ├── constants.ts
 │   │   │   │   ├── form-account-picker.tsx
 │   │   │   │   ├── form-attachments-section.tsx
+│   │   │   │   ├── form-budget-picker.tsx
 │   │   │   │   ├── form-category-picker.tsx
 │   │   │   │   ├── form-conversion-section.tsx
 │   │   │   │   ├── form-date-picker-modal.tsx
 │   │   │   │   ├── form-date-section.tsx
 │   │   │   │   ├── form-delete-actions.tsx
 │   │   │   │   ├── form-footer.tsx
+│   │   │   │   ├── form-goal-picker.tsx
 │   │   │   │   ├── form-modals.tsx
 │   │   │   │   ├── form-notes-section.tsx
 │   │   │   │   ├── form-recurring-section.tsx

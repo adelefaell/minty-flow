@@ -37,6 +37,8 @@ interface FormAccountPickerProps {
   balanceAtTransaction: number | null
   transaction: { id: string } | null
   accountError: string | undefined
+  /** Called after the selected account changes (new id or cleared). */
+  onAccountChange?: (newAccountId: string) => void
   /** Used for styling only; can be omitted. */
   transactionType?: string
 }
@@ -50,6 +52,7 @@ export function FormAccountPicker({
   balanceAtTransaction,
   transaction,
   accountError,
+  onAccountChange,
   transactionType: _transactionType,
 }: FormAccountPickerProps) {
   const router = useRouter()
@@ -83,9 +86,11 @@ export function FormAccountPicker({
           {t("components.transactionForm.fields.account")}
         </Text>
         <Pressable
-          onPress={() =>
-            accountId && setValue("accountId", "", { shouldDirty: true })
-          }
+          onPress={() => {
+            if (!accountId) return
+            setValue("accountId", "", { shouldDirty: true })
+            onAccountChange?.("")
+          }}
           style={[
             transactionFormStyles.clearButton,
             !accountId && transactionFormStyles.clearButtonDisabled,
@@ -198,6 +203,7 @@ export function FormAccountPicker({
                   if (toAccountId === account.id) {
                     setValue("toAccountId", "", { shouldDirty: true })
                   }
+                  onAccountChange?.(account.id)
                   setAccountPickerOpen(false)
                 }}
               >

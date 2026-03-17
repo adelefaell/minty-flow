@@ -9,6 +9,7 @@
  * the selected currency — appears immediately below once a currency is picked.
  */
 
+import { useRouter } from "expo-router"
 import { memo, useCallback, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ScrollView } from "react-native"
@@ -21,6 +22,7 @@ import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import type { Account } from "~/types/accounts"
+import { NewEnum } from "~/types/new"
 import { Toast } from "~/utils/toast"
 
 import { triggerStyles } from "../selector-modals/styles"
@@ -123,8 +125,16 @@ export function CurrencyAccountSelector({
   onAccountIdsChange,
 }: CurrencyAccountSelectorProps) {
   const { t } = useTranslation()
+  const router = useRouter()
   const [currencyPanelOpen, setCurrencyPanelOpen] = useState(false)
   const [accountPanelOpen, setAccountPanelOpen] = useState(false)
+
+  const handleCreateAccount = useCallback(() => {
+    router.push({
+      pathname: "/accounts/[accountId]/modify",
+      params: { accountId: NewEnum.NEW },
+    })
+  }, [router])
 
   // Derive unique currencies from accounts, sorted alphabetically
   const currencyItems: CurrencyItem[] = useMemo(() => {
@@ -286,10 +296,21 @@ export function CurrencyAccountSelector({
               {currencyItems.length === 0 ? (
                 <View style={styles.emptyPanel}>
                   <Text style={styles.emptyText}>
-                    {t(
-                      "components.currencyAccountSelector.noAccountsForCurrency",
-                    )}
+                    {t("components.currencyAccountSelector.noAccounts")}
                   </Text>
+                  <Pressable
+                    style={styles.createButton}
+                    onPress={handleCreateAccount}
+                  >
+                    <IconSvg
+                      name="plus"
+                      size={16}
+                      color={styles.createButtonIcon.color}
+                    />
+                    <Text style={styles.createButtonText}>
+                      {t("components.currencyAccountSelector.createAccount")}
+                    </Text>
+                  </Pressable>
                 </View>
               ) : (
                 currencyItems.map((item) => (
@@ -533,6 +554,24 @@ const styles = StyleSheet.create((t) => ({
   emptyPanel: {
     paddingVertical: 24,
     alignItems: "center",
+    gap: 12,
+  },
+  createButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: `${t.colors.primary}15`,
+    borderRadius: t.radius,
+  },
+  createButtonIcon: {
+    color: t.colors.primary,
+  },
+  createButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: t.colors.primary,
   },
   // Row inside the inline currency panel
   panelRow: {

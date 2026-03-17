@@ -189,6 +189,12 @@ const ICON_MAP = {
   "arrows-diff": OutlineIcons.ArrowsDiff,
   "home-share": OutlineIcons.HomeShare,
   scale: OutlineIcons.Scale,
+  "caret-down": FilledIcons.CaretDown,
+  "caret-up": FilledIcons.CaretUp,
+  //TODO: this clock progress like
+  "history-toggle": OutlineIcons.HistoryToggle,
+  copy: FilledIcons.Copy,
+  receipt: OutlineIcons.Receipt,
 } as const satisfies Record<string, FC<SvgProps>>
 
 export type IconSvgName = keyof typeof ICON_MAP

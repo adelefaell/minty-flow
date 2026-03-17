@@ -45,7 +45,7 @@ function GoalsListContent({ goals }: GoalsListContentProps) {
   }
 
   const handleGoalPress = (goalId: string) => {
-    router.push(`/settings/goals/${goalId}/modify`)
+    router.push(`/settings/goals/${goalId}` as Href)
   }
 
   return (

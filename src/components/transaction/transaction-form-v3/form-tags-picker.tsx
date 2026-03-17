@@ -10,6 +10,7 @@ import { View as RNView, ScrollView } from "react-native"
 import { useUnistyles } from "react-native-unistyles"
 
 import { DynamicIcon } from "~/components/dynamic-icon"
+import { Chip } from "~/components/ui/chips"
 import { IconSvg } from "~/components/ui/icon-svg"
 import { Input } from "~/components/ui/input"
 import { Pressable } from "~/components/ui/pressable"
@@ -133,38 +134,27 @@ export function FormTagsPicker({
           />
         </Pressable>
         {selectedTags.map((tag) => (
-          <Pressable
+          <Chip
             key={tag.id}
-            style={[
-              transactionFormStyles.tagChipBase,
-              transactionFormStyles.tagChip,
-            ]}
+            label={tag.name}
+            selected={true}
             onPress={() => removeTag(tag.id)}
-            accessible
-            accessibilityRole="button"
-            accessibilityLabel={t("components.transactionForm.a11y.removeTag", {
-              name: tag.name,
-            })}
-          >
-            <DynamicIcon
-              icon={tag.icon || "tag"}
-              size={16}
-              colorScheme={getThemeStrict(tag.colorSchemeName)}
-              variant="badge"
-            />
-            <Text
-              variant="default"
-              style={transactionFormStyles.tagChipText}
-              numberOfLines={1}
-            >
-              {tag.name}
-            </Text>
-            <IconSvg
-              name="x"
-              size={16}
-              color={transactionFormStyles.tagChipRemoveIcon.color}
-            />
-          </Pressable>
+            leading={
+              <DynamicIcon
+                icon={tag.icon || "tag"}
+                size={16}
+                colorScheme={getThemeStrict(tag.colorSchemeName)}
+                variant="badge"
+              />
+            }
+            trailing={
+              <IconSvg
+                name="x"
+                size={16}
+                color={theme.colors.customColors.semi}
+              />
+            }
+          />
         ))}
       </View>
 
@@ -185,38 +175,27 @@ export function FormTagsPicker({
             {filteredTagsForPicker.length > 0 ? (
               <View native style={transactionFormStyles.tagPickerChipGrid}>
                 {filteredTagsForPicker.map((tag) => (
-                  <Pressable
+                  <Chip
                     key={tag.id}
-                    style={[
-                      transactionFormStyles.tagChipBase,
-                      transactionFormStyles.tagPickerChip,
-                    ]}
+                    label={tag.name}
+                    selected={false}
                     onPress={() => addTag(tag.id)}
-                    accessible
-                    accessibilityRole="button"
-                    accessibilityLabel={t(
-                      "components.transactionForm.a11y.addTag",
-                    )}
-                  >
-                    <DynamicIcon
-                      icon={tag.icon || "tag"}
-                      size={16}
-                      colorScheme={getThemeStrict(tag.colorSchemeName)}
-                      variant="badge"
-                    />
-                    <Text
-                      variant="default"
-                      style={transactionFormStyles.tagChipText}
-                      numberOfLines={1}
-                    >
-                      {tag.name}
-                    </Text>
-                    <IconSvg
-                      name="plus"
-                      size={16}
-                      color={theme.colors.customColors.semi}
-                    />
-                  </Pressable>
+                    leading={
+                      <DynamicIcon
+                        icon={tag.icon || "tag"}
+                        size={16}
+                        colorScheme={getThemeStrict(tag.colorSchemeName)}
+                        variant="badge"
+                      />
+                    }
+                    trailing={
+                      <IconSvg
+                        name="plus"
+                        size={16}
+                        color={theme.colors.customColors.semi}
+                      />
+                    }
+                  />
                 ))}
               </View>
             ) : (

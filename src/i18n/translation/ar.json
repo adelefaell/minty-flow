@@ -538,18 +538,35 @@
         },
         "card": {
           "saved": "تم الادخار",
+          "spent": "تم الإنفاق",
           "of": "من",
           "remaining": "متبقي",
           "targetDate": "الهدف",
           "completed": "مكتمل",
           "daysLeft": "{{count}} أيام متبقية",
           "overdue": "متأخر بـ {{count}} أيام",
-          "noDeadline": "بلا موعد"
+          "noDeadline": "بلا موعد",
+          "allAccounts": "جميع الحسابات",
+          "type": {
+            "savings": "ادخار",
+            "expense": "إنفاق"
+          }
+        },
+        "detail": {
+          "title": "تفاصيل الهدف",
+          "transactions": "المعاملات",
+          "noTransactions": "لا توجد معاملات مرتبطة بهذا الهدف",
+          "progress": "التقدم",
+          "pendingNotice": "المعاملات المعلقة غير مشمولة في التقدم"
         },
         "form": {
           "title": {
             "create": "هدف جديد",
             "edit": "تعديل الهدف"
+          },
+          "goalType": {
+            "savings": "هدف الادخار",
+            "expense": "هدف النفقات"
           },
           "nameLabel": "اسم الهدف",
           "namePlaceholder": "مثال: صندوق الإجازة",
@@ -597,8 +614,15 @@
           "of": "من",
           "remaining": "متبقي",
           "noCategory": "جميع الفئات",
+          "allAccounts": "جميع الحسابات",
           "overBudget": "تجاوز الميزانية",
-          "alertThresholdReached": "تم بلوغ حد التنبيه"
+          "alertThresholdReached": "تم بلوغ حد التنبيه",
+          "disabled": "معطّل"
+        },
+        "detail": {
+          "title": "تفاصيل الميزانية",
+          "transactions": "المعاملات",
+          "noTransactions": "لا توجد معاملات في هذه الفترة"
         },
         "form": {
           "title": {
@@ -617,6 +641,9 @@
           "alertThresholdLabel": "تنبيه عند (%)",
           "startDateLabel": "تاريخ البداية",
           "endDateLabel": "تاريخ النهاية",
+          "isActiveLabel": "نشط",
+          "duplicateLabel": "نسخ الميزانية",
+          "duplicateSuccess": "تم نسخ الميزانية",
           "deleteLabel": "حذف الميزانية",
           "loadingText": "جاري تحميل الميزانية...",
           "toast": {
@@ -816,6 +843,9 @@
         "account": "حساب",
         "toAccount": "إلى الحساب",
         "tags": "العلامات",
+        "goal": "الهدف",
+        "noGoals": "لا توجد أهداف متاحة",
+        "budget": "الميزانية",
         "location": "موقع"
       },
       "recurring": {
@@ -916,6 +946,10 @@
         "clearCategory": "مسح الفئة",
         "addCategories": "إضافة فئات",
         "selectCategory": "اختر فئة {{name}}",
+        "clearGoal": "مسح الهدف",
+        "selectGoal": "اختر هدف {{name}}",
+        "clearBudget": "مسح الميزانية",
+        "selectBudget": "اختر ميزانية {{name}}",
         "clearAllTags": "مسح جميع الوسوم",
         "addTag": "إضافة وسم",
         "removeTag": "إزالة وسم {{name}}",
@@ -1194,10 +1228,16 @@
     "searchInput": {
       "placeholder": "بحث..."
     },
+    "inlineCategoryPicker": {
+      "noCategories": "لا توجد فئات بعد",
+      "createCategory": "إنشاء فئة"
+    },
     "currencyAccountSelector": {
       "currencyLabel": "العملة",
       "accountsLabel": "الحسابات",
       "selectAll": "اختر جميع حسابات {{currency}}",
+      "noAccounts": "لا توجد حسابات بعد",
+      "createAccount": "إنشاء حساب",
       "noAccountsForCurrency": "لا توجد حسابات لهذه العملة",
       "accountsClearedTitle": "تم مسح الحسابات",
       "accountsClearedDescription": "تم إزالة الحسابات المحددة لأنها لا تتطابق مع {{currency}}."
@@ -1297,6 +1337,9 @@
         "required": "المبلغ مطلوب",
         "invalid": "أدخل مبلغاً صحيحاً",
         "positive": "يجب أن يكون المبلغ أكبر من صفر"
+      },
+      "endDate": {
+        "requiredForCustom": "تاريخ الانتهاء مطلوب للفترة المخصصة"
       }
     }
   },

@@ -2,7 +2,7 @@ import { Model } from "@nozbe/watermelondb"
 import { date, field } from "@nozbe/watermelondb/decorators"
 
 import { getThemeStrict } from "~/styles/theme/registry"
-import type { Goal } from "~/types/goals"
+import type { Goal, GoalType } from "~/types/goals"
 
 /**
  * Goal model representing financial savings targets.
@@ -25,15 +25,14 @@ export default class GoalModel extends Model implements Goal {
     goal_accounts: { type: "has_many", foreignKey: "goal_id" },
   } as const
 
+  @field("goal_type") goalType!: GoalType
   @field("name") name!: string
   @field("description") description!: string | null
   @field("target_amount") targetAmount!: number
-  @field("current_amount") currentAmount!: number
   @field("currency_code") currencyCode!: string
   @date("target_date") targetDate!: Date | null
   @field("icon") icon!: string | null
   @field("color_scheme_name") colorSchemeName!: string | null
-  @field("is_completed") isCompleted!: boolean
   @field("is_archived") isArchived!: boolean
   @date("created_at") createdAt!: Date
   @date("updated_at") updatedAt!: Date

@@ -12,6 +12,7 @@ import { ChangeIconInline } from "~/components/change-icon-inline"
 import { ColorVariantInline } from "~/components/color-variant-inline"
 import { CurrencyAccountSelector } from "~/components/currency-account-selector"
 import { SmartAmountInput } from "~/components/smart-amount-input"
+import { TabsMinty } from "~/components/tabs-minty"
 import { Button } from "~/components/ui/button"
 import { IconSvg } from "~/components/ui/icon-svg"
 import { Input } from "~/components/ui/input"
@@ -31,6 +32,7 @@ import { useNavigationGuard } from "~/hooks/use-navigation-guard"
 import type { TranslationKey } from "~/i18n/config"
 import { type AddGoalFormSchema, addGoalSchema } from "~/schemas/goals.schema"
 import { getThemeStrict } from "~/styles/theme/registry"
+import { GoalTypeEnum } from "~/types/goals"
 import { NewEnum } from "~/types/new"
 import { logger } from "~/utils/logger"
 import { Toast } from "~/utils/toast"
@@ -65,6 +67,7 @@ export function GoalModifyContent({
   } = useForm<AddGoalFormSchema>({
     resolver: zodResolver(addGoalSchema),
     defaultValues: {
+      goalType: goal?.goalType ?? GoalTypeEnum.SAVINGS,
       name: goal?.name ?? "",
       description: goal?.description ?? null,
       icon: goal?.icon ?? "target",
@@ -73,10 +76,10 @@ export function GoalModifyContent({
       accountIds: goal?.accountIds ?? [],
       targetAmount: goal?.targetAmount ?? 0,
       targetDate: goal?.targetDate ? goal.targetDate.getTime() : null,
-      isCompleted: goal?.isCompleted ?? false,
     },
   })
 
+  const formGoalType = watch("goalType")
   const formName = watch("name")
   const formIcon = watch("icon")
   const formColorSchemeName = watch("colorSchemeName")
@@ -118,9 +121,7 @@ export function GoalModifyContent({
         if (!goalModel) {
           Toast.error({
             title: t("common.toast.error"),
-            description: t(
-              "screens.settings.goals.form.toast.notFound" as TranslationKey,
-            ),
+            description: t("screens.settings.goals.form.toast.notFound"),
           })
           return
         }
@@ -138,12 +139,8 @@ export function GoalModifyContent({
       Toast.error({
         title: t("common.toast.error"),
         description: isAddMode
-          ? t(
-              "screens.settings.goals.form.toast.createFailed" as TranslationKey,
-            )
-          : t(
-              "screens.settings.goals.form.toast.updateFailed" as TranslationKey,
-            ),
+          ? t("screens.settings.goals.form.toast.createFailed")
+          : t("screens.settings.goals.form.toast.updateFailed"),
       })
     }
   }
@@ -155,9 +152,7 @@ export function GoalModifyContent({
       if (!goalModel || !goal) {
         Toast.error({
           title: t("common.toast.error"),
-          description: t(
-            "screens.settings.goals.form.toast.notFound" as TranslationKey,
-          ),
+          description: t("screens.settings.goals.form.toast.notFound"),
         })
         return
       }
@@ -171,9 +166,7 @@ export function GoalModifyContent({
       logger.error("Error deleting goal", { error })
       Toast.error({
         title: t("common.toast.error"),
-        description: t(
-          "screens.settings.goals.form.toast.deleteFailed" as TranslationKey,
-        ),
+        description: t("screens.settings.goals.form.toast.deleteFailed"),
       })
     }
   }
@@ -184,12 +177,12 @@ export function GoalModifyContent({
       if (goal.isArchived) {
         await unarchiveGoal(goalModel)
         Toast.success({
-          title: t("screens.settings.goals.unarchiveSuccess" as TranslationKey),
+          title: t("screens.settings.goals.unarchiveSuccess"),
         })
       } else {
         await archiveGoal(goalModel)
         Toast.success({
-          title: t("screens.settings.goals.archiveSuccess" as TranslationKey),
+          title: t("screens.settings.goals.archiveSuccess"),
         })
       }
       allowNavigation()
@@ -261,7 +254,7 @@ export function GoalModifyContent({
       <View style={goalModifyStyles.container}>
         <View style={goalModifyStyles.loadingContainer}>
           <Text variant="default">
-            {t("screens.settings.goals.form.loadingText" as TranslationKey)}
+            {t("screens.settings.goals.form.loadingText")}
           </Text>
         </View>
       </View>
@@ -275,6 +268,27 @@ export function GoalModifyContent({
         contentContainerStyle={goalModifyStyles.scrollContent}
       >
         <View style={goalModifyStyles.form} key={goal?.id ?? NewEnum.NEW}>
+          {/* Goal type selector */}
+          <TabsMinty
+            items={[
+              {
+                value: GoalTypeEnum.SAVINGS,
+                label: t("screens.settings.goals.form.goalType.savings"),
+                icon: "caret-down",
+              },
+              {
+                value: GoalTypeEnum.EXPENSE,
+                label: t("screens.settings.goals.form.goalType.expense"),
+                icon: "caret-up",
+              },
+            ]}
+            activeValue={formGoalType}
+            onValueChange={(v) =>
+              setValue("goalType", v, { shouldDirty: true })
+            }
+            variant="segmented"
+          />
+
           {/* Icon picker */}
           <ChangeIconInline
             currentIcon={formIcon}
@@ -285,7 +299,7 @@ export function GoalModifyContent({
           {/* Name input */}
           <View style={goalModifyStyles.nameSection}>
             <Text variant="small" style={goalModifyStyles.label}>
-              {t("screens.settings.goals.form.nameLabel" as TranslationKey)}
+              {t("screens.settings.goals.form.nameLabel")}
             </Text>
             <Controller
               control={control}
@@ -295,9 +309,7 @@ export function GoalModifyContent({
                   value={value}
                   onChangeText={onChange}
                   onBlur={onBlur}
-                  placeholder={t(
-                    "screens.settings.goals.form.namePlaceholder" as TranslationKey,
-                  )}
+                  placeholder={t("screens.settings.goals.form.namePlaceholder")}
                   error={!!errors.name}
                 />
               )}
@@ -312,9 +324,7 @@ export function GoalModifyContent({
           {/* Description input (optional, multiline) */}
           <View style={goalModifyStyles.descriptionSection}>
             <Text variant="small" style={goalModifyStyles.label}>
-              {t(
-                "screens.settings.goals.form.descriptionLabel" as TranslationKey,
-              )}
+              {t("screens.settings.goals.form.descriptionLabel")}
             </Text>
             <Controller
               control={control}
@@ -325,7 +335,7 @@ export function GoalModifyContent({
                   onChangeText={(text) => onChange(text || null)}
                   onBlur={onBlur}
                   placeholder={t(
-                    "screens.settings.goals.form.descriptionPlaceholder" as TranslationKey,
+                    "screens.settings.goals.form.descriptionPlaceholder",
                   )}
                   multiline
                   numberOfLines={3}
@@ -334,14 +344,8 @@ export function GoalModifyContent({
             />
           </View>
 
-          {/* Settings list: ColorVariant, CurrencyAccountSelector, TargetAmount, TargetDate */}
+          {/* Currency and account selector */}
           <View style={goalModifyStyles.settingsList}>
-            <ColorVariantInline
-              selectedSchemeName={formColorSchemeName ?? undefined}
-              onColorSelected={handleColorSelected}
-              onClearSelection={handleColorCleared}
-            />
-
             <CurrencyAccountSelector
               accounts={accounts}
               selectedCurrency={formCurrencyCode || null}
@@ -365,9 +369,7 @@ export function GoalModifyContent({
                   value={value}
                   onChange={onChange}
                   currencyCode={formCurrencyCode || undefined}
-                  label={t(
-                    "screens.settings.goals.form.targetAmountLabel" as TranslationKey,
-                  )}
+                  label={t("screens.settings.goals.form.targetAmountLabel")}
                   error={
                     errors.targetAmount
                       ? t(errors.targetAmount.message as TranslationKey)
@@ -387,9 +389,7 @@ export function GoalModifyContent({
             <View style={goalModifyStyles.targetDateLeft}>
               <IconSvg name="calendar" size={24} />
               <Text variant="default" style={goalModifyStyles.switchLabel}>
-                {t(
-                  "screens.settings.goals.form.targetDateLabel" as TranslationKey,
-                )}
+                {t("screens.settings.goals.form.targetDateLabel")}
               </Text>
             </View>
             <View style={goalModifyStyles.targetDateRight}>
@@ -419,13 +419,18 @@ export function GoalModifyContent({
                   variant="default"
                   style={goalModifyStyles.targetDatePlaceholder}
                 >
-                  {t(
-                    "screens.settings.goals.card.noDeadline" as TranslationKey,
-                  )}
+                  {t("screens.settings.goals.card.noDeadline")}
                 </Text>
               )}
             </View>
           </Pressable>
+
+          {/* Color variant picker */}
+          <ColorVariantInline
+            selectedSchemeName={formColorSchemeName ?? undefined}
+            onColorSelected={handleColorSelected}
+            onClearSelection={handleColorCleared}
+          />
 
           {!isAddMode && <Separator />}
         </View>
@@ -445,12 +450,8 @@ export function GoalModifyContent({
               />
               <Text variant="default" style={goalModifyStyles.archiveText}>
                 {goal?.isArchived
-                  ? t(
-                      "screens.settings.goals.form.unarchiveLabel" as TranslationKey,
-                    )
-                  : t(
-                      "screens.settings.goals.form.archiveLabel" as TranslationKey,
-                    )}
+                  ? t("screens.settings.goals.form.unarchiveLabel")
+                  : t("screens.settings.goals.form.archiveLabel")}
               </Text>
             </Button>
             <Button
@@ -464,7 +465,7 @@ export function GoalModifyContent({
                 color={goalModifyStyles.deleteIcon.color}
               />
               <Text variant="default" style={goalModifyStyles.deleteText}>
-                {t("screens.settings.goals.form.deleteLabel" as TranslationKey)}
+                {t("screens.settings.goals.form.deleteLabel")}
               </Text>
             </Button>
           </View>

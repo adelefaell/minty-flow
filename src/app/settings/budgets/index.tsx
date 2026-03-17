@@ -1,5 +1,5 @@
 import { withObservables } from "@nozbe/watermelondb/react"
-import { useRouter } from "expo-router"
+import { type Href, useRouter } from "expo-router"
 import { useTranslation } from "react-i18next"
 import { FlatList } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
@@ -31,7 +31,7 @@ function BudgetListContentInner({ budgets }: BudgetListContentInnerProps) {
   }
 
   const handleEditBudget = (budgetId: string) => {
-    router.push(`/settings/budgets/${budgetId}/modify`)
+    router.push(`/settings/budgets/${budgetId}` as Href)
   }
 
   return (

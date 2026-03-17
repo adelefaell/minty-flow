@@ -538,18 +538,35 @@
         },
         "card": {
           "saved": "Saved",
+          "spent": "Spent",
           "of": "of",
           "remaining": "remaining",
           "targetDate": "Target",
           "completed": "Completed",
           "daysLeft": "{{count}} days left",
           "overdue": "Overdue by {{count}} days",
-          "noDeadline": "No deadline"
+          "noDeadline": "No deadline",
+          "allAccounts": "All Accounts",
+          "type": {
+            "savings": "Savings",
+            "expense": "Expense"
+          }
+        },
+        "detail": {
+          "title": "Goal Details",
+          "transactions": "Transactions",
+          "noTransactions": "No transactions linked to this goal yet",
+          "progress": "Progress",
+          "pendingNotice": "Pending transactions are not included in progress"
         },
         "form": {
           "title": {
             "create": "New Goal",
             "edit": "Edit Goal"
+          },
+          "goalType": {
+            "savings": "Savings goal",
+            "expense": "Expense goal"
           },
           "nameLabel": "Goal Name",
           "namePlaceholder": "e.g. Vacation Fund",
@@ -597,8 +614,15 @@
           "of": "of",
           "remaining": "remaining",
           "noCategory": "All Categories",
+          "allAccounts": "All Accounts",
           "overBudget": "Over budget",
-          "alertThresholdReached": "Alert threshold reached"
+          "alertThresholdReached": "Alert threshold reached",
+          "disabled": "Disabled"
+        },
+        "detail": {
+          "title": "Budget Details",
+          "transactions": "Transactions",
+          "noTransactions": "No transactions in this period"
         },
         "form": {
           "title": {
@@ -617,6 +641,9 @@
           "alertThresholdLabel": "Alert at (%)",
           "startDateLabel": "Start Date",
           "endDateLabel": "End Date",
+          "isActiveLabel": "Active",
+          "duplicateLabel": "Duplicate Budget",
+          "duplicateSuccess": "Budget duplicated",
           "deleteLabel": "Delete Budget",
           "loadingText": "Loading budget...",
           "toast": {
@@ -808,6 +835,9 @@
         "account": "Account",
         "toAccount": "To Account",
         "tags": "Tags",
+        "goal": "Goal",
+        "noGoals": "No goals available",
+        "budget": "Budget",
         "clear": "Clear",
         "addCategories": "categories",
         "now": "Now",
@@ -916,6 +946,10 @@
         "clearCategory": "Clear category",
         "addCategories": "Add categories",
         "selectCategory": "Select {{name}} category",
+        "clearGoal": "Clear goal",
+        "selectGoal": "Select {{name}} goal",
+        "clearBudget": "Clear budget",
+        "selectBudget": "Select {{name}} budget",
         "clearAllTags": "Clear all tags",
         "addTag": "Add tag",
         "removeTag": "Remove {{name}} tag",
@@ -1194,10 +1228,16 @@
     "searchInput": {
       "placeholder": "Search..."
     },
+    "inlineCategoryPicker": {
+      "noCategories": "No categories yet",
+      "createCategory": "Create a category"
+    },
     "currencyAccountSelector": {
       "currencyLabel": "Currency",
       "accountsLabel": "Accounts",
       "selectAll": "Select all {{currency}} accounts",
+      "noAccounts": "No accounts yet",
+      "createAccount": "Create an account",
       "noAccountsForCurrency": "No accounts for this currency",
       "accountsClearedTitle": "Accounts cleared",
       "accountsClearedDescription": "Selected accounts were removed because they don't match {{currency}}."
@@ -1297,6 +1337,9 @@
         "required": "Amount is required",
         "invalid": "Enter a valid amount",
         "positive": "Amount must be greater than 0"
+      },
+      "endDate": {
+        "requiredForCustom": "End date is required for custom period"
       }
     }
   },

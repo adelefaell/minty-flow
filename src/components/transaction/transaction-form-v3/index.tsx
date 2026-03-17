@@ -55,11 +55,13 @@ import { EMPTY_TAG_IDS } from "./constants"
 import { transactionFormStyles } from "./form.styles"
 import { FormAccountPicker } from "./form-account-picker"
 import { FormAttachmentsSection } from "./form-attachments-section"
+import { FormBudgetPicker } from "./form-budget-picker"
 import { FormCategoryPicker } from "./form-category-picker"
 import { FormConversionSection } from "./form-conversion-section"
 import { FormDateSection } from "./form-date-section"
 import { FormDeleteActions } from "./form-delete-actions"
 import { FormFooter } from "./form-footer"
+import { FormGoalPicker } from "./form-goal-picker"
 import { FormModals } from "./form-modals"
 import { FormNotesSection } from "./form-notes-section"
 import { FormRecurringSection } from "./form-recurring-section"
@@ -81,6 +83,8 @@ export function TransactionFormV3({
   accounts,
   categories,
   tags,
+  goals,
+  budgets,
   transactionType,
   onTransactionTypeChange,
   initialTagIds = EMPTY_TAG_IDS,
@@ -138,6 +142,8 @@ export function TransactionFormV3({
   const date = watch("transactionDate")
   const description = watch("description")
   const tagIds = watch("tags")
+  const goalId = watch("goalId")
+  const budgetId = watch("budgetId")
   const locationString = watch("location")
   const location: TransactionLocation | null =
     locationString != null && locationString !== ""
@@ -151,6 +157,50 @@ export function TransactionFormV3({
       : null
 
   const selectedAccount = accounts.find((a) => a.id === accountId)
+
+  // Filter goals to only those linked to the selected account
+  const accountGoals = useMemo(
+    () =>
+      accountId ? goals.filter((g) => g.accountIds.includes(accountId)) : [],
+    [goals, accountId],
+  )
+
+  // Filter budgets by selected account AND category
+  const accountBudgets = useMemo(
+    () =>
+      accountId
+        ? budgets.filter(
+            (b) =>
+              b.accountIds.includes(accountId) &&
+              (b.categoryIds.length === 0 ||
+                (categoryId && b.categoryIds.includes(categoryId))),
+          )
+        : [],
+    [budgets, accountId, categoryId],
+  )
+
+  // Clear goalId/budgetId when account changes and current selection is no longer valid
+  const handleAccountChange = useCallback(
+    (newAccountId: string) => {
+      if (goalId) {
+        const newGoals = newAccountId
+          ? goals.filter((g) => g.accountIds.includes(newAccountId))
+          : []
+        if (!newGoals.some((g) => g.id === goalId)) {
+          setValue("goalId", null, { shouldDirty: false })
+        }
+      }
+      if (budgetId) {
+        const newBudgets = newAccountId
+          ? budgets.filter((b) => b.accountIds.includes(newAccountId))
+          : []
+        if (!newBudgets.some((b) => b.id === budgetId)) {
+          setValue("budgetId", null, { shouldDirty: false })
+        }
+      }
+    },
+    [goalId, goals, budgetId, budgets, setValue],
+  )
   const selectedToAccount =
     transactionType === "transfer" && toAccountId
       ? accounts.find((a) => a.id === toAccountId)
@@ -372,6 +422,8 @@ export function TransactionFormV3({
         isPending: effectiveIsPending,
         requiresManualConfirmation,
         tags: data.tags ?? [],
+        goalId: data.goalId ?? null,
+        budgetId: data.budgetId ?? null,
         location: data.location,
         extra: Object.keys(builtExtra).length > 0 ? builtExtra : undefined,
         subtype: transaction?.subtype ?? undefined,
@@ -581,6 +633,8 @@ export function TransactionFormV3({
           onChange={(type) => {
             onTransactionTypeChange(type)
             setValue("type", type, { shouldDirty: true })
+            // Clear goal when switching types (different goal types apply)
+            setValue("goalId", null, { shouldDirty: false })
             // Clear title so placeholder takes over
             if (type === "transfer") {
               setValue("title", "", { shouldDirty: false })
@@ -645,6 +699,7 @@ export function TransactionFormV3({
             balanceAtTransaction={balanceAtTransaction}
             transaction={transaction}
             accountError={accountError}
+            onAccountChange={handleAccountChange}
             transactionType={transactionType}
           />
 
@@ -676,12 +731,48 @@ export function TransactionFormV3({
             <FormCategoryPicker
               categories={categories}
               categoryId={categoryId}
-              onSelect={(id) =>
+              onSelect={(id) => {
                 setValue("categoryId", id, { shouldDirty: true })
-              }
-              onClear={() =>
+                // Clear budget if it no longer matches the new category
+                if (budgetId) {
+                  const valid = budgets.some(
+                    (b) =>
+                      b.id === budgetId &&
+                      (b.categoryIds.length === 0 ||
+                        b.categoryIds.includes(id)),
+                  )
+                  if (!valid) {
+                    setValue("budgetId", null, { shouldDirty: false })
+                  }
+                }
+              }}
+              onClear={() => {
                 setValue("categoryId", null, { shouldDirty: true })
-              }
+                // Clear budget since it was category-filtered
+                if (budgetId) {
+                  setValue("budgetId", null, { shouldDirty: false })
+                }
+              }}
+            />
+          )}
+
+          {/* Goal: hidden for transfers, filtered by selected account */}
+          {transactionType !== "transfer" && (
+            <FormGoalPicker
+              goals={accountGoals}
+              goalId={goalId}
+              onSelect={(id) => setValue("goalId", id, { shouldDirty: true })}
+              onClear={() => setValue("goalId", null, { shouldDirty: true })}
+            />
+          )}
+
+          {/* Budget: hidden for transfers, filtered by account + category */}
+          {transactionType !== "transfer" && (
+            <FormBudgetPicker
+              budgets={accountBudgets}
+              budgetId={budgetId}
+              onSelect={(id) => setValue("budgetId", id, { shouldDirty: true })}
+              onClear={() => setValue("budgetId", null, { shouldDirty: true })}
             />
           )}
 

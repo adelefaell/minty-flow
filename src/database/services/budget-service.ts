@@ -15,6 +15,7 @@ import { database } from "../index"
 import type BudgetModel from "../models/budget"
 import type BudgetAccountModel from "../models/budget-account"
 import type BudgetCategoryModel from "../models/budget-category"
+import type CategoryModel from "../models/category"
 import type TransactionModel from "../models/transaction"
 import { modelToBudget } from "../utils/model-to-budget"
 
@@ -132,13 +133,23 @@ export const observeBudgets = (): Observable<Budget[]> => {
             }
 
             // When calling modelToBudget, pass categoryIds:
-            return budgetModels.map((m) =>
+            const budgets = budgetModels.map((m) =>
               modelToBudget(
                 m,
                 accountIdsByBudget.get(m.id) ?? [],
-                categoriesByBudget.get(m.id) ?? [], // NEW
+                categoriesByBudget.get(m.id) ?? [],
               ),
             )
+
+            // Sort active budgets first, then inactive; each group sorted by
+            // name asc. WatermelonDB Q.sortBy does not support boolean columns
+            // directly, so we sort in JS after mapping.
+            return budgets.sort((a, b) => {
+              if (a.isActive !== b.isActive) {
+                return a.isActive ? -1 : 1
+              }
+              return a.name.localeCompare(b.name)
+            })
           })(),
         ),
       ),
@@ -285,6 +296,49 @@ export const destroyBudget = async (budget: BudgetModel): Promise<void> => {
   })
 }
 
+/**
+ * Duplicate a budget, creating a new record with identical settings.
+ *
+ * The duplicate's name is prefixed with "Copy of " and isActive is set to
+ * true regardless of the source budget's active state. All linked account
+ * and category join rows are re-created for the new budget ID.
+ */
+export const duplicateBudget = async (budget: Budget): Promise<void> => {
+  await database.write(async () => {
+    const newBudget = await getBudgetCollection().create((b) => {
+      b.name = `Copy of ${budget.name}`
+      b.amount = budget.amount
+      b.currencyCode = budget.currencyCode
+      b.period = budget.period
+      b.startDate = budget.startDate
+      b.endDate = budget.endDate
+      b.alertThreshold = budget.alertThreshold
+      // Duplicates are always active so they appear at the top of the list
+      b.isActive = true
+      b.icon = budget.icon
+      b.setColorScheme(budget.colorSchemeName)
+      b.createdAt = new Date()
+      b.updatedAt = new Date()
+    })
+
+    for (const accountId of budget.accountIds) {
+      await getBudgetAccountCollection().create((ba) => {
+        ba.budgetId = newBudget.id
+        ba.accountId = accountId
+        ba.createdAt = new Date()
+      })
+    }
+
+    for (const categoryId of budget.categoryIds) {
+      await getBudgetCategoryCollection().create((bc) => {
+        bc.budgetId = newBudget.id
+        bc.categoryId = categoryId
+        bc.createdAt = new Date()
+      })
+    }
+  })
+}
+
 export const getCategoryIdsForBudget = async (
   budgetId: string,
 ): Promise<string[]> => {
@@ -295,17 +349,13 @@ export const getCategoryIdsForBudget = async (
 }
 
 /**
- * Observe the total amount spent against a budget for the relevant period.
+ * Compute the period range for a budget based on its period type.
  */
-export const observeBudgetSpent = (
-  accountIds: string[],
-  categoryIds: string[],
+const getBudgetPeriodRange = (
   period: BudgetPeriod,
   startDate: number,
   endDate?: number | null,
-): Observable<number> => {
-  if (accountIds.length === 0) return from([0])
-
+): { periodStartTs: number; periodEndTs: number } => {
   const now = new Date()
   let periodStart: Date
   let periodEnd: Date = now
@@ -331,9 +381,21 @@ export const observeBudgetSpent = (
       break
   }
 
-  const periodStartTs = periodStart.getTime()
-  const periodEndTs = periodEnd.getTime()
+  return {
+    periodStartTs: periodStart.getTime(),
+    periodEndTs: periodEnd.getTime(),
+  }
+}
 
+/**
+ * Build the common query conditions for budget transaction queries.
+ */
+const buildBudgetTransactionConditions = (
+  accountIds: string[],
+  categoryIds: string[],
+  periodStartTs: number,
+  periodEndTs: number,
+) => {
   const conditions = [
     Q.where("is_deleted", false),
     Q.where("is_pending", false),
@@ -348,8 +410,82 @@ export const observeBudgetSpent = (
     conditions.push(Q.where("category_id", Q.oneOf(categoryIds)))
   }
 
+  return conditions
+}
+
+/**
+ * Observe the total amount spent against a budget for the relevant period.
+ */
+export const observeBudgetSpent = (
+  accountIds: string[],
+  categoryIds: string[],
+  period: BudgetPeriod,
+  startDate: number,
+  endDate?: number | null,
+): Observable<number> => {
+  if (accountIds.length === 0) return from([0])
+
+  const { periodStartTs, periodEndTs } = getBudgetPeriodRange(
+    period,
+    startDate,
+    endDate,
+  )
+
+  const conditions = buildBudgetTransactionConditions(
+    accountIds,
+    categoryIds,
+    periodStartTs,
+    periodEndTs,
+  )
+
   return getTransactionCollection()
     .query(...conditions)
     .observe()
     .pipe(map((rows) => rows.reduce((sum, t) => sum + t.amount, 0)))
+}
+
+/**
+ * Observe the transactions that count against a budget for the relevant period.
+ * Returns TransactionModel[] sorted by date desc.
+ */
+export const observeBudgetTransactions = (
+  accountIds: string[],
+  categoryIds: string[],
+  period: BudgetPeriod,
+  startDate: number,
+  endDate?: number | null,
+): Observable<TransactionModel[]> => {
+  if (accountIds.length === 0) return from([] as TransactionModel[][])
+
+  const { periodStartTs, periodEndTs } = getBudgetPeriodRange(
+    period,
+    startDate,
+    endDate,
+  )
+
+  const conditions = buildBudgetTransactionConditions(
+    accountIds,
+    categoryIds,
+    periodStartTs,
+    periodEndTs,
+  )
+
+  return getTransactionCollection()
+    .query(...conditions, Q.sortBy("transaction_date", Q.desc))
+    .observe()
+}
+
+/**
+ * Observe category names for a list of category IDs.
+ */
+export const observeCategoryNamesByIds = (
+  categoryIds: string[],
+): Observable<string[]> => {
+  if (categoryIds.length === 0) return from([[]])
+
+  return database
+    .get<CategoryModel>("categories")
+    .query(Q.where("id", Q.oneOf(categoryIds)))
+    .observe()
+    .pipe(map((rows) => rows.map((r) => r.name)))
 }

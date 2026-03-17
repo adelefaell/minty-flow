@@ -69,7 +69,6 @@ import { getGoals, createGoal, addToGoal } from '~/database/services'
 const goal = await createGoal({
   name: 'Vacation Fund',
   targetAmount: 5000,
-  currentAmount: 0,
   currencyCode: 'USD',
   targetDate: new Date('2024-12-31'),
 })
