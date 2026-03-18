@@ -13,7 +13,8 @@
       "!dist",
       "!build",
       "!src/utils/logger.ts",
-      "!scripts/*"
+      "!scripts/*",
+      "!unused-icons"
     ]
   },
   "formatter": {
