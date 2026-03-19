@@ -39,6 +39,9 @@ import { formatCustomPeriodRange } from "~/utils/time-utils"
 /* Inner component (receives observed data)                           */
 /* ------------------------------------------------------------------ */
 
+const EMPTY_STRINGS: string[] = []
+const EMPTY_TRANSACTIONS: TransactionWithRelations[] = []
+
 interface BudgetDetailInnerProps {
   budgetId: string
   budget?: Budget
@@ -52,9 +55,9 @@ function BudgetDetailInner({
   budgetId,
   budget,
   spentAmount = 0,
-  categoryNames = [],
-  accountNames = [],
-  transactionsFull = [],
+  categoryNames = EMPTY_STRINGS,
+  accountNames = EMPTY_STRINGS,
+  transactionsFull = EMPTY_TRANSACTIONS,
 }: BudgetDetailInnerProps) {
   const { t } = useTranslation()
   const router = useRouter()
@@ -71,6 +74,23 @@ function BudgetDetailInner({
   const handleDeleteDone = useCallback(() => {
     openSwipeableRef.current?.close()
   }, [])
+
+  const handleWillOpen = useCallback((methods: SwipeableMethods) => {
+    openSwipeableRef.current?.close()
+    openSwipeableRef.current = methods
+  }, [])
+
+  const renderTransactionItem = useCallback(
+    ({ item }: { item: TransactionWithRelations }) => (
+      <TransactionItem
+        transactionWithRelations={item}
+        onPress={() => handleTransactionPress(item.transaction.id)}
+        onDelete={handleDeleteDone}
+        onWillOpen={handleWillOpen}
+      />
+    ),
+    [handleTransactionPress, handleDeleteDone, handleWillOpen],
+  )
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -225,17 +245,7 @@ function BudgetDetailInner({
       <FlatList
         data={transactionsFull}
         keyExtractor={(item) => item.transaction.id}
-        renderItem={({ item }) => (
-          <TransactionItem
-            transactionWithRelations={item}
-            onPress={() => handleTransactionPress(item.transaction.id)}
-            onDelete={handleDeleteDone}
-            onWillOpen={(methods) => {
-              openSwipeableRef.current?.close()
-              openSwipeableRef.current = methods
-            }}
-          />
-        )}
+        renderItem={renderTransactionItem}
         ListHeaderComponent={headerContent}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>

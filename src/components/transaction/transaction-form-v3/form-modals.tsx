@@ -1,15 +1,14 @@
-import type { DateTimePickerEvent } from "@react-native-community/datetimepicker"
 import { useTranslation } from "react-i18next"
 
 import { ConfirmModal } from "~/components/confirm-modal"
 import { DeleteRecurringModal } from "~/components/transaction/delete-recurring-modal"
 import { EditRecurringModal } from "~/components/transaction/edit-recurring-modal"
 import { LocationPickerModal } from "~/components/transaction/location-picker-modal"
+import { DateTimePickerModal } from "~/components/ui/date-time-picker"
 import type RecurringTransactionModel from "~/database/models/recurring-transaction"
 import type TransactionModel from "~/database/models/transaction"
 import type { TransactionLocation } from "~/types/transactions"
 
-import { FormDatePickerModal } from "./form-date-picker-modal"
 import type { DatePickerState, ModalState } from "./types"
 
 interface FormModalsProps {
@@ -22,8 +21,7 @@ interface FormModalsProps {
   onConfirmExit: () => void
   onDestroyConfirm: () => void
   onLocationConfirm: (loc: TransactionLocation) => void
-  onIosDateConfirm: () => void
-  onIosDateChange: (evt: DateTimePickerEvent, selectedDate?: Date) => void
+  onIosDateConfirm: (date: Date) => void
   onDatePickerClose: () => void
 }
 
@@ -38,20 +36,23 @@ export function FormModals({
   onDestroyConfirm,
   onLocationConfirm,
   onIosDateConfirm,
-  onIosDateChange,
   onDatePickerClose,
 }: FormModalsProps) {
   const { t } = useTranslation()
 
   return (
     <>
-      <FormDatePickerModal
+      <DateTimePickerModal
         visible={datePicker.visible}
         mode={datePicker.mode}
-        tempDate={datePicker.tempDate}
+        value={datePicker.tempDate}
         onClose={onDatePickerClose}
         onConfirm={onIosDateConfirm}
-        onChange={onIosDateChange}
+        confirmLabel={
+          datePicker.mode === "date"
+            ? "common.actions.next"
+            : "common.actions.add"
+        }
       />
 
       <LocationPickerModal

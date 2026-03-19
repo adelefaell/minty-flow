@@ -1,11 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import type { DateTimePickerEvent } from "@react-native-community/datetimepicker"
-import DateTimePicker from "@react-native-community/datetimepicker"
 import { useNavigation, useRouter } from "expo-router"
 import { useCallback, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
-import { Modal, Platform } from "react-native"
 import { useUnistyles } from "react-native-unistyles"
 
 import { ChangeIconInline } from "~/components/change-icon-inline"
@@ -14,6 +11,10 @@ import { CurrencyAccountSelector } from "~/components/currency-account-selector"
 import { SmartAmountInput } from "~/components/smart-amount-input"
 import { TabsMinty } from "~/components/tabs-minty"
 import { Button } from "~/components/ui/button"
+import {
+  DateTimePickerModal,
+  useDateTimePicker,
+} from "~/components/ui/date-time-picker"
 import { IconSvg } from "~/components/ui/icon-svg"
 import { Input } from "~/components/ui/input"
 import { Pressable } from "~/components/ui/pressable"
@@ -99,11 +100,11 @@ export function GoalModifyContent({
 
   const [deleteModalVisible, setDeleteModalVisible] = useState(false)
   const [archiveModalVisible, setArchiveModalVisible] = useState(false)
-  const [datePickerVisible, setDatePickerVisible] = useState(false)
-  // Temp date used while the iOS date picker is open before confirmation
-  const [tempDate, setTempDate] = useState<Date>(
-    formTargetDate ? new Date(formTargetDate) : new Date(),
-  )
+
+  const targetDatePicker = useDateTimePicker({
+    onConfirm: (date) =>
+      setValue("targetDate", date.getTime(), { shouldDirty: true }),
+  })
 
   const onSubmit = async (data: AddGoalFormSchema) => {
     const trimmedName = data.name.trim()
@@ -203,36 +204,6 @@ export function GoalModifyContent({
 
   const handleColorCleared = () => {
     setValue("colorSchemeName", undefined, { shouldDirty: true })
-  }
-
-  const handleDatePickerChange = (_evt: DateTimePickerEvent, date?: Date) => {
-    if (date) {
-      // On Android, the picker resolves immediately; on iOS we wait for confirm
-      if (Platform.OS === "android") {
-        setValue("targetDate", date.getTime(), { shouldDirty: true })
-        setDatePickerVisible(false)
-      } else {
-        setTempDate(date)
-      }
-    } else if (Platform.OS === "android") {
-      // User dismissed the Android picker without selecting
-      setDatePickerVisible(false)
-    }
-  }
-
-  const handleDatePickerConfirm = () => {
-    setValue("targetDate", tempDate.getTime(), { shouldDirty: true })
-    setDatePickerVisible(false)
-  }
-
-  const handleDatePickerCancel = () => {
-    setDatePickerVisible(false)
-  }
-
-  const handleOpenDatePicker = () => {
-    // Reset the temp date to the current value before opening
-    setTempDate(formTargetDate ? new Date(formTargetDate) : new Date())
-    setDatePickerVisible(true)
   }
 
   const handleClearDate = () => {
@@ -383,7 +354,11 @@ export function GoalModifyContent({
           {/* Target date — Pressable row that opens a date picker modal */}
           <Pressable
             style={goalModifyStyles.targetDateSettingsRow}
-            onPress={handleOpenDatePicker}
+            onPress={() =>
+              targetDatePicker.open(
+                formTargetDate ? new Date(formTargetDate) : new Date(),
+              )
+            }
             accessibilityRole="button"
           >
             <View style={goalModifyStyles.targetDateLeft}>
@@ -498,82 +473,7 @@ export function GoalModifyContent({
         }}
       />
 
-      {/* Target date picker modal — iOS uses a slide-up sheet; Android uses native picker */}
-      {Platform.OS === "ios" && datePickerVisible && (
-        <Modal
-          visible
-          transparent
-          animationType="slide"
-          onRequestClose={handleDatePickerCancel}
-          accessibilityViewIsModal
-        >
-          <Pressable
-            style={goalModifyStyles.datePickerOverlay}
-            onPress={handleDatePickerCancel}
-          />
-          <View
-            style={[
-              goalModifyStyles.datePickerModal,
-              { backgroundColor: theme.colors.surface },
-            ]}
-          >
-            <View
-              style={[
-                goalModifyStyles.datePickerHeader,
-                {
-                  borderBottomColor: `${theme.colors.onSurface}20`,
-                },
-              ]}
-            >
-              <Pressable
-                onPress={handleDatePickerCancel}
-                style={goalModifyStyles.datePickerCancel}
-              >
-                <Text
-                  style={[
-                    goalModifyStyles.datePickerCancelText,
-                    { color: theme.colors.onSurface },
-                  ]}
-                >
-                  {t("common.actions.cancel")}
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={handleDatePickerConfirm}
-                style={goalModifyStyles.datePickerDone}
-              >
-                <Text
-                  style={[
-                    goalModifyStyles.datePickerDoneText,
-                    { color: theme.colors.primary },
-                  ]}
-                >
-                  {t("common.actions.done")}
-                </Text>
-              </Pressable>
-            </View>
-            <View style={goalModifyStyles.datePickerBody}>
-              <DateTimePicker
-                value={tempDate}
-                mode="date"
-                display="spinner"
-                onChange={handleDatePickerChange}
-                textColor={theme.colors.onSurface}
-              />
-            </View>
-          </View>
-        </Modal>
-      )}
-
-      {/* Android uses an inline modal picker */}
-      {Platform.OS === "android" && datePickerVisible && (
-        <DateTimePicker
-          value={tempDate}
-          mode="date"
-          display="default"
-          onChange={handleDatePickerChange}
-        />
-      )}
+      <DateTimePickerModal {...targetDatePicker.modalProps} />
     </View>
   )
 }

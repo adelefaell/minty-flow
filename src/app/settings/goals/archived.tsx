@@ -1,5 +1,6 @@
 import { withObservables } from "@nozbe/watermelondb/react"
 import { useRouter } from "expo-router"
+import { useCallback } from "react"
 import { useTranslation } from "react-i18next"
 import { FlatList } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
@@ -18,9 +19,19 @@ function ArchivedGoalsContent({ goals }: ArchivedGoalsContentProps) {
   const { t } = useTranslation()
   const router = useRouter()
 
-  const handleGoalPress = (goalId: string) => {
-    router.push(`/settings/goals/${goalId}/modify`)
-  }
+  const handleGoalPress = useCallback(
+    (goalId: string) => {
+      router.push(`/settings/goals/${goalId}/modify`)
+    },
+    [router],
+  )
+
+  const renderGoalItem = useCallback(
+    ({ item }: { item: Goal }) => (
+      <GoalCard goal={item} onPress={() => handleGoalPress(item.id)} />
+    ),
+    [handleGoalPress],
+  )
 
   return (
     <View style={styles.container}>
@@ -34,9 +45,7 @@ function ArchivedGoalsContent({ goals }: ArchivedGoalsContentProps) {
             title={t("screens.settings.goals.archived.empty")}
           />
         }
-        renderItem={({ item }) => (
-          <GoalCard goal={item} onPress={() => handleGoalPress(item.id)} />
-        )}
+        renderItem={renderGoalItem}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
       />
     </View>

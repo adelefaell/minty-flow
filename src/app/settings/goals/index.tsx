@@ -1,6 +1,6 @@
 import { withObservables } from "@nozbe/watermelondb/react"
 import { type Href, useNavigation, useRouter } from "expo-router"
-import { useLayoutEffect } from "react"
+import { useCallback, useLayoutEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { FlatList } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
@@ -40,13 +40,23 @@ function GoalsListContent({ goals }: GoalsListContentProps) {
     })
   }, [navigation, router, t])
 
-  const handleAddGoal = () => {
+  const handleAddGoal = useCallback(() => {
     router.push(`/settings/goals/${NewEnum.NEW}/modify`)
-  }
+  }, [router])
 
-  const handleGoalPress = (goalId: string) => {
-    router.push(`/settings/goals/${goalId}` as Href)
-  }
+  const handleGoalPress = useCallback(
+    (goalId: string) => {
+      router.push(`/settings/goals/${goalId}` as Href)
+    },
+    [router],
+  )
+
+  const renderGoalItem = useCallback(
+    ({ item }: { item: Goal }) => (
+      <GoalCard goal={item} onPress={() => handleGoalPress(item.id)} />
+    ),
+    [handleGoalPress],
+  )
 
   return (
     <View style={styles.container}>
@@ -57,9 +67,7 @@ function GoalsListContent({ goals }: GoalsListContentProps) {
         ListEmptyComponent={
           <EmptyState icon="target" title={t("screens.settings.goals.empty")} />
         }
-        renderItem={({ item }) => (
-          <GoalCard goal={item} onPress={() => handleGoalPress(item.id)} />
-        )}
+        renderItem={renderGoalItem}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
       />
       <Pressable

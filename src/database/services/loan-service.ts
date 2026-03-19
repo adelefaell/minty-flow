@@ -78,34 +78,10 @@ export const observeLoans = (): Observable<Loan[]> =>
     )
 
 /**
- * Observe loans filtered by both account_id and category_id.
- * Used for linking loans to specific account+category combinations.
- */
-export const observeLoansByAccountAndCategory = (
-  accountId: string,
-  categoryId: string,
-): Observable<Loan[]> =>
-  getLoanCollection()
-    .query(Q.where("account_id", accountId), Q.where("category_id", categoryId))
-    .observeWithColumns([...LOAN_OBSERVED_COLUMNS])
-    .pipe(map((models) => models.map(modelToLoan)))
-
-/**
  * Observe a single loan model by ID (raw model, for edit screens).
  */
 export const observeLoanById = (id: string): Observable<LoanModel> =>
   getLoanCollection().findAndObserve(id)
-
-/**
- * Find a loan by ID. Returns null if not found.
- */
-export const findLoan = async (id: string): Promise<LoanModel | null> => {
-  try {
-    return await getLoanCollection().find(id)
-  } catch {
-    return null
-  }
-}
 
 /**
  * Observe transactions linked to a loan (for loan detail page).

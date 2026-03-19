@@ -101,7 +101,7 @@ async function fetchStatsTransactions(
  * Fetch all non-deleted, non-pending transactions within range
  * (including transfers) for balance timeline reconstruction.
  */
-export async function fetchBalanceTimeline(
+async function fetchBalanceTimeline(
   fromDate: Date,
   toDate: Date,
 ): Promise<BalanceRawRow[]> {
@@ -136,7 +136,7 @@ export async function fetchBalanceTimeline(
  * Fetch pending transaction summary (excluded from main stats) for range.
  * Returns map keyed by currencyCode.
  */
-export async function fetchPendingSummary(
+async function fetchPendingSummary(
   fromDate: Date,
   toDate: Date,
 ): Promise<Map<string, PendingSummary>> {
@@ -179,7 +179,7 @@ export async function fetchPendingSummary(
  * Fetch uncategorized transaction summary for range.
  * Returns map keyed by currencyCode.
  */
-export async function fetchUncategorizedSummary(
+async function fetchUncategorizedSummary(
   fromDate: Date,
   toDate: Date,
 ): Promise<Map<string, UncategorizedSummary>> {
@@ -701,7 +701,7 @@ function groupBalanceByCurrency(
  * Main computation function. Takes raw rows + date range and returns
  * one CurrencyStats per currency found.
  */
-export async function computeCurrencyStats(
+async function computeCurrencyStats(
   currentRows: StatsRawRow[],
   previousRows: StatsRawRow[],
   balanceRows: BalanceRawRow[],

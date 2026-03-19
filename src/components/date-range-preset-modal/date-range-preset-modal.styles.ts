@@ -144,39 +144,5 @@ export const dateRangePresetModalStyles = StyleSheet.create((theme) => {
       paddingBottom: 16,
       backgroundColor: theme.colors.surface,
     },
-    iosPickerOverlay: {
-      flex: 1,
-      justifyContent: "flex-end",
-      backgroundColor: "rgba(0,0,0,0.5)",
-    },
-    iosPickerSheet: {
-      backgroundColor: theme.colors.surface,
-      borderTopLeftRadius: 16,
-      borderTopRightRadius: 16,
-      paddingBottom: 16,
-    },
-    iosPickerHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      paddingHorizontal: 20,
-      paddingVertical: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: borderColor,
-    },
-    iosPickerHeaderTitle: {
-      color: theme.colors.onSurface,
-      fontWeight: "600",
-    },
-    mutedText: {
-      color: muted,
-    },
-    iosPickerDone: {
-      color: primary,
-      fontWeight: "600",
-    },
-    datePickerWrapper: {
-      paddingHorizontal: 16,
-    },
   }
 })

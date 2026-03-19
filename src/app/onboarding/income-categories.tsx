@@ -1,6 +1,6 @@
 import { withObservables } from "@nozbe/watermelondb/react"
 import { useRouter } from "expo-router"
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import { useTranslation } from "react-i18next"
 import { FlatList } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
@@ -33,7 +33,7 @@ function IncomeCategoriesInner({ categories }: IncomeCategoriesInnerProps) {
   const { t } = useTranslation()
   const router = useRouter()
   const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set())
-  const [saving, setSaving] = useState(false)
+  const [saving, startTransition] = useTransition()
 
   const addedKeys = new Set<string>()
   for (const preset of IncomePresets) {
@@ -72,33 +72,34 @@ function IncomeCategoriesInner({ categories }: IncomeCategoriesInnerProps) {
     })
   }
 
-  const handleNext = async () => {
-    const toCreate = IncomePresets.filter((p) =>
-      selectedKeys.has(`${p.icon}:${p.type}`),
-    )
-    if (toCreate.length > 0) {
-      setSaving(true)
-      try {
-        for (const preset of toCreate) {
-          await createCategory({
-            name: t(preset.name as TranslationKey),
-            type: preset.type,
-            icon: preset.icon,
-            colorSchemeName: preset.colorSchemeName,
+  const handleNext = () => {
+    startTransition(async () => {
+      const toCreate = IncomePresets.filter((p) =>
+        selectedKeys.has(`${p.icon}:${p.type}`),
+      )
+      if (toCreate.length > 0) {
+        try {
+          await Promise.all(
+            toCreate.map((preset) =>
+              createCategory({
+                name: t(preset.name as TranslationKey),
+                type: preset.type,
+                icon: preset.icon,
+                colorSchemeName: preset.colorSchemeName,
+              }),
+            ),
+          )
+        } catch (error) {
+          logger.error("Error creating preset categories", { error })
+          Toast.error({
+            title: t("common.toast.error"),
+            description: t("components.categories.form.toast.createFailed"),
           })
+          return
         }
-      } catch (error) {
-        logger.error("Error creating preset categories", { error })
-        Toast.error({
-          title: t("common.toast.error"),
-          description: t("components.categories.form.toast.createFailed"),
-        })
-        setSaving(false)
-        return
       }
-      setSaving(false)
-    }
-    router.push("/settings/edit-profile?fromOnboarding=true")
+      router.push("/settings/edit-profile?fromOnboarding=true")
+    })
   }
 
   const renderItem = ({ item }: { item: CategoryPreset }) => {

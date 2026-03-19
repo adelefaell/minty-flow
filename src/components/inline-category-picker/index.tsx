@@ -5,7 +5,7 @@
  */
 
 import { useRouter } from "expo-router"
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
@@ -56,9 +56,7 @@ export function InlineCategoryPicker({
     })
   }
 
-  const selectedNames = useMemo(() => {
-    return selectedIds.length
-  }, [selectedIds])
+  const selectedNames = selectedIds.length
 
   const allSelected =
     categories.length > 0 && categories.every((c) => selectedIds.includes(c.id))

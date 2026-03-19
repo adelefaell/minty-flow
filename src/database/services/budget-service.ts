@@ -40,18 +40,6 @@ const getTransactionCollection = () =>
   database.get<TransactionModel>("transactions")
 
 /**
- * Fetch the account IDs associated with a budget from the join table.
- */
-export const getAccountIdsForBudget = async (
-  budgetId: string,
-): Promise<string[]> => {
-  const rows = await getBudgetAccountCollection()
-    .query(Q.where("budget_id", budgetId))
-    .fetch()
-  return rows.map((r) => r.accountId)
-}
-
-/**
  * Observe account IDs for a budget reactively (for withObservables).
  */
 export const observeAccountIdsForBudget = (
@@ -160,17 +148,6 @@ export const observeBudgets = (): Observable<Budget[]> => {
  */
 export const observeBudgetById = (id: string): Observable<BudgetModel> =>
   getBudgetCollection().findAndObserve(id)
-
-/**
- * Find a budget by ID. Returns null if not found.
- */
-export const findBudget = async (id: string): Promise<BudgetModel | null> => {
-  try {
-    return await getBudgetCollection().find(id)
-  } catch {
-    return null
-  }
-}
 
 /**
  * Create a new budget and its account associations in a single write.
@@ -336,15 +313,6 @@ export const duplicateBudget = async (budget: Budget): Promise<void> => {
       })
     }
   })
-}
-
-export const getCategoryIdsForBudget = async (
-  budgetId: string,
-): Promise<string[]> => {
-  const rows = await getBudgetCategoryCollection()
-    .query(Q.where("budget_id", budgetId))
-    .fetch()
-  return rows.map((r) => r.categoryId)
 }
 
 /**

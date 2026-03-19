@@ -1,6 +1,6 @@
 import { withObservables } from "@nozbe/watermelondb/react"
 import { useRouter } from "expo-router"
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import { useTranslation } from "react-i18next"
 import { ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
@@ -32,7 +32,7 @@ function AccountsScreenInner({ accounts }: AccountsScreenInnerProps) {
   const router = useRouter()
   const preferredCurrency = useMoneyFormattingStore((s) => s.preferredCurrency)
   const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set())
-  const [saving, setSaving] = useState(false)
+  const [saving, startTransition] = useTransition()
 
   const existingKeys = new Set(accounts.map((a) => `${a.icon}:${a.type}`))
 
@@ -49,39 +49,40 @@ function AccountsScreenInner({ accounts }: AccountsScreenInnerProps) {
     })
   }
 
-  const handleNext = async () => {
-    const toCreate = AccountPresets.filter(
-      (p) =>
-        selectedKeys.has(`${p.icon}:${p.type}`) &&
-        !existingKeys.has(`${p.icon}:${p.type}`),
-    )
-    if (toCreate.length > 0) {
-      setSaving(true)
-      try {
-        for (const preset of toCreate) {
-          await createAccount({
-            name: t(preset.name as TranslationKey),
-            type: preset.type,
-            icon: preset.icon,
-            balance: 0,
-            currencyCode: preferredCurrency,
-            colorSchemeName: "",
-            isPrimary: false,
-            excludeFromBalance: false,
+  const handleNext = () => {
+    startTransition(async () => {
+      const toCreate = AccountPresets.filter(
+        (p) =>
+          selectedKeys.has(`${p.icon}:${p.type}`) &&
+          !existingKeys.has(`${p.icon}:${p.type}`),
+      )
+      if (toCreate.length > 0) {
+        try {
+          await Promise.all(
+            toCreate.map((preset) =>
+              createAccount({
+                name: t(preset.name as TranslationKey),
+                type: preset.type,
+                icon: preset.icon,
+                balance: 0,
+                currencyCode: preferredCurrency,
+                colorSchemeName: "",
+                isPrimary: false,
+                excludeFromBalance: false,
+              }),
+            ),
+          )
+        } catch (error) {
+          logger.error("Error creating preset accounts", { error })
+          Toast.error({
+            title: t("common.toast.error"),
+            description: t("common.toast.error"),
           })
+          return
         }
-      } catch (error) {
-        logger.error("Error creating preset accounts", { error })
-        Toast.error({
-          title: t("common.toast.error"),
-          description: t("common.toast.error"),
-        })
-        setSaving(false)
-        return
       }
-      setSaving(false)
-    }
-    router.push("/onboarding/expense-categories")
+      router.push("/onboarding/expense-categories")
+    })
   }
 
   return (

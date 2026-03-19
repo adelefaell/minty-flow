@@ -70,6 +70,13 @@ function LoansListContent({ loans }: LoansListContentProps) {
     [router],
   )
 
+  const renderLoanItem = useCallback(
+    ({ item }: { item: Loan }) => (
+      <LoanCard loan={item} onPress={() => handleLoanPress(item.id)} />
+    ),
+    [handleLoanPress],
+  )
+
   const filteredLoans = useMemo(() => {
     if (activeFilter === "all") return loans
     if (activeFilter === "lent")
@@ -115,9 +122,7 @@ function LoansListContent({ loans }: LoansListContentProps) {
             title={t("screens.settings.loans.empty")}
           />
         }
-        renderItem={({ item }) => (
-          <LoanCard loan={item} onPress={() => handleLoanPress(item.id)} />
-        )}
+        renderItem={renderLoanItem}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
       />
 

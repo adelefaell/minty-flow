@@ -1,5 +1,6 @@
 import { withObservables } from "@nozbe/watermelondb/react"
 import { type Href, useRouter } from "expo-router"
+import { useCallback } from "react"
 import { useTranslation } from "react-i18next"
 import { FlatList } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
@@ -26,13 +27,23 @@ function BudgetListContentInner({ budgets }: BudgetListContentInnerProps) {
   const { t } = useTranslation()
   const router = useRouter()
 
-  const handleAddBudget = () => {
+  const handleAddBudget = useCallback(() => {
     router.push(`/settings/budgets/${NewEnum.NEW}/modify`)
-  }
+  }, [router])
 
-  const handleEditBudget = (budgetId: string) => {
-    router.push(`/settings/budgets/${budgetId}` as Href)
-  }
+  const handleEditBudget = useCallback(
+    (budgetId: string) => {
+      router.push(`/settings/budgets/${budgetId}` as Href)
+    },
+    [router],
+  )
+
+  const renderBudgetItem = useCallback(
+    ({ item }: { item: Budget }) => (
+      <BudgetCard budget={item} onPress={() => handleEditBudget(item.id)} />
+    ),
+    [handleEditBudget],
+  )
 
   return (
     <View style={styles.container}>
@@ -46,9 +57,7 @@ function BudgetListContentInner({ budgets }: BudgetListContentInnerProps) {
             title={t("screens.settings.budgets.empty")}
           />
         }
-        renderItem={({ item }) => (
-          <BudgetCard budget={item} onPress={() => handleEditBudget(item.id)} />
-        )}
+        renderItem={renderBudgetItem}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
       />
       <Pressable

@@ -128,39 +128,6 @@ export const goalModifyStyles = StyleSheet.create((theme) => ({
     fontWeight: "600",
     color: theme.colors.onPrimary,
   },
-  // Date picker modal styles
-  datePickerOverlay: {
-    flex: 1,
-  },
-  datePickerModal: {
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    paddingBottom: 20,
-  },
-  datePickerHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-  },
-  datePickerCancel: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  datePickerDone: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  datePickerCancelText: {
-    fontSize: 16,
-  },
-  datePickerDoneText: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  datePickerBody: {},
   // Target date row inside settings list
   targetDateSettingsRow: {
     flexDirection: "row",

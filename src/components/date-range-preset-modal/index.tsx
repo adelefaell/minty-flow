@@ -1,6 +1,5 @@
 /**
  * Date range picker modal with presets and collapsible By month, By year, Custom range.
- * Uses @react-native-community/datetimepicker for custom start/end dates.
  */
 
 import { Modal } from "react-native"

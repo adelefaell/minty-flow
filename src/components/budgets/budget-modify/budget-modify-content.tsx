@@ -1,12 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import type { DateTimePickerEvent } from "@react-native-community/datetimepicker"
-import DateTimePicker from "@react-native-community/datetimepicker"
 import { useNavigation, useRouter } from "expo-router"
 import { useCallback, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
-import { Modal, Platform } from "react-native"
-import { useUnistyles } from "react-native-unistyles"
 
 import { ChangeIconInline } from "~/components/change-icon-inline"
 import { ColorVariantInline } from "~/components/color-variant-inline"
@@ -15,6 +11,10 @@ import { InlineCategoryPicker } from "~/components/inline-category-picker"
 import { SmartAmountInput } from "~/components/smart-amount-input"
 import { Button } from "~/components/ui/button"
 import { Chip } from "~/components/ui/chips"
+import {
+  DateTimePickerModal,
+  useDateTimePicker,
+} from "~/components/ui/date-time-picker"
 import { IconSvg } from "~/components/ui/icon-svg"
 import { Input } from "~/components/ui/input"
 import { Pressable } from "~/components/ui/pressable"
@@ -55,9 +55,6 @@ const PERIOD_OPTIONS = [
   BudgetPeriodEnum.CUSTOM,
 ] as const
 
-// Which field this date picker controls
-type DatePickerField = "startDate" | "endDate"
-
 export function BudgetModifyContent({
   budgetModifyId,
   budget,
@@ -67,7 +64,6 @@ export function BudgetModifyContent({
 }: BudgetModifyContentProps) {
   const { t } = useTranslation()
   const router = useRouter()
-  const { theme } = useUnistyles()
 
   const isAddMode = budgetModifyId === NewEnum.NEW || !budgetModifyId
 
@@ -121,10 +117,14 @@ export function BudgetModifyContent({
 
   const [deleteModalVisible, setDeleteModalVisible] = useState(false)
 
-  // Date picker state — tracks which field is being edited and temp value
-  const [datePickerField, setDatePickerField] =
-    useState<DatePickerField | null>(null)
-  const [tempDate, setTempDate] = useState<Date>(new Date())
+  const startDatePicker = useDateTimePicker({
+    onConfirm: (date) =>
+      setValue("startDate", date.getTime(), { shouldDirty: true }),
+  })
+  const endDatePicker = useDateTimePicker({
+    onConfirm: (date) =>
+      setValue("endDate", date.getTime(), { shouldDirty: true }),
+  })
 
   const onSubmit = async (data: AddBudgetFormSchema) => {
     const trimmedName = data.name.trim()
@@ -220,46 +220,6 @@ export function BudgetModifyContent({
 
   const handleColorCleared = () => {
     setValue("colorSchemeName", undefined, { shouldDirty: true })
-  }
-
-  // Open a date picker for the given field — seed temp date from current value
-  const handleOpenDatePicker = (field: DatePickerField) => {
-    const currentTs = field === "startDate" ? watchedStartDate : watchedEndDate
-    setTempDate(currentTs ? new Date(currentTs) : new Date())
-    setDatePickerField(field)
-  }
-
-  const handleDatePickerChange = (_evt: DateTimePickerEvent, date?: Date) => {
-    if (date) {
-      if (Platform.OS === "android") {
-        // Android resolves immediately; commit and close
-        if (datePickerField === "startDate") {
-          setValue("startDate", date.getTime(), { shouldDirty: true })
-        } else if (datePickerField === "endDate") {
-          setValue("endDate", date.getTime(), { shouldDirty: true })
-        }
-        setDatePickerField(null)
-      } else {
-        // iOS — update temp until the user taps Done
-        setTempDate(date)
-      }
-    } else if (Platform.OS === "android") {
-      // User dismissed Android picker without a selection
-      setDatePickerField(null)
-    }
-  }
-
-  const handleDatePickerConfirm = () => {
-    if (datePickerField === "startDate") {
-      setValue("startDate", tempDate.getTime(), { shouldDirty: true })
-    } else if (datePickerField === "endDate") {
-      setValue("endDate", tempDate.getTime(), { shouldDirty: true })
-    }
-    setDatePickerField(null)
-  }
-
-  const handleDatePickerCancel = () => {
-    setDatePickerField(null)
   }
 
   const currentColorScheme = getThemeStrict(formColorSchemeName)
@@ -412,7 +372,9 @@ export function BudgetModifyContent({
                 {/* Start Date row */}
                 <Pressable
                   style={budgetModifyStyles.switchRow}
-                  onPress={() => handleOpenDatePicker("startDate")}
+                  onPress={() =>
+                    startDatePicker.open(new Date(watchedStartDate))
+                  }
                   accessibilityRole="button"
                 >
                   <View style={budgetModifyStyles.switchLeft}>
@@ -435,7 +397,11 @@ export function BudgetModifyContent({
                 {/* End Date row */}
                 <Pressable
                   style={budgetModifyStyles.switchRow}
-                  onPress={() => handleOpenDatePicker("endDate")}
+                  onPress={() =>
+                    endDatePicker.open(
+                      watchedEndDate ? new Date(watchedEndDate) : new Date(),
+                    )
+                  }
                   accessibilityRole="button"
                 >
                   <View style={budgetModifyStyles.switchLeft}>
@@ -578,80 +544,8 @@ export function BudgetModifyContent({
         }}
       />
 
-      {/* iOS date picker — slide-up modal sheet, same pattern as goal form */}
-      {Platform.OS === "ios" && datePickerField !== null && (
-        <Modal
-          visible
-          transparent
-          animationType="slide"
-          onRequestClose={handleDatePickerCancel}
-          accessibilityViewIsModal
-        >
-          <Pressable
-            style={budgetModifyStyles.datePickerOverlay}
-            onPress={handleDatePickerCancel}
-          />
-          <View
-            style={[
-              budgetModifyStyles.datePickerModal,
-              { backgroundColor: theme.colors.surface },
-            ]}
-          >
-            <View
-              style={[
-                budgetModifyStyles.datePickerHeader,
-                { borderBottomColor: `${theme.colors.onSurface}20` },
-              ]}
-            >
-              <Pressable
-                onPress={handleDatePickerCancel}
-                style={budgetModifyStyles.datePickerCancel}
-              >
-                <Text
-                  style={[
-                    budgetModifyStyles.datePickerCancelText,
-                    { color: theme.colors.onSurface },
-                  ]}
-                >
-                  {t("common.actions.cancel")}
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={handleDatePickerConfirm}
-                style={budgetModifyStyles.datePickerDone}
-              >
-                <Text
-                  style={[
-                    budgetModifyStyles.datePickerDoneText,
-                    { color: theme.colors.primary },
-                  ]}
-                >
-                  {t("common.actions.done")}
-                </Text>
-              </Pressable>
-            </View>
-            <View style={budgetModifyStyles.datePickerBody}>
-              <DateTimePicker
-                value={tempDate}
-                mode="date"
-                display="spinner"
-                onChange={handleDatePickerChange}
-                textColor={theme.colors.onSurface}
-              />
-            </View>
-          </View>
-        </Modal>
-      )}
-
-      {/* Android inline date picker */}
-      {Platform.OS === "android" && datePickerField !== null && (
-        <DateTimePicker
-          value={tempDate}
-          mode="date"
-          display="default"
-          onChange={handleDatePickerChange}
-        />
-      )}
+      <DateTimePickerModal {...startDatePicker.modalProps} />
+      <DateTimePickerModal {...endDatePicker.modalProps} />
     </View>
   )
 }

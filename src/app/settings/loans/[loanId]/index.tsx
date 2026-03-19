@@ -1,6 +1,12 @@
 import { withObservables } from "@nozbe/watermelondb/react"
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router"
-import { useCallback, useLayoutEffect, useRef, useState } from "react"
+import {
+  useCallback,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useTransition,
+} from "react"
 import { useTranslation } from "react-i18next"
 import { FlatList, View as RNView } from "react-native"
 import type { SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable"
@@ -41,6 +47,8 @@ import { Toast } from "~/utils/toast"
 /* Inner component (receives observed data)                           */
 /* ------------------------------------------------------------------ */
 
+const EMPTY_TRANSACTIONS: TransactionWithRelations[] = []
+
 interface LoanDetailInnerProps {
   loanId: string
   loan?: Loan
@@ -54,14 +62,14 @@ function LoanDetailInner({
   loan,
   paidAmount = 0,
   account,
-  transactionsFull = [],
+  transactionsFull = EMPTY_TRANSACTIONS,
 }: LoanDetailInnerProps) {
   const { t } = useTranslation()
   const router = useRouter()
   const navigation = useNavigation()
   const { theme } = useUnistyles()
   const [actionModalVisible, setActionModalVisible] = useState(false)
-  const [isCreatingTransaction, setIsCreatingTransaction] = useState(false)
+  const [isCreatingTransaction, startTransition] = useTransition()
   const openSwipeableRef = useRef<SwipeableMethods | null>(null)
 
   const handleTransactionPress = useCallback(
@@ -73,6 +81,23 @@ function LoanDetailInner({
   const handleDeleteDone = useCallback(() => {
     openSwipeableRef.current?.close()
   }, [])
+
+  const handleWillOpen = useCallback((methods: SwipeableMethods) => {
+    openSwipeableRef.current?.close()
+    openSwipeableRef.current = methods
+  }, [])
+
+  const renderTransactionItem = useCallback(
+    ({ item }: { item: TransactionWithRelations }) => (
+      <TransactionItem
+        transactionWithRelations={item}
+        onPress={() => handleTransactionPress(item.transaction.id)}
+        onDelete={handleDeleteDone}
+        onWillOpen={handleWillOpen}
+      />
+    ),
+    [handleTransactionPress, handleDeleteDone, handleWillOpen],
+  )
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -131,36 +156,38 @@ function LoanDetailInner({
 
   const currencyCode = account?.currencyCode ?? ""
 
-  const handleFullAction = async () => {
+  const handleFullAction = () => {
     if (!loan || remaining <= 0) return
-    setIsCreatingTransaction(true)
-    try {
-      await createTransactionModel({
-        amount: remaining,
-        type: isLent ? TransactionTypeEnum.INCOME : TransactionTypeEnum.EXPENSE,
-        transactionDate: new Date(),
-        accountId: loan.accountId,
-        categoryId: loan.categoryId,
-        title: isLent
-          ? `${t("screens.settings.loans.actions.collect")}: ${loan.name}`
-          : `${t("screens.settings.loans.actions.settle")}: ${loan.name}`,
-        description: null,
-        isPending: false,
-        tags: [],
-        loanId: loan.id,
-      })
-      setActionModalVisible(false)
-      Toast.success({
-        title: isLent
-          ? t("screens.settings.loans.actions.collectSuccess")
-          : t("screens.settings.loans.actions.settleSuccess"),
-      })
-    } catch (error) {
-      logger.error("Error creating loan repayment transaction", { error })
-      Toast.error({ title: t("common.toast.error") })
-    } finally {
-      setIsCreatingTransaction(false)
-    }
+    const transactionType = isLent
+      ? TransactionTypeEnum.INCOME
+      : TransactionTypeEnum.EXPENSE
+    const transactionTitle = isLent
+      ? `${t("screens.settings.loans.actions.collect")}: ${loan.name}`
+      : `${t("screens.settings.loans.actions.settle")}: ${loan.name}`
+    const successTitle = isLent
+      ? t("screens.settings.loans.actions.collectSuccess")
+      : t("screens.settings.loans.actions.settleSuccess")
+    startTransition(async () => {
+      try {
+        await createTransactionModel({
+          amount: remaining,
+          type: transactionType,
+          transactionDate: new Date(),
+          accountId: loan.accountId,
+          categoryId: loan.categoryId,
+          title: transactionTitle,
+          description: null,
+          isPending: false,
+          tags: [],
+          loanId: loan.id,
+        })
+        setActionModalVisible(false)
+        Toast.success({ title: successTitle })
+      } catch (error) {
+        logger.error("Error creating loan repayment transaction", { error })
+        Toast.error({ title: t("common.toast.error") })
+      }
+    })
   }
 
   const handlePartialAction = () => {
@@ -313,17 +340,7 @@ function LoanDetailInner({
       <FlatList
         data={transactionsFull}
         keyExtractor={(item) => item.transaction.id}
-        renderItem={({ item }) => (
-          <TransactionItem
-            transactionWithRelations={item}
-            onPress={() => handleTransactionPress(item.transaction.id)}
-            onDelete={handleDeleteDone}
-            onWillOpen={(methods) => {
-              openSwipeableRef.current?.close()
-              openSwipeableRef.current = methods
-            }}
-          />
-        )}
+        renderItem={renderTransactionItem}
         ListHeaderComponent={headerContent}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>

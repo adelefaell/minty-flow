@@ -1,11 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import type { DateTimePickerEvent } from "@react-native-community/datetimepicker"
-import DateTimePicker from "@react-native-community/datetimepicker"
 import { useNavigation, useRouter } from "expo-router"
 import { useCallback, useMemo, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
-import { Modal, Platform } from "react-native"
 import { useUnistyles } from "react-native-unistyles"
 
 import { ChangeIconInline } from "~/components/change-icon-inline"
@@ -15,6 +12,10 @@ import { TabsMinty } from "~/components/tabs-minty"
 import { FormAccountPicker } from "~/components/transaction/transaction-form-v3/form-account-picker"
 import { FormCategoryPicker } from "~/components/transaction/transaction-form-v3/form-category-picker"
 import { Button } from "~/components/ui/button"
+import {
+  DateTimePickerModal,
+  useDateTimePicker,
+} from "~/components/ui/date-time-picker"
 import { IconSvg } from "~/components/ui/icon-svg"
 import { Input } from "~/components/ui/input"
 import { Pressable } from "~/components/ui/pressable"
@@ -134,11 +135,11 @@ export function LoanModifyContent({
   })
 
   const [deleteModalVisible, setDeleteModalVisible] = useState(false)
-  const [datePickerVisible, setDatePickerVisible] = useState(false)
-  // Temp date used while iOS picker is open before confirmation
-  const [tempDate, setTempDate] = useState<Date>(
-    formDueDate ? new Date(formDueDate) : new Date(),
-  )
+
+  const dueDatePicker = useDateTimePicker({
+    onConfirm: (date) =>
+      setValue("dueDate", date.getTime(), { shouldDirty: true }),
+  })
 
   const onSubmit = async (data: AddLoanFormSchema) => {
     const trimmedName = data.name.trim()
@@ -252,35 +253,8 @@ export function LoanModifyContent({
     setValue("colorSchemeName", undefined, { shouldDirty: true })
   }
 
-  const handleOpenDatePicker = () => {
-    setTempDate(formDueDate ? new Date(formDueDate) : new Date())
-    setDatePickerVisible(true)
-  }
-
   const handleClearDate = () => {
     setValue("dueDate", null, { shouldDirty: true })
-  }
-
-  const handleDatePickerChange = (_evt: DateTimePickerEvent, date?: Date) => {
-    if (date) {
-      if (Platform.OS === "android") {
-        setValue("dueDate", date.getTime(), { shouldDirty: true })
-        setDatePickerVisible(false)
-      } else {
-        setTempDate(date)
-      }
-    } else if (Platform.OS === "android") {
-      setDatePickerVisible(false)
-    }
-  }
-
-  const handleDatePickerConfirm = () => {
-    setValue("dueDate", tempDate.getTime(), { shouldDirty: true })
-    setDatePickerVisible(false)
-  }
-
-  const handleDatePickerCancel = () => {
-    setDatePickerVisible(false)
   }
 
   const currentColorScheme = getThemeStrict(formColorSchemeName)
@@ -434,7 +408,11 @@ export function LoanModifyContent({
             {/* Due date — optional pressable row */}
             <Pressable
               style={loanModifyStyles.dueDateSettingsRow}
-              onPress={handleOpenDatePicker}
+              onPress={() =>
+                dueDatePicker.open(
+                  formDueDate ? new Date(formDueDate) : new Date(),
+                )
+              }
               accessibilityRole="button"
             >
               <View style={loanModifyStyles.dueDateLeft}>
@@ -547,80 +525,7 @@ export function LoanModifyContent({
         }}
       />
 
-      {/*TODO: Unify under one component => iOS date picker — slide-up modal sheet */}
-      {Platform.OS === "ios" && datePickerVisible && (
-        <Modal
-          visible
-          transparent
-          animationType="slide"
-          onRequestClose={handleDatePickerCancel}
-          accessibilityViewIsModal
-        >
-          <Pressable
-            style={loanModifyStyles.datePickerOverlay}
-            onPress={handleDatePickerCancel}
-          />
-          <View
-            style={[
-              loanModifyStyles.datePickerModal,
-              { backgroundColor: theme.colors.surface },
-            ]}
-          >
-            <View
-              style={[
-                loanModifyStyles.datePickerHeader,
-                { borderBottomColor: `${theme.colors.onSurface}20` },
-              ]}
-            >
-              <Pressable
-                onPress={handleDatePickerCancel}
-                style={loanModifyStyles.datePickerCancel}
-              >
-                <Text
-                  style={[
-                    loanModifyStyles.datePickerCancelText,
-                    { color: theme.colors.onSurface },
-                  ]}
-                >
-                  {t("common.actions.cancel")}
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={handleDatePickerConfirm}
-                style={loanModifyStyles.datePickerDone}
-              >
-                <Text
-                  style={[
-                    loanModifyStyles.datePickerDoneText,
-                    { color: theme.colors.primary },
-                  ]}
-                >
-                  {t("common.actions.done")}
-                </Text>
-              </Pressable>
-            </View>
-            <View style={loanModifyStyles.datePickerBody}>
-              <DateTimePicker
-                value={tempDate}
-                mode="date"
-                display="spinner"
-                onChange={handleDatePickerChange}
-                textColor={theme.colors.onSurface}
-              />
-            </View>
-          </View>
-        </Modal>
-      )}
-
-      {/* Android inline date picker */}
-      {Platform.OS === "android" && datePickerVisible && (
-        <DateTimePicker
-          value={tempDate}
-          mode="date"
-          display="default"
-          onChange={handleDatePickerChange}
-        />
-      )}
+      <DateTimePickerModal {...dueDatePicker.modalProps} />
     </View>
   )
 }

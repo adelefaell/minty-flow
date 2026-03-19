@@ -1,7 +1,4 @@
-import {
-  DateTimePickerAndroid,
-  type DateTimePickerEvent,
-} from "@react-native-community/datetimepicker"
+import { DateTimePickerAndroid } from "@react-native-community/datetimepicker"
 import { useCallback, useReducer, useRef } from "react"
 import type { UseFormSetValue, UseFormWatch } from "react-hook-form"
 import { Platform } from "react-native"
@@ -80,33 +77,28 @@ export function useFormDatePicker(
     [watch, setValue, recurring.startDate, recurring.endDate, setRecurring],
   )
 
-  const handleIosDateChange = useCallback(
-    (_evt: DateTimePickerEvent, selectedDate?: Date) => {
-      if (selectedDate) setDatePicker({ tempDate: selectedDate })
-    },
-    [],
-  )
-
-  const confirmIosDate = useCallback(() => {
-    if (datePicker.mode === "time") {
-      const tgt = datePickerTargetRef.current
-      if (tgt === "recurringStart")
-        setRecurring({ startDate: datePicker.tempDate })
-      else if (tgt === "recurringEnd")
-        setRecurring({ endDate: datePicker.tempDate })
-      else {
-        setValue("transactionDate", datePicker.tempDate, { shouldDirty: true })
-        setValue(
-          "isPending",
-          datePicker.tempDate.getTime() > startOfNextMinute().getTime(),
-          { shouldDirty: true },
-        )
+  const confirmIosDate = useCallback(
+    (date: Date) => {
+      if (datePicker.mode === "time") {
+        const tgt = datePickerTargetRef.current
+        if (tgt === "recurringStart") setRecurring({ startDate: date })
+        else if (tgt === "recurringEnd") setRecurring({ endDate: date })
+        else {
+          setValue("transactionDate", date, { shouldDirty: true })
+          setValue(
+            "isPending",
+            date.getTime() > startOfNextMinute().getTime(),
+            { shouldDirty: true },
+          )
+        }
+        setDatePicker({ visible: false })
+      } else {
+        // Date confirmed — switch to time picker starting from the confirmed date
+        setDatePicker({ mode: "time", tempDate: date })
       }
-      setDatePicker({ visible: false })
-    } else {
-      setDatePicker({ mode: "time" })
-    }
-  }, [datePicker.mode, datePicker.tempDate, setValue, setRecurring])
+    },
+    [datePicker.mode, setValue, setRecurring],
+  )
 
   const handleSetNow = useCallback(() => {
     const now = new Date()
@@ -120,7 +112,6 @@ export function useFormDatePicker(
     datePicker,
     setDatePicker,
     openDatePicker,
-    handleIosDateChange,
     confirmIosDate,
     handleSetNow,
   }

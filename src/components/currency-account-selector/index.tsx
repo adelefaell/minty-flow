@@ -26,6 +26,7 @@ import { NewEnum } from "~/types/new"
 import { Toast } from "~/utils/toast"
 
 import { triggerStyles } from "../selector-modals/styles"
+import { currencyAccountStyles } from "./currency-account-selector.styles"
 import type { CurrencyAccountSelectorProps } from "./types"
 
 // ---------------------------------------------------------------------------
@@ -55,10 +56,13 @@ const CurrencyPanelRow = memo(function CurrencyPanelRow({
   const { theme } = useUnistyles()
   return (
     <Pressable
-      style={[styles.panelRow, isSelected && styles.panelRowSelected]}
+      style={[
+        currencyAccountStyles.panelRow,
+        isSelected && currencyAccountStyles.panelRowSelected,
+      ]}
       onPress={() => onSelect(item.code)}
     >
-      <View style={styles.panelRowLeft}>
+      <View style={currencyAccountStyles.panelRowLeft}>
         <Text variant="large">{item.code}</Text>
         <Text variant="muted">
           {item.accountCount} account{item.accountCount !== 1 ? "s" : ""}
@@ -89,8 +93,11 @@ const AccountRow = memo(function AccountRow({
   const { theme } = useUnistyles()
 
   return (
-    <Pressable style={styles.accountRow} onPress={() => onToggle(account.id)}>
-      <View style={styles.accountLeft}>
+    <Pressable
+      style={currencyAccountStyles.accountRow}
+      onPress={() => onToggle(account.id)}
+    >
+      <View style={currencyAccountStyles.accountLeft}>
         <DynamicIcon
           icon={account.icon}
           size={20}
@@ -98,10 +105,12 @@ const AccountRow = memo(function AccountRow({
           variant="badge"
         />
         <View>
-          <Text style={styles.accountName} numberOfLines={1}>
+          <Text style={currencyAccountStyles.accountName} numberOfLines={1}>
             {account.name}
           </Text>
-          <Text style={styles.accountCurrency}>{account.currencyCode}</Text>
+          <Text style={currencyAccountStyles.accountCurrency}>
+            {account.currencyCode}
+          </Text>
         </View>
       </View>
       <IconSvg
@@ -251,10 +260,10 @@ export function CurrencyAccountSelector({
   // ---------------------------------------------------------------------------
 
   return (
-    <View style={styles.container}>
+    <View style={currencyAccountStyles.container}>
       {/* ---- CURRENCY SECTION ---- */}
-      <View style={styles.section}>
-        <Text style={styles.sectionLabel}>
+      <View style={currencyAccountStyles.section}>
+        <Text style={currencyAccountStyles.sectionLabel}>
           {t("components.currencyAccountSelector.currencyLabel")}
         </Text>
 
@@ -286,28 +295,28 @@ export function CurrencyAccountSelector({
 
         {/* Inline currency panel */}
         {currencyPanelOpen && (
-          <View style={styles.inlinePanel}>
+          <View style={currencyAccountStyles.inlinePanel}>
             <ScrollView
-              style={styles.inlinePanelList}
+              style={currencyAccountStyles.inlinePanelList}
               nestedScrollEnabled
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
             >
               {currencyItems.length === 0 ? (
-                <View style={styles.emptyPanel}>
-                  <Text style={styles.emptyText}>
+                <View style={currencyAccountStyles.emptyPanel}>
+                  <Text style={currencyAccountStyles.emptyText}>
                     {t("components.currencyAccountSelector.noAccounts")}
                   </Text>
                   <Pressable
-                    style={styles.createButton}
+                    style={currencyAccountStyles.createButton}
                     onPress={handleCreateAccount}
                   >
                     <IconSvg
                       name="plus"
                       size={16}
-                      color={styles.createButtonIcon.color}
+                      color={currencyAccountStyles.createButtonIcon.color}
                     />
-                    <Text style={styles.createButtonText}>
+                    <Text style={currencyAccountStyles.createButtonText}>
                       {t("components.currencyAccountSelector.createAccount")}
                     </Text>
                   </Pressable>
@@ -330,10 +339,10 @@ export function CurrencyAccountSelector({
       {/* ---- ACCOUNTS SECTION (only when currency is selected) ---- */}
       {selectedCurrency !== null && (
         <>
-          {/* <View style={styles.divider} /> */}
+          {/* <View style={currencyAccountStyles.divider} /> */}
 
-          <View style={styles.section}>
-            {/* <Text style={styles.sectionLabel}>
+          <View style={currencyAccountStyles.section}>
+            {/* <Text style={currencyAccountStyles.sectionLabel}>
               {t(
                 "components.currencyAccountSelector.accountsLabel",
               )}
@@ -349,7 +358,10 @@ export function CurrencyAccountSelector({
               <View style={triggerStyles.triggerLeft}>
                 <IconSvg name="wallet" size={24} />
                 {selectedAccountNames ? (
-                  <Text numberOfLines={1} style={styles.accountTriggerValue}>
+                  <Text
+                    numberOfLines={1}
+                    style={currencyAccountStyles.accountTriggerValue}
+                  >
                     {selectedAccountNames}
                   </Text>
                 ) : (
@@ -369,10 +381,10 @@ export function CurrencyAccountSelector({
 
             {/* Inline accounts panel */}
             {accountPanelOpen && (
-              <View style={styles.inlinePanel}>
+              <View style={currencyAccountStyles.inlinePanel}>
                 {matchingAccounts.length === 0 ? (
-                  <View style={styles.emptyPanel}>
-                    <Text style={styles.emptyText}>
+                  <View style={currencyAccountStyles.emptyPanel}>
+                    <Text style={currencyAccountStyles.emptyText}>
                       {t(
                         "components.currencyAccountSelector.noAccountsForCurrency",
                       )}
@@ -380,7 +392,7 @@ export function CurrencyAccountSelector({
                   </View>
                 ) : (
                   <ScrollView
-                    style={styles.inlinePanelList}
+                    style={currencyAccountStyles.inlinePanelList}
                     nestedScrollEnabled
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
@@ -388,10 +400,13 @@ export function CurrencyAccountSelector({
                     {/* Select all toggle — only when 2+ accounts share the currency */}
                     {matchingAccounts.length >= 2 && (
                       <Pressable
-                        style={[styles.panelRow, styles.selectAllRow]}
+                        style={[
+                          currencyAccountStyles.panelRow,
+                          currencyAccountStyles.selectAllRow,
+                        ]}
                         onPress={handleSelectAll}
                       >
-                        <Text style={styles.selectAllText}>
+                        <Text style={currencyAccountStyles.selectAllText}>
                           {t("components.currencyAccountSelector.selectAll", {
                             currency: selectedCurrency,
                           })}
@@ -421,173 +436,3 @@ export function CurrencyAccountSelector({
     </View>
   )
 }
-
-import { StyleSheet } from "react-native-unistyles"
-
-const styles = StyleSheet.create((t) => ({
-  container: {
-    width: "100%",
-  },
-  section: {
-    width: "100%",
-  },
-  sectionLabel: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: t.colors.onSurface,
-    letterSpacing: 0.5,
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 4,
-    opacity: 0.6,
-  },
-  // Currency trigger row
-  currencyRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 20,
-    paddingHorizontal: 20,
-  },
-  currencyLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  currencyRight: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  currencyCode: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: t.colors.onSurface,
-  },
-  currencyPlaceholder: {
-    fontSize: 16,
-    color: t.colors.onSecondary,
-    opacity: 0.6,
-  },
-  chevron: {
-    color: t.colors.onSecondary,
-    opacity: 0.4,
-  },
-  // Account rows
-  accountRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-  },
-  accountLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    flex: 1,
-  },
-  accountIcon: {
-    width: 40,
-    height: 40,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  accountName: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: t.colors.onSurface,
-    flex: 1,
-  },
-  accountCurrency: {
-    fontSize: 13,
-    color: t.colors.onSecondary,
-    opacity: 0.7,
-    marginTop: 2,
-  },
-  checkIcon: {
-    color: t.colors.primary,
-  },
-  // Select all row (inside panel)
-  selectAllRow: {
-    borderBottomWidth: 1,
-    borderBottomColor: `${t.colors.onSurface}10`,
-  },
-  selectAllText: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: t.colors.primary,
-  },
-  // Empty state
-  emptyText: {
-    fontSize: 14,
-    color: t.colors.onSecondary,
-    opacity: 0.6,
-    textAlign: "center",
-    paddingVertical: 24,
-    paddingHorizontal: 20,
-  },
-  // Divider
-  // divider: {
-  //   height: 1,
-  //   backgroundColor: t.colors.customColors.semi,
-  //   marginHorizontal: 20,
-  // },
-  // Account trigger value — selected names, truncated
-  accountTriggerValue: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: t.colors.onSurface,
-  },
-  // Inline currency panel (replaces modal)
-  inlinePanel: {
-    marginHorizontal: 12,
-    marginBottom: 8,
-    backgroundColor: t.colors.secondary,
-    borderRadius: t.radius,
-    overflow: "hidden",
-    maxHeight: 260,
-  },
-  inlinePanelList: {
-    flexGrow: 0,
-  },
-  emptyPanel: {
-    paddingVertical: 24,
-    alignItems: "center",
-    gap: 12,
-  },
-  createButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    backgroundColor: `${t.colors.primary}15`,
-    borderRadius: t.radius,
-  },
-  createButtonIcon: {
-    color: t.colors.primary,
-  },
-  createButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: t.colors.primary,
-  },
-  // Row inside the inline currency panel
-  panelRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: `${t.colors.onSurface}10`,
-  },
-  panelRowSelected: {
-    backgroundColor: `${t.colors.primary}15`,
-  },
-  panelRowLeft: {
-    flex: 1,
-    gap: 2,
-  },
-}))

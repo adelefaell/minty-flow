@@ -685,38 +685,6 @@ export const transactionFormStyles = StyleSheet.create((theme) => ({
     textAlignVertical: "top",
     fontSize: 16,
   },
-  datePickerOverlay: {
-    flex: 1,
-  },
-  datePickerModal: {
-    borderTopLeftRadius: theme.radius,
-    borderTopRightRadius: theme.radius,
-    paddingBottom: 34,
-  },
-  datePickerBody: {
-    paddingVertical: SECTION_GAP,
-  },
-  datePickerHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: SECTION_GAP,
-    borderBottomWidth: 1,
-  },
-  datePickerCancel: {
-    minWidth: 70,
-  },
-  datePickerDone: {
-    minWidth: 70,
-    alignItems: "flex-end",
-  },
-  datePickerCancelText: {
-    fontSize: 17,
-  },
-  datePickerDoneText: {
-    fontSize: 17,
-    fontWeight: "600",
-  },
   footer: {
     flexDirection: "row",
     paddingHorizontal: H_PAD,

@@ -284,7 +284,6 @@ export function TransactionFormV3({
     datePicker,
     setDatePicker,
     openDatePicker,
-    handleIosDateChange,
     confirmIosDate,
     handleSetNow,
   } = useFormDatePicker(recurring, setRecurring, watch, setValue)
@@ -983,7 +982,6 @@ export function TransactionFormV3({
         onDestroyConfirm={handleDestroyConfirm}
         onLocationConfirm={handleLocationConfirm}
         onIosDateConfirm={confirmIosDate}
-        onIosDateChange={handleIosDateChange}
         onDatePickerClose={() => setDatePicker({ visible: false })}
       />
     </View>

@@ -4,10 +4,7 @@
     "name": "Minty Flow",
     "slug": "mint-flow",
     "extra": {
-      "supportsRTL": true,
-      "eas": {
-        "projectId": "7aafeeea-8f93-4fa3-b074-febd59362696"
-      }
+      "supportsRTL": true
     },
     "owner": "adelefaells-organization",
     "orientation": "portrait",
@@ -43,6 +40,13 @@
     },
     "plugins": [
       "expo-router",
+      "expo-localization",
+      "@react-native-community/datetimepicker",
+      "expo-font",
+      "expo-build-properties",
+      "expo-image",
+      "expo-web-browser",
+      "./plugins/withWatermelonDBJSI.js",
       [
         "expo-splash-screen",
         {
@@ -55,16 +59,12 @@
           }
         }
       ],
-      ["expo-localization"],
-      "./plugins/withWatermelonDBJSI.js",
       [
         "expo-contacts",
         {
           "contactsPermission": "Allow $(PRODUCT_NAME) to access your contacts."
         }
       ],
-      "@react-native-community/datetimepicker",
-      "expo-font",
       [
         "expo-local-authentication",
         {
@@ -82,10 +82,7 @@
         {
           "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
         }
-      ],
-      "expo-build-properties",
-      "expo-image",
-      "expo-web-browser"
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

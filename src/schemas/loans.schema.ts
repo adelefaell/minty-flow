@@ -16,7 +16,7 @@ const addLoanSchema = z.object({
 
 const updateLoanSchema = addLoanSchema
 
-export { addLoanSchema, updateLoanSchema }
+export { addLoanSchema }
 export type LoanFormValues = z.infer<typeof addLoanSchema>
 export type AddLoanFormSchema = z.infer<typeof addLoanSchema>
 export type UpdateLoanFormSchema = z.infer<typeof updateLoanSchema>

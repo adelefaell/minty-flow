@@ -36,6 +36,9 @@ import type { Goal } from "~/types/goals"
 /* Inner component (receives observed data)                           */
 /* ------------------------------------------------------------------ */
 
+const EMPTY_STRINGS: string[] = []
+const EMPTY_TRANSACTIONS: TransactionWithRelations[] = []
+
 interface GoalDetailInnerProps {
   goalId: string
   goal?: Goal
@@ -48,8 +51,8 @@ function GoalDetailInner({
   goalId,
   goal,
   currentAmount = 0,
-  accountNames = [],
-  transactionsFull = [],
+  accountNames = EMPTY_STRINGS,
+  transactionsFull = EMPTY_TRANSACTIONS,
 }: GoalDetailInnerProps) {
   const { t } = useTranslation()
   const router = useRouter()
@@ -66,6 +69,23 @@ function GoalDetailInner({
   const handleDeleteDone = useCallback(() => {
     openSwipeableRef.current?.close()
   }, [])
+
+  const handleWillOpen = useCallback((methods: SwipeableMethods) => {
+    openSwipeableRef.current?.close()
+    openSwipeableRef.current = methods
+  }, [])
+
+  const renderTransactionItem = useCallback(
+    ({ item }: { item: TransactionWithRelations }) => (
+      <TransactionItem
+        transactionWithRelations={item}
+        onPress={() => handleTransactionPress(item.transaction.id)}
+        onDelete={handleDeleteDone}
+        onWillOpen={handleWillOpen}
+      />
+    ),
+    [handleTransactionPress, handleDeleteDone, handleWillOpen],
+  )
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -252,17 +272,7 @@ function GoalDetailInner({
       <FlatList
         data={transactionsFull}
         keyExtractor={(item) => item.transaction.id}
-        renderItem={({ item }) => (
-          <TransactionItem
-            transactionWithRelations={item}
-            onPress={() => handleTransactionPress(item.transaction.id)}
-            onDelete={handleDeleteDone}
-            onWillOpen={(methods) => {
-              openSwipeableRef.current?.close()
-              openSwipeableRef.current = methods
-            }}
-          />
-        )}
+        renderItem={renderTransactionItem}
         ListHeaderComponent={headerContent}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>

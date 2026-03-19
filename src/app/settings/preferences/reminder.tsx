@@ -1,13 +1,12 @@
-import DateTimePicker, {
-  DateTimePickerAndroid,
-  type DateTimePickerEvent,
-} from "@react-native-community/datetimepicker"
 import * as Notifications from "expo-notifications"
-import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Linking, Platform, ScrollView } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
 
+import {
+  DateTimePickerModal,
+  useDateTimePicker,
+} from "~/components/ui/date-time-picker"
 import { InfoBanner } from "~/components/ui/info-banner"
 import { PermissionBanner } from "~/components/ui/permission-banner"
 import { Pressable } from "~/components/ui/pressable"
@@ -48,8 +47,6 @@ export default function ReminderScreen() {
     date.setHours(hours, minutes, 0, 0)
     return date
   })()
-
-  const [showIosPicker, setShowIosPicker] = useState(false)
 
   const handleRequestPermission = async () => {
     if (Platform.OS === "android") {
@@ -104,29 +101,12 @@ export default function ReminderScreen() {
     }
   }
 
-  const onIosTimeChange = (event: DateTimePickerEvent, date?: Date) => {
-    if (event.type === "set" && date) {
+  const timePicker = useDateTimePicker({
+    mode: "time",
+    onConfirm: (date) => {
       handleTimeChange(date)
-    }
-    setShowIosPicker(false)
-  }
-
-  const showTimePicker = () => {
-    if (Platform.OS === "android") {
-      DateTimePickerAndroid.open({
-        value: dailyReminderDate,
-        onChange: (event, date) => {
-          if (event.type === "set" && date) {
-            handleTimeChange(date)
-          }
-        },
-        mode: "time",
-        is24Hour: false,
-      })
-    } else {
-      setShowIosPicker(true)
-    }
-  }
+    },
+  })
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -166,21 +146,16 @@ export default function ReminderScreen() {
             </Text>
 
             {/* The Main Time Card */}
-            <Pressable style={styles.timeCard} onPress={showTimePicker}>
+            <Pressable
+              style={styles.timeCard}
+              onPress={() => timePicker.open(dailyReminderDate)}
+            >
               <Text style={styles.timeText}>
                 {formatReadableTime(dailyReminderDate)}
               </Text>
             </Pressable>
 
-            {/* iOS Native Picker Modal */}
-            {Platform.OS === "ios" && showIosPicker && (
-              <DateTimePicker
-                value={dailyReminderDate}
-                mode="time"
-                display="spinner"
-                onChange={onIosTimeChange}
-              />
-            )}
+            <DateTimePickerModal {...timePicker.modalProps} />
 
             {/* For Testing  */}
             {/* <Button

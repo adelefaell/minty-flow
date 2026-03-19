@@ -10,7 +10,6 @@ import type {
 import type { Goal, GoalType } from "~/types/goals"
 
 import { database } from "../index"
-import type AccountModel from "../models/account"
 import type GoalModel from "../models/goal"
 import type GoalAccountModel from "../models/goal-account"
 import type TransactionModel from "../models/transaction"
@@ -31,20 +30,6 @@ const getGoalCollection = () => database.get<GoalModel>("goals")
 
 const getGoalAccountCollection = () =>
   database.get<GoalAccountModel>("goal_accounts")
-
-const getAccountCollection = () => database.get<AccountModel>("accounts")
-
-/**
- * Fetch the account IDs associated with a goal from the join table.
- */
-export const getAccountIdsForGoal = async (
-  goalId: string,
-): Promise<string[]> => {
-  const rows = await getGoalAccountCollection()
-    .query(Q.where("goal_id", goalId))
-    .fetch()
-  return rows.map((r) => r.accountId)
-}
 
 /**
  * Observe account IDs for a goal reactively (for withObservables).
@@ -126,17 +111,6 @@ export const observeArchivedGoals = (): Observable<Goal[]> =>
  */
 export const observeGoalById = (id: string): Observable<GoalModel> =>
   getGoalCollection().findAndObserve(id)
-
-/**
- * Find a goal by ID. Returns null if not found.
- */
-export const findGoal = async (id: string): Promise<GoalModel | null> => {
-  try {
-    return await getGoalCollection().find(id)
-  } catch {
-    return null
-  }
-}
 
 /**
  * Create a new goal and its account associations in a single write.
@@ -257,46 +231,6 @@ export const destroyGoal = async (goal: GoalModel): Promise<void> => {
     }
     await goal.destroyPermanently()
   })
-}
-
-/**
- * Compute the current progress toward a goal by summing the balances of
- * all linked accounts. This is the "current amount" saved toward the goal.
- *
- * Returns 0 when no accounts are linked or accounts cannot be found.
- */
-export const computeGoalProgress = async (
-  accountIds: string[],
-): Promise<number> => {
-  if (accountIds.length === 0) return 0
-
-  const accounts = await getAccountCollection()
-    .query(Q.where("id", Q.oneOf(accountIds)))
-    .fetch()
-
-  return accounts.reduce((sum, account) => sum + account.balance, 0)
-}
-
-/**
- * Observe the current progress toward a goal reactively.
- * Sums the balances of all linked accounts and emits whenever any
- * account balance changes or the list of accounts changes.
- *
- * @deprecated Use observeGoalTransactionProgress for transaction-based progress.
- */
-export const observeGoalProgress = (
-  accountIds: string[],
-): Observable<number> => {
-  if (accountIds.length === 0) return of(0)
-
-  return getAccountCollection()
-    .query(Q.where("id", Q.oneOf(accountIds)))
-    .observeWithColumns(["balance"])
-    .pipe(
-      map((accounts) =>
-        accounts.reduce((sum, account) => sum + account.balance, 0),
-      ),
-    )
 }
 
 /* ------------------------------------------------------------------ */

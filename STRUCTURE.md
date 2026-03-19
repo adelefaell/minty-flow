@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-03-18T19:35:27.571Z
+Generated on: 2026-03-19T03:05:23.319Z
 
 ```
 ./
@@ -969,7 +969,6 @@ Generated on: 2026-03-18T19:35:27.571Z
 │   │   │   │   ├── form-budget-picker.tsx
 │   │   │   │   ├── form-category-picker.tsx
 │   │   │   │   ├── form-conversion-section.tsx
-│   │   │   │   ├── form-date-picker-modal.tsx
 │   │   │   │   ├── form-date-section.tsx
 │   │   │   │   ├── form-delete-actions.tsx
 │   │   │   │   ├── form-footer.tsx
@@ -1009,6 +1008,11 @@ Generated on: 2026-03-18T19:35:27.571Z
 │   │   │   ├── transaction-section-list.tsx
 │   │   │   └── transaction-type-selector.tsx
 │   │   ├── ui/
+│   │   │   ├── date-time-picker/
+│   │   │   │   ├── date-time-picker-modal.tsx
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── styles.ts
+│   │   │   │   └── use-date-time-picker.ts
 │   │   │   ├── activity-indicator-minty.tsx
 │   │   │   ├── button.tsx
 │   │   │   ├── chevron-icon.tsx
@@ -1075,7 +1079,6 @@ Generated on: 2026-03-18T19:35:27.571Z
 │   │   │   ├── budget-service.ts
 │   │   │   ├── category-service.ts
 │   │   │   ├── goal-service.ts
-│   │   │   ├── index.ts
 │   │   │   ├── loan-service.ts
 │   │   │   ├── README.md
 │   │   │   ├── recurring-transaction-service.ts
@@ -6918,7 +6921,6 @@ Generated on: 2026-03-18T19:35:27.571Z
 ├── babel.config.js
 ├── biome.json
 ├── CLAUDE.md
-├── eas.json
 ├── expo-env.d.ts
 ├── index.ts
 ├── package.json
