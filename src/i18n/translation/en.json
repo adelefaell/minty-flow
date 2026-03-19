@@ -1407,31 +1407,32 @@
   "onboarding": {
     "welcome": {
       "title": "Flow",
-      "subtitle": "Your personal finance tracker"
+      "subtitle": "Take charge of your money, one day at a time"
     },
     "openSource": {
-      "title": "Free & open-source",
-      "description": "Absolutely free and source code is available publicly."
+      "title": "Free & open source",
+      "description": "No subscriptions, no hidden fees. The source code is open for anyone to inspect."
     },
     "privacy": {
-      "title": "You control your data",
-      "description": "All of your data is stored only on-device (or your private cloud provider), with full export options available."
+      "title": "Your data stays with you",
+      "description": "Everything is stored locally on your device or your own cloud — nothing leaves without your permission."
     },
     "start": {
-      "title": "Let's start",
+      "title": "How would you like to begin?",
       "import": {
-        "title": "Import from a backup",
-        "description": "Restore data from a previous Flow backup"
+        "title": "Restore from backup",
+        "description": "Bring back your data from an existing Minty Flow backup"
       },
       "fresh": {
-        "title": "Start fresh",
-        "description": "I'm using Flow for the first time"
+        "title": "Begin from scratch",
+        "description": "Set up Minty Flow for the first time"
       }
     },
     "accounts": {
-      "title": "Setup accounts",
-      "hint": "Create new accounts, and/or add from the presets. You can change this later in the \"Accounts\" tab.",
-      "addNew": "Add new account",
+      "title": "Pick your accounts",
+      "hint": "Choose from the suggestions below, or create your own. You can adjust this anytime.",
+      "addNew": "Create a custom account",
+      "suggested": "Suggested",
       "presets": {
         "main": "Main",
         "cash": "Cash",
