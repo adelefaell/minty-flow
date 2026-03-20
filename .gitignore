@@ -43,5 +43,4 @@ app-example
 /android
 /memory
 
-/src/assets/tabler-icons
-/src/components/icons
+tabler-icons
