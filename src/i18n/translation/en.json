@@ -232,6 +232,7 @@
         "categoryBreakdown": "By Category",
         "netWorth": "Net Worth Over Time",
         "prevPeriod": "Previous",
+        "currentPeriod": "This month",
         "expenseForecastTitle": "Expense forecast for {{month}}",
         "expenseTotalTitle": "{{month}} total expense"
       },

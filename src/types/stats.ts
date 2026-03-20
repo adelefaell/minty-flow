@@ -191,6 +191,8 @@ export interface StatsSupplement {
     accountName: string
     balance: number
     excludeFromBalance: boolean
+    icon: string | null
+    colorSchemeName: string | null
   }>
 }
 

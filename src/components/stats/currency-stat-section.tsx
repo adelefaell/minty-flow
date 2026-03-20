@@ -78,6 +78,13 @@ export function CurrencyStatSection({
           {/* Hero cards row: expense / income / net */}
           <CurrencyHeroRow stats={stats} forecast={stats.forecast} />
 
+          {/* Daily trend line chart */}
+          <DailyExpenseLineChart
+            dailyData={stats.dailyData}
+            previousDailyData={stats.previousDailyData}
+            currency={stats.currency}
+          />
+
           {/* Net balance over time */}
           {supplement && (
             <BalanceTimelineChart
@@ -88,13 +95,6 @@ export function CurrencyStatSection({
               accountBreakdown={supplement.accountBalanceSummary}
             />
           )}
-
-          {/* Daily trend line chart */}
-          <DailyExpenseLineChart
-            dailyData={stats.dailyData}
-            previousDailyData={stats.previousDailyData}
-            currency={stats.currency}
-          />
 
           {/* Averages by day */}
           <View style={styles.sectionWithHeader}>

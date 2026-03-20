@@ -23,13 +23,7 @@ interface UseStatsReturn {
   refetch: () => Promise<void>
 }
 
-async function fetchSupplement(): Promise<StatsSupplement[]> {
-  const db = require("~/database")
-    .database as typeof import("~/database/index").database
-
-  const accounts = await db.get<AccountModel>("accounts").query().fetch()
-
-  // Group accounts by currency
+function computeSupplements(accounts: AccountModel[]): StatsSupplement[] {
   const currencySet = new Set(accounts.map((a) => a.currencyCode))
   const supplements: StatsSupplement[] = []
 
@@ -46,6 +40,8 @@ async function fetchSupplement(): Promise<StatsSupplement[]> {
         accountName: a.name,
         balance: a.balance,
         excludeFromBalance: a.excludeFromBalance,
+        icon: a.icon,
+        colorSchemeName: a.colorSchemeName,
       })),
     })
   }
@@ -71,15 +67,9 @@ export function useStats(): UseStatsReturn {
   const fetchData = useCallback(async (range: StatsDateRange) => {
     setIsLoading(true)
     try {
-      const [stats, supplement] = await Promise.all([
-        fetchAllStatsData(range),
-        fetchSupplement(),
-      ])
-
+      const stats = await fetchAllStatsData(range)
       if (!mountedRef.current) return
-
       setByCurrency(stats)
-      setSupplementByCurrency(supplement)
     } finally {
       if (mountedRef.current) {
         setIsLoading(false)
@@ -100,6 +90,20 @@ export function useStats(): UseStatsReturn {
   useEffect(() => {
     fetchData(dateRange)
   }, [dateRange, fetchData])
+
+  // Reactively observe accounts so color/icon changes propagate immediately
+  useEffect(() => {
+    const db = require("~/database")
+      .database as typeof import("~/database/index").database
+    const subscription = db
+      .get<AccountModel>("accounts")
+      .query()
+      .observe()
+      .subscribe((accounts) => {
+        setSupplementByCurrency(computeSupplements(accounts))
+      })
+    return () => subscription.unsubscribe()
+  }, [])
 
   useEffect(() => {
     mountedRef.current = true

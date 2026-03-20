@@ -44,8 +44,8 @@ export default function StatsScreen() {
           <RefreshControl
             refreshing={isLoading && byCurrency.length > 0}
             onRefresh={refetch}
-            tintColor={theme.colors.primary}
-            colors={[theme.colors.primary]}
+            tintColor={theme.colors.onPrimary}
+            colors={[theme.colors.onPrimary]}
           />
         }
       >

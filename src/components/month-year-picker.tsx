@@ -48,25 +48,31 @@ export function MonthYearPicker({
 
   const goPrevMonth = useCallback(() => {
     if (localMonth === 0) {
-      setLocalMonth(11)
       const newYear = clampYear(localYear - 1)
+      setLocalMonth(11)
       setLocalYear(newYear)
       setYearInputValue(String(newYear))
+      onSelect(newYear, 11)
     } else {
-      setLocalMonth((m) => m - 1)
+      const newMonth = localMonth - 1
+      setLocalMonth(newMonth)
+      onSelect(localYear, newMonth)
     }
-  }, [localMonth, localYear])
+  }, [localMonth, localYear, onSelect])
 
   const goNextMonth = useCallback(() => {
     if (localMonth === 11) {
-      setLocalMonth(0)
       const newYear = clampYear(localYear + 1)
+      setLocalMonth(0)
       setLocalYear(newYear)
       setYearInputValue(String(newYear))
+      onSelect(newYear, 0)
     } else {
-      setLocalMonth((m) => m + 1)
+      const newMonth = localMonth + 1
+      setLocalMonth(newMonth)
+      onSelect(localYear, newMonth)
     }
-  }, [localMonth, localYear])
+  }, [localMonth, localYear, onSelect])
 
   const handleMonthPress = useCallback((monthIndex: number) => {
     setLocalMonth(monthIndex)

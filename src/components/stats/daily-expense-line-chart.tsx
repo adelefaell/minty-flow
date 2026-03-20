@@ -15,7 +15,7 @@ import Animated, {
 } from "react-native-reanimated"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 import { runOnJS } from "react-native-worklets"
-import { CartesianChart, Line, useChartPressState } from "victory-native"
+import { Area, CartesianChart, Line, useChartPressState } from "victory-native"
 
 import { Money } from "~/components/money"
 import { Text } from "~/components/ui/text"
@@ -26,7 +26,7 @@ import type { DailyDataPoint } from "~/types/stats"
 import { ChartContainer } from "./chart-container"
 import { ChartCrosshair } from "./chart-crosshair"
 
-const CHART_HEIGHT = 180
+const CHART_HEIGHT = 220
 
 interface DailyExpenseLineChartProps {
   dailyData: DailyDataPoint[]
@@ -51,12 +51,12 @@ export function DailyExpenseLineChart({
   const Dimensions = useWindowDimensions()
 
   // x typed as `number` explicitly so ChartPressState generic resolves correctly
-  const { state, isActive } = useChartPressState({
+  const { state } = useChartPressState({
     x: 0 as number,
     y: { current: 0, prev: 0 },
   })
 
-  // Keep stale values so the tooltip doesn't flicker on lift — isActive drives show/hide
+  // Keep stale values so the tooltip doesn't flicker on lift — animated style drives show/hide
   const [activePoint, setActivePoint] = useState<ActivePoint>({
     day: 0,
     current: 0,
@@ -65,11 +65,6 @@ export function DailyExpenseLineChart({
 
   const [tooltipWidth, setTooltipWidth] = useState(0)
   const screenWidth = Dimensions.width
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: withSpring(isActive ? 1 : 0),
-    transform: [{ scale: withSpring(isActive ? 1 : 0.8) }],
-  }))
 
   const tooltipLeft = useDerivedValue(() => {
     "worklet"
@@ -82,9 +77,19 @@ export function DailyExpenseLineChart({
 
   const tooltipTop = useDerivedValue(() => {
     "worklet"
-    // place 8px above the point
     return state.y.current.position.value - 60
   })
+
+  // Derived opacity for the Skia circle — runs on UI thread
+  const circleOpacity = useDerivedValue(() => (state.isActive.value ? 1 : 0))
+
+  // Single animated style that handles both position and visibility
+  const tooltipStyle = useAnimatedStyle(() => ({
+    opacity: withSpring(state.isActive.value ? 1 : 0),
+    transform: [{ scale: withSpring(state.isActive.value ? 1 : 0.8) }],
+    left: tooltipLeft.value,
+    top: tooltipTop.value,
+  }))
 
   useAnimatedReaction(
     () => ({
@@ -123,41 +128,48 @@ export function DailyExpenseLineChart({
     return nonZero.reduce((sum, d) => sum + d.current, 0) / nonZero.length
   }, [chartData])
 
+  // Use actual max of non-zero values to avoid p95 picking zeros on sparse datasets
   const maxValue = useMemo(() => {
-    const values = chartData.flatMap((d) =>
-      hasPreviousData ? [d.current, d.prev] : [d.current],
-    )
-    // Use 95th percentile, but cap the index so we never select the absolute max
-    // (on datasets < 20 items, floor(len * 0.95) === len-1 which is the outlier itself)
-    const sorted = [...values].sort((a, b) => a - b)
-    let targetIndex = Math.floor(sorted.length * 0.95)
-    if (sorted.length > 1)
-      targetIndex = Math.min(targetIndex, sorted.length - 2)
-    const p95 = sorted[targetIndex] ?? 1
-    return Math.max(p95 * 1.3, 1)
+    const values = chartData
+      .flatMap((d) => (hasPreviousData ? [d.current, d.prev] : [d.current]))
+      .filter((v) => v > 0)
+    if (values.length === 0) return 1
+    return Math.max(...values) * 1.2
   }, [chartData, hasPreviousData])
 
   if (chartData.length === 0 || chartData.every((d) => d.current === 0)) {
     return null
   }
 
-  const legend = hasPreviousData ? (
+  const legend = (
     <View style={styles.legendRow}>
-      <View style={styles.prevDot} />
-      <Text variant="muted" style={styles.prevLabel}>
-        {t("screens.stats.chart.prevPeriod")}
+      {hasPreviousData && (
+        <>
+          <View style={styles.prevSwatch} />
+          <Text variant="muted" style={styles.legendLabel}>
+            {t("screens.stats.chart.prevPeriod")}
+          </Text>
+        </>
+      )}
+      <View style={styles.currentSwatch} />
+      <Text variant="muted" style={styles.legendLabel}>
+        {t("screens.stats.chart.currentPeriod")}
       </Text>
     </View>
-  ) : undefined
+  )
 
   return (
-    <ChartContainer title={t("screens.stats.chart.dailyTrend")} legend={legend}>
+    <ChartContainer
+      title={t("screens.stats.chart.dailyTrend")}
+      legend={legend}
+      legendBelow
+    >
       <View style={styles.chartArea}>
         <CartesianChart
           data={chartData}
           xKey="x"
           yKeys={["current", "prev"]}
-          domain={{ y: [0, maxValue * 1.1] }}
+          domain={{ y: [0, maxValue] }}
           domainPadding={{ top: 8, bottom: 0, left: 8, right: 8 }}
           xAxis={{
             font,
@@ -174,8 +186,11 @@ export function DailyExpenseLineChart({
               lineColor: `${theme.colors.customColors.semi}50`,
               lineWidth: 1,
               formatYLabel: (v) => {
-                if (v >= 1000) return `${(v / 1000).toFixed(1)}k`
-                return String(Math.round(v as number))
+                const n = v as number
+                if (n >= 1000) return `$${(n / 1000).toFixed(1)}k`
+                if (n >= 100) return `$${Math.round(n)}`
+                if (n > 0) return `$${n.toFixed(0)}`
+                return "$0"
               },
             },
           ]}
@@ -203,20 +218,26 @@ export function DailyExpenseLineChart({
                     curveType="monotoneX"
                   />
                 )}
+                <Area
+                  points={points.current}
+                  color={theme.colors.primary}
+                  opacity={0.12}
+                  curveType="monotoneX"
+                  y0={chartBounds.bottom}
+                />
                 <Line
                   points={points.current}
                   color={theme.colors.primary}
                   strokeWidth={2.5}
                   curveType="monotoneX"
                 />
-                {isActive && (
-                  <Circle
-                    cx={state.x.position}
-                    cy={state.y.current.position}
-                    r={5}
-                    color={theme.colors.primary}
-                  />
-                )}
+                <Circle
+                  cx={state.x.position}
+                  cy={state.y.current.position}
+                  r={5}
+                  color={theme.colors.primary}
+                  opacity={circleOpacity}
+                />
                 {averageExpense > 0 && (
                   <>
                     <SkiaLine
@@ -228,7 +249,7 @@ export function DailyExpenseLineChart({
                     />
                     {font && (
                       <SkiaText
-                        x={chartBounds.right - 42}
+                        x={chartBounds.right - 48}
                         y={avgY - 4}
                         text={
                           averageExpense >= 1000
@@ -248,39 +269,29 @@ export function DailyExpenseLineChart({
         </CartesianChart>
       </View>
 
-      {isActive && (
-        <Animated.View
-          style={[
-            styles.floatingTooltip,
-            {
-              left: tooltipLeft,
-              top: tooltipTop,
-              opacity: animatedStyle.opacity,
-              transform: animatedStyle.transform,
-            },
-          ]}
-          onLayout={(e) => setTooltipWidth(e.nativeEvent.layout.width)}
-        >
-          <Text variant="small" style={styles.tooltipDay}>
-            {activePoint.day}
-          </Text>
+      <Animated.View
+        style={[styles.floatingTooltip, tooltipStyle]}
+        onLayout={(e) => setTooltipWidth(e.nativeEvent.layout.width)}
+      >
+        <Text variant="small" style={styles.tooltipDay}>
+          {activePoint.day}
+        </Text>
+        <Money
+          value={activePoint.current}
+          currency={currency}
+          tone="expense"
+          variant="small"
+        />
+        {hasPreviousData && (
           <Money
-            value={activePoint.current}
+            value={activePoint.prev}
             currency={currency}
-            tone="expense"
-            variant="small"
+            tone="transfer"
+            variant="muted"
+            compact
           />
-          {hasPreviousData && (
-            <Money
-              value={activePoint.prev}
-              currency={currency}
-              tone="transfer"
-              variant="muted"
-              compact
-            />
-          )}
-        </Animated.View>
-      )}
+        )}
+      </Animated.View>
     </ChartContainer>
   )
 }
@@ -288,12 +299,6 @@ export function DailyExpenseLineChart({
 const styles = StyleSheet.create((theme) => ({
   chartArea: {
     height: CHART_HEIGHT,
-  },
-  tooltip: {
-    flexDirection: "row",
-    gap: 8,
-    alignItems: "center",
-    paddingBottom: 4,
   },
   tooltipDay: {
     color: theme.colors.customColors.semi,
@@ -303,17 +308,24 @@ const styles = StyleSheet.create((theme) => ({
   legendRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: 6,
   },
-  prevDot: {
-    width: 12,
+  currentSwatch: {
+    width: 16,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: theme.colors.primary,
+  },
+  prevSwatch: {
+    width: 16,
     height: 2,
     borderRadius: 1,
     backgroundColor: theme.colors.customColors.semi,
     opacity: 0.5,
   },
-  prevLabel: {
+  legendLabel: {
     fontSize: 11,
+    marginRight: 6,
   },
 
   floatingTooltip: {

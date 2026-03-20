@@ -253,6 +253,7 @@
         "periodComparison": "مقارنة الفترة",
         "spendingByCategory": "الإنفاق حسب الفئة",
         "prevPeriod": "السابق",
+        "currentPeriod": "هذا الشهر",
         "expenseForecastTitle": "توقعات المصروفات لـ {{month}}",
         "expenseTotalTitle": "إجمالي مصروفات {{month}}"
       },

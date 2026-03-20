@@ -1,7 +1,15 @@
-import { Paint } from "@shopify/react-native-skia"
-import { useMemo, useRef, useState } from "react"
+import { Group, Paint } from "@shopify/react-native-skia"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Gesture, GestureDetector } from "react-native-gesture-handler"
+import {
+  Easing,
+  type SharedValue,
+  useAnimatedReaction,
+  useDerivedValue,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
 import { Pie, PolarChart } from "victory-native"
 
@@ -41,6 +49,51 @@ function getCategoryColor(
   )
 }
 
+interface PieSliceAnimatedProps {
+  sliceIndex: number
+  selectedIndexSv: SharedValue<number>
+  isSelected: boolean
+  surfaceColor: string
+}
+
+/**
+ * Wraps a single Pie.Slice in a Skia Group whose scale is animated via
+ * Reanimated on the UI thread — smooth spring transition without React re-renders.
+ */
+function PieSliceAnimated({
+  sliceIndex,
+  selectedIndexSv,
+  isSelected,
+  surfaceColor,
+}: PieSliceAnimatedProps) {
+  const scale = useSharedValue(1.0)
+
+  useAnimatedReaction(
+    () => selectedIndexSv.value,
+    (selectedIndex) => {
+      const target =
+        selectedIndex !== -1 && selectedIndex !== sliceIndex ? 0.92 : 1.0
+      scale.value = withTiming(target, {
+        duration: 200,
+        easing: Easing.out(Easing.quad),
+      })
+    },
+    [sliceIndex],
+  )
+
+  const transform = useDerivedValue(() => [{ scale: scale.value }])
+
+  return (
+    <Group origin={{ x: CENTER, y: CENTER }} transform={transform}>
+      <Pie.Slice animate={{ type: "timing", duration: 200 }}>
+        {isSelected && (
+          <Paint style="stroke" strokeWidth={5} color={surfaceColor} />
+        )}
+      </Pie.Slice>
+    </Group>
+  )
+}
+
 export function StatsCategoryPie({
   breakdown,
   currency,
@@ -61,6 +114,13 @@ export function StatsCategoryPie({
   const pieSlicesRef = useRef<Array<{ startAngle: number; endAngle: number }>>(
     [],
   )
+
+  // SharedValue mirror of selectedSlice?.index — drives per-slice spring animations
+  // on the UI thread without going through React renders.
+  const selectedIndexSv = useSharedValue(-1)
+  useEffect(() => {
+    selectedIndexSv.value = selectedSlice?.index ?? -1
+  }, [selectedSlice, selectedIndexSv])
 
   const { pieData, legendItems, total } = useMemo(() => {
     if (breakdown.length === 0) {
@@ -135,9 +195,6 @@ export function StatsCategoryPie({
     theme.colors.customColors.success,
     theme.colors.customColors.semi,
   ])
-
-  // Colors stay untouched — opacity/border handled directly on Pie.Slice
-  const displayPieData = pieData
 
   // Reset selection whenever the user switches expense/income mode
   const handleModeChange = (newMode: "expense" | "income") => {
@@ -259,7 +316,7 @@ export function StatsCategoryPie({
             <GestureDetector gesture={tapGesture}>
               <View style={styles.pieContainer}>
                 <PolarChart
-                  data={displayPieData}
+                  data={pieData}
                   labelKey="label"
                   valueKey="value"
                   colorKey="color"
@@ -279,20 +336,12 @@ export function StatsCategoryPie({
                       const isSelected =
                         selectedSlice !== null && selectedSlice.index === index
                       return (
-                        <Pie.Slice
-                          animate={{ type: "timing", duration: 200 }}
-                          opacity={
-                            selectedSlice === null || isSelected ? 1 : 0.4
-                          }
-                        >
-                          {isSelected && (
-                            <Paint
-                              style="stroke"
-                              strokeWidth={5}
-                              color={theme.colors.surface}
-                            />
-                          )}
-                        </Pie.Slice>
+                        <PieSliceAnimated
+                          sliceIndex={index}
+                          selectedIndexSv={selectedIndexSv}
+                          isSelected={isSelected}
+                          surfaceColor={theme.colors.surface}
+                        />
                       )
                     }}
                   </Pie.Chart>
