@@ -10,6 +10,6 @@
   "i18n-ally.annotations": false,
   "files.exclude": {
     "**/tabler-icons": true,
-    "**/unused-cions": true
+    "**/unused-icons": true
   }
 }
