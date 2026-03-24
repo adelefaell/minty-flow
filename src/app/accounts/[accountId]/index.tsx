@@ -531,8 +531,6 @@ export default function AccountDetailsScreen() {
     setSelectedMonth(month)
   }
 
-  if (!accountId) return null
-
   return (
     <EnhancedAccountDetailsScreen
       accountId={accountId}

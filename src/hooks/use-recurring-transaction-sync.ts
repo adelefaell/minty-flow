@@ -35,7 +35,11 @@ export function useRecurringTransactionSync(): void {
     synchronizeAllRecurringTransactions()
       .then(() => {
         if (cancelled) return
-        return autoConfirmationService.runAutoConfirmDueOnStartup()
+        return autoConfirmationService
+          .runAutoConfirmDueOnStartup()
+          .catch((e) =>
+            logger.error("Auto-confirm failed", { error: String(e) }),
+          )
       })
       .catch((e) => logger.error("Recurring sync failed", { error: String(e) }))
 

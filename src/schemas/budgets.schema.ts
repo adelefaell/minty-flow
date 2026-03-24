@@ -6,8 +6,8 @@ import { BudgetPeriodEnum } from "~/types/budgets"
 const addBudgetSchema = z
   .object({
     name: z.string().min(1, "validation.budget.name.required"),
-    icon: z.string().nullable().optional(),
-    colorSchemeName: z.string().nullable().optional(),
+    icon: z.string().max(100).nullable().optional(),
+    colorSchemeName: z.string().max(50).nullable().optional(),
     currencyCode: z.string().min(1, "validation.budget.currency.required"),
     accountIds: z
       .array(z.string())

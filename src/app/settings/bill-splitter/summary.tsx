@@ -207,7 +207,9 @@ export default function SummaryScreen() {
               (s) => s.participantId !== payerId && s.owedAmount > 0,
             )
             if (debtors.length === 0) return
-            handleGenerateLoan(debtors[0])
+            for (const debtor of debtors) {
+              handleGenerateLoan(debtor)
+            }
           }}
           disabled={!payerId}
           style={styles.footerButton}

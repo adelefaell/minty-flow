@@ -10,8 +10,8 @@ export const transactionSchema = z.object({
   /** When type is transfer: destination account (required for transfer). */
   toAccountId: z.string().optional(),
   categoryId: z.string().nullable().optional(),
-  title: z.string().nullable().optional(),
-  description: z.string().nullable().optional(),
+  title: z.string().max(255).nullable().optional(),
+  description: z.string().max(1000).nullable().optional(),
   isPending: z.boolean().default(false),
   requiresManualConfirmation: z.boolean().nullable().optional(),
   tags: z.array(z.string()).default([]),
@@ -19,7 +19,7 @@ export const transactionSchema = z.object({
   budgetId: z.string().nullable().optional(),
   loanId: z.string().nullable().optional(),
   recurringId: z.string().nullable().optional(),
-  location: z.string().nullable().optional(),
+  location: z.string().max(255).nullable().optional(),
   extra: z.record(z.string(), z.string()).nullable().optional(),
   subtype: z.string().nullable().optional(),
 })

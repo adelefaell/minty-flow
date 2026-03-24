@@ -7,6 +7,8 @@ import { createJSONStorage, persist } from "zustand/middleware"
 const SHAKE_UPDATE_INTERVAL_MS = 500
 const SHAKE_THRESHOLD = 550
 
+let shakeSubscription: { remove: () => void } | null = null
+
 const moneyFormattingStorage = createMMKV({
   id: "money-formatting-storage",
 })
@@ -47,8 +49,6 @@ interface MoneyFormattingStore {
 
   setMaskOnShake: (value: boolean) => void
 
-  /** Internal: sensor subscription, not persisted */
-  _shakeSubscription: { remove: () => void } | null
   _startShakeListener: () => void
   _stopShakeListener: () => void
 }
@@ -66,8 +66,6 @@ export const useMoneyFormattingStore = create<MoneyFormattingStore>()(
       hideOnStartup: false,
 
       maskOnShake: false,
-
-      _shakeSubscription: null,
 
       setCurrency: (currency) => set({ preferredCurrency: currency }),
       setCurrencyLook: (currencyLook) => set({ currencyLook }),
@@ -100,7 +98,7 @@ export const useMoneyFormattingStore = create<MoneyFormattingStore>()(
         let lastZ = 0
         let lastUpdate = 0
 
-        const sub = Accelerometer.addListener(({ x, y, z }) => {
+        shakeSubscription = Accelerometer.addListener(({ x, y, z }) => {
           const now = Date.now()
           const timeDelta = now - lastUpdate
 
@@ -116,13 +114,11 @@ export const useMoneyFormattingStore = create<MoneyFormattingStore>()(
             lastZ = z
           }
         })
-
-        set({ _shakeSubscription: sub })
       },
 
       _stopShakeListener: () => {
-        get()._shakeSubscription?.remove()
-        set({ _shakeSubscription: null })
+        shakeSubscription?.remove()
+        shakeSubscription = null
       },
     }),
     {

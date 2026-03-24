@@ -10,8 +10,10 @@ import { Pressable } from "~/components/ui/pressable"
 import { Switch } from "~/components/ui/switch"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import type { ToastPosition } from "~/stores/toast.store"
-import { useToastStyleStore } from "~/stores/toast-style.store"
+import {
+  type ToastPosition,
+  useToastStyleStore,
+} from "~/stores/toast-style.store"
 import { Toast } from "~/utils/toast"
 
 export default function ToastStyleScreen() {

@@ -108,6 +108,8 @@ const numberFormatter = (
 // ------------------------
 // Formatter memoization
 // ------------------------
+const CACHE_MAX_SIZE = 500
+
 type CacheKey = string
 const cache = new Map<CacheKey, string>()
 
@@ -122,6 +124,7 @@ const getCachedFormatted = (
   if (cached) return cached
 
   const formatted = numberFormatter(value, options, locale)
+  if (cache.size >= CACHE_MAX_SIZE) cache.clear()
   cache.set(key, formatted)
   return formatted
 }

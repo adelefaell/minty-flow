@@ -63,18 +63,17 @@ export function useStats(): UseStatsReturn {
   >([])
   const [isLoading, setIsLoading] = useState(true)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const mountedRef = useRef(true)
+  const fetchIdRef = useRef(0)
 
   const fetchData = useCallback(async (range: StatsDateRange) => {
+    const fetchId = ++fetchIdRef.current
     setIsLoading(true)
     try {
       const stats = await fetchAllStatsData(range)
-      if (!mountedRef.current) return
+      if (fetchIdRef.current !== fetchId) return
       setByCurrency(stats)
     } finally {
-      if (mountedRef.current) {
-        setIsLoading(false)
-      }
+      if (fetchIdRef.current === fetchId) setIsLoading(false)
     }
   }, [])
 
@@ -105,8 +104,6 @@ export function useStats(): UseStatsReturn {
   }, [])
 
   useEffect(() => {
-    mountedRef.current = true
-
     const subscription = database
       .withChangesForTables(["transactions", "accounts", "transaction_tags"])
       .subscribe(() => {
@@ -114,7 +111,7 @@ export function useStats(): UseStatsReturn {
       })
 
     return () => {
-      mountedRef.current = false
+      fetchIdRef.current++
       subscription.unsubscribe()
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }

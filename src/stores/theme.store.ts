@@ -61,6 +61,25 @@ interface ThemeStore {
  *
  * @see https://github.com/pmndrs/zustand
  */
+/**
+ * Reads the persisted theme from MMKV synchronously.
+ * Used by unistyles.ts at module-init time before Zustand hydrates.
+ * Returns null if not found or not a valid ThemeKey.
+ */
+export function getStoredTheme(
+  validThemes: Record<string, unknown>,
+): ThemeKey | null {
+  const raw = themeStorage.getString(THEME_PERSIST_STORE_KEY)
+  if (!raw) return null
+  try {
+    const themeMode = JSON.parse(raw)?.state?.themeMode
+    if (themeMode && themeMode in validThemes) return themeMode as ThemeKey
+  } catch {
+    // not valid JSON
+  }
+  return null
+}
+
 export const useThemeStore = create<ThemeStore>()(
   persist(
     (set) => ({

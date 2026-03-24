@@ -1,8 +1,9 @@
 import { create } from "zustand"
 
-export type ToastType = "success" | "error" | "info" | "warn" | "default"
+import { type ToastPosition, useToastStyleStore } from "./toast-style.store"
 
-export type ToastPosition = "top" | "bottom"
+export type { ToastPosition }
+export type ToastType = "success" | "error" | "info" | "warn" | "default"
 
 export interface ToastOptions {
   type?: ToastType
@@ -56,16 +57,17 @@ export const useToastStore = create<ToastStore>((set) => ({
 
   show: (options) => {
     const id = `toast-${Date.now()}-${Math.random()}`
+    const styleDefaults = useToastStyleStore.getState()
     const toast: Toast = {
       id,
       type: options.type ?? "default",
       title: options.title,
       description: options.description,
-      position: options.position ?? "top",
+      position: options.position ?? styleDefaults.position,
       visibilityTime: options.visibilityTime ?? 3000,
       autoHide: options.autoHide ?? true,
-      showProgressBar: options.showProgressBar ?? false,
-      showCloseIcon: options.showCloseIcon ?? true,
+      showProgressBar: options.showProgressBar ?? styleDefaults.showProgressBar,
+      showCloseIcon: options.showCloseIcon ?? styleDefaults.showCloseIcon,
       onShow: options.onShow,
       onHide: options.onHide,
       onPress: options.onPress,
