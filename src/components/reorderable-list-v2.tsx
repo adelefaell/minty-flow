@@ -164,6 +164,11 @@ export function ReorderableListV2<T>({
   keyExtractor,
   ...flatListProps
 }: ReorderableListV2Props<T>) {
+  if (__DEV__ && !keyExtractor) {
+    logger.warn(
+      "ReorderableListV2: no keyExtractor provided. Index-based keys will break reorder animations.",
+    )
+  }
   const move = useCallback(
     (from: number, to: number) => {
       const next = moveItem(data, from, to)

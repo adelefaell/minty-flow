@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-03-24T19:09:28.457Z
+Generated on: 2026-03-24T21:41:22.024Z
 
 ```
 ./
@@ -6601,6 +6601,7 @@ Generated on: 2026-03-24T19:09:28.457Z
 ├── CLAUDE.md
 ├── expo-env.d.ts
 ├── index.ts
+├── LICENSE
 ├── package.json
 ├── pnpm-lock.yaml
 ├── pnpm-workspace.yaml

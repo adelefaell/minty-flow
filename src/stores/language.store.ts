@@ -70,10 +70,15 @@ export const useLanguageStore = create<LanguageStore>()(
         },
 
         setDirection: (value) => {
+          const shouldBeRTL = value === DirectionEnum.RTL
+          i18n.dir(value)
+          if (I18nManager.isRTL !== shouldBeRTL) {
+            I18nManager.forceRTL(shouldBeRTL)
+          }
           set({
             direction: value,
-            isRTL: value === DirectionEnum.RTL,
-            isLTR: value === DirectionEnum.LTR,
+            isRTL: shouldBeRTL,
+            isLTR: !shouldBeRTL,
           })
         },
       }

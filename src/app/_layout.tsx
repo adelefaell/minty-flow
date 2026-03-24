@@ -28,11 +28,12 @@ export default function RootLayout() {
   const { theme } = useUnistyles()
   const { t } = useTranslation()
 
-  UnistylesRuntime.setRootViewBackgroundColor(theme.colors.surface)
-
-  if (Platform.OS === "android") {
-    setStyle(theme.isDark ? "dark" : "light")
-  }
+  useEffect(() => {
+    UnistylesRuntime.setRootViewBackgroundColor(theme.colors.surface)
+    if (Platform.OS === "android") {
+      setStyle(theme.isDark ? "dark" : "light")
+    }
+  }, [theme.colors.surface, theme.isDark])
 
   const isRTL = useLanguageStore((s) => s.isRTL)
   const isOnboardingCompleted = useOnboardingStore((s) => s.isCompleted)
@@ -237,6 +238,18 @@ export default function RootLayout() {
               <Stack.Screen
                 name="settings/goals/index"
                 options={{ title: t("screens.settings.goals.title") }}
+              />
+              <Stack.Screen
+                name="settings/goals/[goalId]/index"
+                options={{
+                  title: t("screens.settings.goals.detail.title"),
+                }}
+              />
+              <Stack.Screen
+                name="settings/budgets/[budgetId]/index"
+                options={{
+                  title: t("screens.settings.budgets.detail.title"),
+                }}
               />
               <Stack.Screen
                 name="settings/goals/archived"

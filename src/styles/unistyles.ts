@@ -1,10 +1,6 @@
 import { StyleSheet } from "react-native-unistyles"
 
-import {
-  DEFAULT_THEME,
-  THEME_PERSIST_STORE_KEY,
-  themeStorage,
-} from "~/stores/theme.store"
+import { DEFAULT_THEME, getStoredTheme } from "~/stores/theme.store"
 
 import { breakpoints } from "./breakpoints"
 import { ALL_THEMES } from "./theme/registry"
@@ -23,25 +19,7 @@ export type ThemeKey = keyof typeof ALL_THEMES
 
 StyleSheet.configure({
   settings: {
-    initialTheme: () => {
-      const storedPreferences = themeStorage.getString(THEME_PERSIST_STORE_KEY)
-      if (storedPreferences) {
-        try {
-          // Zustand persist stores data as JSON: {"state":{"themeMode":"..."},"version":0}
-          const parsed = JSON.parse(storedPreferences)
-          const themeMode = parsed?.state?.themeMode
-          if (themeMode && themeMode in ALL_THEMES) {
-            return themeMode as ThemeKey
-          }
-        } catch {
-          // If parsing fails, check if it's a direct string (legacy format)
-          if (storedPreferences in ALL_THEMES) {
-            return storedPreferences as ThemeKey
-          }
-        }
-      }
-      return DEFAULT_THEME
-    },
+    initialTheme: () => getStoredTheme(ALL_THEMES) ?? DEFAULT_THEME,
   },
   themes: unistylesThemes,
   breakpoints,

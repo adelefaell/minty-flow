@@ -1,6 +1,6 @@
 import { withObservables } from "@nozbe/watermelondb/react"
 import { useFocusEffect, useRouter } from "expo-router"
-import { useCallback } from "react"
+import { useCallback, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { FlatList } from "react-native"
 import { StyleSheet } from "react-native-unistyles"
@@ -125,15 +125,16 @@ const CategoryListInner = ({
     />
   )
 
-  const allCategories = categories
-
-  // Filter categories based on search query
-  const filteredCategories = allCategories.filter((category) => {
-    if (searchQuery.trim().length === 0) return true
-    return category.name
-      .toLowerCase()
-      .includes(searchQuery.trim().toLowerCase())
-  })
+  const filteredCategories = useMemo(
+    () =>
+      categories.filter((category) => {
+        if (searchQuery.trim().length === 0) return true
+        return category.name
+          .toLowerCase()
+          .includes(searchQuery.trim().toLowerCase())
+      }),
+    [categories, searchQuery],
+  )
 
   const renderItem = useCallback(
     ({ item }: { item: Category }) => (

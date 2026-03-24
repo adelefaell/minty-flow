@@ -24,6 +24,25 @@ import {
 } from "./transfer-service"
 
 /* ------------------------------------------------------------------ */
+/* Helpers */
+/* ------------------------------------------------------------------ */
+
+interface CountableModel {
+  transactionCount: number
+  updatedAt: Date
+}
+
+function incrementCount(model: CountableModel) {
+  model.transactionCount += 1
+  model.updatedAt = new Date()
+}
+
+function decrementCount(model: CountableModel) {
+  model.transactionCount = Math.max(0, model.transactionCount - 1)
+  model.updatedAt = new Date()
+}
+
+/* ------------------------------------------------------------------ */
 /* Types */
 /* ------------------------------------------------------------------ */
 
@@ -572,10 +591,7 @@ export const createTransactionModel = async (
     }
 
     if (category) {
-      await category.update((c) => {
-        c.transactionCount += 1
-        c.updatedAt = new Date()
-      })
+      await category.update(incrementCount)
     }
 
     if (data.tags?.length) {
@@ -590,10 +606,7 @@ export const createTransactionModel = async (
           r.tagId = tagId
         })
 
-        await tag.update((t) => {
-          t.transactionCount += 1
-          t.updatedAt = new Date()
-        })
+        await tag.update(incrementCount)
       }
     }
 
@@ -672,18 +685,12 @@ export const updateTransactionModel = async (
       oldCategoryId !== updates.categoryId
     ) {
       if (oldCategory && !transaction.isDeleted) {
-        await oldCategory.update((c) => {
-          c.transactionCount = Math.max(0, c.transactionCount - 1)
-          c.updatedAt = new Date()
-        })
+        await oldCategory.update(decrementCount)
       }
       if (updates.categoryId && !transaction.isDeleted) {
         const newCategory = await categories.find(updates.categoryId)
         if (newCategory) {
-          await newCategory.update((c) => {
-            c.transactionCount += 1
-            c.updatedAt = new Date()
-          })
+          await newCategory.update(incrementCount)
         }
       }
     }
@@ -700,10 +707,7 @@ export const updateTransactionModel = async (
       for (const tt of existing) {
         if (!newTagIds.has(tt.tagId)) {
           const tag = await tagsCollectionRef.find(tt.tagId)
-          await tag.update((t) => {
-            t.transactionCount = Math.max(0, t.transactionCount - 1)
-            t.updatedAt = new Date()
-          })
+          await tag.update(decrementCount)
           await tt.destroyPermanently()
         }
       }
@@ -714,10 +718,7 @@ export const updateTransactionModel = async (
             ttRecord.transactionId = transaction.id
             ttRecord.tagId = tagId
           })
-          await tag.update((t) => {
-            t.transactionCount += 1
-            t.updatedAt = new Date()
-          })
+          await tag.update(incrementCount)
         }
       }
     }
@@ -776,10 +777,7 @@ export const deleteTransactionModel = async (
   return database.write(async () => {
     if (!transaction.isDeleted && transaction.categoryId) {
       const category = await categories.find(transaction.categoryId)
-      await category.update((c) => {
-        c.transactionCount = Math.max(0, c.transactionCount - 1)
-        c.updatedAt = new Date()
-      })
+      await category.update(decrementCount)
     }
 
     if (!transaction.isDeleted && !transaction.isPending) {
@@ -937,10 +935,7 @@ export const restoreTransactionModel = async (
 
     if (transaction.categoryId) {
       const category = await categories.find(transaction.categoryId)
-      await category.update((c) => {
-        c.transactionCount += 1
-        c.updatedAt = new Date()
-      })
+      await category.update(incrementCount)
     }
   })
 }
@@ -953,10 +948,7 @@ export const destroyTransactionModel = async (
   return database.write(async () => {
     if (!transaction.isDeleted && transaction.categoryId) {
       const category = await categories.find(transaction.categoryId)
-      await category.update((c) => {
-        c.transactionCount = Math.max(0, c.transactionCount - 1)
-        c.updatedAt = new Date()
-      })
+      await category.update(decrementCount)
     }
 
     if (!transaction.isDeleted && !transaction.isPending) {
@@ -976,21 +968,17 @@ export const destroyTransactionModel = async (
 }
 
 export const destroyAllDeletedTransactionMode = async (): Promise<void> => {
-  const transactions = await getTransactionModels({
-    deletedOnly: true,
-  })
-
-  return database.write(async () => {
-    for (const transaction of transactions) {
-      await transaction.destroyPermanently()
-    }
-  })
+  const transactions = await getTransactionModels({ deletedOnly: true })
+  for (const transaction of transactions) {
+    await destroyTransactionModel(transaction)
+  }
 }
 
 export const autoPurgeTrash = async (retentionValue: string) => {
   if (retentionValue === "forever") return
 
-  const daysToKeep = parseInt(retentionValue.split(" ")[0], 10)
+  const match = /^(\d+)/.exec(retentionValue)
+  const daysToKeep = match ? parseInt(match[1], 10) : Number.NaN
 
   if (Number.isNaN(daysToKeep)) {
     return

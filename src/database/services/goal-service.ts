@@ -1,6 +1,6 @@
 import { Q } from "@nozbe/watermelondb"
 import type { Observable } from "@nozbe/watermelondb/utils/rx"
-import { combineLatest, of } from "rxjs"
+import { of } from "rxjs"
 import { map, switchMap } from "rxjs/operators"
 
 import type {
@@ -59,30 +59,30 @@ const GOAL_OBSERVED_COLUMNS = [
  */
 const toGoalsObservable = (
   baseQuery: ReturnType<ReturnType<typeof getGoalCollection>["query"]>,
-): Observable<Goal[]> => {
-  const joinRows$ = getGoalAccountCollection().query().observe()
+): Observable<Goal[]> =>
+  baseQuery.observeWithColumns([...GOAL_OBSERVED_COLUMNS]).pipe(
+    switchMap((goalModels) => {
+      if (goalModels.length === 0) return of([])
 
-  return baseQuery.observeWithColumns([...GOAL_OBSERVED_COLUMNS]).pipe(
-    switchMap((goalModels) =>
-      combineLatest([of(goalModels), joinRows$]).pipe(
-        map(([latestGoalModels, allJoinRows]) => {
-          if (latestGoalModels.length === 0) return []
-
-          const accountIdsByGoal = new Map<string, string[]>()
-          for (const row of allJoinRows) {
-            const existing = accountIdsByGoal.get(row.goalId) ?? []
-            existing.push(row.accountId)
-            accountIdsByGoal.set(row.goalId, existing)
-          }
-
-          return latestGoalModels.map((model) =>
-            modelToGoal(model, accountIdsByGoal.get(model.id) ?? []),
-          )
-        }),
-      ),
-    ),
+      const goalIds = goalModels.map((m) => m.id)
+      return getGoalAccountCollection()
+        .query(Q.where("goal_id", Q.oneOf(goalIds)))
+        .observe()
+        .pipe(
+          map((joinRows) => {
+            const accountIdsByGoal = new Map<string, string[]>()
+            for (const row of joinRows) {
+              const existing = accountIdsByGoal.get(row.goalId) ?? []
+              existing.push(row.accountId)
+              accountIdsByGoal.set(row.goalId, existing)
+            }
+            return goalModels.map((model) =>
+              modelToGoal(model, accountIdsByGoal.get(model.id) ?? []),
+            )
+          }),
+        )
+    }),
   )
-}
 
 /**
  * Observe active (non-archived) goals, sorted by name.

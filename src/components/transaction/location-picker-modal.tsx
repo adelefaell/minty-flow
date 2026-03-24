@@ -15,6 +15,8 @@ import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import type { TransactionLocation } from "~/types/transactions"
 
+const GPS_FALLBACK_COORDINATES = { latitude: 37.7749, longitude: -122.4194 }
+
 interface LocationPickerModalProps {
   visible: boolean
   initialLocation?: TransactionLocation | null
@@ -153,14 +155,14 @@ async function fetchGpsCoords(): Promise<{
   try {
     const { status } = await Location.requestForegroundPermissionsAsync()
     if (status !== Location.PermissionStatus.GRANTED) {
-      return { latitude: 37.7749, longitude: -122.4194 }
+      return GPS_FALLBACK_COORDINATES
     }
     const pos = await Location.getCurrentPositionAsync({
       accuracy: Location.Accuracy.Balanced,
     })
     return { latitude: pos.coords.latitude, longitude: pos.coords.longitude }
   } catch {
-    return { latitude: 37.7749, longitude: -122.4194 }
+    return GPS_FALLBACK_COORDINATES
   }
 }
 

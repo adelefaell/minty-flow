@@ -374,8 +374,6 @@ export default function CategoryDetailsScreen() {
     setSelectedMonth(month)
   }
 
-  if (!categoryId) return null
-
   return (
     <EnhancedCategoryDetailsScreen
       categoryId={categoryId}

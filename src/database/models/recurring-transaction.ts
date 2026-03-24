@@ -1,7 +1,7 @@
 import { Model } from "@nozbe/watermelondb"
 import { date, field } from "@nozbe/watermelondb/decorators"
 
-const RECURRING_EXTENSION_KEY = "@mintyflow/default-recurring"
+export const RECURRING_EXTENSION_KEY = "@mintyflow/default-recurring"
 
 interface RecurringTimeRange {
   from: number // Unix ms
@@ -33,17 +33,39 @@ export default class RecurringTransactionModel extends Model {
   @field("disabled") disabled!: boolean
 
   get template(): RecurringTransactionTemplate {
-    return JSON.parse(
-      this.jsonTransactionTemplate,
-    ) as RecurringTransactionTemplate
+    try {
+      return JSON.parse(
+        this.jsonTransactionTemplate,
+      ) as RecurringTransactionTemplate
+    } catch {
+      return {
+        amount: 0,
+        type: "expense",
+        accountId: "",
+        categoryId: null,
+        title: null,
+        description: null,
+        subtype: null,
+        tags: null,
+        extra: null,
+      }
+    }
   }
 
   get timeRange(): RecurringTimeRange {
-    return JSON.parse(this.rangeEncoded) as RecurringTimeRange
+    try {
+      return JSON.parse(this.rangeEncoded) as RecurringTimeRange
+    } catch {
+      return { from: 0, to: 0 }
+    }
   }
 
   get recurrenceRules(): string[] {
-    return JSON.parse(this.rulesEncoded) as string[]
+    try {
+      return JSON.parse(this.rulesEncoded) as string[]
+    } catch {
+      return []
+    }
   }
 
   /** Tag name to mark generated transactions (uses WatermelonDB id). */

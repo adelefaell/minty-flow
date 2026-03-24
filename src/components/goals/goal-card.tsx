@@ -24,8 +24,7 @@ function GoalCardInner({ goal, onPress, currentAmount }: GoalCardProps) {
   const { theme } = useUnistyles()
 
   const isExpenseGoal = goal.goalType === "expense"
-  const isLoading = currentAmount === undefined || currentAmount === null
-  const resolved = currentAmount ?? 0
+  const resolved = currentAmount
   const progress = goal.targetAmount > 0 ? resolved / goal.targetAmount : 0
   const clampedProgress = Math.min(progress, 1)
   const isCompleted = progress >= 1
@@ -122,37 +121,29 @@ function GoalCardInner({ goal, onPress, currentAmount }: GoalCardProps) {
       {/* Row 3: Saved / remaining amounts */}
       <View style={styles.row3}>
         <Text variant="small" style={styles.savedText}>
-          {isLoading ? (
-            "..."
-          ) : (
-            <>
-              {isExpenseGoal
-                ? t("screens.settings.goals.card.spent")
-                : t("screens.settings.goals.card.saved")}
-              {":\u00a0"}
-              <Money
-                value={resolved}
-                currency={goal.currencyCode}
-                variant="small"
-                tone="transfer"
-                hideSign
-              />{" "}
-              {t("screens.settings.goals.card.of")}{" "}
-              <Money
-                value={goal.targetAmount}
-                currency={goal.currencyCode}
-                variant="small"
-                tone="transfer"
-                hideSign
-              />
-            </>
-          )}
+          {isExpenseGoal
+            ? t("screens.settings.goals.card.spent")
+            : t("screens.settings.goals.card.saved")}
+          {":\u00a0"}
+          <Money
+            value={resolved}
+            currency={goal.currencyCode}
+            variant="small"
+            tone="transfer"
+            hideSign
+          />{" "}
+          {t("screens.settings.goals.card.of")}{" "}
+          <Money
+            value={goal.targetAmount}
+            currency={goal.currencyCode}
+            variant="small"
+            tone="transfer"
+            hideSign
+          />
         </Text>
         <Text variant="small" style={styles.remainingText}>
           {isCompleted ? (
             t("screens.settings.goals.card.completed")
-          ) : isLoading ? (
-            "..."
           ) : (
             <>
               <Money

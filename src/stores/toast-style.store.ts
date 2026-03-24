@@ -2,7 +2,7 @@ import { createMMKV } from "react-native-mmkv"
 import { create } from "zustand"
 import { createJSONStorage, persist } from "zustand/middleware"
 
-import type { ToastPosition } from "./toast.store"
+export type ToastPosition = "top" | "bottom"
 
 /**
  * MMKV storage instance for toast style preferences.

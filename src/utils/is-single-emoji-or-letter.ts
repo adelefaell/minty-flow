@@ -32,22 +32,28 @@ export const isSingleEmojiOrLetter = (str: string): boolean => {
   }
 
   // Use Extended_Pictographic Unicode property to detect emojis
-  // This is more comprehensive and handles all emoji sequences including:
-  // - Multi-codepoint emojis (flags, skin tones, ZWJ sequences like 👩‍👩‍👧‍👦)
-  // - All emoji ranges (including newer ones)
   const emojiRegex = /\p{Extended_Pictographic}/u
 
-  // Check if the string contains emoji characters
   if (emojiRegex.test(trimmed)) {
-    // If it contains emoji, it's valid (even if multi-codepoint)
-    // The regex will match any string containing an emoji, which is what we want
-    return true
+    // Verify exactly one grapheme cluster (handles multi-codepoint sequences)
+    try {
+      const Segmenter = (
+        Intl as unknown as { Segmenter?: typeof Intl.Segmenter }
+      ).Segmenter
+      if (typeof Segmenter === "function") {
+        return (
+          [...new Segmenter("en", { granularity: "grapheme" }).segment(trimmed)]
+            .length === 1
+        )
+      }
+    } catch {
+      // ignore
+    }
+    return Array.from(trimmed).length === 1
   }
 
   // For non-emoji Unicode characters (like single Chinese, Arabic, etc. letters)
-  // Check if it's a single character
-  const codePoints = Array.from(trimmed)
-  return codePoints.length === 1
+  return Array.from(trimmed).length === 1
 }
 
 /**

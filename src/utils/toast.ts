@@ -1,5 +1,4 @@
 import { type ToastOptions, useToastStore } from "~/stores/toast.store"
-import { useToastStyleStore } from "~/stores/toast-style.store"
 
 type ToastOptionsWithoutType = Omit<ToastOptions, "type">
 
@@ -40,75 +39,39 @@ class ToastAPI {
     return useToastStore.getState()
   }
 
-  private getStyleDefaults() {
-    // Get global default appearance settings
-    return useToastStyleStore.getState()
-  }
-
-  /**
-   * Apply global defaults to toast options.
-   * Explicit options override the defaults.
-   */
-  private applyDefaults(options: ToastOptions): ToastOptions {
-    const defaults = this.getStyleDefaults()
-    return {
-      position: defaults.position,
-      showProgressBar: defaults.showProgressBar,
-      showCloseIcon: defaults.showCloseIcon,
-      ...options, // Explicit options override defaults
-    }
-  }
-
   /**
    * Show a toast notification with custom options.
    */
   show(options: ToastOptions): string {
-    const optionsWithDefaults = this.applyDefaults(options)
-    return this.getStore().show(optionsWithDefaults)
+    return this.getStore().show(options)
   }
 
   /**
    * Show a success toast.
    */
   success(options: ToastOptionsWithoutType): string {
-    const optionsWithDefaults = this.applyDefaults({
-      type: "success",
-      ...options,
-    })
-    return this.getStore().show(optionsWithDefaults)
+    return this.getStore().show({ type: "success", ...options })
   }
 
   /**
    * Show an error toast.
    */
   error(options: ToastOptionsWithoutType): string {
-    const optionsWithDefaults = this.applyDefaults({
-      type: "error",
-      ...options,
-    })
-    return this.getStore().show(optionsWithDefaults)
+    return this.getStore().show({ type: "error", ...options })
   }
 
   /**
    * Show an info toast.
    */
   info(options: ToastOptionsWithoutType): string {
-    const optionsWithDefaults = this.applyDefaults({
-      type: "info",
-      ...options,
-    })
-    return this.getStore().show(optionsWithDefaults)
+    return this.getStore().show({ type: "info", ...options })
   }
 
   /**
    * Show a warning toast.
    */
   warn(options: Omit<ToastOptions, "type">): string {
-    const optionsWithDefaults = this.applyDefaults({
-      type: "warn",
-      ...options,
-    })
-    return this.getStore().show(optionsWithDefaults)
+    return this.getStore().show({ type: "warn", ...options })
   }
 
   /**

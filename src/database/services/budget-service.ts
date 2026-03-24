@@ -1,7 +1,7 @@
 import { Q } from "@nozbe/watermelondb"
 import type { Observable } from "@nozbe/watermelondb/utils/rx"
 import { startOfDay, startOfMonth, startOfWeek, startOfYear } from "date-fns"
-import { from } from "rxjs"
+import { combineLatest, of } from "rxjs"
 import { map, switchMap } from "rxjs/operators"
 
 import type {
@@ -71,6 +71,8 @@ export const observeCategoryIdsForBudget = (
  */
 export const observeBudgets = (): Observable<Budget[]> => {
   const query = getBudgetCollection().query(Q.sortBy("name", Q.asc))
+  const accountJoinRows$ = getBudgetAccountCollection().query().observe()
+  const categoryJoinRows$ = getBudgetCategoryCollection().query().observe()
 
   return query
     .observeWithColumns([
@@ -88,29 +90,20 @@ export const observeBudgets = (): Observable<Budget[]> => {
     ])
     .pipe(
       switchMap((budgetModels) =>
-        from(
-          (async (): Promise<Budget[]> => {
-            if (budgetModels.length === 0) return []
+        combineLatest([
+          of(budgetModels),
+          accountJoinRows$,
+          categoryJoinRows$,
+        ]).pipe(
+          map(([models, accountRows, categoryRows]) => {
+            if (models.length === 0) return []
 
-            const budgetIds = budgetModels.map((b) => b.id)
-
-            // Fetch all budget_account join rows for these budgets in one query
-            const allJoinRows = await getBudgetAccountCollection()
-              .query(Q.where("budget_id", Q.oneOf(budgetIds)))
-              .fetch()
-
-            // Group accountIds by budget_id
             const accountIdsByBudget = new Map<string, string[]>()
-            for (const row of allJoinRows) {
+            for (const row of accountRows) {
               const existing = accountIdsByBudget.get(row.budgetId) ?? []
               existing.push(row.accountId)
               accountIdsByBudget.set(row.budgetId, existing)
             }
-
-            // Inside the switchMap, alongside the existing accountIds fetch:
-            const categoryRows = await getBudgetCategoryCollection()
-              .query(Q.where("budget_id", Q.oneOf(budgetIds)))
-              .fetch()
 
             const categoriesByBudget = new Map<string, string[]>()
             for (const row of categoryRows) {
@@ -119,8 +112,7 @@ export const observeBudgets = (): Observable<Budget[]> => {
               categoriesByBudget.set(row.budgetId, arr)
             }
 
-            // When calling modelToBudget, pass categoryIds:
-            const budgets = budgetModels.map((m) =>
+            const budgets = models.map((m) =>
               modelToBudget(
                 m,
                 accountIdsByBudget.get(m.id) ?? [],
@@ -128,16 +120,11 @@ export const observeBudgets = (): Observable<Budget[]> => {
               ),
             )
 
-            // Sort active budgets first, then inactive; each group sorted by
-            // name asc. WatermelonDB Q.sortBy does not support boolean columns
-            // directly, so we sort in JS after mapping.
             return budgets.sort((a, b) => {
-              if (a.isActive !== b.isActive) {
-                return a.isActive ? -1 : 1
-              }
+              if (a.isActive !== b.isActive) return a.isActive ? -1 : 1
               return a.name.localeCompare(b.name)
             })
-          })(),
+          }),
         ),
       ),
     )
@@ -396,7 +383,7 @@ export const observeBudgetSpent = (
   startDate: number,
   endDate?: number | null,
 ): Observable<number> => {
-  if (accountIds.length === 0) return from([0])
+  if (accountIds.length === 0) return of(0)
 
   const { periodStartTs, periodEndTs } = getBudgetPeriodRange(
     period,
@@ -428,7 +415,7 @@ export const observeBudgetTransactions = (
   startDate: number,
   endDate?: number | null,
 ): Observable<TransactionModel[]> => {
-  if (accountIds.length === 0) return from([] as TransactionModel[][])
+  if (accountIds.length === 0) return of([] as TransactionModel[])
 
   const { periodStartTs, periodEndTs } = getBudgetPeriodRange(
     period,
