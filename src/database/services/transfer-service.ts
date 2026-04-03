@@ -144,7 +144,6 @@ export async function createTransferWriter(
     transactionDate as number | Date | undefined,
     Date.now(),
   )
-  const now = new Date()
   const debitBalanceBefore = fromAccount.balance
   const creditBalanceBefore = toAccount.balance
 
@@ -165,8 +164,6 @@ export async function createTransferWriter(
     r.isDeleted = false
     r.description = notes ?? null
     r.categoryId = null
-    r.createdAt = now
-    r.updatedAt = now
     r.extra = recurringOptions?.extra ?? null
     r.recurringId = recurringOptions?.recurringId ?? null
     r.hasAttachments = false
@@ -188,8 +185,6 @@ export async function createTransferWriter(
     r.isDeleted = false
     r.description = notes ?? null
     r.categoryId = null
-    r.createdAt = now
-    r.updatedAt = now
     r.extra = recurringOptions?.extra ?? null
     r.recurringId = recurringOptions?.recurringId ?? null
     r.hasAttachments = false
@@ -199,11 +194,9 @@ export async function createTransferWriter(
 
   const updateFrom = fromAccount.prepareUpdate((a) => {
     a.balance = a.balance - amount
-    a.updatedAt = now
   })
   const updateTo = toAccount.prepareUpdate((a) => {
     a.balance = a.balance + creditAmount
-    a.updatedAt = now
   })
 
   const batchOps: Parameters<typeof database.batch>[0] = [
@@ -225,8 +218,6 @@ export async function createTransferWriter(
       t.fromAccountId = fromAccountId
       t.toAccountId = toAccountId
       t.conversionRate = conversionRate
-      t.createdAt = now
-      t.updatedAt = now
     })
     batchOps.push(transferRecord)
   }
@@ -285,7 +276,6 @@ export async function editTransferWriter(
       ? newDebitAmount * newConversionRate
       : newDebitAmount
   const newDate = new Date(newDateMs)
-  const now = new Date()
 
   const accounts = accountsCollection()
   const oldFromAccount = await accounts.find(debitRow.accountId)
@@ -304,13 +294,11 @@ export async function editTransferWriter(
   if (!debitRow.isPending) {
     await oldFromAccount.update((a) => {
       a.balance = debitRow.accountBalanceBefore
-      a.updatedAt = now
     })
   }
   if (!creditRow.isPending) {
     await oldToAccount.update((a) => {
       a.balance = creditRow.accountBalanceBefore
-      a.updatedAt = now
     })
   }
 
@@ -326,7 +314,6 @@ export async function editTransferWriter(
     if (fields.title !== undefined) r.title = fields.title ?? null
     if (fields.notes !== undefined) r.description = fields.notes ?? null
     r.extra = null
-    r.updatedAt = now
   })
 
   await creditRow.update((r) => {
@@ -338,7 +325,6 @@ export async function editTransferWriter(
     if (fields.title !== undefined) r.title = fields.title ?? null
     if (fields.notes !== undefined) r.description = fields.notes ?? null
     r.extra = null
-    r.updatedAt = now
   })
 
   const transferRows = await transfers
@@ -353,20 +339,17 @@ export async function editTransferWriter(
           : 1
       t.fromAccountId = newFromAccountId
       t.toAccountId = newToAccountId
-      t.updatedAt = now
     })
   }
 
   if (!debitRow.isPending) {
     await newFromAccount.update((a) => {
       a.balance = a.balance - newDebitAmount
-      a.updatedAt = now
     })
   }
   if (!creditRow.isPending) {
     await newToAccount.update((a) => {
       a.balance = a.balance + newCreditAmount
-      a.updatedAt = now
     })
   }
 }
@@ -418,14 +401,12 @@ export async function deleteTransferWriter(
       if (account) {
         await account.update((a) => {
           a.balance = t.accountBalanceBefore
-          a.updatedAt = now
         })
       }
     }
     await t.update((r) => {
       r.isDeleted = true
       r.deletedAt = now
-      r.updatedAt = now
     })
   }
 }

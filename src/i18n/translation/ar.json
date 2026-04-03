@@ -278,7 +278,7 @@
         "expenseTotalTitle": "إجمالي مصروفات {{month}}"
       },
       "currency": {
-        "sectionHeader": "{{عملة}}"
+        "sectionHeader": "{{currency}}"
       },
       "dateRange": {
         "thisMonth": "هذا الشهر"
