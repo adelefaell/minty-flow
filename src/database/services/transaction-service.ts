@@ -405,7 +405,6 @@ export const confirmTransactionSync = async (
     for (const t of toUpdate) {
       await t.update((x) => {
         x.isPending = !shouldConfirm
-        x.updatedAt = now
         if (shouldConfirm && options.updateTransactionDate) {
           x.transactionDate = now
         }
@@ -418,7 +417,6 @@ export const confirmTransactionSync = async (
         a.balance = shouldConfirm
           ? a.balance + balanceDelta
           : a.balance - balanceDelta
-        a.updatedAt = now
       })
     }
   })
@@ -881,7 +879,6 @@ export async function deleteTransactionWriter(
   await transaction.update((t) => {
     t.isDeleted = true
     t.deletedAt = now
-    t.updatedAt = now
   })
 }
 

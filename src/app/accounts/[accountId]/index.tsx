@@ -18,6 +18,7 @@ import { View } from "~/components/ui/view"
 import type AccountModel from "~/database/models/account"
 import {
   type AccountWithMonthTotals,
+  destroyAccount,
   getMonthRange,
   observeAccountById,
   observeAccountModels,
@@ -88,6 +89,21 @@ const AccountDetailsScreenInner = ({
 
   const [showFilters, setShowFilters] = useState(false)
   const [unarchiveModalVisible, setUnarchiveModalVisible] = useState(false)
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false)
+
+  const handleDelete = useCallback(async () => {
+    if (!accountModel) return
+    try {
+      await destroyAccount(accountModel)
+      router.back()
+    } catch (error) {
+      logger.error("Error deleting account", { error })
+      Toast.error({
+        title: t("common.toast.error"),
+        description: t("screens.accounts.form.toast.deleteFailed"),
+      })
+    }
+  }, [accountModel, t, router])
 
   const handleUnarchive = useCallback(async () => {
     if (!accountModel) return
@@ -124,13 +140,22 @@ const AccountDetailsScreenInner = ({
             <IconSvg name={showFilters ? "filter-off" : "filter"} size={20} />
           </Button>
           {isArchived ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              onPress={() => setUnarchiveModalVisible(true)}
-            >
-              <IconSvg name="archive-off" size={20} />
-            </Button>
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                onPress={() => setDeleteModalVisible(true)}
+              >
+                <IconSvg name="trash" size={20} />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onPress={() => setUnarchiveModalVisible(true)}
+              >
+                <IconSvg name="archive-off" size={20} />
+              </Button>
+            </>
           ) : (
             <Button
               variant="ghost"
@@ -303,6 +328,20 @@ const AccountDetailsScreenInner = ({
         cancelLabel={t("common.actions.cancel")}
         variant="default"
         icon="archive-off"
+      />
+
+      <ConfirmModal
+        visible={deleteModalVisible}
+        onRequestClose={() => setDeleteModalVisible(false)}
+        onConfirm={handleDelete}
+        title={t("screens.accounts.form.deleteModal.title", {
+          name: account.name,
+        })}
+        description={t("screens.accounts.form.deleteModal.descriptionEmpty")}
+        confirmLabel={t("common.actions.delete")}
+        cancelLabel={t("common.actions.cancel")}
+        variant="destructive"
+        icon="trash"
       />
     </View>
   )
