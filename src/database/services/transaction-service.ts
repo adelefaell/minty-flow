@@ -165,7 +165,13 @@ const hydrateTransactionsBatch = async (
   const results: TransactionWithRelations[] = []
   for (const t of transactions) {
     const account = accountMap.get(t.accountId)
-    if (!account) continue // orphaned: primary account not found
+    if (!account) {
+      logger.warn("[hydrateTransactionsBatch] orphaned transaction dropped", {
+        transactionId: t.id,
+        accountId: t.accountId,
+      })
+      continue
+    }
 
     const result: TransactionWithRelations = {
       transaction: t,
@@ -445,7 +451,13 @@ export const confirmTransactionSync = async (
 
     let freshPair: TransactionModel | null = null
     if (pair) {
-      freshPair = await transactionsCollection().find(pair.id)
+      try {
+        freshPair = await transactionsCollection().find(pair.id)
+      } catch {
+        // Pair was destroyed between the pre-write lookup and this write block.
+        // Treat as "pair already gone" — no action needed for the pair.
+        freshPair = null
+      }
     }
 
     const toUpdate: TransactionModel[] = [freshTx]
@@ -1188,23 +1200,29 @@ export async function restoreTransactionWriter(
   if (!transaction.isDeleted) return
   const categories = database.get<CategoryModel>("categories")
 
-  await transaction.update((t) => {
-    t.isDeleted = false
-    t.deletedAt = null
-  })
+  const ops: Parameters<typeof database.batch>[0] = [
+    transaction.prepareUpdate((t) => {
+      t.isDeleted = false
+      t.deletedAt = null
+    }),
+  ]
 
   if (!transaction.isPending) {
     const balanceDelta = getBalanceDelta(transaction.amount, transaction.type)
     const account = await accountsCollection().find(transaction.accountId)
-    await account.update((a) => {
-      a.balance = a.balance + balanceDelta
-    })
+    ops.push(
+      account.prepareUpdate((a) => {
+        a.balance = a.balance + balanceDelta
+      }),
+    )
   }
 
   if (transaction.categoryId) {
     const category = await categories.find(transaction.categoryId)
-    await category.update(incrementCount)
+    ops.push(category.prepareUpdate(incrementCount))
   }
+
+  await database.batch(...ops)
 }
 
 /**
@@ -1232,18 +1250,21 @@ export async function destroyTransactionWriter(
   transaction: TransactionModel,
 ): Promise<void> {
   const categories = database.get<CategoryModel>("categories")
+  const ops: Parameters<typeof database.batch>[0] = []
 
   if (!transaction.isDeleted && transaction.categoryId) {
     const category = await categories.find(transaction.categoryId)
-    await category.update(decrementCount)
+    ops.push(category.prepareUpdate(decrementCount))
   }
 
   if (!transaction.isDeleted && !transaction.isPending) {
     const reverseDelta = -getBalanceDelta(transaction.amount, transaction.type)
     const account = await accountsCollection().find(transaction.accountId)
-    await account.update((a) => {
-      a.balance = a.balance + reverseDelta
-    })
+    ops.push(
+      account.prepareUpdate((a) => {
+        a.balance = a.balance + reverseDelta
+      }),
+    )
   }
 
   // Clean up the transfers join row so it doesn't become an orphan after destroy.
@@ -1258,11 +1279,12 @@ export async function destroyTransactionWriter(
       )
       .fetch()
     for (const row of rows) {
-      await row.destroyPermanently()
+      ops.push(row.prepareDestroyPermanently())
     }
   }
 
-  await transaction.destroyPermanently()
+  ops.push(transaction.prepareDestroyPermanently())
+  await database.batch(...ops)
 }
 
 /**

@@ -13,10 +13,13 @@ import { TransactionTypeEnum } from "~/types/transactions"
 
 import { database } from "../index"
 import type AccountModel from "../models/account"
+import type CategoryModel from "../models/category"
+import type TransactionModel from "../models/transaction"
+import type TransferModel from "../models/transfer"
+import { getBalanceDelta } from "../utils/get-balance-delta"
 import { modelToAccount } from "../utils/model-to-account"
 import {
   createTransactionWriter,
-  destroyTransactionWriter,
   getTransactionModels,
   observeTransactionModels,
 } from "./transaction-service"
@@ -347,11 +350,14 @@ const ensureSinglePrimary = async (primaryAccountId: string): Promise<void> => {
     .query(Q.where("is_primary", true))
     .fetch()
   const others = primaryAccounts.filter((a) => a.id !== primaryAccountId)
-  for (const other of others) {
-    await other.update((a) => {
-      a.isPrimary = false
-    })
-  }
+  if (others.length === 0) return
+  await database.batch(
+    ...others.map((o) =>
+      o.prepareUpdate((a) => {
+        a.isPrimary = false
+      }),
+    ),
+  )
 }
 
 /**
@@ -493,10 +499,129 @@ export const destroyAccount = async (account: AccountModel): Promise<void> => {
       accountId: account.id,
       includeDeleted: true,
     })
+
+    // Compute how many count decrements each category needs across all non-deleted txs.
+    const categoryDecrements = new Map<string, number>()
+    const transferTxIds: string[] = []
     for (const t of transactions) {
-      await destroyTransactionWriter(t)
+      if (!t.isDeleted && t.categoryId) {
+        categoryDecrements.set(
+          t.categoryId,
+          (categoryDecrements.get(t.categoryId) ?? 0) + 1,
+        )
+      }
+      if (t.isTransfer) transferTxIds.push(t.id)
     }
-    await account.destroyPermanently()
+
+    // Fetch categories and transfer join rows in parallel.
+    const categoryIds = [...categoryDecrements.keys()]
+    const [categoryModels, transferRows] = await Promise.all([
+      categoryIds.length > 0
+        ? database
+            .get<CategoryModel>("categories")
+            .query(Q.where("id", Q.oneOf(categoryIds)))
+            .fetch()
+        : Promise.resolve([]),
+      transferTxIds.length > 0
+        ? database
+            .get<TransferModel>("transfers")
+            .query(
+              Q.or(
+                Q.where("from_transaction_id", Q.oneOf(transferTxIds)),
+                Q.where("to_transaction_id", Q.oneOf(transferTxIds)),
+              ),
+            )
+            .fetch()
+        : Promise.resolve([]),
+    ])
+
+    // Collect the transaction ID of the other leg for each transfer.
+    const transferTxIdSet = new Set(transferTxIds)
+    const partnerTxIds = transferRows
+      .map((row) =>
+        transferTxIdSet.has(row.fromTransactionId)
+          ? row.toTransactionId
+          : row.fromTransactionId,
+      )
+      .filter(Boolean) as string[]
+
+    const partnerTxs =
+      partnerTxIds.length > 0
+        ? await database
+            .get<TransactionModel>("transactions")
+            .query(Q.where("id", Q.oneOf(partnerTxIds)))
+            .fetch()
+        : []
+
+    // Sum balance delta per partner account — multiple transfers may share the same account,
+    // so we accumulate before building ops to avoid two prepareUpdate calls on the same record.
+    const partnerAccountDeltaMap = new Map<string, number>()
+    for (const tx of partnerTxs) {
+      if (!tx.isDeleted && !tx.isPending) {
+        const delta = getBalanceDelta(tx.amount, tx.type)
+        partnerAccountDeltaMap.set(
+          tx.accountId,
+          (partnerAccountDeltaMap.get(tx.accountId) ?? 0) + delta,
+        )
+      }
+    }
+
+    const partnerAccountIds = [...partnerAccountDeltaMap.keys()]
+    const partnerAccounts =
+      partnerAccountIds.length > 0
+        ? await database
+            .get<AccountModel>("accounts")
+            .query(Q.where("id", Q.oneOf(partnerAccountIds)))
+            .fetch()
+        : []
+
+    const ops: Parameters<typeof database.batch>[0] = []
+
+    // Decrement each category's count by the number of txs referencing it.
+    for (const cat of categoryModels) {
+      const delta = categoryDecrements.get(cat.id) ?? 0
+      ops.push(
+        cat.prepareUpdate((c) => {
+          c.transactionCount = Math.max(0, c.transactionCount - delta)
+        }),
+      )
+    }
+
+    // Reverse the balance effect of each partner transfer leg on the other account.
+    for (const partnerAccount of partnerAccounts) {
+      const totalDelta = partnerAccountDeltaMap.get(partnerAccount.id) ?? 0
+      ops.push(
+        partnerAccount.prepareUpdate((a) => {
+          a.balance = a.balance - totalDelta
+        }),
+      )
+    }
+
+    // Soft-delete partner transactions so they no longer appear in the other account's history.
+    const now = new Date()
+    for (const tx of partnerTxs) {
+      if (!tx.isDeleted) {
+        ops.push(
+          tx.prepareUpdate((t) => {
+            t.isDeleted = true
+            t.deletedAt = now
+          }),
+        )
+      }
+    }
+
+    // Destroy all transfer join rows.
+    for (const row of transferRows) {
+      ops.push(row.prepareDestroyPermanently())
+    }
+
+    // Destroy all transactions, then the account — one atomic batch.
+    for (const t of transactions) {
+      ops.push(t.prepareDestroyPermanently())
+    }
+    ops.push(account.prepareDestroyPermanently())
+
+    await database.batch(...ops)
   })
 }
 

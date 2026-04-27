@@ -621,6 +621,80 @@ export function countBackupRecords(backup: MintyFlowBackup): {
 // ─── Import ───────────────────────────────────────────────────────────────────
 
 /**
+ * Path where the pre-import snapshot is persisted to disk before
+ * `unsafeResetDatabase` runs. If the process is killed mid-DDL, this file
+ * survives and is used by `recoverInterruptedImport` on next app launch.
+ * Deleted immediately after a successful import or a successful JS-layer restore.
+ */
+const EMERGENCY_SNAPSHOT_PATH = `${FileSystem.documentDirectory}minty-emergency-snapshot.json`
+
+/**
+ * Write the current database snapshot to disk so it can survive a process-kill
+ * during `unsafeResetDatabase`. Returns the snapshot for immediate use.
+ */
+async function persistEmergencySnapshot(): Promise<MintyFlowBackup> {
+  const snapshot = await buildBackupInMemory()
+  await FileSystem.writeAsStringAsync(
+    EMERGENCY_SNAPSHOT_PATH,
+    JSON.stringify(snapshot),
+    { encoding: FileSystem.EncodingType.UTF8 },
+  )
+  return snapshot
+}
+
+/**
+ * Delete the emergency snapshot file after a successful import or restore.
+ * Idempotent — safe to call even if file does not exist.
+ */
+async function deleteEmergencySnapshot(): Promise<void> {
+  const info = await FileSystem.getInfoAsync(EMERGENCY_SNAPSHOT_PATH)
+  if (info.exists) {
+    await FileSystem.deleteAsync(EMERGENCY_SNAPSHOT_PATH, { idempotent: true })
+  }
+}
+
+/**
+ * Check for and recover from an interrupted import (process-kill mid-DDL).
+ * Call once on app startup. Returns true if a recovery was performed.
+ *
+ * Recovery steps:
+ * 1. Check if emergency snapshot file exists.
+ * 2. If yes, parse it and re-import its contents.
+ * 3. Delete the file after restore.
+ */
+export async function recoverInterruptedImport(): Promise<boolean> {
+  const info = await FileSystem.getInfoAsync(EMERGENCY_SNAPSHOT_PATH)
+  if (!info.exists) return false
+
+  const json = await FileSystem.readAsStringAsync(EMERGENCY_SNAPSHOT_PATH, {
+    encoding: FileSystem.EncodingType.UTF8,
+  })
+  const snapshot = JSON.parse(json) as MintyFlowBackup
+  const s = snapshot.data
+  await database.write(async () => {
+    await database.unsafeResetDatabase()
+    await insertRows("categories", s.categories)
+    await insertRows("tags", s.tags)
+    await insertRows("accounts", s.accounts)
+    await insertRows("recurring_transactions", s.recurring_transactions)
+    await insertRows("budgets", s.budgets)
+    await insertRows("goals", s.goals)
+    await insertRows("loans", s.loans)
+    await insertRows("transactions", s.transactions)
+    await insertRows("transfers", s.transfers)
+    await insertRows("transaction_tags", s.transaction_tags)
+    await insertRows("budget_accounts", s.budget_accounts)
+    await insertRows("budget_categories", s.budget_categories)
+    await insertRows("goal_accounts", s.goal_accounts)
+  })
+  // Delete only after confirmed success — if any step above throws, the snapshot
+  // must survive so the next launch can retry via recoverInterruptedImport.
+  await deleteEmergencySnapshot()
+
+  return true
+}
+
+/**
  * Per-table column allowlists derived from schema.ts.
  * Only these keys are written to _raw during backup import — unknown keys are silently dropped.
  */
@@ -758,6 +832,30 @@ const ALLOWED_COLUMNS: Record<string, string[]> = {
 }
 
 /**
+ * Re-derive `has_attachments` from the raw `extra` JSON string.
+ * Mirrors the logic in transaction-service.ts `hasAttachmentsFromExtra` so
+ * the denormalized column is always correct after a backup import, even if
+ * the source backup had a stale value.
+ */
+function deriveHasAttachments(extraJson: unknown): boolean {
+  if (typeof extraJson !== "string" || !extraJson) return false
+  try {
+    const extra = JSON.parse(extraJson) as Record<string, unknown>
+    if (!extra.attachments) return false
+    const attachments =
+      typeof extra.attachments === "string"
+        ? (JSON.parse(extra.attachments) as unknown)
+        : extra.attachments
+    if (Array.isArray(attachments)) return attachments.length > 0
+    if (typeof attachments === "object" && attachments !== null)
+      return Object.keys(attachments).length > 0
+    return false
+  } catch {
+    return false
+  }
+}
+
+/**
  * Batch-insert raw rows into a collection, preserving original IDs.
  *
  * ID preservation: WatermelonDB's `prepareCreate` generates a UUID before calling the
@@ -766,11 +864,16 @@ const ALLOWED_COLUMNS: Record<string, string[]> = {
  * backup's original ID, which WatermelonDB then writes verbatim. This means all FK
  * references in the imported backup survive intact. The `id` key must be present in
  * the ALLOWED_COLUMNS allowlist for the relevant table.
+ *
+ * For the `transactions` table, `has_attachments` is re-derived from `extra` after
+ * copying raw fields so the denormalized column is always correct regardless of the
+ * source backup's stored value.
  */
 async function insertRows(tableName: string, rows: RawRow[]): Promise<void> {
   if (rows.length === 0) return
   const collection = database.get(tableName)
   const allowed = ALLOWED_COLUMNS[tableName] ?? []
+  const isTransactions = tableName === "transactions"
   const CHUNK = 200
   for (let i = 0; i < rows.length; i += CHUNK) {
     const chunk = rows.slice(i, i + CHUNK)
@@ -778,6 +881,11 @@ async function insertRows(tableName: string, rows: RawRow[]): Promise<void> {
       collection.prepareCreate((record) => {
         for (const key of allowed) {
           if (key in row) (record._raw as RawRow)[key] = row[key]
+        }
+        if (isTransactions) {
+          ;(record._raw as RawRow).has_attachments = deriveHasAttachments(
+            row.extra,
+          )
         }
       }),
     )
@@ -906,17 +1014,52 @@ export async function importBackup(
       }
     }
 
-    // 3️⃣ Snapshot current data so we can restore if the import fails.
-    // This does not protect against process-kill mid-unsafeResetDatabase (a WatermelonDB
-    // architectural limitation), but it does guard against any JS-layer error during
-    // the tiered inserts — the most common failure mode.
-    const snapshot = await buildBackupInMemory()
+    // 2️⃣.c Validate transfers and loans for dangling FKs before any DB write.
+    for (const row of data.transfers) {
+      const r = row as RawRow
+      if (!validTransactionIds.has(r.from_transaction_id as string)) {
+        throw new Error(
+          `transfers row ${r.id} references invalid from_transaction_id ${r.from_transaction_id}`,
+        )
+      }
+      if (!validTransactionIds.has(r.to_transaction_id as string)) {
+        throw new Error(
+          `transfers row ${r.id} references invalid to_transaction_id ${r.to_transaction_id}`,
+        )
+      }
+      if (!validAccountIds.has(r.from_account_id as string)) {
+        throw new Error(
+          `transfers row ${r.id} references invalid from_account_id ${r.from_account_id}`,
+        )
+      }
+      if (!validAccountIds.has(r.to_account_id as string)) {
+        throw new Error(
+          `transfers row ${r.id} references invalid to_account_id ${r.to_account_id}`,
+        )
+      }
+    }
+
+    for (const row of data.loans) {
+      const r = row as RawRow
+      if (!validAccountIds.has(r.account_id as string)) {
+        throw new Error(
+          `loans row ${r.id} references invalid account_id ${r.account_id}`,
+        )
+      }
+      if (r.category_id && !validCategoryIds.has(r.category_id as string)) {
+        throw new Error(
+          `loans row ${r.id} references invalid category_id ${r.category_id}`,
+        )
+      }
+    }
+
+    // 3️⃣ Snapshot current data to disk before any DB mutation.
+    // The file survives a process-kill between `unsafeResetDatabase` and the
+    // first insertRows call — `recoverInterruptedImport` picks it up on next launch.
+    // It also enables JS-layer restore (catch block below) without a second DB read.
+    const snapshot = await persistEmergencySnapshot()
 
     // 4️⃣ Reset DB then insert all tiers.
-    // **Note on atomicity**: `unsafeResetDatabase` issues DDL outside the WatermelonDB
-    // write transaction. A process-kill between the reset and the first insertRows call
-    // leaves the DB empty with no recovery path. The snapshot above mitigates JS-layer
-    // failures but cannot recover from a mid-DDL process kill.
     try {
       await database.write(async () => {
         await database.unsafeResetDatabase()
@@ -944,8 +1087,10 @@ export async function importBackup(
         await insertRows("budget_categories", data.budget_categories)
         await insertRows("goal_accounts", data.goal_accounts)
       })
+      // Import succeeded — emergency snapshot no longer needed.
+      await deleteEmergencySnapshot()
     } catch (importError) {
-      // Import failed after the DB was wiped — attempt to restore the pre-import snapshot.
+      // Import failed after the DB was wiped — attempt to restore from snapshot.
       try {
         await database.write(async () => {
           await database.unsafeResetDatabase()
@@ -964,9 +1109,11 @@ export async function importBackup(
           await insertRows("budget_categories", s.budget_categories)
           await insertRows("goal_accounts", s.goal_accounts)
         })
+        // Restore succeeded — emergency snapshot no longer needed.
+        await deleteEmergencySnapshot()
       } catch {
-        // Restore also failed — surface a descriptive error so the caller can prompt
-        // the user to manually re-import from their last exported backup file.
+        // Restore also failed — leave emergency snapshot on disk so next launch
+        // can recover via recoverInterruptedImport. Surface error to caller.
         throw new Error(
           `Import failed and automatic restore failed: ${importError instanceof Error ? importError.message : String(importError)}. Please re-import from your last exported backup file.`,
         )

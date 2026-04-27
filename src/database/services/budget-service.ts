@@ -78,7 +78,9 @@ export const observeCategoryIdsForBudget = (
  * using withObservables from @nozbe/with-observables.
  */
 export const observeBudgets = (): Observable<Budget[]> => {
-  const query = getBudgetCollection().query(Q.sortBy("name", Q.asc))
+  // No DB-level sort — the JS sort below orders by isActive first, then name,
+  // which supersedes any WatermelonDB Q.sortBy order.
+  const query = getBudgetCollection().query()
   const accountJoinRows$ = getBudgetAccountCollection().query().observe()
   const categoryJoinRows$ = getBudgetCategoryCollection().query().observe()
 
@@ -342,6 +344,13 @@ const getBudgetPeriodRange = (
 
 /**
  * Build the common query conditions for budget transaction queries.
+ *
+ * @remarks
+ * When `categoryIds` is empty, no category filter is applied and **all** expense
+ * transactions in the linked accounts count toward the budget. This is intentional:
+ * budgets may be configured to cover all spending categories. If the product ever
+ * restricts budgets to require at least one category, add a `categoryIds.min(1)`
+ * constraint to the zod schema in `budgets.schema.ts` rather than changing this function.
  */
 const buildBudgetTransactionConditions = (
   accountIds: string[],

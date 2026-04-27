@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-04-20T01:32:26.320Z
+Generated on: 2026-04-27T22:45:05.694Z
 
 ```
 ./
@@ -242,7 +242,8 @@ Generated on: 2026-04-20T01:32:26.320Z
 │   │   ├── CODEBASE_STANDARDS.md
 │   │   ├── index.md
 │   │   └── navigation.md
-│   └── .context-manifest.json
+│   ├── .context-manifest.json
+│   └── settings.local.json
 ├── .github/
 │   └── CODEOWNERS
 ├── .husky/
@@ -267,11 +268,16 @@ Generated on: 2026-04-20T01:32:26.320Z
 │   └── pre-commit
 ├── .tmp/
 │   └── tasks/
-│       └── code-cleanup/
+│       ├── code-cleanup/
+│       │   ├── subtask_01.json
+│       │   ├── subtask_02.json
+│       │   ├── subtask_03.json
+│       │   ├── subtask_04.json
+│       │   └── task.json
+│       └── db-service-improvements/
 │           ├── subtask_01.json
 │           ├── subtask_02.json
 │           ├── subtask_03.json
-│           ├── subtask_04.json
 │           └── task.json
 ├── .vscode/
 │   └── settings.json
@@ -1041,6 +1047,7 @@ Generated on: 2026-04-20T01:32:26.320Z
 │   │   ├── exchange-rates-editor.reducer.ts
 │   │   ├── use-balance-before.ts
 │   │   ├── use-chart-font.ts
+│   │   ├── use-import-recovery.ts
 │   │   ├── use-location-permission-status.ts
 │   │   ├── use-navigation-guard.ts
 │   │   ├── use-notification-permission-status.ts

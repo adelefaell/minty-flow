@@ -81,11 +81,15 @@ export async function synchronizeRecurringTransaction(
   anchor: Date = new Date(),
   depth = 0,
 ): Promise<void> {
-  if (depth > 500) {
+  // Cap at 30 catch-up writes per foreground event. Each write is a separate
+  // database.write() call; at 500 the JS thread would freeze noticeably on older
+  // devices. Remaining occurrences are generated on the next foreground trigger.
+  if (depth > 30) {
     logger.error(
-      "[RecurringSync] depth limit reached — possible infinite loop",
+      "[RecurringSync] catch-up depth limit reached — deferring remaining occurrences to next foreground",
       {
         recurringId: recurring.id,
+        depth,
       },
     )
     return
@@ -121,7 +125,12 @@ export async function synchronizeRecurringTransaction(
     if (effectiveLast && nextOccurrence.getTime() <= effectiveLast.getTime())
       return
 
-    // ── Idempotency: check existing transactions
+    // ── Fast-path duplicate check (exact timestamp match)
+    // NOTE: this is an optimistic early exit, not the primary duplicate guard.
+    // The real guard is `effectiveLast` above — it uses `recurringInitialDate`
+    // stored in `extra`, which remains stable even when the user edits the
+    // transaction date. If the user edits the date, the timestamp diverges
+    // and this query misses the existing row; `effectiveLast` catches it.
     const nextTs = nextOccurrence.getTime()
     const alreadyExists =
       (await database

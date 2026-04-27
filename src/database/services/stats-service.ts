@@ -493,6 +493,9 @@ function computeCategoryBreakdown(
  * @param accounts - Account models whose balances are summed (typically filtered to one currency).
  * @param from - First day of the timeline.
  * @param to - Last day of the timeline.
+ * @param historicalOpenings - Pre-fetched opening balances for accounts with no transactions
+ *   in the period. When provided, used instead of `account.balance` for zero-activity accounts
+ *   so that past date ranges show the correct historical opening rather than the current live balance.
  * @returns The daily timeline plus scalar opening and closing balances.
  */
 function computeBalanceTimeline(
@@ -500,6 +503,7 @@ function computeBalanceTimeline(
   accounts: AccountModel[],
   from: Date,
   to: Date,
+  historicalOpenings?: Map<string, number>,
 ): { timeline: BalanceTimelinePoint[]; opening: number; closing: number } {
   const buckets = generateDateBuckets(from, to, "day")
 
@@ -525,10 +529,13 @@ function computeBalanceTimeline(
     const dailyMap = new Map<string, number>()
 
     if (!rows || rows.length === 0) {
-      // No transactions in period — balance is constant at the current stored value
-      openingSum += account.balance
+      // No transactions in period — use the pre-fetched historical opening when available
+      // (correct for past ranges), otherwise fall back to current account.balance (new accounts).
+      const openingBalance =
+        historicalOpenings?.get(account.id) ?? account.balance
+      openingSum += openingBalance
       for (const bucket of buckets) {
-        dailyMap.set(toDateKey(bucket), account.balance)
+        dailyMap.set(toDateKey(bucket), openingBalance)
       }
     } else {
       // Sort transactions by date ASC
@@ -538,14 +545,24 @@ function computeBalanceTimeline(
       const accountOpening = sorted[0]?.accountBalanceBefore ?? 0
       openingSum += accountOpening
 
+      // Pre-group by date key for O(1) lookup per bucket (avoids O(n×buckets) scan
+      // and eliminates non-determinism when multiple transactions share the same timestamp).
+      const rowsByDay = new Map<string, BalanceRawRow[]>()
+      for (const row of sorted) {
+        const k = toDateKey(row.date)
+        const list = rowsByDay.get(k) ?? []
+        list.push(row)
+        rowsByDay.set(k, list)
+      }
+
       let lastBalance = accountOpening
       for (const bucket of buckets) {
         const key = toDateKey(bucket)
-        // Apply all transactions that fall on this day
-        for (const row of sorted) {
-          if (toDateKey(row.date) === key) {
-            lastBalance = row.accountBalanceBefore + row.amount
-          }
+        const dayRows = rowsByDay.get(key)
+        if (dayRows) {
+          // sorted is ASC — last entry is the chronologically final transaction of the day
+          const last = dayRows[dayRows.length - 1]
+          lastBalance = last.accountBalanceBefore + last.amount
         }
         dailyMap.set(key, lastBalance)
       }
@@ -841,6 +858,52 @@ function groupBalanceByCurrency(
 }
 
 /* ------------------------------------------------------------------ */
+/* Historical opening balance                                          */
+/* ------------------------------------------------------------------ */
+
+/**
+ * For each account, resolve the balance at `beforeDate` by finding the last
+ * non-deleted, non-pending transaction strictly before that date and returning
+ * `accountBalanceBefore + amount` (i.e. the balance after that transaction).
+ * Falls back to `account.balance` for accounts with no prior transaction history.
+ *
+ * @remarks
+ * Call this only for accounts with no transactions in the stats period — the
+ * caller determines this before invoking. All queried columns (`account_id`,
+ * `transaction_date`, `is_deleted`, `is_pending`) are indexed, so each
+ * per-account query is a fast index scan. Queries run in parallel via Promise.all.
+ *
+ * @param accounts - Zero-activity accounts needing a historical opening balance.
+ * @param beforeDate - The start of the stats period; the query looks strictly before this date.
+ */
+async function fetchHistoricalOpenings(
+  accounts: AccountModel[],
+  beforeDate: Date,
+): Promise<Map<string, number>> {
+  const entries = await Promise.all(
+    accounts.map(async (account) => {
+      const txns = await database
+        .get<TransactionModel>("transactions")
+        .query(
+          Q.where("account_id", account.id),
+          Q.where("is_deleted", false),
+          Q.where("is_pending", false),
+          Q.where("transaction_date", Q.lt(beforeDate.getTime())),
+          Q.sortBy("transaction_date", Q.desc),
+          Q.take(1),
+        )
+        .fetch()
+      const lastTx = txns[0]
+      const opening = lastTx
+        ? lastTx.accountBalanceBefore + lastTx.amount
+        : account.balance
+      return [account.id, opening] as const
+    }),
+  )
+  return new Map(entries)
+}
+
+/* ------------------------------------------------------------------ */
 /* Main export                                                         */
 /* ------------------------------------------------------------------ */
 
@@ -855,8 +918,8 @@ async function computeCurrencyStats(
   pendingMap: Map<string, PendingSummary>,
   uncategorizedMap: Map<string, UncategorizedSummary>,
   range: StatsDateRange,
+  accounts: AccountModel[],
 ): Promise<CurrencyStats[]> {
-  const accounts = await database.get<AccountModel>("accounts").query().fetch()
   const accountMap = new Map(accounts.map((a) => [a.id, a]))
 
   const currentByCurrency = groupByCurrency(currentRows)
@@ -893,11 +956,24 @@ async function computeCurrencyStats(
       const currencyAccounts = accounts.filter(
         (a) => a.currencyCode === currency && !a.excludeFromBalance,
       )
+
+      // Determine which accounts have no transactions in this period so we only
+      // run historical-opening queries for them (avoids unnecessary DB reads).
+      const activeAccountIds = new Set(balRows.map((r) => r.accountId))
+      const zeroActivityAccounts = currencyAccounts.filter(
+        (a) => !activeAccountIds.has(a.id),
+      )
+      const historicalOpenings =
+        zeroActivityAccounts.length > 0
+          ? await fetchHistoricalOpenings(zeroActivityAccounts, range.from)
+          : undefined
+
       const { timeline, opening, closing } = computeBalanceTimeline(
         balRows,
         currencyAccounts,
         range.from,
         range.to,
+        historicalOpenings,
       )
 
       const spendingByDayOfWeek = computeSpendingByDayOfWeek(
@@ -953,14 +1029,21 @@ async function computeCurrencyStats(
  * @returns An array of {@link CurrencyStats} objects sorted by transaction count descending.
  */
 export async function fetchAllStatsData(range: StatsDateRange) {
-  const [currentRows, previousRows, balanceRows, pendingMap, uncategorizedMap] =
-    await Promise.all([
-      fetchStatsTransactions(range.from, range.to),
-      fetchStatsTransactions(range.previousFrom, range.previousTo),
-      fetchBalanceTimeline(range.from, range.to),
-      fetchPendingSummary(range.from, range.to),
-      fetchUncategorizedSummary(range.from, range.to),
-    ])
+  const [
+    currentRows,
+    previousRows,
+    balanceRows,
+    pendingMap,
+    uncategorizedMap,
+    accounts,
+  ] = await Promise.all([
+    fetchStatsTransactions(range.from, range.to),
+    fetchStatsTransactions(range.previousFrom, range.previousTo),
+    fetchBalanceTimeline(range.from, range.to),
+    fetchPendingSummary(range.from, range.to),
+    fetchUncategorizedSummary(range.from, range.to),
+    database.get<AccountModel>("accounts").query().fetch(),
+  ])
 
   return computeCurrencyStats(
     currentRows,
@@ -969,5 +1052,6 @@ export async function fetchAllStatsData(range: StatsDateRange) {
     pendingMap,
     uncategorizedMap,
     range,
+    accounts,
   )
 }

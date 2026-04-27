@@ -67,13 +67,15 @@ export async function getConversionRateForTransaction(
   if (!transaction.isTransfer) return null
 
   const transfers = transfersCollection()
-  const byFrom = await transfers
-    .query(Q.where("from_transaction_id", transaction.id))
+  const transferResults = await transfers
+    .query(
+      Q.or(
+        Q.where("from_transaction_id", transaction.id),
+        Q.where("to_transaction_id", transaction.id),
+      ),
+    )
     .fetch()
-  const byTo = await transfers
-    .query(Q.where("to_transaction_id", transaction.id))
-    .fetch()
-  const transfer = byFrom[0] ?? byTo[0]
+  const transfer = transferResults[0]
   if (transfer) return transfer.conversionRate
 
   const extra = transaction.extra?.conversionRate
@@ -206,12 +208,7 @@ export async function createTransferWriter(
     updateTo,
   ]
 
-  if (
-    isCrossCurrency &&
-    conversionRate != null &&
-    conversionRate > 0 &&
-    conversionRate !== 1
-  ) {
+  if (isCrossCurrency && conversionRate != null && conversionRate > 0) {
     const transferRecord = transfers.prepareCreate((t) => {
       t.fromTransactionId = debit.id
       t.toTransactionId = credit.id
@@ -269,6 +266,12 @@ export async function editTransferWriter(
 
   const debitRow = transaction.amount < 0 ? transaction : paired
   const creditRow = transaction.amount > 0 ? transaction : paired
+
+  if (debitRow === creditRow) {
+    throw new Error(
+      "Could not identify debit/credit legs — one or both transaction amounts may be zero.",
+    )
+  }
 
   const newFromAccountId = fields.fromAccountId ?? debitRow.accountId
   const newToAccountId = fields.toAccountId ?? creditRow.accountId
@@ -344,6 +347,18 @@ export async function editTransferWriter(
         t.conversionRate = newConversionRate > 0 ? newConversionRate : 1
         t.fromAccountId = newFromAccountId
         t.toAccountId = newToAccountId
+      }),
+    )
+  } else if (newFromAccount.currencyCode !== newToAccount.currencyCode) {
+    // No Transfer record exists (e.g. 1:1 cross-currency created without one).
+    // Create it now so the rate is persisted and future edits can find it.
+    batchOps.push(
+      transfers.prepareCreate((t) => {
+        t.fromTransactionId = debitRow.id
+        t.toTransactionId = creditRow.id
+        t.fromAccountId = newFromAccountId
+        t.toAccountId = newToAccountId
+        t.conversionRate = newConversionRate > 0 ? newConversionRate : 1
       }),
     )
   }
@@ -426,9 +441,11 @@ export async function deleteTransferWriter(
   const accounts = accountsCollection()
   const accountIds = [...new Set(toDelete.map((t) => t.accountId))]
   const accountMap = new Map<string, AccountModel>()
-  for (const id of accountIds) {
-    accountMap.set(id, await accounts.find(id))
-  }
+  await Promise.all(
+    accountIds.map(async (id) => {
+      accountMap.set(id, await accounts.find(id))
+    }),
+  )
 
   const now = new Date()
   const batchOps: Parameters<typeof database.batch>[0] = []

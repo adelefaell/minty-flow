@@ -37,6 +37,7 @@ export async function getBalanceAtTransaction(
       Q.where("transaction_date", Q.lte(transaction.transactionDate.getTime())),
       Q.where("account_balance_before", Q.notEq(null)),
       Q.sortBy("transaction_date", Q.desc),
+      Q.sortBy("created_at", Q.desc),
       Q.take(1),
     )
     .fetch()
@@ -62,6 +63,7 @@ export async function getBalanceAtTransaction(
         Q.between(startDate, transaction.transactionDate.getTime()),
       ),
       Q.sortBy("transaction_date", Q.asc),
+      Q.sortBy("created_at", Q.asc),
     )
     .fetch()
 

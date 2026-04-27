@@ -15,6 +15,7 @@ import * as Notifications from "expo-notifications"
 import { useEffect } from "react"
 import { Platform } from "react-native"
 
+import { useImportRecovery } from "~/hooks/use-import-recovery"
 import { useNotificationSync } from "~/hooks/use-notification-sync"
 import { useRecurringTransactionSync } from "~/hooks/use-recurring-transaction-sync"
 import { useRetentionCleanup } from "~/hooks/use-retention-cleanup"
@@ -61,6 +62,7 @@ export default function RootLayout() {
   useRetentionCleanup()
   useRecurringTransactionSync()
   useNotificationSync()
+  useImportRecovery()
 
   return (
     <GestureHandlerRootView

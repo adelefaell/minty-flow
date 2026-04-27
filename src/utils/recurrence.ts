@@ -1,4 +1,4 @@
-import { RRule, rrulestr } from "rrule"
+import { RRule, type RRuleSet, rrulestr } from "rrule"
 
 import type { RecurringFrequency } from "~/types/transactions"
 
@@ -56,9 +56,11 @@ function parseRRule(ruleString: string): RRule {
     // rrulestr may return an RRuleSet when there are multiple rules;
     // for our purposes we always store a single rule, so unwrap if needed.
     if (result instanceof RRule) return result
-    // RRuleSet – grab the first rrule out of the set
-    const rules = (result as unknown as { _rrule: RRule[] })._rrule
-    if (Array.isArray(rules) && rules.length > 0) return rules[0]
+    // rrulestr may return an RRuleSet for multi-line DTSTART+RRULE strings.
+    // The typings declare only RRule so we cast via unknown; use the public
+    // rrules() API instead of the private _rrule field.
+    const rules = (result as unknown as RRuleSet).rrules()
+    if (rules.length > 0) return rules[0]
     return result as unknown as RRule
   } catch {
     return RRule.fromString(ruleString)
@@ -83,7 +85,8 @@ export function countOccurrencesBetween(
     dtstart: startDate,
     until: endDate,
   })
-  const occurrences = rule.all()
+  // rule.between() avoids materializing an unbounded array; inc=true makes both ends inclusive.
+  const occurrences = rule.between(startDate, endDate, true)
   return occurrences.length
 }
 

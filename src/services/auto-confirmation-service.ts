@@ -169,15 +169,19 @@ class AutoConfirmationService {
     const { updateDateUponConfirmation } = this.config
 
     const now = Date.now()
-    for (const row of transactions) {
-      if (!this.shouldAutoConfirm(row)) continue
-      if (row.transaction.transactionDate.getTime() <= now) {
-        await this.confirmTransaction(
-          row.transaction.id,
-          updateDateUponConfirmation,
-        )
-      }
-    }
+    const pastDue = transactions.filter(
+      (row) =>
+        this.shouldAutoConfirm(row) &&
+        row.transaction.transactionDate.getTime() <= now,
+    )
+    // Safe to run concurrently: confirmTransactionSync re-fetches inside
+    // database.write, so WatermelonDB's write serialization prevents double-confirms
+    // even when multiple calls race past the pre-write isPending guard.
+    await Promise.all(
+      pastDue.map((row) =>
+        this.confirmTransaction(row.transaction.id, updateDateUponConfirmation),
+      ),
+    )
   }
 
   cancelSchedule(transactionId: string) {
@@ -217,6 +221,13 @@ class AutoConfirmationService {
     updateDate: boolean,
   ) {
     this.clearTimeout(transactionId)
+
+    // JS setTimeout clamps delay to a signed 32-bit int (~24.85 days). Any value
+    // beyond that wraps to a small positive number and fires almost immediately,
+    // confirming the transaction far too early. Cap at 24 h and let the foreground
+    // sweep (confirmPastDue) catch anything scheduled further out.
+    const MAX_TIMEOUT_MS = 24 * 60 * 60 * 1000
+    if (msUntil > MAX_TIMEOUT_MS) return
 
     const timeout = setTimeout(() => {
       void this.confirmTransaction(transactionId, updateDate)

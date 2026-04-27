@@ -56,6 +56,14 @@ const GOAL_OBSERVED_COLUMNS = [
 
 /**
  * Shared pipeline: merges join-table accountIds into each Goal domain object.
+ *
+ * @remarks
+ * Uses `switchMap` so that any goal model change (e.g. a name update) triggers a
+ * fresh subscription to the join-row query. The join-row observable then emits
+ * immediately with the same data, causing one extra downstream emission per model
+ * change. At personal-finance scale (< 50 goals) this extra emission is harmless.
+ * If goal counts grow significantly, replace `switchMap` with `combineLatest` over
+ * per-goal scoped observables to avoid the re-subscription overhead.
  */
 const toGoalsObservable = (
   baseQuery: ReturnType<ReturnType<typeof getGoalCollection>["query"]>,
