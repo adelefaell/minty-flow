@@ -25,7 +25,7 @@ import { UpcomingTransactionsSection } from "~/components/transaction/upcoming-t
 import { EmptyState } from "~/components/ui/empty-state"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import type { TransactionWithRelations } from "~/database/services/transaction-service"
+import type { TransactionWithRelations } from "~/database/mappers/hydrateTransactions"
 import { useTransfersPreferencesStore } from "~/stores/transfers-preferences.store"
 import type { TransactionListFilterState } from "~/types/transaction-filters"
 import {
@@ -59,10 +59,7 @@ export function TransactionSectionList({
 
   // Confirmed = not manually pending and not a recurring instance.
   const confirmedOnly = useMemo(
-    () =>
-      list.filter(
-        (r) => !r.transaction.isPending && !r.transaction.recurringId,
-      ),
+    () => list.filter((r) => !r.isPending && !r.extra?.recurringId),
     [list],
   )
 
@@ -133,7 +130,7 @@ export function TransactionSectionList({
     ({ item }: { item: TransactionWithRelations }) => (
       <TransactionItem
         transactionWithRelations={item as TransactionWithRelations}
-        onPress={() => handleOnTransactionPress(item.transaction.id)}
+        onPress={() => handleOnTransactionPress(item.id)}
         onDelete={handleDeleteDone}
         onWillOpen={(methods) => {
           openSwipeableRef.current?.close()
@@ -145,7 +142,7 @@ export function TransactionSectionList({
   )
 
   const keyExtractor = useCallback(
-    (item: TransactionWithRelations) => item.transaction.id,
+    (item: TransactionWithRelations) => item.id,
     [],
   )
 

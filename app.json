@@ -1,6 +1,6 @@
 {
   "expo": {
-    "version": "1.3.0",
+    "version": "2.0.0",
     "name": "Minty Flow",
     "slug": "minty-flow-app",
     "extra": {
@@ -19,7 +19,7 @@
       }
     },
     "android": {
-      "versionCode": 13,
+      "versionCode": 20,
       "permissions": [
         "READ_CONTACTS",
         "WRITE_CONTACTS",
@@ -48,7 +48,6 @@
       "expo-build-properties",
       "expo-image",
       "expo-web-browser",
-      "./plugins/withWatermelonDBJSI.js",
       [
         "expo-splash-screen",
         {
@@ -84,7 +83,8 @@
         {
           "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
         }
-      ]
+      ],
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true,

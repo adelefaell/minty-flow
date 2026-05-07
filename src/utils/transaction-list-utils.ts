@@ -5,7 +5,7 @@
 
 import { addDays, endOfMonth, startOfMonth, startOfWeek } from "date-fns"
 
-import type { TransactionWithRelations } from "~/database/services/transaction-service"
+import type { TransactionWithRelations } from "~/database/mappers/hydrateTransactions"
 import {
   TransferLayoutEnum,
   type TransferLayoutType,
@@ -30,9 +30,8 @@ export function applyTransferLayout(
 ): TransactionWithRelations[] {
   if (layout === TransferLayoutEnum.SEPARATE) return list
   return list.filter((row) => {
-    const t = row.transaction
-    if (!t.isTransfer || !t.transferId) return true
-    return t.amount < 0
+    if (!row.isTransfer || !row.transferId) return true
+    return row.amount < 0
   })
 }
 
@@ -204,19 +203,19 @@ export function buildTransactionSections(
   }
 
   const sortedList = [...list].sort((a, b) => {
-    const tA = a.transaction.transactionDate
-    const tB = b.transaction.transactionDate
-    const timeA = tA instanceof Date ? tA.getTime() : tA
-    const timeB = tB instanceof Date ? tB.getTime() : tB
+    const timeA =
+      a.transactionDate instanceof Date
+        ? a.transactionDate.getTime()
+        : a.transactionDate
+    const timeB =
+      b.transactionDate instanceof Date
+        ? b.transactionDate.getTime()
+        : b.transactionDate
     if (timeB !== timeA) return timeB - timeA
     const createdA =
-      a.transaction.createdAt instanceof Date
-        ? a.transaction.createdAt.getTime()
-        : a.transaction.createdAt
+      a.createdAt instanceof Date ? a.createdAt.getTime() : a.createdAt
     const createdB =
-      b.transaction.createdAt instanceof Date
-        ? b.transaction.createdAt.getTime()
-        : b.transaction.createdAt
+      b.createdAt instanceof Date ? b.createdAt.getTime() : b.createdAt
     return (createdB ?? 0) - (createdA ?? 0)
   })
 
@@ -227,21 +226,17 @@ export function buildTransactionSections(
     grouped[key] = { title: "All time", data: [], totals: {} }
     for (const row of sortedList) {
       grouped[key].data.push(row)
-      const currency = row.account.currencyCode
-      const contribution = transactionContribution(
-        row.transaction.type,
-        row.transaction.amount,
-      )
+      const currency = row.account?.currencyCode ?? ""
+      const contribution = transactionContribution(row.type, row.amount)
       grouped[key].totals[currency] =
         (grouped[key].totals[currency] || 0) + contribution
     }
   } else {
     for (const row of sortedList) {
-      const t = row.transaction
       const d =
-        t.transactionDate instanceof Date
-          ? t.transactionDate
-          : new Date(t.transactionDate)
+        row.transactionDate instanceof Date
+          ? row.transactionDate
+          : new Date(row.transactionDate)
       const { key: dateKey, title: headerTitle } = getSectionKeyAndTitle(
         d,
         groupBy,
@@ -252,8 +247,8 @@ export function buildTransactionSections(
       }
 
       grouped[dateKey].data.push(row)
-      const currency = row.account.currencyCode
-      const contribution = transactionContribution(t.type, t.amount)
+      const currency = row.account?.currencyCode ?? ""
+      const contribution = transactionContribution(row.type, row.amount)
       grouped[dateKey].totals[currency] =
         (grouped[dateKey].totals[currency] || 0) + contribution
     }
@@ -262,8 +257,7 @@ export function buildTransactionSections(
   return Object.values(grouped).sort((a, b) => {
     if (a.data.length === 0 || b.data.length === 0) return 0
     return (
-      b.data[0].transaction.transactionDate.getTime() -
-      a.data[0].transaction.transactionDate.getTime()
+      b.data[0].transactionDate.getTime() - a.data[0].transactionDate.getTime()
     )
   })
 }

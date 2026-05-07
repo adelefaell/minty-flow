@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 
-import type TransactionModel from "~/database/models/transaction"
-import { getBalanceAtTransaction } from "~/database/services/balance-service"
+import { getBalanceAtTransaction } from "~/database/services-sqlite/balance-service"
+import type { Transaction } from "~/types/transactions"
 import { logger } from "~/utils/logger"
 
 /**
@@ -9,7 +9,10 @@ import { logger } from "~/utils/logger"
  * This is what Flow displays next to the account name (balance after = snapshot).
  */
 export function useBalanceAtTransaction(
-  transaction: TransactionModel | null,
+  transaction: Pick<
+    Transaction,
+    "id" | "accountId" | "transactionDate" | "amount" | "type"
+  > | null,
 ): number | null {
   const [balance, setBalance] = useState<number | null>(null)
 

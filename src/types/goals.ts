@@ -3,7 +3,6 @@
  *
  * Pure domain types with no database dependencies.
  * These represent the business logic and UI contracts.
- * The WatermelonDB model implements these types, not the other way around.
  */
 
 import type { MintyColorScheme } from "~/styles/theme/types"
@@ -18,9 +17,7 @@ export type GoalType = (typeof GoalTypeEnum)[keyof typeof GoalTypeEnum]
 /**
  * Goal domain type for UI/API usage.
  *
- * This is the single source of truth for the Goal shape.
- * The WatermelonDB model implements this interface, ensuring
- * the persistence layer conforms to the domain model.
+ * Goal domain type. Single source of truth for the Goal shape.
  *
  * accountIds is a derived field populated from the goal_accounts
  * join table by the service layer.

@@ -15,6 +15,7 @@ import * as Notifications from "expo-notifications"
 import { useEffect } from "react"
 import { Platform } from "react-native"
 
+import { useBootHydration } from "~/hooks/use-boot-hydration"
 import { useImportRecovery } from "~/hooks/use-import-recovery"
 import { useNotificationSync } from "~/hooks/use-notification-sync"
 import { useRecurringTransactionSync } from "~/hooks/use-recurring-transaction-sync"
@@ -58,6 +59,7 @@ export default function RootLayout() {
     }
   }, [])
 
+  useBootHydration()
   useShakeListener()
   useRetentionCleanup()
   useRecurringTransactionSync()

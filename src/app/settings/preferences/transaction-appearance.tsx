@@ -9,71 +9,77 @@ import { Pressable } from "~/components/ui/pressable"
 import { Switch } from "~/components/ui/switch"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import type AccountModel from "~/database/models/account"
-import type CategoryModel from "~/database/models/category"
-import type TransactionModel from "~/database/models/transaction"
-import type { TransactionWithRelations } from "~/database/services/transaction-service"
+import type { TransactionWithRelations } from "~/database/mappers/hydrateTransactions"
 import { useTransactionItemAppearanceStore } from "~/stores/transaction-item-appearance.store"
 
 // ─── Mock data for preview ────────────────────────────────────────────────────
 
+const BASE_TX = {
+  id: "preview",
+  accountId: "preview",
+  categoryId: null,
+  loanId: null,
+  goalId: null,
+  isTransfer: false,
+  transferId: null,
+  isDeleted: false,
+  deletedAt: null,
+  isPending: false,
+  requiresManualConfirmation: null,
+  extra: null,
+  description: null,
+  subtype: null,
+  accountBalanceBefore: 0,
+  budgetId: null,
+  notes: null,
+  location: null,
+  createdAt: new Date(2024, 0, 15),
+  updatedAt: new Date(2024, 0, 15),
+  relatedAccountId: null,
+  relatedAccount: undefined,
+  conversionRate: null,
+  recurringId: null,
+  tagIds: [],
+}
+
 const MOCK_ACCOUNT = {
+  id: "preview-account",
   name: "PayPal",
   currencyCode: "USD",
   icon: "wallet",
   colorScheme: null,
-} as unknown as AccountModel
+} as unknown as TransactionWithRelations["account"]
 
-const MOCK_CATEGORY_1 = {
-  name: "Food & Drinks",
-  icon: "basket",
-  colorScheme: null,
-} as unknown as CategoryModel
-
-const MOCK_CATEGORY_2 = {
-  name: "Shopping",
-  icon: "shopping",
-  colorScheme: null,
-} as unknown as CategoryModel
-
-const MOCK_TX_1 = {
+const PREVIEW_ITEM_1: TransactionWithRelations = {
+  ...BASE_TX,
+  id: "preview-1",
   title: "Coffee Shop",
   amount: -6.99,
   transactionDate: new Date(2024, 0, 15, 18, 16, 0),
-  type: "expense" as const,
-  isTransfer: false,
-  transferId: null,
-  requiresManualConfirmation: undefined,
-  isDeleted: false,
-  extra: undefined,
-  isPending: false,
-} as unknown as TransactionModel
-
-const MOCK_TX_2 = {
-  title: null,
-  amount: -1.27,
-  transactionDate: new Date(2024, 0, 15, 19, 16, 0),
-  type: "expense" as const,
-  isTransfer: false,
-  transferId: null,
-  requiresManualConfirmation: undefined,
-  isDeleted: false,
-  extra: undefined,
-  isPending: false,
-} as unknown as TransactionModel
-
-const PREVIEW_ITEM_1: TransactionWithRelations = {
-  transaction: MOCK_TX_1,
+  type: "expense",
   account: MOCK_ACCOUNT,
-  category: MOCK_CATEGORY_1,
-  tags: [],
+  category: {
+    id: "c1",
+    name: "Food & Drinks",
+    icon: "basket",
+    colorScheme: null,
+  } as unknown as TransactionWithRelations["category"],
 }
 
 const PREVIEW_ITEM_2: TransactionWithRelations = {
-  transaction: MOCK_TX_2,
+  ...BASE_TX,
+  id: "preview-2",
+  title: null,
+  amount: -1.27,
+  transactionDate: new Date(2024, 0, 15, 19, 16, 0),
+  type: "expense",
   account: MOCK_ACCOUNT,
-  category: MOCK_CATEGORY_2,
-  tags: [],
+  category: {
+    id: "c2",
+    name: "Shopping",
+    icon: "shopping",
+    colorScheme: null,
+  } as unknown as TransactionWithRelations["category"],
 }
 
 // ─── Leading icon option ──────────────────────────────────────────────────────

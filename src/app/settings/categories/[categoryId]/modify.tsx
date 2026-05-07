@@ -1,38 +1,9 @@
-import { withObservables } from "@nozbe/watermelondb/react"
 import { useLocalSearchParams } from "expo-router"
 
 import { CategoryModifyContent } from "~/components/categories/category-modify/category-modify-content"
-import type CategoryModel from "~/database/models/category"
-import { observeCategoryById } from "~/database/services/category-service"
-import { modelToCategory } from "~/database/utils/model-to-category"
+import { useCategory } from "~/stores/db/category.store"
 import { NewEnum } from "~/types/new"
 import type { TransactionType } from "~/types/transactions"
-
-const EnhancedEditScreen = withObservables(
-  ["categoryId"],
-  ({ categoryId }: { categoryId: string }) => ({
-    categoryModel: observeCategoryById(categoryId),
-  }),
-)(
-  ({
-    categoryId,
-    categoryModel,
-  }: {
-    categoryId: string
-    categoryModel: CategoryModel
-  }) => {
-    const category = categoryModel ? modelToCategory(categoryModel) : undefined
-
-    return (
-      <CategoryModifyContent
-        key={category?.id || categoryId}
-        categoryModifyId={categoryId}
-        category={category}
-        categoryModel={categoryModel}
-      />
-    )
-  },
-)
 
 export default function EditCategoryScreen() {
   const params = useLocalSearchParams<{
@@ -41,6 +12,7 @@ export default function EditCategoryScreen() {
   }>()
 
   const isAddMode = params.categoryId === NewEnum.NEW || !params.categoryId
+  const category = useCategory(params.categoryId ?? "")
 
   if (isAddMode) {
     return (
@@ -51,5 +23,11 @@ export default function EditCategoryScreen() {
     )
   }
 
-  return <EnhancedEditScreen categoryId={params.categoryId} />
+  return (
+    <CategoryModifyContent
+      key={params.categoryId}
+      categoryModifyId={params.categoryId}
+      category={category}
+    />
+  )
 }

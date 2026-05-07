@@ -3,7 +3,6 @@
  *
  * Pure domain types with no database dependencies.
  * These represent the business logic and UI contracts.
- * The WatermelonDB model implements these types, not the other way around.
  */
 
 import type { MintyColorScheme } from "~/styles/theme/types"
@@ -22,9 +21,7 @@ export type BudgetPeriod =
 /**
  * Budget domain type for UI/API usage.
  *
- * This is the single source of truth for the Budget shape.
- * The WatermelonDB model implements this interface, ensuring
- * the persistence layer conforms to the domain model.
+ * Budget domain type. Single source of truth for the Budget shape.
  *
  * Spending is computed at query time from linked transactions —
  * spent_amount is not stored in the database.

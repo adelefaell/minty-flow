@@ -1,5 +1,5 @@
-import { withObservables } from "@nozbe/watermelondb/react"
 import { differenceInDays } from "date-fns"
+import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { type DimensionValue, View as RNView } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
@@ -10,16 +10,31 @@ import { IconSvg } from "~/components/ui/icon-svg"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import { observeGoalTransactionProgress } from "~/database/services/goal-service"
+import { on } from "~/database/events"
+import { getGoalProgress } from "~/database/repos/goal-repo"
 import type { Goal } from "~/types/goals"
 
 interface GoalCardProps {
   goal: Goal
   onPress: () => void
-  currentAmount: number
 }
 
-function GoalCardInner({ goal, onPress, currentAmount }: GoalCardProps) {
+export function GoalCard({ goal, onPress }: GoalCardProps) {
+  const [currentAmount, setCurrentAmount] = useState(0)
+
+  useEffect(() => {
+    let cancelled = false
+    const fetch = () =>
+      getGoalProgress(goal.id, goal.goalType || "savings").then((v) => {
+        if (!cancelled) setCurrentAmount(v)
+      })
+    fetch()
+    const unsub = on("transactions:dirty", fetch)
+    return () => {
+      cancelled = true
+      unsub()
+    }
+  }, [goal.id, goal.goalType])
   const { t } = useTranslation()
   const { theme } = useUnistyles()
 
@@ -161,16 +176,6 @@ function GoalCardInner({ goal, onPress, currentAmount }: GoalCardProps) {
     </Pressable>
   )
 }
-
-export const GoalCard = withObservables(
-  ["goal"],
-  ({ goal }: { goal: Goal }) => ({
-    currentAmount: observeGoalTransactionProgress(
-      goal.id,
-      goal.goalType || "savings",
-    ),
-  }),
-)(GoalCardInner)
 
 const styles = StyleSheet.create((t) => ({
   card: {

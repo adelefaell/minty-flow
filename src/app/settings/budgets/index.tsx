@@ -1,4 +1,3 @@
-import { withObservables } from "@nozbe/watermelondb/react"
 import { useRouter } from "expo-router"
 import { useCallback } from "react"
 import { useTranslation } from "react-i18next"
@@ -10,19 +9,12 @@ import { EmptyState } from "~/components/ui/empty-state"
 import { IconSvg } from "~/components/ui/icon-svg"
 import { Pressable } from "~/components/ui/pressable"
 import { View } from "~/components/ui/view"
-import { observeBudgets } from "~/database/services/budget-service"
+import { useAllBudgets } from "~/stores/db/budget.store"
 import type { Budget } from "~/types/budgets"
 import { NewEnum } from "~/types/new"
 
-// ---------------------------------------------------------------------------
-// Observed list component — re-renders reactively when budgets change
-// ---------------------------------------------------------------------------
-
-interface BudgetListContentInnerProps {
-  budgets: Budget[]
-}
-
-function BudgetListContentInner({ budgets }: BudgetListContentInnerProps) {
+export default function BudgetsScreen() {
+  const budgets = useAllBudgets()
   const { theme } = useUnistyles()
   const { t } = useTranslation()
   const router = useRouter()
@@ -69,15 +61,6 @@ function BudgetListContentInner({ budgets }: BudgetListContentInnerProps) {
       </Pressable>
     </View>
   )
-}
-
-// Wrap with WatermelonDB reactive observer — budgets update automatically
-const BudgetListContent = withObservables([], () => ({
-  budgets: observeBudgets(),
-}))(BudgetListContentInner)
-
-export default function BudgetsScreen() {
-  return <BudgetListContent />
 }
 
 const styles = StyleSheet.create((t) => ({

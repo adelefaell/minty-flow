@@ -1,5 +1,5 @@
-import type { TransactionWithRelations } from "~/database/services/transaction-service"
+import type { TransactionWithRelations } from "~/database/mappers/hydrateTransactions"
 
 export function isUpcoming(row: TransactionWithRelations): boolean {
-  return row.transaction.isPending || !!row.transaction.recurringId
+  return row.isPending || !!row.extra?.recurringId
 }

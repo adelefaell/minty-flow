@@ -11,7 +11,7 @@ import { IconSvg } from "~/components/ui/icon-svg"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import { destroyAllDeletedTransactionModels } from "~/database/services/transaction-service"
+import { destroyAllDeletedTransactionModels } from "~/database/services-sqlite/transaction-service"
 import { useTrashBinStore } from "~/stores/trash-bin.store"
 import { Toast } from "~/utils/toast"
 

@@ -1,4 +1,3 @@
-import type LoanModel from "~/database/models/loan"
 import type { Account } from "~/types/accounts"
 import type { Category } from "~/types/categories"
 import type { Loan, LoanType } from "~/types/loans"
@@ -14,7 +13,6 @@ export interface LoanPrefill {
 export interface LoanModifyContentProps {
   loanModifyId: string
   loan?: Loan
-  loanModel?: LoanModel
   accounts: Account[]
   categories: Category[]
   prefill?: LoanPrefill

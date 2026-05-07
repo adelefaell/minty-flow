@@ -3,7 +3,6 @@
  *
  * Pure domain types with no database dependencies.
  * First-class metadata for a transfer pair (debit + credit transaction rows).
- * The WatermelonDB Transfer model implements this interface.
  */
 
 /**

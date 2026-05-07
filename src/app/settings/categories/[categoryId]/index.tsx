@@ -1,9 +1,7 @@
-import { withObservables } from "@nozbe/watermelondb/react"
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router"
 import { useLayoutEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet } from "react-native-unistyles"
-import { startWith } from "rxjs"
 
 import { DynamicIcon } from "~/components/dynamic-icon"
 import { Money } from "~/components/money"
@@ -14,19 +12,11 @@ import { Button } from "~/components/ui/button"
 import { IconSvg } from "~/components/ui/icon-svg"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import { getMonthRange } from "~/database/services/account-service"
-import {
-  observeCategoriesByType,
-  observeCategoryDetailsById,
-} from "~/database/services/category-service"
-import { observeTags } from "~/database/services/tag-service"
-import {
-  observeTransactionModelsFull,
-  type TransactionWithRelations,
-} from "~/database/services/transaction-service"
+import { getMonthRange } from "~/database/services-sqlite/account-service"
+import { useCategoriesByType, useCategory } from "~/stores/db/category.store"
+import { useTags } from "~/stores/db/tag.store"
+import { useTransactions } from "~/stores/db/transaction.store"
 import { getThemeStrict } from "~/styles/theme/registry"
-import type { Category } from "~/types/categories"
-import type { Tag } from "~/types/tags"
 import type {
   SearchState,
   TransactionListFilterState,
@@ -36,48 +26,46 @@ import {
   DEFAULT_TRANSACTION_LIST_FILTER_STATE,
 } from "~/types/transaction-filters"
 import { TransactionTypeEnum } from "~/types/transactions"
-import { buildTransactionListFilters } from "~/utils/transaction-list-utils"
 
-const EMPTY_TRANSACTIONS: TransactionWithRelations[] = []
-const EMPTY_CATEGORIES: Category[] = []
-const EMPTY_TAGS: Tag[] = []
-
-interface CategoryDetailsProps {
-  category: Category | undefined
-  transactionsFull: TransactionWithRelations[]
-  categoriesExpense: Category[]
-  categoriesIncome: Category[]
-  categoriesTransfer: Category[]
-  tags: Tag[]
-  selectedYear: number
-  selectedMonth: number
-  onMonthYearChange: (year: number, month: number) => void
-  filterState: TransactionListFilterState
-  onFilterChange: (state: TransactionListFilterState) => void
-  searchState: SearchState
-  onSearchApply: (state: SearchState) => void
-}
-
-const CategoryDetailsScreenInner = ({
-  category,
-  transactionsFull = EMPTY_TRANSACTIONS,
-  categoriesExpense = EMPTY_CATEGORIES,
-  categoriesIncome = EMPTY_CATEGORIES,
-  categoriesTransfer = EMPTY_CATEGORIES,
-  tags = EMPTY_TAGS,
-  selectedYear,
-  selectedMonth,
-  onMonthYearChange,
-  filterState,
-  onFilterChange,
-  searchState,
-  onSearchApply,
-}: CategoryDetailsProps) => {
+export default function CategoryDetailsScreen() {
+  const { categoryId } = useLocalSearchParams<{ categoryId: string }>()
   const { t } = useTranslation()
   const router = useRouter()
   const navigation = useNavigation()
 
+  const [selectedYear, setSelectedYear] = useState(() =>
+    new Date().getFullYear(),
+  )
+  const [selectedMonth, setSelectedMonth] = useState(() =>
+    new Date().getMonth(),
+  )
+  const [filterState, setFilterState] = useState<TransactionListFilterState>(
+    DEFAULT_TRANSACTION_LIST_FILTER_STATE,
+  )
+  const [searchState, setSearchState] =
+    useState<SearchState>(DEFAULT_SEARCH_STATE)
   const [showFilters, setShowFilters] = useState(false)
+
+  const category = useCategory(categoryId ?? "")
+  const categoriesExpense = useCategoriesByType(TransactionTypeEnum.EXPENSE)
+  const categoriesIncome = useCategoriesByType(TransactionTypeEnum.INCOME)
+  const categoriesTransfer = useCategoriesByType(TransactionTypeEnum.TRANSFER)
+  const tags = useTags()
+
+  const { fromDate, toDate } = useMemo(
+    () => getMonthRange(selectedYear, selectedMonth),
+    [selectedYear, selectedMonth],
+  )
+
+  const { items: transactionsFull } = useTransactions(
+    categoryId
+      ? {
+          categoryId,
+          from: new Date(fromDate).toISOString(),
+          to: new Date(toDate).toISOString(),
+        }
+      : {},
+  )
 
   const colorScheme = getThemeStrict(category?.colorSchemeName ?? null)
 
@@ -90,7 +78,6 @@ const CategoryDetailsScreenInner = ({
     [categoriesExpense, categoriesIncome, categoriesTransfer],
   )
 
-  // Derive dominant currency from transactions for summary stats
   const dominantCurrency = useMemo(() => {
     for (const r of transactionsFull) {
       const code = r.account?.currencyCode
@@ -104,11 +91,11 @@ const CategoryDetailsScreenInner = ({
       transactionsFull
         .filter(
           (r) =>
-            r.transaction.type === TransactionTypeEnum.INCOME &&
-            !r.transaction.isPending &&
-            !r.transaction.isDeleted,
+            r.type === TransactionTypeEnum.INCOME &&
+            !r.isPending &&
+            !r.isDeleted,
         )
-        .reduce((sum, r) => sum + r.transaction.amount, 0),
+        .reduce((sum, r) => sum + r.amount, 0),
     [transactionsFull],
   )
 
@@ -117,11 +104,11 @@ const CategoryDetailsScreenInner = ({
       transactionsFull
         .filter(
           (r) =>
-            r.transaction.type === TransactionTypeEnum.EXPENSE &&
-            !r.transaction.isPending &&
-            !r.transaction.isDeleted,
+            r.type === TransactionTypeEnum.EXPENSE &&
+            !r.isPending &&
+            !r.isDeleted,
         )
-        .reduce((sum, r) => sum + r.transaction.amount, 0),
+        .reduce((sum, r) => sum + r.amount, 0),
     [transactionsFull],
   )
 
@@ -217,25 +204,24 @@ const CategoryDetailsScreenInner = ({
         initialYear={selectedYear}
         initialMonth={selectedMonth}
         onSelect={(y, m) => {
-          onMonthYearChange(y, m)
+          setSelectedYear(y)
+          setSelectedMonth(m)
         }}
       />
 
-      {/* Filter header (when toggled on) */}
       {showFilters && (
         <TransactionFilterHeader
           accounts={[]}
           categoriesByType={categoriesByType}
           tags={tags}
           filterState={filterState}
-          onFilterChange={onFilterChange}
+          onFilterChange={setFilterState}
           searchState={searchState}
-          onSearchApply={onSearchApply}
+          onSearchApply={setSearchState}
           hiddenFilters={["accounts", "categories"]}
         />
       )}
 
-      {/* Transaction list with category card as ListHeaderComponent */}
       <TransactionSectionList
         transactionsFull={transactionsFull}
         filterState={filterState}
@@ -309,81 +295,3 @@ const styles = StyleSheet.create((theme) => ({
     fontWeight: "700",
   },
 }))
-
-const EnhancedCategoryDetailsScreen = withObservables(
-  ["categoryId", "selectedYear", "selectedMonth", "filterState", "searchState"],
-  ({
-    categoryId,
-    selectedYear,
-    selectedMonth,
-    filterState,
-    searchState,
-  }: {
-    categoryId: string
-    selectedYear: number
-    selectedMonth: number
-    filterState: TransactionListFilterState
-    searchState: SearchState
-  }) => {
-    const { fromDate, toDate } = getMonthRange(selectedYear, selectedMonth)
-    const queryFilters = buildTransactionListFilters(filterState, {
-      fromDate,
-      toDate,
-      search: searchState.query,
-      searchMatchType: searchState.matchType,
-      searchIncludeNotes: searchState.includeNotes,
-    })
-    return {
-      category: observeCategoryDetailsById(categoryId).pipe(
-        startWith(undefined),
-      ),
-      transactionsFull: observeTransactionModelsFull({
-        ...queryFilters,
-        categoryId,
-      }).pipe(startWith([] as TransactionWithRelations[])),
-      categoriesExpense: observeCategoriesByType(
-        TransactionTypeEnum.EXPENSE,
-      ).pipe(startWith([] as Category[])),
-      categoriesIncome: observeCategoriesByType(
-        TransactionTypeEnum.INCOME,
-      ).pipe(startWith([] as Category[])),
-      categoriesTransfer: observeCategoriesByType(
-        TransactionTypeEnum.TRANSFER,
-      ).pipe(startWith([] as Category[])),
-      tags: observeTags().pipe(startWith([] as Tag[])),
-    }
-  },
-)(CategoryDetailsScreenInner)
-
-export default function CategoryDetailsScreen() {
-  const { categoryId } = useLocalSearchParams<{ categoryId: string }>()
-  const [selectedYear, setSelectedYear] = useState(() =>
-    new Date().getFullYear(),
-  )
-  const [selectedMonth, setSelectedMonth] = useState(() =>
-    new Date().getMonth(),
-  )
-  const [filterState, setFilterState] = useState<TransactionListFilterState>(
-    DEFAULT_TRANSACTION_LIST_FILTER_STATE,
-  )
-  const [searchState, setSearchState] =
-    useState<SearchState>(DEFAULT_SEARCH_STATE)
-
-  const handleMonthYearChange = (year: number, month: number) => {
-    setSelectedYear(year)
-    setSelectedMonth(month)
-  }
-
-  return (
-    <EnhancedCategoryDetailsScreen
-      categoryId={categoryId}
-      selectedYear={selectedYear}
-      selectedMonth={selectedMonth}
-      onMonthYearChange={handleMonthYearChange}
-      filterState={filterState}
-      onFilterChange={setFilterState}
-      searchState={searchState}
-      onSearchApply={setSearchState}
-    />
-  )
-}

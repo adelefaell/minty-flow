@@ -25,10 +25,10 @@ import { View } from "~/components/ui/view"
 import { ScrollIntoViewProvider } from "~/contexts/scroll-into-view-context"
 import {
   createBudget,
-  destroyBudget,
-  duplicateBudget,
-  updateBudget,
-} from "~/database/services/budget-service"
+  deleteBudgetById,
+  duplicateBudgetById,
+  updateBudgetById,
+} from "~/database/services-sqlite/budget-service"
 import { useNavigationGuard } from "~/hooks/use-navigation-guard"
 import type { TranslationKey } from "~/i18n/config"
 import {
@@ -58,7 +58,6 @@ const PERIOD_OPTIONS = [
 export function BudgetModifyContent({
   budgetModifyId,
   budget,
-  budgetModel,
   accounts,
   categories,
 }: BudgetModifyContentProps) {
@@ -136,15 +135,7 @@ export function BudgetModifyContent({
         allowNavigation()
         handleGoBack()
       } else {
-        if (!budgetModel) {
-          Toast.error({
-            title: t("common.toast.error"),
-            description: t("screens.settings.budgets.form.toast.notFound"),
-          })
-          return
-        }
-
-        await updateBudget(budgetModel, { ...data, name: trimmedName })
+        await updateBudgetById(budgetModifyId, { ...data, name: trimmedName })
 
         allowNavigation()
         handleGoBack()
@@ -166,7 +157,7 @@ export function BudgetModifyContent({
 
   const handleDelete = async () => {
     try {
-      if (!budgetModel || !budget) {
+      if (!budget) {
         Toast.error({
           title: t("common.toast.error"),
           description: t("screens.settings.budgets.form.toast.notFound"),
@@ -174,7 +165,7 @@ export function BudgetModifyContent({
         return
       }
 
-      await destroyBudget(budgetModel)
+      await deleteBudgetById(budgetModifyId)
 
       allowNavigation()
       router.dismiss(2)
@@ -197,7 +188,19 @@ export function BudgetModifyContent({
         return
       }
 
-      await duplicateBudget(budget)
+      await duplicateBudgetById(budgetModifyId, budget.name, {
+        amount: budget.amount,
+        currencyCode: budget.currencyCode,
+        period: budget.period,
+        startDate: budget.startDate.getTime(),
+        endDate: budget.endDate ? budget.endDate.getTime() : null,
+        alertThreshold: budget.alertThreshold ?? null,
+        isActive: budget.isActive,
+        icon: budget.icon ?? null,
+        colorSchemeName: budget.colorSchemeName ?? null,
+        accountIds: budget.accountIds,
+        categoryIds: budget.categoryIds,
+      })
 
       Toast.success({
         title: t("screens.settings.budgets.form.duplicateSuccess"),

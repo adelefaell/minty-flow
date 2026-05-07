@@ -1,48 +1,34 @@
-import { withObservables } from "@nozbe/watermelondb/react"
 import { useLocalSearchParams } from "expo-router"
+import { useEffect, useState } from "react"
 
 import { AccountModifyContent } from "~/components/accounts/account-modify/account-modify-content"
-import type AccountModel from "~/database/models/account"
-import { observeAccountById } from "~/database/services/account-service"
-import { observeTransactionCountByAccountId } from "~/database/services/transaction-service"
-import { modelToAccount } from "~/database/utils/model-to-account"
+import { getAccountTransactionCount } from "~/database/services-sqlite/account-service"
+import { useAccount } from "~/stores/db/account.store"
 import { NewEnum } from "~/types/new"
-
-const EnhancedEditScreen = withObservables(["accountId"], ({ accountId }) => ({
-  accountModel: observeAccountById(accountId),
-  transactionCount: observeTransactionCountByAccountId(accountId),
-}))(
-  ({
-    accountId,
-    accountModel,
-    transactionCount = 0,
-  }: {
-    accountId: string
-    accountModel: AccountModel
-    transactionCount?: number
-  }) => {
-    const account = accountModel ? modelToAccount(accountModel) : undefined
-
-    return (
-      <AccountModifyContent
-        key={accountModel?.id || accountId}
-        accountId={accountId}
-        accountModel={accountModel}
-        account={account}
-        transactionCount={transactionCount}
-      />
-    )
-  },
-)
 
 export default function EditAccountScreen() {
   const params = useLocalSearchParams<{ accountId: string }>()
   const accountId = params.accountId
   const isAddMode = accountId === NewEnum.NEW || !accountId
 
+  const account = useAccount(accountId ?? "")
+  const [transactionCount, setTransactionCount] = useState(0)
+
+  useEffect(() => {
+    if (isAddMode || !accountId) return
+    getAccountTransactionCount(accountId).then(setTransactionCount)
+  }, [accountId, isAddMode])
+
   if (isAddMode) {
     return <AccountModifyContent accountId={NewEnum.NEW} />
   }
 
-  return <EnhancedEditScreen accountId={accountId} />
+  return (
+    <AccountModifyContent
+      key={accountId}
+      accountId={accountId}
+      account={account}
+      transactionCount={transactionCount}
+    />
+  )
 }

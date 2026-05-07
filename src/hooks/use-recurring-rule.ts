@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react"
 
-import type RecurringTransactionModel from "~/database/models/recurring-transaction"
-import { findRecurringById } from "~/database/services/recurring-transaction-service"
+import {
+  findRecurringById,
+  type RecurringTransactionTemplate,
+} from "~/database/services-sqlite/recurring-transaction-service"
 
 /**
  * Fetch the recurring rule for a transaction. Returns null when ruleId is null
@@ -9,8 +11,8 @@ import { findRecurringById } from "~/database/services/recurring-transaction-ser
  */
 export function useRecurringRule(
   ruleId: string | null,
-): RecurringTransactionModel | null {
-  const [rule, setRule] = useState<RecurringTransactionModel | null>(null)
+): RecurringTransactionTemplate | null {
+  const [rule, setRule] = useState<RecurringTransactionTemplate | null>(null)
 
   useEffect(() => {
     if (!ruleId) {

@@ -25,15 +25,15 @@ import {
 
 import { ActivityIndicatorMinty } from "~/components/ui/activity-indicator-minty"
 import { IconSvg } from "~/components/ui/icon-svg"
-import type RecurringTransactionModel from "~/database/models/recurring-transaction"
-import type TransactionModel from "~/database/models/transaction"
-import { disableRecurringRule } from "~/database/services/recurring-transaction-service"
+import type { RecurringTransactionTemplate } from "~/database/services-sqlite/recurring-transaction-service"
+import { disableRecurringRule } from "~/database/services-sqlite/recurring-transaction-service"
 import {
   deleteAllRecurringInstances,
   deleteFutureRecurringInstances,
-  deleteTransactionModel,
-} from "~/database/services/transaction-service"
+  deleteTransaction,
+} from "~/database/services-sqlite/transaction-service"
 import { autoConfirmationService } from "~/services/auto-confirmation-service"
+import type { Transaction } from "~/types/transactions"
 import { logger } from "~/utils/logger"
 import { Toast } from "~/utils/toast"
 
@@ -43,8 +43,8 @@ type DeleteScope = "this" | "all" | "this_and_future"
 
 interface DeleteRecurringModalProps {
   visible: boolean
-  transaction: TransactionModel
-  recurringRule: RecurringTransactionModel
+  transaction: Transaction
+  recurringRule: RecurringTransactionTemplate
   onRequestClose: () => void
   onDeleted: () => void
 }
@@ -128,7 +128,7 @@ export function DeleteRecurringModal({
       try {
         switch (scope) {
           case "this": {
-            await deleteTransactionModel(transaction)
+            await deleteTransaction(transaction.id)
             Toast.success({
               title: t(
                 "components.transactionForm.toast.deleteRecurringSuccess",

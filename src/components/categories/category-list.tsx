@@ -1,4 +1,3 @@
-import { withObservables } from "@nozbe/watermelondb/react"
 import { useFocusEffect, useRouter } from "expo-router"
 import { useCallback, useMemo } from "react"
 import { useTranslation } from "react-i18next"
@@ -9,7 +8,7 @@ import { Button } from "~/components/ui/button"
 import { IconSvg } from "~/components/ui/icon-svg"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import { observeCategoriesByType } from "~/database/services/category-service"
+import { useCategoriesByType } from "~/stores/db/category.store"
 import type { Category } from "~/types/categories"
 import { NewEnum } from "~/types/new"
 import type { TransactionType } from "~/types/transactions"
@@ -23,10 +22,6 @@ interface CategoryListProps {
   updatedCategory?: string
   deletedCategory?: string
   searchQuery?: string
-}
-
-interface CategoryListInnerProps extends CategoryListProps {
-  categories: Category[]
 }
 
 interface CategoryListHeaderProps {
@@ -71,14 +66,14 @@ function CategoryListHeader({
   )
 }
 
-const CategoryListInner = ({
+export const CategoryList = ({
   type,
   createdCategory,
   updatedCategory,
   deletedCategory,
-  categories,
   searchQuery = "",
-}: CategoryListInnerProps) => {
+}: CategoryListProps) => {
+  const categories = useCategoriesByType(type)
   const router = useRouter()
   const { t } = useTranslation()
   const typeLabel = t(`components.categories.types.${type}`)
@@ -243,12 +238,3 @@ const styles = StyleSheet.create((theme) => ({
     lineHeight: 20,
   },
 }))
-
-// Enhance component with WatermelonDB observables
-// This follows WatermelonDB best practices: https://watermelondb.dev/docs/Query
-export const CategoryList = withObservables(
-  ["type"],
-  ({ type }: CategoryListProps) => ({
-    categories: observeCategoriesByType(type),
-  }),
-)(CategoryListInner)

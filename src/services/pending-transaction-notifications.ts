@@ -1,7 +1,7 @@
 import * as Notifications from "expo-notifications"
 
-import type TransactionModel from "~/database/models/transaction"
-import { getPendingTransactionModels } from "~/database/services/transaction-service"
+import { getPendingTransactions } from "~/database/repos/transaction-repo"
+import type { RowTransaction } from "~/database/types/rows"
 import { usePendingTransactionsStore } from "~/stores/pending-transactions.store"
 import { startOfNextMinute } from "~/utils/pending-transactions"
 
@@ -37,11 +37,12 @@ async function clearPlannedTransactionNotifications(): Promise<void> {
  * transactionDate - earlyReminderSeconds.
  */
 async function scheduleForPlannedTransaction(
-  transaction: TransactionModel,
+  transaction: RowTransaction,
   earlyReminderSeconds: number,
 ): Promise<void> {
   const now = Date.now()
-  const dueMs = transaction.transactionDate.getTime()
+  const transactionDate = new Date(transaction.transaction_date)
+  const dueMs = transactionDate.getTime()
   const title = transaction.title || "Pending Transaction"
   const data: TransactionReminderPayload = {
     itemType: "txn",
@@ -58,7 +59,7 @@ async function scheduleForPlannedTransaction(
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DATE,
-        date: transaction.transactionDate,
+        date: transactionDate,
       },
     })
   }
@@ -94,11 +95,11 @@ export async function synchronizePlannedTransactionNotifications(): Promise<void
 
   const earlyReminderInSeconds =
     usePendingTransactionsStore.getState().earlyReminderInSeconds
-  const pending = await getPendingTransactionModels()
+  const pending = await getPendingTransactions()
   const now = startOfNextMinute()
 
   for (const t of pending) {
-    if (t.transactionDate.getTime() <= now.getTime()) continue
+    if (new Date(t.transaction_date).getTime() <= now.getTime()) continue
     await scheduleForPlannedTransaction(t, earlyReminderInSeconds)
   }
 }

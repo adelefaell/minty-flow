@@ -1,11 +1,9 @@
-import { withObservables } from "@nozbe/watermelondb/react"
 import { useNavigation, useRouter } from "expo-router"
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { FlatList } from "react-native"
 import type { SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable"
 import { StyleSheet } from "react-native-unistyles"
-import { startWith } from "rxjs"
 
 import { MonthYearPicker } from "~/components/month-year-picker"
 import { TransactionFilterHeader } from "~/components/transaction/transaction-filter-header"
@@ -14,15 +12,11 @@ import { Button } from "~/components/ui/button"
 import { EmptyState } from "~/components/ui/empty-state"
 import { IconSvg } from "~/components/ui/icon-svg"
 import { View } from "~/components/ui/view"
-import { getMonthRange } from "~/database/services/account-service"
-import { observeCategoriesByType } from "~/database/services/category-service"
-import { observeTags } from "~/database/services/tag-service"
-import {
-  observeTransactionModelsFull,
-  type TransactionWithRelations,
-} from "~/database/services/transaction-service"
-import type { Category } from "~/types/categories"
-import type { Tag } from "~/types/tags"
+import type { TransactionWithRelations } from "~/database/mappers/hydrateTransactions"
+import { getMonthRange } from "~/database/services-sqlite/account-service"
+import { useCategoriesByType } from "~/stores/db/category.store"
+import { useTags } from "~/stores/db/tag.store"
+import { useTransactions } from "~/stores/db/transaction.store"
 import type {
   SearchState,
   TransactionListFilterState,
@@ -32,47 +26,76 @@ import {
   DEFAULT_TRANSACTION_LIST_FILTER_STATE,
 } from "~/types/transaction-filters"
 import { TransactionTypeEnum } from "~/types/transactions"
-import { buildTransactionListFilters } from "~/utils/transaction-list-utils"
 
-const EMPTY_TRANSACTIONS: TransactionWithRelations[] = []
-const EMPTY_CATEGORIES: Category[] = []
-const EMPTY_TAGS: Tag[] = []
-
-interface PendingScreenInnerProps {
-  transactionsFull: TransactionWithRelations[]
-  categoriesExpense: Category[]
-  categoriesIncome: Category[]
-  categoriesTransfer: Category[]
-  tags: Tag[]
-  selectedYear: number
-  selectedMonth: number
-  onMonthYearChange: (year: number, month: number) => void
-  filterState: TransactionListFilterState
-  onFilterChange: (state: TransactionListFilterState) => void
-  searchState: SearchState
-  onSearchApply: (state: SearchState) => void
-}
-
-function PendingScreenInner({
-  transactionsFull = EMPTY_TRANSACTIONS,
-  categoriesExpense = EMPTY_CATEGORIES,
-  categoriesIncome = EMPTY_CATEGORIES,
-  categoriesTransfer = EMPTY_CATEGORIES,
-  tags = EMPTY_TAGS,
-  selectedYear,
-  selectedMonth,
-  onMonthYearChange,
-  filterState,
-  onFilterChange,
-  searchState,
-  onSearchApply,
-}: PendingScreenInnerProps) {
+export default function PendingTransactionsScreen() {
   const { t } = useTranslation()
   const router = useRouter()
   const navigation = useNavigation()
-
   const openSwipeableRef = useRef<SwipeableMethods | null>(null)
+
+  const [selectedYear, setSelectedYear] = useState(() =>
+    new Date().getFullYear(),
+  )
+  const [selectedMonth, setSelectedMonth] = useState(() =>
+    new Date().getMonth(),
+  )
+  const [filterState, setFilterState] = useState<TransactionListFilterState>(
+    DEFAULT_TRANSACTION_LIST_FILTER_STATE,
+  )
+  const [searchState, setSearchState] =
+    useState<SearchState>(DEFAULT_SEARCH_STATE)
   const [showFilters, setShowFilters] = useState(false)
+
+  const categoriesExpense = useCategoriesByType(TransactionTypeEnum.EXPENSE)
+  const categoriesIncome = useCategoriesByType(TransactionTypeEnum.INCOME)
+  const categoriesTransfer = useCategoriesByType(TransactionTypeEnum.TRANSFER)
+  const tags = useTags()
+
+  const { fromDate, toDate } = useMemo(
+    () => getMonthRange(selectedYear, selectedMonth),
+    [selectedYear, selectedMonth],
+  )
+
+  const { items: allPending } = useTransactions({
+    from: new Date(fromDate).toISOString(),
+    to: new Date(toDate).toISOString(),
+    isPending: true,
+  })
+
+  const transactionsFull = useMemo(() => {
+    let list = allPending
+    if (filterState.categoryIds.length > 0) {
+      const set = new Set(filterState.categoryIds)
+      list = list.filter((r) => r.categoryId && set.has(r.categoryId))
+    }
+    if (filterState.typeFilters.length > 0) {
+      const set = new Set(filterState.typeFilters)
+      list = list.filter((r) => set.has(r.type))
+    }
+    if (filterState.tagIds.length > 0) {
+      const set = new Set(filterState.tagIds)
+      list = list.filter((r) => r.tagIds.some((id) => set.has(id)))
+    }
+    if (searchState.query.trim()) {
+      const q = searchState.query.trim().toLowerCase()
+      list = list.filter(
+        (r) =>
+          r.title?.toLowerCase().includes(q) ||
+          (searchState.includeNotes &&
+            r.description?.toLowerCase().includes(q)),
+      )
+    }
+    return list
+  }, [allPending, filterState, searchState])
+
+  const categoriesByType = useMemo(
+    () => ({
+      expense: categoriesExpense,
+      income: categoriesIncome,
+      transfer: categoriesTransfer,
+    }),
+    [categoriesExpense, categoriesIncome, categoriesTransfer],
+  )
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -88,22 +111,6 @@ function PendingScreenInner({
     })
   }, [navigation, showFilters])
 
-  const categoriesByType = useMemo(
-    () => ({
-      expense: categoriesExpense,
-      income: categoriesIncome,
-      transfer: categoriesTransfer,
-    }),
-    [categoriesExpense, categoriesIncome, categoriesTransfer],
-  )
-
-  const handlePress = useCallback(
-    (item: TransactionWithRelations) => () => {
-      router.push(`/transaction/${item.transaction.id}`)
-    },
-    [router],
-  )
-
   const handleDeleteDone = useCallback(() => {
     openSwipeableRef.current?.close()
   }, [])
@@ -112,7 +119,7 @@ function PendingScreenInner({
     ({ item }: { item: TransactionWithRelations }) => (
       <TransactionItem
         transactionWithRelations={item}
-        onPress={handlePress(item)}
+        onPress={() => router.push(`/transaction/${item.id}`)}
         onDelete={handleDeleteDone}
         onWillOpen={(methods) => {
           openSwipeableRef.current?.close()
@@ -120,11 +127,11 @@ function PendingScreenInner({
         }}
       />
     ),
-    [handlePress, handleDeleteDone],
+    [router, handleDeleteDone],
   )
 
   const keyExtractor = useCallback(
-    (item: TransactionWithRelations) => item.transaction.id,
+    (item: TransactionWithRelations) => item.id,
     [],
   )
 
@@ -134,20 +141,20 @@ function PendingScreenInner({
         initialYear={selectedYear}
         initialMonth={selectedMonth}
         onSelect={(y, m) => {
-          onMonthYearChange(y, m)
+          setSelectedYear(y)
+          setSelectedMonth(m)
         }}
       />
 
-      {/* Filter header (when More options is on) */}
       {showFilters && (
         <TransactionFilterHeader
           accounts={[]}
           categoriesByType={categoriesByType}
           tags={tags}
           filterState={filterState}
-          onFilterChange={onFilterChange}
+          onFilterChange={setFilterState}
           searchState={searchState}
-          onSearchApply={onSearchApply}
+          onSearchApply={setSearchState}
           hiddenFilters={["accounts", "pending"]}
         />
       )}
@@ -170,77 +177,6 @@ function PendingScreenInner({
         renderItem={renderItem}
       />
     </View>
-  )
-}
-
-const EnhancedPendingScreen = withObservables(
-  ["selectedYear", "selectedMonth", "filterState", "searchState"],
-  ({
-    selectedYear,
-    selectedMonth,
-    filterState,
-    searchState,
-  }: {
-    selectedYear: number
-    selectedMonth: number
-    filterState: TransactionListFilterState
-    searchState: SearchState
-  }) => {
-    const { fromDate, toDate } = getMonthRange(selectedYear, selectedMonth)
-    const queryFilters = buildTransactionListFilters(filterState, {
-      fromDate,
-      toDate,
-      search: searchState.query,
-      searchMatchType: searchState.matchType,
-      searchIncludeNotes: searchState.includeNotes,
-    })
-    return {
-      transactionsFull: observeTransactionModelsFull({
-        ...queryFilters,
-        isPending: true,
-      }).pipe(startWith([] as TransactionWithRelations[])),
-      categoriesExpense: observeCategoriesByType(
-        TransactionTypeEnum.EXPENSE,
-      ).pipe(startWith([] as Category[])),
-      categoriesIncome: observeCategoriesByType(
-        TransactionTypeEnum.INCOME,
-      ).pipe(startWith([] as Category[])),
-      categoriesTransfer: observeCategoriesByType(
-        TransactionTypeEnum.TRANSFER,
-      ).pipe(startWith([] as Category[])),
-      tags: observeTags().pipe(startWith([] as Tag[])),
-    }
-  },
-)(PendingScreenInner)
-
-export default function PendingTransactionsScreen() {
-  const [selectedYear, setSelectedYear] = useState(() =>
-    new Date().getFullYear(),
-  )
-  const [selectedMonth, setSelectedMonth] = useState(() =>
-    new Date().getMonth(),
-  )
-  const [filterState, setFilterState] = useState<TransactionListFilterState>(
-    DEFAULT_TRANSACTION_LIST_FILTER_STATE,
-  )
-  const [searchState, setSearchState] =
-    useState<SearchState>(DEFAULT_SEARCH_STATE)
-
-  const handleMonthYearChange = (year: number, month: number) => {
-    setSelectedYear(year)
-    setSelectedMonth(month)
-  }
-
-  return (
-    <EnhancedPendingScreen
-      selectedYear={selectedYear}
-      selectedMonth={selectedMonth}
-      onMonthYearChange={handleMonthYearChange}
-      filterState={filterState}
-      onFilterChange={setFilterState}
-      searchState={searchState}
-      onSearchApply={setSearchState}
-    />
   )
 }
 

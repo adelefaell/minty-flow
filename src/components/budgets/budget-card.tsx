@@ -1,6 +1,5 @@
-import { withObservables } from "@nozbe/watermelondb/react"
 import { format } from "date-fns"
-import { useEffect } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { View as RNView } from "react-native"
 import { createMMKV } from "react-native-mmkv"
@@ -11,9 +10,10 @@ import { Money } from "~/components/money"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import { observeBudgetSpent } from "~/database/services/budget-service"
-import { observeCategoryNamesByIds } from "~/database/services/category-service"
+import { on } from "~/database/events"
+import { getBudgetSpent } from "~/database/repos/budget-repo"
 import type { TranslationKey } from "~/i18n/config"
+import { useCategories } from "~/stores/db/category.store"
 import type { Budget } from "~/types/budgets"
 import { formatCustomPeriodRange } from "~/utils/time-utils"
 import { Toast } from "~/utils/toast"
@@ -72,23 +72,49 @@ function markAlerted(budget: BudgetAlertCtx): void {
   budgetAlertStorage.set(ALERTED_STORAGE_KEY, JSON.stringify([...alertedKeys]))
 }
 
-interface BudgetCardInnerProps {
+interface BudgetCardProps {
   budget: Budget
   onPress: () => void
-  spentAmount: number
-  categoryNames: string[]
 }
 
-/**
- * Displays a single budget with its progress bar, spent/remaining amounts,
- * period chip, and category label.
- */
-function BudgetCardInner({
-  budget,
-  onPress,
-  spentAmount,
-  categoryNames,
-}: BudgetCardInnerProps) {
+export function BudgetCard({ budget, onPress }: BudgetCardProps) {
+  const [spentAmount, setSpentAmount] = useState(0)
+  const allCategories = useCategories()
+
+  const categoryNames = useMemo(
+    () =>
+      budget.categoryIds
+        .map((id) => allCategories.find((c) => c.id === id)?.name)
+        .filter(Boolean) as string[],
+    [budget.categoryIds, allCategories],
+  )
+
+  useEffect(() => {
+    let cancelled = false
+    const fetch = () =>
+      getBudgetSpent(
+        budget.accountIds,
+        budget.categoryIds,
+        budget.period,
+        budget.startDate.toISOString(),
+        budget.endDate?.toISOString() ?? null,
+      ).then((v) => {
+        if (!cancelled) setSpentAmount(v)
+      })
+    fetch()
+    const unsub = on("transactions:dirty", fetch)
+    return () => {
+      cancelled = true
+      unsub()
+    }
+  }, [
+    budget.accountIds,
+    budget.categoryIds,
+    budget.period,
+    budget.startDate,
+    budget.endDate,
+  ])
+
   const { t } = useTranslation()
   const { theme } = useUnistyles()
 
@@ -258,25 +284,6 @@ function BudgetCardInner({
   )
 }
 
-export const BudgetCard = withObservables(
-  ["budget"],
-  ({ budget }: { budget: Budget }) => ({
-    spentAmount: observeBudgetSpent(
-      budget.accountIds,
-      budget.categoryIds,
-      budget.period,
-      budget.startDate.getTime(),
-      budget.endDate?.getTime() ?? null,
-    ),
-    categoryNames: observeCategoryNamesByIds(budget.categoryIds),
-  }),
-)(BudgetCardInner)
-
-/**
- * Thin wrapper kept for call-site compatibility.
- * Week-start is now resolved from the device locale inside the service,
- * so no language prop threading is required.
- */
 export function BudgetCardWithLanguage(props: {
   budget: Budget
   onPress: () => void

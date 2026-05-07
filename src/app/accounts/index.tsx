@@ -1,6 +1,5 @@
-import { withObservables } from "@nozbe/watermelondb/react"
 import { useRouter } from "expo-router"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet } from "react-native-unistyles"
 
@@ -16,55 +15,93 @@ import { Button } from "~/components/ui/button"
 import { IconSvg } from "~/components/ui/icon-svg"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import type AccountModel from "~/database/models/account"
-import type { AccountWithMonthTotals } from "~/database/services/account-service"
 import {
-  observeAccountModels,
-  observeAccountsWithMonthTotals,
+  getMonthRange,
   updateAccountsOrder,
-} from "~/database/services/account-service"
-import { modelToAccount } from "~/database/utils/model-to-account"
+} from "~/database/services-sqlite/account-service"
+import { useAccounts } from "~/stores/db/account.store"
+import { useTransactions } from "~/stores/db/transaction.store"
 import { useTransfersPreferencesStore } from "~/stores/transfers-preferences.store"
+import type { Account } from "~/types/accounts"
 import { NewEnum } from "~/types/new"
+import { TransactionTypeEnum } from "~/types/transactions"
 import { logger } from "~/utils/logger"
 
-interface AccountsScreenInnerProps {
-  accountModels: AccountModel[]
-  accountsWithMonthTotals: AccountWithMonthTotals[]
-}
-
-const AccountsScreenInner = ({
-  accountModels,
-  accountsWithMonthTotals,
-}: AccountsScreenInnerProps) => {
+function AccountsScreen() {
   const { t } = useTranslation()
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [isReorderMode, setIsReorderMode] = useState(false)
-  const [reorderedModels, setReorderedModels] = useState<AccountModel[]>([])
+  const [reorderedAccounts, setReorderedAccounts] = useState<Account[]>([])
 
-  // Filter on models (source of truth for order/search)
-  const filteredModels = accountModels.filter((model) => {
-    if (!searchQuery.trim()) return true
-    return model.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const excludeFromTotals = useTransfersPreferencesStore(
+    (s) => s.excludeFromTotals,
+  )
+  const accounts = useAccounts()
+
+  const { fromDate, toDate } = useMemo(() => {
+    const now = new Date()
+    return getMonthRange(now.getFullYear(), now.getMonth())
+  }, [])
+
+  const { items: transactionsFull } = useTransactions({
+    from: new Date(fromDate).toISOString(),
+    to: new Date(toDate).toISOString(),
   })
 
-  const displayModels = isReorderMode ? reorderedModels : filteredModels
-
-  // Accounts with month totals for display (match by id to preserve order)
-  const displayAccounts = displayModels.map((model) => {
-    const withTotals = accountsWithMonthTotals.find((a) => a.id === model.id)
-    return (
-      withTotals ?? {
-        ...modelToAccount(model),
-        monthIn: 0,
-        monthOut: 0,
-        monthNet: 0,
+  const accountsWithMonthTotals = useMemo(() => {
+    const totalsByAccount = new Map<
+      string,
+      { in: number; out: number; net: number }
+    >()
+    for (const t of transactionsFull) {
+      if (t.isDeleted || t.isPending) continue
+      const cur = totalsByAccount.get(t.accountId) ?? {
+        in: 0,
+        out: 0,
+        net: 0,
       }
-    )
-  })
+      if (t.type === TransactionTypeEnum.INCOME) {
+        cur.in += t.amount
+      } else if (t.type === TransactionTypeEnum.EXPENSE) {
+        cur.out += t.amount
+      } else if (
+        !excludeFromTotals &&
+        (t.type === TransactionTypeEnum.TRANSFER || t.isTransfer)
+      ) {
+        if (t.amount > 0) cur.in += t.amount
+        else cur.out += Math.abs(t.amount)
+      }
+      cur.net = cur.in - cur.out
+      totalsByAccount.set(t.accountId, cur)
+    }
+    return accounts.map((account) => {
+      const totals = totalsByAccount.get(account.id) ?? {
+        in: 0,
+        out: 0,
+        net: 0,
+      }
+      return {
+        ...account,
+        monthIn: totals.in,
+        monthOut: totals.out,
+        monthNet: totals.net,
+      }
+    })
+  }, [accounts, transactionsFull, excludeFromTotals])
 
-  // Balance calculation — excludeFromBalance accounts are hidden from total
+  const filteredAccounts = useMemo(
+    () =>
+      accountsWithMonthTotals.filter(
+        (a) =>
+          !searchQuery.trim() ||
+          a.name.toLowerCase().includes(searchQuery.toLowerCase()),
+      ),
+    [accountsWithMonthTotals, searchQuery],
+  )
+
+  const displayAccounts = isReorderMode ? reorderedAccounts : filteredAccounts
+
   const balancesByCurrency = displayAccounts
     .filter((account) => !account.excludeFromBalance)
     .reduce(
@@ -86,23 +123,16 @@ const AccountsScreenInner = ({
     )
 
   const handleToggleReorder = () => {
-    // Clear search first
-    if (searchQuery.length > 0) {
-      setSearchQuery("")
-    }
-
-    if (!isReorderMode) {
-      setReorderedModels(accountModels) // use the full list here
-    }
-
+    if (searchQuery.length > 0) setSearchQuery("")
+    if (!isReorderMode) setReorderedAccounts(accountsWithMonthTotals)
     setIsReorderMode((prev) => !prev)
   }
 
   const handleSaveReorder = async () => {
     try {
-      await updateAccountsOrder(reorderedModels)
+      await updateAccountsOrder(reorderedAccounts)
       setIsReorderMode(false)
-      setReorderedModels([])
+      setReorderedAccounts([])
     } catch (error) {
       logger.error("Failed to save account order", { error })
     }
@@ -110,11 +140,7 @@ const AccountsScreenInner = ({
 
   const handleCancelReorder = () => {
     setIsReorderMode(false)
-    setReorderedModels([])
-  }
-
-  const handleReorder = (newModels: AccountModel[]) => {
-    setReorderedModels(newModels)
+    setReorderedAccounts([])
   }
 
   const handleAddAccount = () => {
@@ -177,7 +203,7 @@ const AccountsScreenInner = ({
             {t("screens.accounts.countLabel")}
           </Text>
           <Text variant="small" style={styles.accountsCount}>
-            {filteredModels.length}
+            {filteredAccounts.length}
           </Text>
         </View>
       </View>
@@ -193,19 +219,18 @@ const AccountsScreenInner = ({
       </View>
 
       <ReorderableListV2
-        data={displayModels}
+        data={displayAccounts}
         keyExtractor={(item) => item.id}
-        onReorder={handleReorder}
+        onReorder={(newAccounts) => setReorderedAccounts(newAccounts)}
         showButtons={isReorderMode}
         renderItem={({ item }) => {
-          const accountWithTotals = displayAccounts.find(
-            (a) => a.id === item.id,
-          )
           const cardProps: AccountCardProps = {
-            account: accountWithTotals ?? modelToAccount(item),
-            monthIn: accountWithTotals?.monthIn ?? 0,
-            monthOut: accountWithTotals?.monthOut ?? 0,
-            monthNet: accountWithTotals?.monthNet ?? 0,
+            account: item,
+            monthIn: (item as typeof item & { monthIn?: number }).monthIn ?? 0,
+            monthOut:
+              (item as typeof item & { monthOut?: number }).monthOut ?? 0,
+            monthNet:
+              (item as typeof item & { monthNet?: number }).monthNet ?? 0,
             isReorderMode,
           }
           return <AccountCard {...cardProps} />
@@ -228,24 +253,6 @@ const AccountsScreenInner = ({
       />
     </View>
   )
-}
-
-// Watermelon binding: models for order/search, with month totals for cards
-const enhance = withObservables(
-  ["excludeFromTotals"],
-  ({ excludeFromTotals = true }: { excludeFromTotals?: boolean }) => ({
-    accountModels: observeAccountModels(),
-    accountsWithMonthTotals: observeAccountsWithMonthTotals(excludeFromTotals),
-  }),
-)
-
-const EnhancedAccountsScreen = enhance(AccountsScreenInner)
-
-function AccountsScreen() {
-  const excludeFromTotals = useTransfersPreferencesStore(
-    (s) => s.excludeFromTotals,
-  )
-  return <EnhancedAccountsScreen excludeFromTotals={excludeFromTotals} />
 }
 
 export default AccountsScreen

@@ -4,13 +4,23 @@ import { logger } from "~/utils/logger"
 /**
  * Compute the signed balance delta for a transaction.
  *
- * Rules:
- * - Income: amount is positive → delta = +amount
- * - Expense: amount is positive → delta = -amount
- * - Transfer: amount is pre-signed (debit negative, credit positive) → delta = amount
+ * This is the single source of truth for balance-delta logic shared by
+ * `balance-service` and `transaction-service`. Changes here propagate to both.
  *
- * This is the single source of truth for balance delta logic shared across
- * balance-service and transaction-service. Changes here propagate to both.
+ * | Type | `amount` on row | Delta |
+ * |---|---|---|
+ * | `INCOME` | positive | `+amount` |
+ * | `EXPENSE` | positive | `−amount` |
+ * | `TRANSFER` | pre-signed by writer | `amount` (pass-through) |
+ *
+ * Transfer rows carry pre-signed amounts: the debit row has a negative amount
+ * and the credit row has a positive amount. A positive amount on a transfer
+ * row indicates the caller broke the sign contract — a warning is logged.
+ *
+ * @param amount - The raw `amount` column value from the transaction row.
+ *   Always positive for income/expense; pre-signed for transfers.
+ * @param type - The transaction type (`INCOME`, `EXPENSE`, or `TRANSFER`).
+ * @returns The signed number to add to the account balance.
  */
 export const getBalanceDelta = (
   amount: number,

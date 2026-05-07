@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { withObservables } from "@nozbe/watermelondb/react"
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router"
 import { useCallback, useState } from "react"
 import { useForm } from "react-hook-form"
@@ -15,39 +14,33 @@ import type { IconSvgName } from "~/components/ui/icon-svg"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import { ScrollIntoViewProvider } from "~/contexts/scroll-into-view-context"
-import type TagModel from "~/database/models/tag"
 import {
   createTag,
-  deleteTag,
-  observeTagById,
-  updateTag,
-} from "~/database/services/tag-service"
-import { modelToTag } from "~/database/utils/model-to-tag"
+  deleteTagById,
+  updateTagById,
+} from "~/database/services-sqlite/tag-service"
 import { useNavigationGuard } from "~/hooks/use-navigation-guard"
 import { type AddTagsFormSchema, addTagsSchema } from "~/schemas/tags.schema"
+import { useTag } from "~/stores/db/tag.store"
 import { getThemeStrict } from "~/styles/theme/registry"
 import { NewEnum } from "~/types/new"
 import { type Tag, TagKindEnum, type TagKindType } from "~/types/tags"
 import { logger } from "~/utils/logger"
 import { Toast } from "~/utils/toast"
 
-interface EditTagScreenProps {
+interface EditTagScreenInnerProps {
   tagId: string
-  tagModel?: TagModel
   tag?: Tag
 }
 
-const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
+function EditTagScreenInner({ tagId, tag }: EditTagScreenInnerProps) {
   const { t } = useTranslation()
   const router = useRouter()
-
-  // Navigation guard: block leave when dirty, show confirm modal
   const navigation = useNavigation()
   const [unsavedModalVisible, setUnsavedModalVisible] = useState(false)
 
   const isAddMode = tagId === NewEnum.NEW || !tagId
 
-  // Form state
   const {
     control,
     handleSubmit: handleFormSubmit,
@@ -95,26 +88,9 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
   const onSubmit = async (data: AddTagsFormSchema) => {
     try {
       if (isAddMode) {
-        await createTag({
-          name: data.name,
-          type: data.type,
-          icon: data.icon,
-          colorSchemeName: data.colorSchemeName,
-        })
+        await createTag(data)
       } else {
-        if (!tagModel) {
-          Toast.error({
-            title: t("common.toast.error"),
-            description: t("screens.settings.tags.form.toast.notFound"),
-          })
-          return
-        }
-        await updateTag(tagModel, {
-          name: data.name,
-          type: data.type,
-          icon: data.icon,
-          colorSchemeName: data.colorSchemeName,
-        })
+        await updateTagById(tagId, data)
       }
       allowNavigation()
       router.back()
@@ -131,9 +107,7 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
 
   const handleDelete = async () => {
     try {
-      if (!tagModel) return
-      await deleteTag(tagModel)
-
+      await deleteTagById(tagId)
       allowNavigation()
       router.back()
     } catch (error) {
@@ -165,7 +139,6 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
         scrollViewStyle={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Type selector (Tabs) */}
         <TypeTabs
           value={formType}
           onValueChange={(value) => {
@@ -213,6 +186,17 @@ const EditTagScreenInner = ({ tagId, tagModel, tag }: EditTagScreenProps) => {
   )
 }
 
+export default function EditTagScreen() {
+  const { tagId } = useLocalSearchParams<{ tagId: string }>()
+  const tag = useTag(tagId ?? "")
+
+  if (tagId === NewEnum.NEW || !tagId) {
+    return <EditTagScreenInner tagId={NewEnum.NEW} />
+  }
+
+  return <EditTagScreenInner key={tagId} tagId={tagId} tag={tag} />
+}
+
 const styles = StyleSheet.create((theme) => ({
   container: {
     flex: 1,
@@ -230,29 +214,3 @@ const styles = StyleSheet.create((theme) => ({
     paddingBottom: 100,
   },
 }))
-
-const EnhancedEditTagScreen = withObservables(
-  ["tagId"],
-  ({ tagId }: { tagId: string }) => ({
-    tagModel: observeTagById(tagId),
-  }),
-)(({ tagId, tagModel }: { tagId: string; tagModel: TagModel }) => {
-  const tag = tagModel ? modelToTag(tagModel) : undefined
-  return (
-    <EditTagScreenInner
-      key={tagModel?.id || tagId}
-      tagId={tagId}
-      tagModel={tagModel}
-      tag={tag}
-    />
-  )
-})
-
-export default function EditTagScreen() {
-  const { tagId } = useLocalSearchParams<{
-    tagId: string
-  }>()
-  if (tagId === NewEnum.NEW || !tagId)
-    return <EditTagScreenInner tagId={NewEnum.NEW} />
-  return <EnhancedEditTagScreen tagId={tagId} />
-}

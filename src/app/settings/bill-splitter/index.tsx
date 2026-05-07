@@ -1,4 +1,3 @@
-import { withObservables } from "@nozbe/watermelondb/react"
 import { useNavigation, useRouter } from "expo-router"
 import { useCallback, useLayoutEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -17,22 +16,18 @@ import { Input } from "~/components/ui/input"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import { observeAccounts } from "~/database/services/account-service"
 import {
   getAllocatedTotal,
   getBillTotal,
   useBillSplitterStore,
 } from "~/stores/bill-splitter.store"
+import { useActiveAccounts } from "~/stores/db/account.store"
 import { useMoneyFormattingStore } from "~/stores/money-formatting.store"
 import { getThemeStrict } from "~/styles/theme/registry"
-import type { Account } from "~/types/accounts"
 import type { BillItem } from "~/types/bill-splitter"
 
-interface BillSplitterContentProps {
-  accounts: Account[]
-}
-
-function BillSplitterContent({ accounts }: BillSplitterContentProps) {
+export default function BillSplitterScreen() {
+  const accounts = useActiveAccounts()
   const { t } = useTranslation()
   const { theme } = useUnistyles()
   const router = useRouter()
@@ -367,14 +362,6 @@ function BillSplitterContent({ accounts }: BillSplitterContentProps) {
       />
     </View>
   )
-}
-
-const EnhancedBillSplitter = withObservables([], () => ({
-  accounts: observeAccounts(),
-}))(BillSplitterContent)
-
-export default function BillSplitterScreen() {
-  return <EnhancedBillSplitter />
 }
 
 const styles = StyleSheet.create((theme) => ({

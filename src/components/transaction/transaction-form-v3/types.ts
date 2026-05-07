@@ -1,4 +1,3 @@
-import type TransactionModel from "~/database/models/transaction"
 import type {
   RecurringEditPayload,
   TransactionFormValues,
@@ -11,6 +10,7 @@ import type { Loan } from "~/types/loans"
 import type { Tag } from "~/types/tags"
 import type {
   RecurringFrequency,
+  Transaction,
   TransactionAttachment,
   TransactionType,
 } from "~/types/transactions"
@@ -18,7 +18,7 @@ import type {
 export type DatePickerTarget = "transaction" | "recurringStart" | "recurringEnd"
 
 export interface TransactionFormV3Props {
-  transaction: TransactionModel | null
+  transaction: Transaction | null
   accounts: Account[]
   categories: Category[]
   tags: Tag[]

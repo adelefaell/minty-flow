@@ -9,9 +9,9 @@ import { useUnistyles } from "react-native-unistyles"
 import { IconSvg } from "~/components/ui/icon-svg"
 import { Pressable } from "~/components/ui/pressable"
 import { View } from "~/components/ui/view"
-import type { TransactionWithRelations } from "~/database/services/transaction-service"
-import { deleteTransactionModel } from "~/database/services/transaction-service"
-import { deleteTransfer } from "~/database/services/transfer-service"
+import type { TransactionWithRelations } from "~/database/mappers/hydrateTransactions"
+import { deleteTransaction } from "~/database/services-sqlite/transaction-service"
+import { deleteTransfer } from "~/database/services-sqlite/transfer-service"
 import { useIsConfirmable } from "~/hooks/use-time-reactivity"
 import { usePendingTransactionsStore } from "~/stores/pending-transactions.store"
 import { useTransactionItemAppearanceStore } from "~/stores/transaction-item-appearance.store"
@@ -60,12 +60,25 @@ export const TransactionItem = ({
   const swipeableRef = useRef<SwipeableMethods | null>(null)
   const { t } = useTranslation()
   const { theme } = useUnistyles()
-  const { transaction, account, category, relatedAccount, conversionRate } =
-    transactionWithRelations
+  const {
+    id,
+    account,
+    category,
+    relatedAccount,
+    conversionRate,
+    isTransfer: txIsTransfer,
+    type,
+    amount,
+    title,
+    transactionDate,
+    requiresManualConfirmation,
+    extra,
+    isDeleted,
+    transferId,
+  } = transactionWithRelations
 
-  const colorScheme = category?.colorScheme ?? account.colorScheme
-  const isTransfer =
-    transaction.isTransfer || transaction.type === TransactionTypeEnum.TRANSFER
+  const colorScheme = category?.colorScheme ?? account?.colorScheme
+  const isTransfer = txIsTransfer || type === TransactionTypeEnum.TRANSFER
   const transferLayout = useTransfersPreferencesStore((s) => s.layout)
   const isCombinedTransfer = Boolean(
     isTransfer && transferLayout === "combine" && relatedAccount,
@@ -75,19 +88,19 @@ export const TransactionItem = ({
     relatedAccount &&
     conversionRate != null &&
     conversionRate > 0 &&
-    account.currencyCode !== relatedAccount.currencyCode
+    account?.currencyCode !== relatedAccount.currencyCode
   const otherCurrencyAmount =
     isCrossCurrencyTransfer && conversionRate
-      ? transaction.amount < 0
-        ? Math.abs(transaction.amount) * conversionRate
-        : transaction.amount / conversionRate
+      ? amount < 0
+        ? Math.abs(amount) * conversionRate
+        : amount / conversionRate
       : null
   const icon = isTransfer ? "transfer" : category?.icon
   const amountTone = isTransfer
-    ? transaction.amount < 0
+    ? amount < 0
       ? TransactionTypeEnum.EXPENSE
       : TransactionTypeEnum.INCOME
-    : transaction.type
+    : type
 
   // ── Appearance preferences ──────────────────────────────────────────────
   const appearanceVariant = useTransactionItemAppearanceStore((s) => s.variant)
@@ -103,43 +116,43 @@ export const TransactionItem = ({
 
   const untitledLabel = t("common.transaction.untitledTransaction")
 
-  const title = transaction.title?.trim()
+  const trimmedTitle = title?.trim()
 
-  const isUntitled = !title
+  const isUntitled = !trimmedTitle
 
   const displayTitle =
     showCategoryForUntitled && isUntitled
       ? (category?.name ?? untitledLabel)
-      : (title ?? untitledLabel)
+      : (trimmedTitle ?? untitledLabel)
 
   const displayIcon =
-    leadingIconPref === "account" ? (account.icon ?? icon) : icon
+    leadingIconPref === "account" ? (account?.icon ?? icon) : icon
   const displayColorScheme =
-    leadingIconPref === "account" ? account.colorScheme : colorScheme
+    leadingIconPref === "account" ? account?.colorScheme : colorScheme
 
   const globalRequireConfirmation = usePendingTransactionsStore(
     (s) => s.requireConfirmation,
   )
   const requireConfirmation =
-    transaction.requiresManualConfirmation ?? globalRequireConfirmation
+    requiresManualConfirmation ?? globalRequireConfirmation
 
   const isUpcoming = variant === "upcoming"
-  const isConfirmable = useIsConfirmable(transaction)
-  const isAutoRecurring = Boolean(transaction.extra?.recurringId)
+  const isConfirmable = useIsConfirmable(transactionWithRelations)
+  const isAutoRecurring = Boolean(extra?.recurringId)
 
   const accountLabel =
     isCombinedTransfer && relatedAccount
-      ? `${account.name} → ${relatedAccount.name}`
-      : account.name
+      ? `${account?.name} → ${relatedAccount.name}`
+      : account?.name
   const categorySegment =
     showCategoryInSubtitle && !isTransfer
-      ? category === null
+      ? !category
         ? ` · ${t("common.transaction.uncategorized")}`
         : ` · ${category.name}`
       : ""
   const timeSegment = isUpcoming
-    ? ` · ${formatFriendlyDate(transaction.transactionDate)}, ${formatReadableTime(transaction.transactionDate)}`
-    : ` · ${formatReadableTime(transaction.transactionDate)}`
+    ? ` · ${formatFriendlyDate(transactionDate)}, ${formatReadableTime(transactionDate)}`
+    : ` · ${formatReadableTime(transactionDate)}`
   const subtitleText = `${accountLabel}${categorySegment}${timeSegment}`
 
   const showRecurringBadge = isUpcoming && isAutoRecurring
@@ -180,15 +193,13 @@ export const TransactionItem = ({
           return
         }
       }
-      if (transaction.isDeleted) {
+      if (isDeleted) {
         closeSwipe()
         onDelete?.()
         return
       }
       const promise =
-        transaction.isTransfer && transaction.transferId
-          ? deleteTransfer(transaction)
-          : deleteTransactionModel(transaction)
+        txIsTransfer && transferId ? deleteTransfer(id) : deleteTransaction(id)
       promise
         .then(() =>
           Toast.success({
@@ -210,7 +221,10 @@ export const TransactionItem = ({
         })
     },
     [
-      transaction,
+      id,
+      txIsTransfer,
+      transferId,
+      isDeleted,
       transactionWithRelations,
       isUpcoming,
       onDelete,
@@ -249,8 +263,8 @@ export const TransactionItem = ({
           subtitleText={subtitleText}
         />
         <TransactionItemRight
-          amount={transaction.amount}
-          currencyCode={account.currencyCode}
+          amount={amount}
+          currencyCode={account?.currencyCode ?? ""}
           amountTone={amountTone}
           isTransfer={isTransfer}
           isCombinedTransfer={isCombinedTransfer}

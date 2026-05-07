@@ -18,19 +18,19 @@ import { Input } from "~/components/ui/input"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import { ScrollIntoViewProvider } from "~/contexts/scroll-into-view-context"
-import { createRecurringRule } from "~/database/services/recurring-transaction-service"
+import { createRecurringRule } from "~/database/services-sqlite/recurring-transaction-service"
 import {
-  createTransactionModel,
-  deleteTransactionModel,
-  destroyTransactionModel,
-  restoreTransactionModel,
-  updateTransactionModel,
-} from "~/database/services/transaction-service"
+  createTransaction,
+  deleteTransaction,
+  destroyTransaction,
+  restoreTransaction,
+  updateTransaction,
+} from "~/database/services-sqlite/transaction-service"
 import {
   createTransfer,
   deleteTransfer,
   editTransfer,
-} from "~/database/services/transfer-service"
+} from "~/database/services-sqlite/transfer-service"
 import { useBalanceAtTransaction } from "~/hooks/use-balance-before"
 import { useNavigationGuard } from "~/hooks/use-navigation-guard"
 import { useRecurringRule } from "~/hooks/use-recurring-rule"
@@ -413,7 +413,7 @@ export function TransactionFormV3({
             title: t("components.transactionForm.toast.transferCreated"),
           })
         } else if (transaction) {
-          await editTransfer(transaction, {
+          await editTransfer(transaction.id, {
             ...transferPayload,
             transactionDate: effectiveDate,
           })
@@ -511,7 +511,7 @@ export function TransactionFormV3({
             return
           }
         } else {
-          await createTransactionModel(payload)
+          await createTransaction(payload)
           synchronizePlannedTransactionNotifications().catch(() => {})
           Toast.success({
             title: t("components.transactionForm.toast.transactionCreated"),
@@ -539,7 +539,7 @@ export function TransactionFormV3({
           setIsSaving(false)
           return
         }
-        await updateTransactionModel(transaction, payload)
+        await updateTransaction(transaction.id, payload)
         synchronizePlannedTransactionNotifications().catch(() => {})
         Toast.success({
           title: t("components.transactionForm.toast.transactionUpdated"),
@@ -573,8 +573,8 @@ export function TransactionFormV3({
     }
     const promise =
       transaction.isTransfer && transaction.transferId
-        ? deleteTransfer(transaction)
-        : deleteTransactionModel(transaction)
+        ? deleteTransfer(transaction.id)
+        : deleteTransaction(transaction.id)
     promise
       .then(() => {
         synchronizePlannedTransactionNotifications().catch(() => {})
@@ -595,7 +595,7 @@ export function TransactionFormV3({
   const handleRestore = useCallback(async () => {
     if (!transaction?.isDeleted) return
     try {
-      await restoreTransactionModel(transaction)
+      await restoreTransaction(transaction.id)
       synchronizePlannedTransactionNotifications().catch(() => {})
       Toast.success({
         title: t("components.transactionForm.toast.restored"),
@@ -619,7 +619,7 @@ export function TransactionFormV3({
     if (!transaction) return
     setModals({ destroyModalVisible: false })
     try {
-      await destroyTransactionModel(transaction)
+      await destroyTransaction(transaction.id)
       Toast.success({
         title: t("common.toast.deleted"),
         description: t("components.transactionForm.toast.deletedDescription"),
