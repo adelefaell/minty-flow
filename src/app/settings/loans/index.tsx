@@ -1,4 +1,3 @@
-import { withObservables } from "@nozbe/watermelondb/react"
 import { useNavigation, useRouter } from "expo-router"
 import { useCallback, useLayoutEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -11,18 +10,15 @@ import { EmptyState } from "~/components/ui/empty-state"
 import { IconSvg } from "~/components/ui/icon-svg"
 import { Pressable } from "~/components/ui/pressable"
 import { View } from "~/components/ui/view"
-import { observeLoans } from "~/database/services/loan-service"
+import { useAllLoans } from "~/stores/db/loan.store"
 import type { Loan } from "~/types/loans"
 import { LoanTypeEnum } from "~/types/loans"
 import { NewEnum } from "~/types/new"
 
 type LoanTypeFilter = "all" | "lent" | "borrowed"
 
-interface LoansListContentProps {
-  loans: Loan[]
-}
-
-function LoansListContent({ loans }: LoansListContentProps) {
+export default function LoansScreen() {
+  const loans = useAllLoans()
   const { theme } = useUnistyles()
   const { t } = useTranslation()
   const router = useRouter()
@@ -134,14 +130,6 @@ function LoansListContent({ loans }: LoansListContentProps) {
       </Pressable>
     </View>
   )
-}
-
-const EnhancedLoansList = withObservables([], () => ({
-  loans: observeLoans(),
-}))(LoansListContent)
-
-export default function LoansScreen() {
-  return <EnhancedLoansList />
 }
 
 const styles = StyleSheet.create((t) => ({

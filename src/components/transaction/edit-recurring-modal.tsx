@@ -25,15 +25,17 @@ import {
 
 import { ActivityIndicatorMinty } from "~/components/ui/activity-indicator-minty"
 import { IconSvg } from "~/components/ui/icon-svg"
-import type RecurringTransactionModel from "~/database/models/recurring-transaction"
-import type TransactionModel from "~/database/models/transaction"
-import { updateRecurringRuleTemplate } from "~/database/services/recurring-transaction-service"
 import {
-  detachTransactionFromRule,
+  type RecurringTransactionTemplate,
+  updateRecurringRuleTemplate,
+} from "~/database/services-sqlite/recurring-transaction-service"
+import {
+  detachFromRule,
   updateFutureRecurringInstances,
-  updateTransactionModel,
-} from "~/database/services/transaction-service"
+  updateTransaction,
+} from "~/database/services-sqlite/transaction-service"
 import type { RecurringEditPayload } from "~/schemas/transactions.schema"
+import type { Transaction } from "~/types/transactions"
 import { logger } from "~/utils/logger"
 import { Toast } from "~/utils/toast"
 
@@ -43,8 +45,8 @@ type EditScope = "this" | "this_and_future"
 
 interface EditRecurringModalProps {
   visible: boolean
-  transaction: TransactionModel
-  recurringRule: RecurringTransactionModel
+  transaction: Transaction
+  recurringRule: RecurringTransactionTemplate
   pendingPayload: RecurringEditPayload | null
   onRequestClose: () => void
   onSaved: () => void
@@ -119,8 +121,8 @@ export function EditRecurringModal({
       try {
         switch (scope) {
           case "this": {
-            await detachTransactionFromRule(transaction)
-            await updateTransactionModel(transaction, pendingPayload)
+            await detachFromRule(transaction.id)
+            await updateTransaction(transaction.id, pendingPayload)
             Toast.success({
               title: t("components.transactionForm.toast.editRecurringSuccess"),
             })
@@ -141,7 +143,7 @@ export function EditRecurringModal({
                 accountId: pendingPayload.accountId,
                 type: pendingPayload.type,
               }),
-              updateTransactionModel(transaction, pendingPayload),
+              updateTransaction(transaction.id, pendingPayload),
             ])
             Toast.success({
               title: t(

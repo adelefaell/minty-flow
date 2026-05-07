@@ -3,8 +3,7 @@ import * as ImagePicker from "expo-image-picker"
 import { useCallback, useReducer } from "react"
 import { useTranslation } from "react-i18next"
 
-import type TransactionModel from "~/database/models/transaction"
-import type { TransactionAttachment } from "~/types/transactions"
+import type { Transaction, TransactionAttachment } from "~/types/transactions"
 import { getFileExtension } from "~/utils/file-icon"
 import { logger } from "~/utils/logger"
 import { Toast } from "~/utils/toast"
@@ -12,7 +11,7 @@ import { Toast } from "~/utils/toast"
 import { mergeReducer } from "./form-utils"
 import type { AttachmentState } from "./types"
 
-export function useFormAttachments(transaction: TransactionModel | null) {
+export function useFormAttachments(transaction: Transaction | null) {
   const { t } = useTranslation()
 
   const [attachmentState, setAttachmentState] = useReducer(

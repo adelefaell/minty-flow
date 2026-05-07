@@ -17,7 +17,7 @@ import {
   saveCsvToDevice,
   saveJsonToDevice,
   validateBackup,
-} from "~/database/services/data-management-service"
+} from "~/database/services-sqlite/data-management-service"
 import { useExportHistoryStore } from "~/stores/export-history.store"
 import { Toast } from "~/utils/toast"
 

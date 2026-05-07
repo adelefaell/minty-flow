@@ -10,7 +10,7 @@ import {
   destroyAccount,
   unarchiveAccount,
   updateAccount,
-} from "~/database/services/account-service"
+} from "~/database/services-sqlite/account-service"
 import { useNavigationGuard } from "~/hooks/use-navigation-guard"
 import {
   type AddAccountsFormSchema,
@@ -26,14 +26,10 @@ import type { AccountModifyContentProps } from "./types"
 
 type UseAccountFormProps = Pick<
   AccountModifyContentProps,
-  "accountId" | "accountModel" | "account"
+  "accountId" | "account"
 >
 
-export function useAccountForm({
-  accountId,
-  accountModel,
-  account,
-}: UseAccountFormProps) {
+export function useAccountForm({ accountId, account }: UseAccountFormProps) {
   const { t } = useTranslation()
   const router = useRouter()
   const isAddMode = accountId === NewEnum.NEW || !accountId
@@ -98,15 +94,7 @@ export function useAccountForm({
         allowNavigation()
         handleGoBack()
       } else {
-        if (!accountModel) {
-          Toast.error({
-            title: t("common.toast.error"),
-            description: t("screens.accounts.form.toast.notFound"),
-          })
-          return
-        }
-
-        await updateAccount(accountModel, {
+        await updateAccount(accountId, {
           name: data.name,
           type: data.type,
           balance: data.balance,
@@ -135,12 +123,12 @@ export function useAccountForm({
 
   const handleArchive = async () => {
     try {
-      if (!accountModel || !account) return
+      if (!account) return
       if (account.isArchived) {
-        await unarchiveAccount(accountModel)
+        await unarchiveAccount(accountId)
         Toast.success({ title: t("screens.accounts.unarchiveSuccess") })
       } else {
-        await archiveAccount(accountModel)
+        await archiveAccount(accountId)
         Toast.success({ title: t("screens.accounts.archiveSuccess") })
       }
       allowNavigation()
@@ -153,9 +141,7 @@ export function useAccountForm({
 
   const handleDelete = async () => {
     try {
-      if (!accountModel) return
-
-      await destroyAccount(accountModel)
+      await destroyAccount(accountId)
 
       allowNavigation()
       router.dismiss(2)

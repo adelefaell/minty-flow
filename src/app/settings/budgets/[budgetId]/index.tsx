@@ -1,11 +1,16 @@
-import { withObservables } from "@nozbe/watermelondb/react"
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router"
-import { useCallback, useLayoutEffect, useRef } from "react"
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 import { useTranslation } from "react-i18next"
 import { FlatList, View as RNView } from "react-native"
 import type { SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
-import { combineLatest, map, of, startWith, switchMap } from "rxjs"
 
 import { DynamicIcon } from "~/components/dynamic-icon"
 import { Money } from "~/components/money"
@@ -15,55 +20,91 @@ import { EmptyState } from "~/components/ui/empty-state"
 import { IconSvg } from "~/components/ui/icon-svg"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import type BudgetModel from "~/database/models/budget"
-import type TransactionModel from "~/database/models/transaction"
-import { observeAccountNamesByIds } from "~/database/services/account-service"
+import { on } from "~/database/events"
+import type { TransactionWithRelations } from "~/database/mappers/hydrateTransactions"
 import {
-  observeAccountIdsForBudget,
-  observeBudgetById,
-  observeBudgetSpent,
-  observeBudgetTransactions,
-  observeCategoryIdsForBudget,
-} from "~/database/services/budget-service"
-import { observeCategoryNamesByIds } from "~/database/services/category-service"
-import {
-  observeTransactionModelsFull,
-  type TransactionWithRelations,
-} from "~/database/services/transaction-service"
-import { modelToBudget } from "~/database/utils/model-to-budget"
+  getBudgetPeriodRange,
+  getBudgetSpent,
+} from "~/database/repos/budget-repo"
 import type { TranslationKey } from "~/i18n/config"
-import type { Budget } from "~/types/budgets"
+import { useAccounts } from "~/stores/db/account.store"
+import { useBudget } from "~/stores/db/budget.store"
+import { useCategories } from "~/stores/db/category.store"
+import { useTransactions } from "~/stores/db/transaction.store"
 import { formatCustomPeriodRange } from "~/utils/time-utils"
 
 /* ------------------------------------------------------------------ */
-/* Inner component (receives observed data)                           */
+/* Detail screen                                                      */
 /* ------------------------------------------------------------------ */
 
-const EMPTY_STRINGS: string[] = []
-const EMPTY_TRANSACTIONS: TransactionWithRelations[] = []
-
-interface BudgetDetailInnerProps {
-  budgetId: string
-  budget?: Budget
-  spentAmount?: number
-  categoryNames?: string[]
-  accountNames?: string[]
-  transactionsFull?: TransactionWithRelations[]
-}
-
-function BudgetDetailInner({
-  budgetId,
-  budget,
-  spentAmount = 0,
-  categoryNames = EMPTY_STRINGS,
-  accountNames = EMPTY_STRINGS,
-  transactionsFull = EMPTY_TRANSACTIONS,
-}: BudgetDetailInnerProps) {
+function BudgetDetailInner({ budgetId }: { budgetId: string }) {
   const { t } = useTranslation()
   const router = useRouter()
   const navigation = useNavigation()
   const { theme } = useUnistyles()
   const openSwipeableRef = useRef<SwipeableMethods | null>(null)
+
+  const budget = useBudget(budgetId)
+  const allAccounts = useAccounts()
+  const allCategories = useCategories()
+  const [spentAmount, setSpentAmount] = useState(0)
+
+  const accountNames = useMemo(
+    () =>
+      (budget?.accountIds ?? [])
+        .map((id) => allAccounts.find((a) => a.id === id)?.name)
+        .filter(Boolean) as string[],
+    [budget?.accountIds, allAccounts],
+  )
+
+  const categoryNames = useMemo(
+    () =>
+      (budget?.categoryIds ?? [])
+        .map((id) => allCategories.find((c) => c.id === id)?.name)
+        .filter(Boolean) as string[],
+    [budget?.categoryIds, allCategories],
+  )
+
+  const periodRange = useMemo(() => {
+    if (!budget) return null
+    return getBudgetPeriodRange(
+      budget.period,
+      budget.startDate.toISOString(),
+      budget.endDate?.toISOString() ?? null,
+    )
+  }, [budget])
+
+  const { items: transactionsFull } = useTransactions(
+    periodRange && budget
+      ? {
+          accountIds: budget.accountIds,
+          categoryIds: budget.categoryIds,
+          from: periodRange.periodStart,
+          to: periodRange.periodEnd,
+        }
+      : {},
+  )
+
+  useEffect(() => {
+    if (!budget) return
+    let cancelled = false
+    const fetch = () =>
+      getBudgetSpent(
+        budget.accountIds,
+        budget.categoryIds,
+        budget.period,
+        budget.startDate.toISOString(),
+        budget.endDate?.toISOString() ?? null,
+      ).then((v) => {
+        if (!cancelled) setSpentAmount(v)
+      })
+    fetch()
+    const unsub = on("transactions:dirty", fetch)
+    return () => {
+      cancelled = true
+      unsub()
+    }
+  }, [budget])
 
   const handleTransactionPress = useCallback(
     (id: string) => {
@@ -84,7 +125,7 @@ function BudgetDetailInner({
     ({ item }: { item: TransactionWithRelations }) => (
       <TransactionItem
         transactionWithRelations={item}
-        onPress={() => handleTransactionPress(item.transaction.id)}
+        onPress={() => handleTransactionPress(item.id)}
         onDelete={handleDeleteDone}
         onWillOpen={handleWillOpen}
       />
@@ -244,7 +285,7 @@ function BudgetDetailInner({
     <View style={styles.container}>
       <FlatList
         data={transactionsFull}
-        keyExtractor={(item) => item.transaction.id}
+        keyExtractor={(item) => item.id}
         renderItem={renderTransactionItem}
         ListHeaderComponent={headerContent}
         ListEmptyComponent={
@@ -262,148 +303,13 @@ function BudgetDetailInner({
 }
 
 /* ------------------------------------------------------------------ */
-/* withObservables enhancement                                        */
-/* ------------------------------------------------------------------ */
-
-const EnhancedBudgetDetail = withObservables(
-  ["budgetId"],
-  ({ budgetId }: { budgetId: string }) => {
-    const budgetModel$ = observeBudgetById(budgetId)
-    const accountIds$ = observeAccountIdsForBudget(budgetId)
-    const categoryIds$ = observeCategoryIdsForBudget(budgetId)
-
-    const budget$ = combineLatest([
-      budgetModel$,
-      accountIds$,
-      categoryIds$,
-    ]).pipe(
-      map(
-        ([model, accountIds, categoryIds]: [BudgetModel, string[], string[]]) =>
-          modelToBudget(model, accountIds, categoryIds),
-      ),
-    )
-
-    const categoryNames$ = categoryIds$.pipe(
-      switchMap((ids: string[]) => observeCategoryNamesByIds(ids)),
-    )
-
-    const accountNames$ = accountIds$.pipe(
-      switchMap((ids: string[]) => observeAccountNamesByIds(ids)),
-    )
-
-    const spentAmount$ = combineLatest([
-      budgetModel$,
-      accountIds$,
-      categoryIds$,
-    ]).pipe(
-      switchMap(
-        ([model, accountIds, categoryIds]: [BudgetModel, string[], string[]]) =>
-          observeBudgetSpent(
-            accountIds,
-            categoryIds,
-            model.period,
-            model.startDate.getTime(),
-            model.endDate?.getTime(),
-          ),
-      ),
-    )
-
-    /**
-     * transactionsFull$ pipeline:
-     *
-     * Step 1 — observe raw budget transaction models (ids + accountIds) as
-     *           txModels$.  This observable re-emits whenever the budget's
-     *           transaction set changes (new tx added, tx deleted, period
-     *           updated, etc.).
-     *
-     * Step 2 — derive uniqueAccountIds$ from txModels$ so the enriched-rows
-     *           query always tracks the current account set.
-     *
-     * Step 3 — combine txModels$ with the enriched-rows observable via
-     *           combineLatest so the id-filter Set is ALWAYS regenerated from
-     *           the latest txModels emission.  Using a plain closure over
-     *           `ids` inside switchMap would make the filter stale: if
-     *           observeTransactionModelsFull emits a new snapshot (e.g. an
-     *           account name changed) before txModels$ re-emits, the old
-     *           closed-over ids array would be used, potentially hiding
-     *           transactions that were added in the most recent DB write batch.
-     */
-    const txModels$ = combineLatest([
-      budgetModel$,
-      accountIds$,
-      categoryIds$,
-    ]).pipe(
-      switchMap(
-        ([model, accountIds, categoryIds]: [BudgetModel, string[], string[]]) =>
-          observeBudgetTransactions(
-            accountIds,
-            categoryIds,
-            model.period,
-            model.startDate.getTime(),
-            model.endDate?.getTime(),
-          ),
-      ),
-      startWith([] as TransactionModel[]),
-    )
-
-    const transactionsFull$ = txModels$.pipe(
-      switchMap((txModels: TransactionModel[]) => {
-        if (txModels.length === 0) return of([] as TransactionWithRelations[])
-
-        // Deduplicate account IDs so observeTransactionModelsFull isn't called
-        // with redundant entries (e.g. multiple transactions from same account).
-        const uniqueAccountIds = [...new Set(txModels.map((t) => t.accountId))]
-
-        /**
-         * combineLatest re-evaluates whenever EITHER source emits, so the
-         * id-filter Set is always built from the current txModels snapshot
-         * rather than a value captured once at subscribe time.
-         *
-         * Note: txModels is fixed within this switchMap invocation (the outer
-         * switchMap re-subscribes when txModels$ changes), but wrapping it in
-         * of() inside combineLatest makes the derivation explicit and keeps the
-         * pattern consistent — future refactors that promote txModels$ into
-         * the combine will work correctly without further changes.
-         */
-        return combineLatest([
-          of(txModels),
-          observeTransactionModelsFull({ accountIds: uniqueAccountIds }),
-        ]).pipe(
-          map(
-            ([currentTxModels, full]: [
-              TransactionModel[],
-              TransactionWithRelations[],
-            ]) => {
-              // Rebuild the allowed-id set on every emission so it always reflects
-              // the current budget transaction list, never a stale closure.
-              const currentIds = new Set(currentTxModels.map((t) => t.id))
-              return full.filter((f) => currentIds.has(f.transaction.id))
-            },
-          ),
-        )
-      }),
-    )
-
-    return {
-      budget: budget$,
-      spentAmount: spentAmount$.pipe(startWith(0)),
-      categoryNames: categoryNames$.pipe(startWith([] as string[])),
-      accountNames: accountNames$.pipe(startWith([] as string[])),
-      transactionsFull: transactionsFull$.pipe(
-        startWith([] as TransactionWithRelations[]),
-      ),
-    }
-  },
-)(BudgetDetailInner)
-
-/* ------------------------------------------------------------------ */
 /* Route component                                                    */
 /* ------------------------------------------------------------------ */
 
 export default function BudgetDetailScreen() {
   const { budgetId } = useLocalSearchParams<{ budgetId: string }>()
   if (!budgetId) return null
-  return <EnhancedBudgetDetail budgetId={budgetId} />
+  return <BudgetDetailInner budgetId={budgetId} />
 }
 
 /* ------------------------------------------------------------------ */

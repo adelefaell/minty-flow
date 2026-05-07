@@ -1,11 +1,10 @@
 import { useSyncExternalStore } from "react"
 import { AppState } from "react-native"
 
-import type { TransactionWithRelations } from "~/database/services/transaction-service"
-import {
-  confirmTransactionSync,
-  getPendingTransactionModelsFull,
-} from "~/database/services/transaction-service"
+import type { TransactionWithRelations } from "~/database/mappers/hydrateTransactions"
+import { hydrateTransactions } from "~/database/mappers/hydrateTransactions"
+import { getPendingTransactions } from "~/database/repos/transaction-repo"
+import { confirmTransaction } from "~/database/services-sqlite/transaction-service"
 import { logger } from "~/utils/logger"
 
 /**
@@ -117,12 +116,11 @@ class AutoConfirmationService {
     const scheduled = new Set<string>()
 
     for (const row of transactions) {
-      const { transaction } = row
-      const txId = transaction.id
+      const txId = row.id
 
       if (!this.shouldAutoConfirm(row)) continue
 
-      const targetTime = transaction.transactionDate.getTime()
+      const targetTime = row.transactionDate.getTime()
       const msUntil = targetTime - now
 
       if (msUntil <= 0) {
@@ -151,7 +149,8 @@ class AutoConfirmationService {
       return
     }
 
-    const rows = await getPendingTransactionModelsFull()
+    const rawRows = await getPendingTransactions()
+    const rows = await hydrateTransactions(rawRows)
     await this.confirmPastDue(rows)
   }
 
@@ -171,15 +170,11 @@ class AutoConfirmationService {
     const now = Date.now()
     const pastDue = transactions.filter(
       (row) =>
-        this.shouldAutoConfirm(row) &&
-        row.transaction.transactionDate.getTime() <= now,
+        this.shouldAutoConfirm(row) && row.transactionDate.getTime() <= now,
     )
-    // Safe to run concurrently: confirmTransactionSync re-fetches inside
-    // database.write, so WatermelonDB's write serialization prevents double-confirms
-    // even when multiple calls race past the pre-write isPending guard.
     await Promise.all(
       pastDue.map((row) =>
-        this.confirmTransaction(row.transaction.id, updateDateUponConfirmation),
+        this.confirmTransaction(row.id, updateDateUponConfirmation),
       ),
     )
   }
@@ -203,14 +198,13 @@ class AutoConfirmationService {
       return false
     }
 
-    const { transaction } = row
     const { requireConfirmation } = this.config
     const needsManualConfirm =
-      transaction.requiresManualConfirmation ?? requireConfirmation
+      row.requiresManualConfirmation ?? requireConfirmation
 
     if (needsManualConfirm) return false
-    if (!transaction.isPending) return false
-    if (transaction.isDeleted) return false
+    if (!row.isPending) return false
+    if (row.isDeleted) return false
 
     return true
   }
@@ -240,7 +234,7 @@ class AutoConfirmationService {
   private async confirmTransaction(transactionId: string, updateDate: boolean) {
     if (!this.isActive) return
     try {
-      await confirmTransactionSync(transactionId, {
+      await confirmTransaction(transactionId, {
         updateTransactionDate: updateDate,
       })
       for (const callback of this.onConfirmedCallbacks) {
@@ -294,8 +288,7 @@ export function isPreapproved(
   row: TransactionWithRelations,
   globalRequireConfirmation: boolean,
 ): boolean {
-  const { transaction } = row
   const needsManualConfirm =
-    transaction.requiresManualConfirmation ?? globalRequireConfirmation
+    row.requiresManualConfirmation ?? globalRequireConfirmation
   return !needsManualConfirm
 }

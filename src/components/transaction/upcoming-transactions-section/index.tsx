@@ -10,8 +10,8 @@ import { IconSvg } from "~/components/ui/icon-svg"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import type { TransactionWithRelations } from "~/database/services/transaction-service"
-import { confirmTransactionSync } from "~/database/services/transaction-service"
+import type { TransactionWithRelations } from "~/database/mappers/hydrateTransactions"
+import { confirmTransaction } from "~/database/services-sqlite/transaction-service"
 import { useRecurringRule } from "~/hooks/use-recurring-rule"
 import { useMinuteTick } from "~/hooks/use-time-reactivity"
 import {
@@ -59,7 +59,7 @@ export function UpcomingTransactionsSection({
   const upcoming = useMemo(() => {
     void autoConfirmVersion
     void foregroundVersion
-    return transactions.filter((r) => !r.transaction.isDeleted && isUpcoming(r))
+    return transactions.filter((r) => !r.isDeleted && isUpcoming(r))
   }, [transactions, autoConfirmVersion, foregroundVersion])
 
   const upcomingForDisplay = useMemo(
@@ -76,13 +76,13 @@ export function UpcomingTransactionsSection({
     const toAutoConfirmList: string[] = []
 
     for (const row of upcomingForDisplay) {
-      const canConfirm = confirmable(row.transaction, nowMs)
+      const canConfirm = confirmable(row, nowMs)
       const preapproved = isPreapproved(row, requireConfirmation)
 
       if (preapproved && canConfirm) {
-        toAutoConfirmList.push(row.transaction.id)
+        toAutoConfirmList.push(row.id)
       } else {
-        if (row.transaction.recurringId) {
+        if (row.extra?.recurringId) {
           recurringList.push(row)
         } else {
           pendingList.push(row)
@@ -105,7 +105,7 @@ export function UpcomingTransactionsSection({
 
   useEffect(() => {
     for (const txId of toAutoConfirm) {
-      void confirmTransactionSync(txId, {
+      void confirmTransaction(txId, {
         updateTransactionDate: updateDateUponConfirmation,
       })
     }
@@ -136,14 +136,14 @@ export function UpcomingTransactionsSection({
   const [recurringToDelete, setRecurringToDelete] =
     useState<TransactionWithRelations | null>(null)
   const recurringRule = useRecurringRule(
-    recurringToDelete?.transaction.recurringId ?? null,
+    recurringToDelete?.extra?.recurringId ?? null,
   )
 
   const handleConfirm = useCallback(
     async (transactionId: string) => {
       const opts = { updateTransactionDate: updateDateUponConfirmation }
       try {
-        await confirmTransactionSync(transactionId, opts)
+        await confirmTransaction(transactionId, opts)
       } catch {
         Toast.error({
           title: t("components.transactionForm.toast.upcomingConfirmFailed"),
@@ -157,12 +157,12 @@ export function UpcomingTransactionsSection({
     // Use minute-aligned nowMs (same clock as the UI) so "Confirm All" only
     // confirms transactions that are already shown as confirmable — not ones
     // up to 59 seconds early via a raw Date.now() read.
-    const toConfirm = pending.filter((r) => confirmable(r.transaction, nowMs))
+    const toConfirm = pending.filter((r) => confirmable(r, nowMs))
     if (toConfirm.length === 0) return
-    const ids = toConfirm.map((r) => r.transaction.id)
+    const ids = toConfirm.map((r) => r.id)
     const opts = { updateTransactionDate: updateDateUponConfirmation }
     try {
-      await Promise.all(ids.map((id) => confirmTransactionSync(id, opts)))
+      await Promise.all(ids.map((id) => confirmTransaction(id, opts)))
     } catch {
       Toast.error({
         title: t("components.transactionForm.toast.upcomingConfirmAllFailed"),
@@ -180,7 +180,7 @@ export function UpcomingTransactionsSection({
   )
 
   const handleBeforeDelete = useCallback((row: TransactionWithRelations) => {
-    if (row.transaction.recurringId) {
+    if (row.extra?.recurringId) {
       setRecurringToDelete(row)
       return true
     }
@@ -188,14 +188,14 @@ export function UpcomingTransactionsSection({
   }, [])
 
   const handleDeleteDone = useCallback((row: TransactionWithRelations) => {
-    autoConfirmationService.cancelSchedule(row.transaction.id)
+    autoConfirmationService.cancelSchedule(row.id)
   }, [])
 
   const totalVisible = recurring.length + pending.length
   if (totalVisible === 0) return null
 
   const manualConfirmableCount = pending.filter((r) =>
-    confirmable(r.transaction, nowMs),
+    confirmable(r, nowMs),
   ).length
 
   return (
@@ -215,13 +215,11 @@ export function UpcomingTransactionsSection({
       {recurringToDelete && recurringRule && (
         <DeleteRecurringModal
           visible={true}
-          transaction={recurringToDelete.transaction}
+          transaction={recurringToDelete}
           recurringRule={recurringRule}
           onRequestClose={() => setRecurringToDelete(null)}
           onDeleted={() => {
-            autoConfirmationService.cancelSchedule(
-              recurringToDelete.transaction.id,
-            )
+            autoConfirmationService.cancelSchedule(recurringToDelete.id)
             setRecurringToDelete(null)
           }}
         />
@@ -339,11 +337,11 @@ export function UpcomingTransactionsSection({
               </View>
               {recurring.map((row) => (
                 <TransactionItem
-                  key={row.transaction.id}
+                  key={row.id}
                   transactionWithRelations={row}
                   variant="upcoming"
-                  onPress={() => onTransactionPress(row.transaction.id)}
-                  onConfirm={() => handleConfirm(row.transaction.id)}
+                  onPress={() => onTransactionPress(row.id)}
+                  onConfirm={() => handleConfirm(row.id)}
                   onBeforeDelete={handleBeforeDelete}
                   onDelete={() => handleDeleteDone(row)}
                   rightActionAccessibilityLabel={t(
@@ -387,11 +385,11 @@ export function UpcomingTransactionsSection({
               </View>
               {pending.map((row) => (
                 <TransactionItem
-                  key={row.transaction.id}
+                  key={row.id}
                   transactionWithRelations={row}
                   variant="upcoming"
-                  onPress={() => onTransactionPress(row.transaction.id)}
-                  onConfirm={() => handleConfirm(row.transaction.id)}
+                  onPress={() => onTransactionPress(row.id)}
+                  onConfirm={() => handleConfirm(row.id)}
                   onBeforeDelete={handleBeforeDelete}
                   onDelete={() => handleDeleteDone(row)}
                   rightActionAccessibilityLabel={t(

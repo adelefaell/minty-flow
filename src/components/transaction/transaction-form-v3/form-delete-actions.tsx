@@ -4,12 +4,12 @@ import { Button } from "~/components/ui/button"
 import { IconSvg } from "~/components/ui/icon-svg"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import type TransactionModel from "~/database/models/transaction"
+import type { Transaction } from "~/types/transactions"
 
 import { transactionFormStyles } from "./form.styles"
 
 type Props = {
-  transaction: TransactionModel
+  transaction: Transaction
   isSaving: boolean
   onRestore: () => void
   onDelete: () => void

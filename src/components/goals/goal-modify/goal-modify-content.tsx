@@ -23,12 +23,12 @@ import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import { ScrollIntoViewProvider } from "~/contexts/scroll-into-view-context"
 import {
-  archiveGoal,
+  archiveGoalById,
   createGoal,
-  destroyGoal,
-  unarchiveGoal,
-  updateGoal,
-} from "~/database/services/goal-service"
+  deleteGoalById,
+  unarchiveGoalById,
+  updateGoalById,
+} from "~/database/services-sqlite/goal-service"
 import { useNavigationGuard } from "~/hooks/use-navigation-guard"
 import type { TranslationKey } from "~/i18n/config"
 import { type AddGoalFormSchema, addGoalSchema } from "~/schemas/goals.schema"
@@ -46,7 +46,6 @@ import type { GoalModifyContentProps } from "./types"
 export function GoalModifyContent({
   goalModifyId,
   goal,
-  goalModel,
   accounts,
 }: GoalModifyContentProps) {
   const { t } = useTranslation()
@@ -119,15 +118,7 @@ export function GoalModifyContent({
         allowNavigation()
         handleGoBack()
       } else {
-        if (!goalModel) {
-          Toast.error({
-            title: t("common.toast.error"),
-            description: t("screens.settings.goals.form.toast.notFound"),
-          })
-          return
-        }
-
-        await updateGoal(goalModel, {
+        await updateGoalById(goalModifyId, {
           ...data,
           name: trimmedName,
         })
@@ -150,7 +141,7 @@ export function GoalModifyContent({
 
   const handleDelete = async () => {
     try {
-      if (!goalModel || !goal) {
+      if (!goal) {
         Toast.error({
           title: t("common.toast.error"),
           description: t("screens.settings.goals.form.toast.notFound"),
@@ -158,7 +149,7 @@ export function GoalModifyContent({
         return
       }
 
-      await destroyGoal(goalModel)
+      await deleteGoalById(goalModifyId)
 
       allowNavigation()
       // Dismiss 2 levels: the edit screen and the goal detail screen
@@ -174,14 +165,14 @@ export function GoalModifyContent({
 
   const handleArchive = async () => {
     try {
-      if (!goalModel || !goal) return
+      if (!goal) return
       if (goal.isArchived) {
-        await unarchiveGoal(goalModel)
+        await unarchiveGoalById(goalModifyId)
         Toast.success({
           title: t("screens.settings.goals.unarchiveSuccess"),
         })
       } else {
-        await archiveGoal(goalModel)
+        await archiveGoalById(goalModifyId)
         Toast.success({
           title: t("screens.settings.goals.archiveSuccess"),
         })

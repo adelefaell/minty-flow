@@ -1,4 +1,4 @@
-import { withObservables } from "@nozbe/watermelondb/react"
+import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { View as RNView } from "react-native"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
@@ -9,20 +9,34 @@ import { IconSvg } from "~/components/ui/icon-svg"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import type AccountModel from "~/database/models/account"
-import { observeAccountById } from "~/database/services/account-service"
-import { observeLoanPaymentProgress } from "~/database/services/loan-service"
+import { on } from "~/database/events"
+import { getLoanProgress } from "~/database/repos/loan-repo"
+import { useAccount } from "~/stores/db/account.store"
 import type { Loan } from "~/types/loans"
 import { LoanTypeEnum } from "~/types/loans"
 
 interface LoanCardProps {
   loan: Loan
   onPress: () => void
-  paidAmount: number
-  account: AccountModel
 }
 
-function LoanCardInner({ loan, onPress, paidAmount, account }: LoanCardProps) {
+export function LoanCard({ loan, onPress }: LoanCardProps) {
+  const [paidAmount, setPaidAmount] = useState(0)
+  const account = useAccount(loan.accountId)
+
+  useEffect(() => {
+    let cancelled = false
+    const fetch = () =>
+      getLoanProgress(loan.id, loan.loanType).then((v) => {
+        if (!cancelled) setPaidAmount(v)
+      })
+    fetch()
+    const unsub = on("transactions:dirty", fetch)
+    return () => {
+      cancelled = true
+      unsub()
+    }
+  }, [loan.id, loan.loanType])
   const { t } = useTranslation()
   const { theme } = useUnistyles()
 
@@ -117,7 +131,7 @@ function LoanCardInner({ loan, onPress, paidAmount, account }: LoanCardProps) {
           :{" "}
           <Money
             value={paid}
-            currency={account.currencyCode}
+            currency={account?.currencyCode ?? ""}
             variant="small"
             tone="transfer"
             hideSign
@@ -125,7 +139,7 @@ function LoanCardInner({ loan, onPress, paidAmount, account }: LoanCardProps) {
           {t("screens.settings.loans.card.of")}{" "}
           <Money
             value={principal}
-            currency={account.currencyCode}
+            currency={account?.currencyCode ?? ""}
             variant="small"
             tone="transfer"
             hideSign
@@ -137,7 +151,7 @@ function LoanCardInner({ loan, onPress, paidAmount, account }: LoanCardProps) {
             <>
               <Money
                 value={remaining}
-                currency={account.currencyCode}
+                currency={account?.currencyCode ?? ""}
                 variant="small"
                 tone="transfer"
                 hideSign
@@ -160,14 +174,6 @@ function LoanCardInner({ loan, onPress, paidAmount, account }: LoanCardProps) {
     </Pressable>
   )
 }
-
-export const LoanCard = withObservables(
-  ["loan"],
-  ({ loan }: { loan: Loan }) => ({
-    paidAmount: observeLoanPaymentProgress(loan.id, loan.loanType),
-    account: observeAccountById(loan.accountId),
-  }),
-)(LoanCardInner)
 
 const styles = StyleSheet.create((t) => ({
   card: {

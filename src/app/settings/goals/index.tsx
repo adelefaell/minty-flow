@@ -1,4 +1,3 @@
-import { withObservables } from "@nozbe/watermelondb/react"
 import { useNavigation, useRouter } from "expo-router"
 import { useCallback, useLayoutEffect } from "react"
 import { useTranslation } from "react-i18next"
@@ -11,15 +10,12 @@ import { EmptyState } from "~/components/ui/empty-state"
 import { IconSvg } from "~/components/ui/icon-svg"
 import { Pressable } from "~/components/ui/pressable"
 import { View } from "~/components/ui/view"
-import { observeGoals } from "~/database/services/goal-service"
+import { useAllGoals } from "~/stores/db/goal.store"
 import type { Goal } from "~/types/goals"
 import { NewEnum } from "~/types/new"
 
-interface GoalsListContentProps {
-  goals: Goal[]
-}
-
-function GoalsListContent({ goals }: GoalsListContentProps) {
+export default function GoalsScreen() {
+  const goals = useAllGoals()
   const { theme } = useUnistyles()
   const { t } = useTranslation()
   const router = useRouter()
@@ -79,14 +75,6 @@ function GoalsListContent({ goals }: GoalsListContentProps) {
       </Pressable>
     </View>
   )
-}
-
-const EnhancedGoalsList = withObservables([], () => ({
-  goals: observeGoals(),
-}))(GoalsListContent)
-
-export default function GoalsScreen() {
-  return <EnhancedGoalsList />
 }
 
 const styles = StyleSheet.create((t) => ({

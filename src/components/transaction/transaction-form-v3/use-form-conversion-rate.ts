@@ -1,18 +1,17 @@
 import { useEffect, useRef, useState } from "react"
 
-import type TransactionModel from "~/database/models/transaction"
-import { getConversionRateForTransaction } from "~/database/services/transfer-service"
+import { getConversionRateForTransaction } from "~/database/services-sqlite/transfer-service"
 import { exchangeRatesService } from "~/services/exchange-rates"
 import { useExchangeRatesPreferencesStore } from "~/stores/exchange-rates-preferences.store"
 import type { Account } from "~/types/accounts"
-import type { TransactionType } from "~/types/transactions"
+import type { Transaction, TransactionType } from "~/types/transactions"
 import { logger } from "~/utils/logger"
 
 export function useFormConversionRate(
   transactionType: TransactionType,
   selectedAccount: Account | undefined,
   selectedToAccount: Account | null | undefined,
-  transaction: TransactionModel | null,
+  transaction: Transaction | null,
 ) {
   const [conversionRate, setConversionRate] = useState<number | null>(null)
   const accountSelectionInitialMount = useRef(true)

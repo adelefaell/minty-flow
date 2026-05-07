@@ -1,4 +1,3 @@
-import { withObservables } from "@nozbe/watermelondb/react"
 import { useRouter } from "expo-router"
 import { useTranslation } from "react-i18next"
 import { ScrollView } from "react-native"
@@ -10,21 +9,14 @@ import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import {
-  observeAccounts,
-  observeArchivedAccounts,
-} from "~/database/services/account-service"
-import type { Account } from "~/types/accounts"
+  useActiveAccounts,
+  useArchivedAccounts,
+} from "~/stores/db/account.store"
 import { NewEnum } from "~/types/new"
 
-interface AllAccountsScreenInnerProps {
-  accounts: Account[]
-  archivedAccounts: Account[]
-}
-
-const AllAccountsScreenInner = ({
-  accounts,
-  archivedAccounts,
-}: AllAccountsScreenInnerProps) => {
+export default function AllAccountsScreen() {
+  const accounts = useActiveAccounts()
+  const archivedAccounts = useArchivedAccounts()
   const router = useRouter()
   const { theme } = useUnistyles()
   const { t } = useTranslation()
@@ -77,13 +69,6 @@ const AllAccountsScreenInner = ({
     </View>
   )
 }
-
-const AllAccountsScreen = withObservables([], () => ({
-  accounts: observeAccounts(),
-  archivedAccounts: observeArchivedAccounts(),
-}))
-
-export default AllAccountsScreen(AllAccountsScreenInner)
 
 const styles = StyleSheet.create((theme) => ({
   container: {

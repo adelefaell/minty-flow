@@ -23,7 +23,6 @@ export interface TransactionAttachment {
  *
  * Pure domain types with no database dependencies.
  * These represent the business logic and UI contracts.
- * The WatermelonDB model implements these types, not the other way around.
  */
 export const TransactionTypeEnum = {
   EXPENSE: "expense",
@@ -40,13 +39,6 @@ export interface TransactionLocation {
   address: string | null
 }
 
-/**
- * Transaction domain type for UI/API usage.
- *
- * This is the single source of truth for the Transaction shape.
- * The WatermelonDB model implements this interface, ensuring
- * the persistence layer conforms to the domain model.
- */
 /**
  * Transaction domain type. Currency is not stored here; it is always derived
  * from the account (accountId). Type explains meaning; amount is the numeric value.
@@ -81,6 +73,7 @@ export interface Transaction {
   budgetId: string | null
   loanId: string | null
   location: string | null
+  recurringId: string | null
   createdAt: Date
   updatedAt: Date
 }
@@ -88,7 +81,7 @@ export interface Transaction {
 /**
  * Filters for transaction list queries (service layer).
  * All structural filters: database returns exactly the rows that exist.
- * Dates are Unix timestamps for WatermelonDB Q.gte / Q.lte.
+ * Dates are Unix timestamps.
  */
 export interface TransactionListFilters {
   accountId?: string

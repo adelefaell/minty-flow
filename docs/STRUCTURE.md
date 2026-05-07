@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-04-27T23:35:41.170Z
+Generated on: 2026-05-07T22:25:35.380Z
 
 ```
 ./
@@ -266,28 +266,50 @@ Generated on: 2026-04-27T23:35:41.170Z
 │   │   ├── pre-rebase
 │   │   └── prepare-commit-msg
 │   └── pre-commit
+├── .idea/
+│   ├── .gitignore
+│   ├── misc.xml
+│   └── workspace.xml
 ├── .tmp/
 │   └── tasks/
-│       ├── code-cleanup/
+│       ├── phase4-ui-migration/
 │       │   ├── subtask_01.json
 │       │   ├── subtask_02.json
 │       │   ├── subtask_03.json
 │       │   ├── subtask_04.json
+│       │   ├── subtask_05.json
+│       │   ├── subtask_06.json
+│       │   ├── subtask_07.json
+│       │   ├── subtask_08.json
+│       │   ├── subtask_09.json
+│       │   ├── subtask_10.json
+│       │   ├── subtask_11.json
+│       │   ├── subtask_12.json
 │       │   └── task.json
-│       └── db-service-improvements/
+│       └── phase5-crash-safe-import-export-sqlite/
 │           ├── subtask_01.json
 │           ├── subtask_02.json
 │           ├── subtask_03.json
+│           ├── subtask_04.json
 │           └── task.json
 ├── .vscode/
 │   └── settings.json
 ├── docs/
+│   ├── migration-sqlite-zustand/
+│   │   ├── 0-phase.md
+│   │   ├── 1-phase.md
+│   │   ├── 2-phase.md
+│   │   ├── 3-phase.md
+│   │   ├── 4-phase.md
+│   │   ├── 5-phase.md
+│   │   ├── 6-phase.md
+│   │   ├── 7-phase.md
+│   │   └── plan-overview.md
 │   ├── STRUCTURE.md
 │   └── typography-migration.md
 ├── plugins/
 │   ├── index.js
-│   ├── README.md
-│   └── withWatermelonDBJSI.js
+│   └── README.md
 ├── scripts/
 │   ├── add-icons.py
 │   ├── check-missing-i18n-keys.mts
@@ -1003,23 +1025,28 @@ Generated on: 2026-04-27T23:35:41.170Z
 │   ├── contexts/
 │   │   └── scroll-into-view-context.tsx
 │   ├── database/
+│   │   ├── mappers/
+│   │   │   ├── account.mapper.ts
+│   │   │   ├── budget.mapper.ts
+│   │   │   ├── category.mapper.ts
+│   │   │   ├── goal.mapper.ts
+│   │   │   ├── hydrateTransactions.ts
+│   │   │   ├── loan.mapper.ts
+│   │   │   ├── tag.mapper.ts
+│   │   │   └── transaction.mapper.ts
 │   │   ├── migrations/
-│   │   │   └── index.ts
-│   │   ├── models/
-│   │   │   ├── account.ts
-│   │   │   ├── budget-account.ts
-│   │   │   ├── budget-category.ts
-│   │   │   ├── budget.ts
-│   │   │   ├── category.ts
-│   │   │   ├── goal-account.ts
-│   │   │   ├── goal.ts
-│   │   │   ├── loan.ts
-│   │   │   ├── recurring-transaction.ts
-│   │   │   ├── tag.ts
-│   │   │   ├── transaction-tag.ts
-│   │   │   ├── transaction.ts
-│   │   │   └── transfer.ts
-│   │   ├── services/
+│   │   │   ├── sqlite-runner.ts
+│   │   │   └── sqlite-v1.ts
+│   │   ├── repos/
+│   │   │   ├── account-repo.ts
+│   │   │   ├── budget-repo.ts
+│   │   │   ├── category-repo.ts
+│   │   │   ├── goal-repo.ts
+│   │   │   ├── loan-repo.ts
+│   │   │   ├── tag-repo.ts
+│   │   │   ├── transaction-repo.ts
+│   │   │   └── transaction-tag-repo.ts
+│   │   ├── services-sqlite/
 │   │   │   ├── account-service.ts
 │   │   │   ├── balance-service.ts
 │   │   │   ├── budget-service.ts
@@ -1027,25 +1054,27 @@ Generated on: 2026-04-27T23:35:41.170Z
 │   │   │   ├── data-management-service.ts
 │   │   │   ├── goal-service.ts
 │   │   │   ├── loan-service.ts
-│   │   │   ├── README.md
 │   │   │   ├── recurring-transaction-service.ts
 │   │   │   ├── stats-service.ts
 │   │   │   ├── tag-service.ts
 │   │   │   ├── transaction-service.ts
 │   │   │   └── transfer-service.ts
+│   │   ├── types/
+│   │   │   └── rows.ts
 │   │   ├── utils/
+│   │   │   ├── generate-id.ts
 │   │   │   ├── get-balance-delta.ts
-│   │   │   ├── model-to-account.ts
-│   │   │   ├── model-to-budget.ts
-│   │   │   ├── model-to-category.ts
-│   │   │   ├── model-to-goal.ts
-│   │   │   ├── model-to-loan.ts
-│   │   │   └── model-to-tag.ts
-│   │   ├── index.ts
-│   │   └── schema.ts
+│   │   │   └── import-snapshot.ts
+│   │   ├── db.ts
+│   │   ├── events.ts
+│   │   ├── instrumentation.ts
+│   │   ├── sql.ts
+│   │   ├── transaction.ts
+│   │   └── write-queue.ts
 │   ├── hooks/
 │   │   ├── exchange-rates-editor.reducer.ts
 │   │   ├── use-balance-before.ts
+│   │   ├── use-boot-hydration.ts
 │   │   ├── use-chart-font.ts
 │   │   ├── use-import-recovery.ts
 │   │   ├── use-location-permission-status.ts
@@ -1079,6 +1108,14 @@ Generated on: 2026-04-27T23:35:41.170Z
 │   │   ├── exchange-rates.ts
 │   │   └── pending-transaction-notifications.ts
 │   ├── stores/
+│   │   ├── db/
+│   │   │   ├── account.store.ts
+│   │   │   ├── budget.store.ts
+│   │   │   ├── category.store.ts
+│   │   │   ├── goal.store.ts
+│   │   │   ├── loan.store.ts
+│   │   │   ├── tag.store.ts
+│   │   │   └── transaction.store.ts
 │   │   ├── android-sound.store.ts
 │   │   ├── app-lock.store.ts
 │   │   ├── bill-splitter.store.ts

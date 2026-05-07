@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 
-import { database } from "~/database"
-import type AccountModel from "~/database/models/account"
-import { fetchAllStatsData } from "~/database/services/stats-service"
+import { on } from "~/database/events"
+import { fetchAllStatsData } from "~/database/services-sqlite/stats-service"
+import { useAccounts } from "~/stores/db/account.store"
+import type { Account } from "~/types/accounts"
 import type {
   CurrencyStats,
   StatsDateRange,
@@ -24,7 +25,7 @@ interface UseStatsReturn {
   refetch: () => Promise<void>
 }
 
-function computeSupplements(accounts: AccountModel[]): StatsSupplement[] {
+function computeSupplements(accounts: Account[]): StatsSupplement[] {
   const currencySet = new Set(accounts.map((a) => a.currencyCode))
   const supplements: StatsSupplement[] = []
 
@@ -65,6 +66,8 @@ export function useStats(): UseStatsReturn {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const fetchIdRef = useRef(0)
 
+  const accounts = useAccounts()
+
   const fetchData = useCallback(async (range: StatsDateRange) => {
     const fetchId = ++fetchIdRef.current
     setIsLoading(true)
@@ -80,39 +83,33 @@ export function useStats(): UseStatsReturn {
   const debouncedFetch = useCallback(
     (range: StatsDateRange) => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
-      debounceRef.current = setTimeout(() => {
-        fetchData(range)
-      }, 300)
+      debounceRef.current = setTimeout(() => fetchData(range), 300)
     },
     [fetchData],
   )
 
+  // Initial and range-driven fetch
   useEffect(() => {
     fetchData(dateRange)
   }, [dateRange, fetchData])
 
-  // Reactively observe accounts so color/icon changes propagate immediately
+  // Supplements reactively follow account store (already Zustand-reactive)
   useEffect(() => {
-    const subscription = database
-      .get<AccountModel>("accounts")
-      .query()
-      .observe()
-      .subscribe((accounts) => {
-        setSupplementByCurrency(computeSupplements(accounts))
-      })
-    return () => subscription.unsubscribe()
-  }, [])
+    setSupplementByCurrency(computeSupplements(accounts))
+  }, [accounts])
 
+  // Re-fetch stats on any relevant DB change
   useEffect(() => {
-    const subscription = database
-      .withChangesForTables(["transactions", "accounts", "transaction_tags"])
-      .subscribe(() => {
-        debouncedFetch(dateRange)
-      })
-
+    const unsub1 = on("transactions:dirty", () => debouncedFetch(dateRange))
+    const unsub2 = on("accounts:dirty", () => debouncedFetch(dateRange))
+    const unsub3 = on("tags:dirty", () => debouncedFetch(dateRange))
+    const unsub4 = on("db:reset", () => debouncedFetch(dateRange))
     return () => {
       fetchIdRef.current++
-      subscription.unsubscribe()
+      unsub1()
+      unsub2()
+      unsub3()
+      unsub4()
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
   }, [dateRange, debouncedFetch])

@@ -16,9 +16,9 @@ import { View } from "~/components/ui/view"
 import { ScrollIntoViewProvider } from "~/contexts/scroll-into-view-context"
 import {
   createCategory,
-  destroyCategory,
-  updateCategory,
-} from "~/database/services/category-service"
+  deleteCategoryById,
+  updateCategoryById,
+} from "~/database/services-sqlite/category-service"
 import { useNavigationGuard } from "~/hooks/use-navigation-guard"
 import type { TranslationKey } from "~/i18n/config"
 import {
@@ -39,7 +39,6 @@ import type { CategoryModifyContentProps } from "./types"
 export function CategoryModifyContent({
   categoryModifyId,
   initialType,
-  categoryModel,
   category,
 }: CategoryModifyContentProps) {
   const { t } = useTranslation()
@@ -102,15 +101,7 @@ export function CategoryModifyContent({
         allowNavigation()
         handleGoBack()
       } else {
-        if (!categoryModel) {
-          Toast.error({
-            title: t("common.toast.error"),
-            description: t("components.categories.form.toast.notFound"),
-          })
-          return
-        }
-
-        await updateCategory(categoryModel, {
+        await updateCategoryById(categoryModifyId, {
           name: trimmedName,
           icon: data.icon,
           colorSchemeName: data.colorSchemeName,
@@ -134,7 +125,7 @@ export function CategoryModifyContent({
 
   const handleDelete = async () => {
     try {
-      if (!categoryModel || !category) {
+      if (!category) {
         Toast.error({
           title: t("common.toast.error"),
           description: t("components.categories.form.toast.notFound"),
@@ -153,7 +144,7 @@ export function CategoryModifyContent({
         return
       }
 
-      await destroyCategory(categoryModel)
+      await deleteCategoryById(categoryModifyId)
 
       allowNavigation()
       // This is cleaner than replace because it actually removes the screens from history rather than stacking a new one on top. The number 2 matches exactly how deep you pushed from /settings/categories.

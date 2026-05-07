@@ -25,10 +25,10 @@ import { View } from "~/components/ui/view"
 import { ScrollIntoViewProvider } from "~/contexts/scroll-into-view-context"
 import {
   createLoan,
-  destroyLoan,
-  updateLoan,
-} from "~/database/services/loan-service"
-import { createTransactionModel } from "~/database/services/transaction-service"
+  deleteLoanById,
+  updateLoanById,
+} from "~/database/services-sqlite/loan-service"
+import { createTransaction } from "~/database/services-sqlite/transaction-service"
 import { useNavigationGuard } from "~/hooks/use-navigation-guard"
 import type { TranslationKey } from "~/i18n/config"
 import { type AddLoanFormSchema, addLoanSchema } from "~/schemas/loans.schema"
@@ -47,7 +47,6 @@ import type { LoanModifyContentProps } from "./types"
 export function LoanModifyContent({
   loanModifyId,
   loan,
-  loanModel,
   accounts,
   categories,
   prefill,
@@ -147,7 +146,7 @@ export function LoanModifyContent({
 
     try {
       if (isAddMode) {
-        const newLoan = await createLoan({
+        const newLoanId = await createLoan({
           ...data,
           name: trimmedName,
           description: data.description ?? null,
@@ -159,7 +158,7 @@ export function LoanModifyContent({
         try {
           // Create the initial cash-flow transaction linked to the new loan.
           // LENT money leaves the account (expense); BORROWED money arrives (income).
-          await createTransactionModel({
+          await createTransaction({
             amount: data.principalAmount,
             type:
               data.loanType === LoanTypeEnum.LENT
@@ -174,7 +173,7 @@ export function LoanModifyContent({
             description: null,
             isPending: false,
             tags: [],
-            loanId: newLoan.id,
+            loanId: newLoanId,
           })
         } catch (txError) {
           // The loan was created successfully — losing the starting transaction is
@@ -190,15 +189,7 @@ export function LoanModifyContent({
         allowNavigation()
         handleGoBack()
       } else {
-        if (!loanModel) {
-          Toast.error({
-            title: t("common.toast.error"),
-            description: t("screens.settings.loans.form.loadingText"),
-          })
-          return
-        }
-
-        await updateLoan(loanModel, {
+        await updateLoanById(loanModifyId, {
           ...data,
           name: trimmedName,
           description: data.description ?? null,
@@ -222,7 +213,7 @@ export function LoanModifyContent({
 
   const handleDelete = async () => {
     try {
-      if (!loanModel || !loan) {
+      if (!loan) {
         Toast.error({
           title: t("common.toast.error"),
           description: t("screens.settings.loans.form.loadingText"),
@@ -230,7 +221,7 @@ export function LoanModifyContent({
         return
       }
 
-      await destroyLoan(loanModel)
+      await deleteLoanById(loanModifyId)
 
       allowNavigation()
       router.dismiss(2)

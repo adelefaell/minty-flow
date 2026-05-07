@@ -3,7 +3,6 @@
  *
  * Pure domain types with no database dependencies.
  * These represent the business logic and UI contracts.
- * The WatermelonDB model implements these types, not the other way around.
  */
 
 import type { MintyColorScheme } from "~/styles/theme/types"
@@ -18,9 +17,7 @@ export type LoanType = (typeof LoanTypeEnum)[keyof typeof LoanTypeEnum]
 /**
  * Loan domain type for UI/API usage.
  *
- * This is the single source of truth for the Loan shape.
- * The WatermelonDB model implements this interface, ensuring
- * the persistence layer conforms to the domain model.
+ * Loan domain type. Single source of truth for the Loan shape.
  */
 export interface Loan {
   id: string

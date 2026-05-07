@@ -1,11 +1,15 @@
-import { withObservables } from "@nozbe/watermelondb/react"
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router"
-import { useCallback, useLayoutEffect, useRef, useState } from "react"
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react"
 import { useTranslation } from "react-i18next"
 import { FlatList, View as RNView } from "react-native"
 import type { SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
-import { map, of, startWith, switchMap } from "rxjs"
 
 import { DynamicIcon } from "~/components/dynamic-icon"
 import { LoanActionModal } from "~/components/loans/loan-action-modal"
@@ -16,55 +20,50 @@ import { EmptyState } from "~/components/ui/empty-state"
 import { IconSvg } from "~/components/ui/icon-svg"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import type AccountModel from "~/database/models/account"
-import type LoanModel from "~/database/models/loan"
-import type TransactionModel from "~/database/models/transaction"
-import { observeAccountById } from "~/database/services/account-service"
-import {
-  observeLoanById,
-  observeLoanPaymentProgress,
-  observeLoanTransactions,
-} from "~/database/services/loan-service"
-import {
-  createTransactionModel,
-  observeTransactionModelsFull,
-  type TransactionWithRelations,
-} from "~/database/services/transaction-service"
-import { modelToLoan } from "~/database/utils/model-to-loan"
-import type { Loan } from "~/types/loans"
+import { on } from "~/database/events"
+import type { TransactionWithRelations } from "~/database/mappers/hydrateTransactions"
+import { getLoanProgress } from "~/database/repos/loan-repo"
+import { createTransaction } from "~/database/services-sqlite/transaction-service"
+import { useAccount } from "~/stores/db/account.store"
+import { useLoan } from "~/stores/db/loan.store"
+import { useTransactions } from "~/stores/db/transaction.store"
 import { LoanTypeEnum } from "~/types/loans"
 import { TransactionTypeEnum } from "~/types/transactions"
 import { logger } from "~/utils/logger"
 import { Toast } from "~/utils/toast"
 
 /* ------------------------------------------------------------------ */
-/* Inner component (receives observed data)                           */
+/* Detail screen                                                      */
 /* ------------------------------------------------------------------ */
 
-const EMPTY_TRANSACTIONS: TransactionWithRelations[] = []
-
-interface LoanDetailInnerProps {
-  loanId: string
-  loan?: Loan
-  paidAmount?: number
-  account?: AccountModel
-  transactionsFull?: TransactionWithRelations[]
-}
-
-function LoanDetailInner({
-  loanId,
-  loan,
-  paidAmount = 0,
-  account,
-  transactionsFull = EMPTY_TRANSACTIONS,
-}: LoanDetailInnerProps) {
+function LoanDetailInner({ loanId }: { loanId: string }) {
   const { t } = useTranslation()
   const router = useRouter()
   const navigation = useNavigation()
   const { theme } = useUnistyles()
   const [actionModalVisible, setActionModalVisible] = useState(false)
   const [isCreatingTransaction, setIsCreatingTransaction] = useState(false)
+  const [paidAmount, setPaidAmount] = useState(0)
   const openSwipeableRef = useRef<SwipeableMethods | null>(null)
+
+  const loan = useLoan(loanId)
+  const account = useAccount(loan?.accountId ?? "")
+  const { items: transactionsFull } = useTransactions(loan ? { loanId } : {})
+
+  useEffect(() => {
+    if (!loan) return
+    let cancelled = false
+    const fetch = () =>
+      getLoanProgress(loanId, loan.loanType).then((v) => {
+        if (!cancelled) setPaidAmount(v)
+      })
+    fetch()
+    const unsub = on("transactions:dirty", fetch)
+    return () => {
+      cancelled = true
+      unsub()
+    }
+  }, [loanId, loan])
 
   const handleTransactionPress = useCallback(
     (id: string) => {
@@ -85,7 +84,7 @@ function LoanDetailInner({
     ({ item }: { item: TransactionWithRelations }) => (
       <TransactionItem
         transactionWithRelations={item}
-        onPress={() => handleTransactionPress(item.transaction.id)}
+        onPress={() => handleTransactionPress(item.id)}
         onDelete={handleDeleteDone}
         onWillOpen={handleWillOpen}
       />
@@ -126,7 +125,7 @@ function LoanDetailInner({
   }
 
   const isLent = loan.loanType === LoanTypeEnum.LENT
-  const paid = paidAmount ?? 0
+  const paid = paidAmount
   const principal = loan.principalAmount
   const progress = principal > 0 ? paid / principal : 0
   const clampedProgress = Math.min(progress, 1)
@@ -168,7 +167,7 @@ function LoanDetailInner({
     setIsCreatingTransaction(true)
 
     Promise.resolve(
-      createTransactionModel({
+      createTransaction({
         amount: remaining,
         type: transactionType,
         transactionDate: new Date(),
@@ -343,7 +342,7 @@ function LoanDetailInner({
     <View style={styles.container}>
       <FlatList
         data={transactionsFull}
-        keyExtractor={(item) => item.transaction.id}
+        keyExtractor={(item) => item.id}
         renderItem={renderTransactionItem}
         ListHeaderComponent={headerContent}
         ListEmptyComponent={
@@ -369,53 +368,13 @@ function LoanDetailInner({
 }
 
 /* ------------------------------------------------------------------ */
-/* withObservables enhancement                                        */
-/* ------------------------------------------------------------------ */
-
-const EnhancedLoanDetail = withObservables(
-  ["loanId"],
-  ({ loanId }: { loanId: string }) => {
-    const loanModel$ = observeLoanById(loanId)
-
-    const loan$ = loanModel$.pipe(map((model: LoanModel) => modelToLoan(model)))
-
-    const paidAmount$ = loanModel$.pipe(
-      switchMap((model: LoanModel) =>
-        observeLoanPaymentProgress(loanId, model.loanType),
-      ),
-    )
-
-    const account$ = loanModel$.pipe(
-      switchMap((model: LoanModel) => observeAccountById(model.accountId)),
-    )
-
-    const transactionsFull$ = observeLoanTransactions(loanId).pipe(
-      startWith([] as TransactionModel[]),
-      switchMap((txModels: TransactionModel[]) => {
-        if (txModels.length === 0) return of([] as TransactionWithRelations[])
-        return observeTransactionModelsFull({ loanId })
-      }),
-    )
-
-    return {
-      loan: loan$,
-      paidAmount: paidAmount$.pipe(startWith(0)),
-      account: account$,
-      transactionsFull: transactionsFull$.pipe(
-        startWith([] as TransactionWithRelations[]),
-      ),
-    }
-  },
-)(LoanDetailInner)
-
-/* ------------------------------------------------------------------ */
 /* Route component                                                    */
 /* ------------------------------------------------------------------ */
 
 export default function LoanDetailScreen() {
   const { loanId } = useLocalSearchParams<{ loanId: string }>()
   if (!loanId) return null
-  return <EnhancedLoanDetail loanId={loanId} />
+  return <LoanDetailInner loanId={loanId} />
 }
 
 /* ------------------------------------------------------------------ */

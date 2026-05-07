@@ -6,7 +6,7 @@ import { Money } from "~/components/money"
 import { IconSvg, type IconSvgName } from "~/components/ui/icon-svg"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import type { TransactionWithRelations } from "~/database/services/transaction-service"
+import type { TransactionWithRelations } from "~/database/mappers/hydrateTransactions"
 import { useTransfersPreferencesStore } from "~/stores/transfers-preferences.store"
 import type { TransactionType } from "~/types/transactions"
 import { TransactionTypeEnum } from "~/types/transactions"
@@ -33,14 +33,14 @@ export const SummarySection = ({
   const incomeRows = useMemo(
     () =>
       transactionsWithRelations.filter(
-        (row) => row.transaction.type === TransactionTypeEnum.INCOME,
+        (row) => row.type === TransactionTypeEnum.INCOME,
       ),
     [transactionsWithRelations],
   )
   const expenseRows = useMemo(
     () =>
       transactionsWithRelations.filter(
-        (row) => row.transaction.type === TransactionTypeEnum.EXPENSE,
+        (row) => row.type === TransactionTypeEnum.EXPENSE,
       ),
     [transactionsWithRelations],
   )
@@ -48,9 +48,7 @@ export const SummarySection = ({
   const transferRows = useMemo(
     () =>
       transactionsWithRelations.filter(
-        (row) =>
-          row.transaction.type === TransactionTypeEnum.TRANSFER ||
-          row.transaction.isTransfer,
+        (row) => row.type === TransactionTypeEnum.TRANSFER || row.isTransfer,
       ),
     [transactionsWithRelations],
   )
@@ -59,9 +57,10 @@ export const SummarySection = ({
     if (excludeFromTotals || transferRows.length === 0) return {}
     const byCurrency: Record<string, number> = {}
     transferRows.forEach((row) => {
-      const amount = row.transaction.amount
+      const amount = row.amount
       if (amount <= 0) return
-      const currency = row.account.currencyCode
+      const currency = row.account?.currencyCode ?? ""
+      if (!currency) return
       byCurrency[currency] = (byCurrency[currency] ?? 0) + amount
     })
     return byCurrency
@@ -71,9 +70,10 @@ export const SummarySection = ({
     if (excludeFromTotals || transferRows.length === 0) return {}
     const byCurrency: Record<string, number> = {}
     transferRows.forEach((row) => {
-      const amount = row.transaction.amount
+      const amount = row.amount
       if (amount >= 0) return
-      const currency = row.account.currencyCode
+      const currency = row.account?.currencyCode ?? ""
+      if (!currency) return
       byCurrency[currency] = (byCurrency[currency] ?? 0) + Math.abs(amount)
     })
     return byCurrency
@@ -120,8 +120,9 @@ const Card = ({
   const currencyTotals = useMemo(() => {
     const totals: Record<string, number> = {}
     rows.forEach((row) => {
-      const currency = row.account.currencyCode
-      totals[currency] = (totals[currency] || 0) + (row.transaction.amount || 0)
+      const currency = row.account?.currencyCode ?? ""
+      if (!currency) return
+      totals[currency] = (totals[currency] || 0) + (row.amount || 0)
     })
     Object.entries(extraByCurrency).forEach(([currency, amount]) => {
       if (amount !== 0) totals[currency] = (totals[currency] ?? 0) + amount

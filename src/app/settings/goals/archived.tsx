@@ -1,4 +1,3 @@
-import { withObservables } from "@nozbe/watermelondb/react"
 import { useRouter } from "expo-router"
 import { useCallback } from "react"
 import { useTranslation } from "react-i18next"
@@ -8,14 +7,11 @@ import { StyleSheet } from "react-native-unistyles"
 import { GoalCard } from "~/components/goals/goal-card"
 import { EmptyState } from "~/components/ui/empty-state"
 import { View } from "~/components/ui/view"
-import { observeArchivedGoals } from "~/database/services/goal-service"
+import { useArchivedGoals } from "~/stores/db/goal.store"
 import type { Goal } from "~/types/goals"
 
-interface ArchivedGoalsContentProps {
-  goals: Goal[]
-}
-
-function ArchivedGoalsContent({ goals }: ArchivedGoalsContentProps) {
+export default function ArchivedGoalsScreen() {
+  const goals = useArchivedGoals()
   const { t } = useTranslation()
   const router = useRouter()
 
@@ -50,14 +46,6 @@ function ArchivedGoalsContent({ goals }: ArchivedGoalsContentProps) {
       />
     </View>
   )
-}
-
-const EnhancedArchivedGoals = withObservables([], () => ({
-  goals: observeArchivedGoals(),
-}))(ArchivedGoalsContent)
-
-export default function ArchivedGoalsScreen() {
-  return <EnhancedArchivedGoals />
 }
 
 const styles = StyleSheet.create((t) => ({

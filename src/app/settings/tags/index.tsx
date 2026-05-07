@@ -1,4 +1,3 @@
-import { withObservables } from "@nozbe/watermelondb/react"
 import { useRouter } from "expo-router"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -12,15 +11,11 @@ import { IconSvg } from "~/components/ui/icon-svg"
 import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import { observeTags } from "~/database/services/tag-service"
+import { useTags } from "~/stores/db/tag.store"
 import { NewEnum } from "~/types/new"
-import type { Tag } from "~/types/tags"
 
-interface TagsScreenInnerProps {
-  tags: Tag[]
-}
-
-const TagsScreenInner = ({ tags }: TagsScreenInnerProps) => {
+export default function TagsScreen() {
+  const tags = useTags()
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const { t } = useTranslation()
@@ -82,12 +77,6 @@ const TagsScreenInner = ({ tags }: TagsScreenInnerProps) => {
     </View>
   )
 }
-
-const enhance = withObservables([], () => ({
-  tags: observeTags(),
-}))
-
-export default enhance(TagsScreenInner)
 
 const styles = StyleSheet.create((theme) => ({
   container: {

@@ -26,7 +26,6 @@ import { useAccountForm } from "./use-account-form"
 
 export function AccountModifyContent({
   accountId,
-  accountModel,
   account,
   transactionCount = 0,
 }: AccountModifyContentProps) {
@@ -62,7 +61,7 @@ export function AccountModifyContent({
     closeUnsavedModal,
     openArchiveModal,
     closeArchiveModal,
-  } = useAccountForm({ accountId, accountModel, account })
+  } = useAccountForm({ accountId, account })
 
   if (!isAddMode && !account) {
     return (

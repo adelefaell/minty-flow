@@ -1,4 +1,3 @@
-import { withObservables } from "@nozbe/watermelondb/react"
 import { useRouter } from "expo-router"
 import { useState, useTransition } from "react"
 import { useTranslation } from "react-i18next"
@@ -12,22 +11,16 @@ import { Pressable } from "~/components/ui/pressable"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
 import { AccountPresets } from "~/constants/pre-sets-accounts"
-import {
-  createAccount,
-  observeAccounts,
-} from "~/database/services/account-service"
+import { createAccount } from "~/database/services-sqlite/account-service"
 import type { TranslationKey } from "~/i18n/config"
+import { useActiveAccounts } from "~/stores/db/account.store"
 import { useMoneyFormattingStore } from "~/stores/money-formatting.store"
-import type { Account } from "~/types/accounts"
 import { NewEnum } from "~/types/new"
 import { logger } from "~/utils/logger"
 import { Toast } from "~/utils/toast"
 
-interface AccountsScreenInnerProps {
-  accounts: Account[]
-}
-
-function AccountsScreenInner({ accounts }: AccountsScreenInnerProps) {
+export default function OnboardingAccountsScreen() {
+  const accounts = useActiveAccounts()
   const { t } = useTranslation()
   const router = useRouter()
   const preferredCurrency = useMoneyFormattingStore((s) => s.preferredCurrency)
@@ -169,14 +162,6 @@ function AccountsScreenInner({ accounts }: AccountsScreenInnerProps) {
       </View>
     </View>
   )
-}
-
-const EnhancedAccountsScreen = withObservables([], () => ({
-  accounts: observeAccounts(),
-}))(AccountsScreenInner)
-
-export default function OnboardingAccountsScreen() {
-  return <EnhancedAccountsScreen />
 }
 
 const styles = StyleSheet.create((theme) => ({

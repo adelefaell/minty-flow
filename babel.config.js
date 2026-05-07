@@ -10,9 +10,6 @@ module.exports = (api) => {
 
     // other config
     plugins: [
-      // WatermelonDB decorator support
-      ["@babel/plugin-proposal-decorators", { legacy: true }],
-      // other plugins
       "react-native-worklets/plugin",
       [
         "react-native-unistyles/plugin",

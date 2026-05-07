@@ -1,4 +1,3 @@
-import { withObservables } from "@nozbe/watermelondb/react"
 import { useLocalSearchParams, useRouter } from "expo-router"
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -16,10 +15,8 @@ import {
   ExpensePresets,
   IncomePresets,
 } from "~/constants/pre-sets-categories"
-import {
-  createCategory,
-  observeCategoriesByType,
-} from "~/database/services/category-service"
+import { createCategory } from "~/database/services-sqlite/category-service"
+import { useCategoriesByType } from "~/stores/db/category.store"
 import type { Category } from "~/types/categories"
 import { type TransactionType, TransactionTypeEnum } from "~/types/transactions"
 import { logger } from "~/utils/logger"
@@ -55,13 +52,12 @@ async function createCategories(
 
 interface CategoryPresetsScreenInnerProps {
   type: TransactionType
-  categories: Category[]
 }
 
 const CategoryPresetsScreenInner = ({
   type,
-  categories,
 }: CategoryPresetsScreenInnerProps) => {
+  const categories = useCategoriesByType(type)
   const { t } = useTranslation()
   const router = useRouter()
   const [selectedPresets, setSelectedPresets] = useState<Set<string>>(new Set())
@@ -189,17 +185,10 @@ const CategoryPresetsScreenInner = ({
   )
 }
 
-const EnhancedCategoryPresetsScreen = withObservables(
-  ["type"],
-  ({ type }: { type: TransactionType }) => ({
-    categories: observeCategoriesByType(type),
-  }),
-)(CategoryPresetsScreenInner)
-
 export default function CategoryPresetsScreen() {
   const params = useLocalSearchParams<{ type: TransactionType }>()
   const type = params.type || TransactionTypeEnum.EXPENSE
-  return <EnhancedCategoryPresetsScreen type={type} />
+  return <CategoryPresetsScreenInner type={type} />
 }
 
 const styles = StyleSheet.create((theme) => ({

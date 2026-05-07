@@ -1,12 +1,17 @@
-import { withObservables } from "@nozbe/watermelondb/react"
 import { differenceInDays } from "date-fns"
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router"
-import { useCallback, useLayoutEffect, useRef, useState } from "react"
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 import { useTranslation } from "react-i18next"
 import { FlatList, View as RNView } from "react-native"
 import type { SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable"
 import { StyleSheet, useUnistyles } from "react-native-unistyles"
-import { combineLatest, map, of, startWith, switchMap } from "rxjs"
 
 import { ConfirmModal } from "~/components/confirm-modal"
 import { DynamicIcon } from "~/components/dynamic-icon"
@@ -17,55 +22,55 @@ import { EmptyState } from "~/components/ui/empty-state"
 import { IconSvg } from "~/components/ui/icon-svg"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import type GoalModel from "~/database/models/goal"
-import type TransactionModel from "~/database/models/transaction"
-import { observeAccountNamesByIds } from "~/database/services/account-service"
-import {
-  observeAccountIdsForGoal,
-  observeGoalById,
-  observeGoalTransactionProgress,
-  observeGoalTransactions,
-  unarchiveGoal,
-} from "~/database/services/goal-service"
-import {
-  observeTransactionModelsFull,
-  type TransactionWithRelations,
-} from "~/database/services/transaction-service"
-import { modelToGoal } from "~/database/utils/model-to-goal"
-import type { Goal } from "~/types/goals"
+import { on } from "~/database/events"
+import type { TransactionWithRelations } from "~/database/mappers/hydrateTransactions"
+import { getGoalProgress } from "~/database/repos/goal-repo"
+import { unarchiveGoalById } from "~/database/services-sqlite/goal-service"
+import { useAccounts } from "~/stores/db/account.store"
+import { useGoal } from "~/stores/db/goal.store"
+import { useTransactions } from "~/stores/db/transaction.store"
 import { logger } from "~/utils/logger"
 import { Toast } from "~/utils/toast"
 
 /* ------------------------------------------------------------------ */
-/* Inner component (receives observed data)                           */
+/* Detail screen                                                      */
 /* ------------------------------------------------------------------ */
 
-const EMPTY_STRINGS: string[] = []
-const EMPTY_TRANSACTIONS: TransactionWithRelations[] = []
-
-interface GoalDetailInnerProps {
-  goalId: string
-  goalModel?: GoalModel
-  goal?: Goal
-  currentAmount?: number
-  accountNames?: string[]
-  transactionsFull?: TransactionWithRelations[]
-}
-
-function GoalDetailInner({
-  goalId,
-  goalModel,
-  goal,
-  currentAmount = 0,
-  accountNames = EMPTY_STRINGS,
-  transactionsFull = EMPTY_TRANSACTIONS,
-}: GoalDetailInnerProps) {
+function GoalDetailInner({ goalId }: { goalId: string }) {
   const { t } = useTranslation()
   const router = useRouter()
   const navigation = useNavigation()
   const { theme } = useUnistyles()
   const openSwipeableRef = useRef<SwipeableMethods | null>(null)
   const [unarchiveModalVisible, setUnarchiveModalVisible] = useState(false)
+
+  const goal = useGoal(goalId)
+  const allAccounts = useAccounts()
+  const [currentAmount, setCurrentAmount] = useState(0)
+  const { items: transactionsFull } = useTransactions({ goalId })
+
+  const accountNames = useMemo(
+    () =>
+      (goal?.accountIds ?? [])
+        .map((id) => allAccounts.find((a) => a.id === id)?.name)
+        .filter(Boolean) as string[],
+    [goal?.accountIds, allAccounts],
+  )
+
+  useEffect(() => {
+    if (!goal) return
+    let cancelled = false
+    const fetch = () =>
+      getGoalProgress(goalId, goal.goalType || "savings").then((v) => {
+        if (!cancelled) setCurrentAmount(v)
+      })
+    fetch()
+    const unsub = on("transactions:dirty", fetch)
+    return () => {
+      cancelled = true
+      unsub()
+    }
+  }, [goalId, goal])
 
   const handleTransactionPress = useCallback(
     (id: string) => {
@@ -83,21 +88,20 @@ function GoalDetailInner({
   }, [])
 
   const handleUnarchive = useCallback(async () => {
-    if (!goalModel) return
     try {
-      await unarchiveGoal(goalModel)
+      await unarchiveGoalById(goalId)
       Toast.success({ title: t("screens.settings.goals.unarchiveSuccess") })
     } catch (error) {
       logger.error("Error unarchiving goal", { error })
       Toast.error({ title: t("common.toast.error") })
     }
-  }, [goalModel, t])
+  }, [goalId, t])
 
   const renderTransactionItem = useCallback(
     ({ item }: { item: TransactionWithRelations }) => (
       <TransactionItem
         transactionWithRelations={item}
-        onPress={() => handleTransactionPress(item.transaction.id)}
+        onPress={() => handleTransactionPress(item.id)}
         onDelete={handleDeleteDone}
         onWillOpen={handleWillOpen}
       />
@@ -308,7 +312,7 @@ function GoalDetailInner({
     <View style={styles.container}>
       <FlatList
         data={transactionsFull}
-        keyExtractor={(item) => item.transaction.id}
+        keyExtractor={(item) => item.id}
         renderItem={renderTransactionItem}
         ListHeaderComponent={headerContent}
         ListEmptyComponent={
@@ -340,62 +344,13 @@ function GoalDetailInner({
 }
 
 /* ------------------------------------------------------------------ */
-/* withObservables enhancement                                        */
-/* ------------------------------------------------------------------ */
-
-const EnhancedGoalDetail = withObservables(
-  ["goalId"],
-  ({ goalId }: { goalId: string }) => {
-    const goalModel$ = observeGoalById(goalId)
-    const accountIds$ = observeAccountIdsForGoal(goalId)
-
-    const goal$ = combineLatest([goalModel$, accountIds$]).pipe(
-      map(([model, accountIds]: [GoalModel, string[]]) =>
-        modelToGoal(model, accountIds),
-      ),
-    )
-
-    const currentAmount$ = goalModel$.pipe(
-      switchMap((model: GoalModel) =>
-        observeGoalTransactionProgress(
-          model.id,
-          (model.goalType as "savings" | "expense") || "savings",
-        ),
-      ),
-    )
-
-    const accountNames$ = accountIds$.pipe(
-      switchMap((ids: string[]) => observeAccountNamesByIds(ids)),
-    )
-
-    const transactionsFull$ = observeGoalTransactions(goalId).pipe(
-      startWith([] as TransactionModel[]),
-      switchMap((txModels: TransactionModel[]) => {
-        if (txModels.length === 0) return of([] as TransactionWithRelations[])
-        return observeTransactionModelsFull({ goalId })
-      }),
-    )
-
-    return {
-      goalModel: goalModel$,
-      goal: goal$,
-      currentAmount: currentAmount$.pipe(startWith(0)),
-      accountNames: accountNames$.pipe(startWith([] as string[])),
-      transactionsFull: transactionsFull$.pipe(
-        startWith([] as TransactionWithRelations[]),
-      ),
-    }
-  },
-)(GoalDetailInner)
-
-/* ------------------------------------------------------------------ */
 /* Route component                                                    */
 /* ------------------------------------------------------------------ */
 
 export default function GoalDetailScreen() {
   const { goalId } = useLocalSearchParams<{ goalId: string }>()
   if (!goalId) return null
-  return <EnhancedGoalDetail goalId={goalId} />
+  return <GoalDetailInner goalId={goalId} />
 }
 
 /* ------------------------------------------------------------------ */

@@ -5,9 +5,8 @@ import { DeleteRecurringModal } from "~/components/transaction/delete-recurring-
 import { EditRecurringModal } from "~/components/transaction/edit-recurring-modal"
 import { LocationPickerModal } from "~/components/transaction/location-picker-modal"
 import { DateTimePickerModal } from "~/components/ui/date-time-picker"
-import type RecurringTransactionModel from "~/database/models/recurring-transaction"
-import type TransactionModel from "~/database/models/transaction"
-import type { TransactionLocation } from "~/types/transactions"
+import type { RecurringTransactionTemplate } from "~/database/services-sqlite/recurring-transaction-service"
+import type { Transaction, TransactionLocation } from "~/types/transactions"
 
 import type { DatePickerState, ModalState } from "./types"
 
@@ -16,8 +15,8 @@ interface FormModalsProps {
   setModals: (update: Partial<ModalState>) => void
   datePicker: DatePickerState
   location: TransactionLocation | null
-  transaction: TransactionModel | null
-  recurringRule: RecurringTransactionModel | null
+  transaction: Transaction | null
+  recurringRule: RecurringTransactionTemplate | null
   onConfirmExit: () => void
   onDestroyConfirm: () => void
   onLocationConfirm: (loc: TransactionLocation) => void

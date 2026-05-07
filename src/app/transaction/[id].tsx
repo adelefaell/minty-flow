@@ -1,34 +1,26 @@
-/**
- * Transaction editor — create or edit a transaction.
- * Uses the same pattern as accounts/[accountId]/modify and
- * settings/categories/[categoryId]/modify: withObservables for
- * reactive data.
- */
-
-import { withObservables } from "@nozbe/watermelondb/react"
 import { useLocalSearchParams } from "expo-router"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet } from "react-native-unistyles"
-import { startWith } from "rxjs"
 
 import { TransactionFormV3 } from "~/components/transaction/transaction-form-v3"
 import { Text } from "~/components/ui/text"
 import { View } from "~/components/ui/view"
-import type TransactionModel from "~/database/models/transaction"
-import { observeAccounts } from "~/database/services/account-service"
-import { observeBudgets } from "~/database/services/budget-service"
-import { observeCategoriesByType } from "~/database/services/category-service"
-import { observeGoalsByType } from "~/database/services/goal-service"
-import { observeLoans } from "~/database/services/loan-service"
-import { observeTags } from "~/database/services/tag-service"
+import { on } from "~/database/events"
 import {
-  observeTransactionModelById,
-  observeTransactionTagIds,
-} from "~/database/services/transaction-service"
+  getTagIdsForTransaction,
+  getTransactionById,
+} from "~/database/services-sqlite/transaction-service"
 import type { TransactionFormValues } from "~/schemas/transactions.schema"
+import { useAccounts } from "~/stores/db/account.store"
+import { useAllBudgets } from "~/stores/db/budget.store"
+import { useCategoriesByType } from "~/stores/db/category.store"
+import { useGoalsByType } from "~/stores/db/goal.store"
+import { useAllLoans } from "~/stores/db/loan.store"
+import { useTags } from "~/stores/db/tag.store"
 import { GoalTypeEnum } from "~/types/goals"
 import { NewEnum } from "~/types/new"
+import type { Transaction } from "~/types/transactions"
 import { type TransactionType, TransactionTypeEnum } from "~/types/transactions"
 
 const VALID_TYPES: TransactionType[] = [
@@ -50,20 +42,8 @@ function transactionTypeToGoalType(transactionType: TransactionType) {
   return GoalTypeEnum.EXPENSE
 }
 
-const EnhancedTransactionForm = withObservables(
-  ["transactionType"],
-  ({ transactionType }: { transactionType: TransactionType }) => ({
-    accounts: observeAccounts(),
-    categories: observeCategoriesByType(transactionType),
-    tags: observeTags(),
-    goals: observeGoalsByType(transactionTypeToGoalType(transactionType)),
-    budgets: observeBudgets(),
-    loans: observeLoans(),
-  }),
-)(TransactionFormV3)
-
 interface TransactionEditorProps {
-  transaction: TransactionModel | null
+  transaction: Transaction | null
   initialType?: TransactionType
   initialTagIds: string[]
   prefill?: Partial<TransactionFormValues>
@@ -79,36 +59,65 @@ function TransactionEditor({
     transaction?.type ?? initialType ?? TransactionTypeEnum.EXPENSE,
   )
 
+  const accounts = useAccounts()
+  const categories = useCategoriesByType(transactionType)
+  const tags = useTags()
+  const goals = useGoalsByType(transactionTypeToGoalType(transactionType))
+  const budgets = useAllBudgets()
+  const loans = useAllLoans()
+
   return (
-    <EnhancedTransactionForm
+    <TransactionFormV3
       transaction={transaction}
       transactionType={transactionType}
       onTransactionTypeChange={setTransactionType}
       initialTagIds={initialTagIds}
       prefill={prefill}
+      accounts={accounts}
+      categories={categories}
+      tags={tags}
+      goals={goals}
+      budgets={budgets}
+      loans={loans}
     />
   )
 }
 
-interface EditTransactionScreenProps {
-  transactionId: string
-  transaction?: TransactionModel | null
-  initialTagIds?: string[]
-}
-
-const EnhancedEditTransactionScreen = withObservables(
-  ["transactionId"],
-  ({ transactionId }: { transactionId: string }) => ({
-    transaction: observeTransactionModelById(transactionId).pipe(
-      startWith(undefined),
-    ),
-    initialTagIds: observeTransactionTagIds(transactionId),
-  }),
-)(function EditTransactionScreenInner({
-  transaction,
-  initialTagIds = [],
-}: EditTransactionScreenProps) {
+function EditTransactionScreen({ transactionId }: { transactionId: string }) {
   const { t } = useTranslation()
+  const [transaction, setTransaction] = useState<
+    Transaction | null | undefined
+  >(undefined)
+  const [initialTagIds, setInitialTagIds] = useState<string[]>([])
+
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      const tx = await getTransactionById(transactionId)
+      if (!cancelled) setTransaction(tx ?? null)
+    }
+    void load()
+    const unsub = on("transactions:dirty", () => void load())
+    return () => {
+      cancelled = true
+      unsub()
+    }
+  }, [transactionId])
+
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      const ids = await getTagIdsForTransaction(transactionId)
+      if (!cancelled) setInitialTagIds(ids)
+    }
+    void load()
+    const unsub = on("transactions:dirty", () => void load())
+    return () => {
+      cancelled = true
+      unsub()
+    }
+  }, [transactionId])
+
   if (transaction === undefined) {
     return (
       <View style={styles.container}>
@@ -140,7 +149,7 @@ const EnhancedEditTransactionScreen = withObservables(
       initialTagIds={initialTagIds}
     />
   )
-})
+}
 
 export default function TransactionScreen() {
   const {
@@ -159,7 +168,6 @@ export default function TransactionScreen() {
   const isNew = id === NewEnum.NEW
   const initialType = parseTransactionType(typeParam)
 
-  // Build prefill only for new transactions when at least one param is present
   const prefill: Partial<TransactionFormValues> | undefined =
     isNew && (prefillAccountId || prefillCategoryId || prefillLoanId)
       ? {
@@ -183,7 +191,7 @@ export default function TransactionScreen() {
   const transactionId = id ?? ""
   if (!transactionId) return null
 
-  return <EnhancedEditTransactionScreen transactionId={transactionId} />
+  return <EditTransactionScreen transactionId={transactionId} />
 }
 
 const styles = StyleSheet.create((theme) => ({

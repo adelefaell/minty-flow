@@ -1,8 +1,11 @@
-import type TransactionModel from "~/database/models/transaction"
 import i18n from "~/i18n/config"
 import type { TransactionFormValues } from "~/schemas/transactions.schema"
 import type { Account } from "~/types/accounts"
-import type { RecurringFrequency, TransactionType } from "~/types/transactions"
+import type {
+  RecurringFrequency,
+  Transaction,
+  TransactionType,
+} from "~/types/transactions"
 import {
   formatDayName,
   formatMonthDay,
@@ -41,7 +44,7 @@ export function getRecurrenceDisplayLabel(
 }
 
 export function getDefaultValues(
-  transaction: TransactionModel | null,
+  transaction: Transaction | null,
   accounts: Account[],
   transactionType: TransactionType,
   initialTagIds: string[] = [],

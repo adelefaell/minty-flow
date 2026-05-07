@@ -1,4 +1,3 @@
-import { withObservables } from "@nozbe/watermelondb/react"
 import { useRouter } from "expo-router"
 import { useState, useTransition } from "react"
 import { useTranslation } from "react-i18next"
@@ -15,21 +14,15 @@ import {
   type CategoryPreset,
   IncomePresets,
 } from "~/constants/pre-sets-categories"
-import {
-  createCategory,
-  observeCategoriesByType,
-} from "~/database/services/category-service"
+import { createCategory } from "~/database/services-sqlite/category-service"
 import type { TranslationKey } from "~/i18n/config"
-import type { Category } from "~/types/categories"
+import { useCategoriesByType } from "~/stores/db/category.store"
 import { TransactionTypeEnum } from "~/types/transactions"
 import { logger } from "~/utils/logger"
 import { Toast } from "~/utils/toast"
 
-interface IncomeCategoriesInnerProps {
-  categories: Category[]
-}
-
-function IncomeCategoriesInner({ categories }: IncomeCategoriesInnerProps) {
+export default function OnboardingIncomeCategoriesScreen() {
+  const categories = useCategoriesByType(TransactionTypeEnum.INCOME)
   const { t } = useTranslation()
   const router = useRouter()
   const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set())
@@ -196,14 +189,6 @@ function IncomeCategoriesInner({ categories }: IncomeCategoriesInnerProps) {
       </View>
     </View>
   )
-}
-
-const EnhancedIncomeCategories = withObservables([], () => ({
-  categories: observeCategoriesByType(TransactionTypeEnum.INCOME),
-}))(IncomeCategoriesInner)
-
-export default function OnboardingIncomeCategoriesScreen() {
-  return <EnhancedIncomeCategories />
 }
 
 const styles = StyleSheet.create((theme) => ({
