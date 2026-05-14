@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-05-07T22:25:35.380Z
+Generated on: 2026-05-14T19:53:49.215Z
 
 ```
 ./
@@ -266,10 +266,6 @@ Generated on: 2026-05-07T22:25:35.380Z
 │   │   ├── pre-rebase
 │   │   └── prepare-commit-msg
 │   └── pre-commit
-├── .idea/
-│   ├── .gitignore
-│   ├── misc.xml
-│   └── workspace.xml
 ├── .tmp/
 │   └── tasks/
 │       ├── phase4-ui-migration/
