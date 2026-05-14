@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-05-07T22:25:35.380Z
+Generated on: 2026-05-14T23:18:55.067Z
 
 ```
 ./
@@ -266,32 +266,6 @@ Generated on: 2026-05-07T22:25:35.380Z
 │   │   ├── pre-rebase
 │   │   └── prepare-commit-msg
 │   └── pre-commit
-├── .idea/
-│   ├── .gitignore
-│   ├── misc.xml
-│   └── workspace.xml
-├── .tmp/
-│   └── tasks/
-│       ├── phase4-ui-migration/
-│       │   ├── subtask_01.json
-│       │   ├── subtask_02.json
-│       │   ├── subtask_03.json
-│       │   ├── subtask_04.json
-│       │   ├── subtask_05.json
-│       │   ├── subtask_06.json
-│       │   ├── subtask_07.json
-│       │   ├── subtask_08.json
-│       │   ├── subtask_09.json
-│       │   ├── subtask_10.json
-│       │   ├── subtask_11.json
-│       │   ├── subtask_12.json
-│       │   └── task.json
-│       └── phase5-crash-safe-import-export-sqlite/
-│           ├── subtask_01.json
-│           ├── subtask_02.json
-│           ├── subtask_03.json
-│           ├── subtask_04.json
-│           └── task.json
 ├── .vscode/
 │   └── settings.json
 ├── docs/
@@ -881,7 +855,6 @@ Generated on: 2026-05-07T22:25:35.380Z
 │   │   │   ├── math-utils.ts
 │   │   │   └── styles.ts
 │   │   ├── stats/
-│   │   │   ├── stats-category-pie/
 │   │   │   ├── balance-timeline-chart.tsx
 │   │   │   ├── chart-container.tsx
 │   │   │   ├── chart-crosshair.tsx
