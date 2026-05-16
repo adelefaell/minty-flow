@@ -235,7 +235,7 @@ const TabLayout = () => {
               onPress={() => setPage(1)}
               style={styles.tabButton}
             >
-              <IconSvg name="chart-dots" style={isActiveTab(1)} />
+              <IconSvg name="graph" style={isActiveTab(1)} />
             </Button>
           </Tooltip>
 

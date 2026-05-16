@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-05-14T19:53:49.215Z
+Generated on: 2026-05-16T23:08:29.271Z
 
 ```
 ./
@@ -266,28 +266,6 @@ Generated on: 2026-05-14T19:53:49.215Z
 │   │   ├── pre-rebase
 │   │   └── prepare-commit-msg
 │   └── pre-commit
-├── .tmp/
-│   └── tasks/
-│       ├── phase4-ui-migration/
-│       │   ├── subtask_01.json
-│       │   ├── subtask_02.json
-│       │   ├── subtask_03.json
-│       │   ├── subtask_04.json
-│       │   ├── subtask_05.json
-│       │   ├── subtask_06.json
-│       │   ├── subtask_07.json
-│       │   ├── subtask_08.json
-│       │   ├── subtask_09.json
-│       │   ├── subtask_10.json
-│       │   ├── subtask_11.json
-│       │   ├── subtask_12.json
-│       │   └── task.json
-│       └── phase5-crash-safe-import-export-sqlite/
-│           ├── subtask_01.json
-│           ├── subtask_02.json
-│           ├── subtask_03.json
-│           ├── subtask_04.json
-│           └── task.json
 ├── .vscode/
 │   └── settings.json
 ├── docs/
@@ -303,9 +281,6 @@ Generated on: 2026-05-14T19:53:49.215Z
 │   │   └── plan-overview.md
 │   ├── STRUCTURE.md
 │   └── typography-migration.md
-├── plugins/
-│   ├── index.js
-│   └── README.md
 ├── scripts/
 │   ├── add-icons.py
 │   ├── check-missing-i18n-keys.mts
@@ -761,6 +736,7 @@ Generated on: 2026-05-14T19:53:49.215Z
 │   │   │       ├── ArrowsDiff.tsx
 │   │   │       ├── ArrowsLeftRight.tsx
 │   │   │       ├── ArrowsMoveVertical.tsx
+│   │   │       ├── ArrowsTransferUpDown.tsx
 │   │   │       ├── ArrowsUpDown.tsx
 │   │   │       ├── ArrowUp.tsx
 │   │   │       ├── ArrowUpRight.tsx
@@ -812,6 +788,7 @@ Generated on: 2026-05-14T19:53:49.215Z
 │   │   │       ├── LibraryPhoto.tsx
 │   │   │       ├── LockOpen.tsx
 │   │   │       ├── Map.tsx
+│   │   │       ├── MathSymbols.tsx
 │   │   │       ├── Minus.tsx
 │   │   │       ├── PageBreak.tsx
 │   │   │       ├── Paperclip.tsx
@@ -877,7 +854,6 @@ Generated on: 2026-05-14T19:53:49.215Z
 │   │   │   ├── math-utils.ts
 │   │   │   └── styles.ts
 │   │   ├── stats/
-│   │   │   ├── stats-category-pie/
 │   │   │   ├── balance-timeline-chart.tsx
 │   │   │   ├── chart-container.tsx
 │   │   │   ├── chart-crosshair.tsx
@@ -2253,7 +2229,6 @@ Generated on: 2026-05-14T19:53:49.215Z
 │       ├── ArrowsSplit2.tsx
 │       ├── ArrowsTransferDown.tsx
 │       ├── ArrowsTransferUp.tsx
-│       ├── ArrowsTransferUpDown.tsx
 │       ├── ArrowsUp.tsx
 │       ├── ArrowsUpLeft.tsx
 │       ├── ArrowsUpRight.tsx
@@ -5095,7 +5070,6 @@ Generated on: 2026-05-14T19:53:49.215Z
 │       ├── MathPiDivide2.tsx
 │       ├── MathSec.tsx
 │       ├── MathSin.tsx
-│       ├── MathSymbols.tsx
 │       ├── MathTg.tsx
 │       ├── MathXDivide2.tsx
 │       ├── MathXDivideY.tsx

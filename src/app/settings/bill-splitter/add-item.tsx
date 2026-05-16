@@ -391,7 +391,7 @@ export default function AddItemScreen() {
                       },
                     ]}
                     placeholder="0%"
-                    placeholderTextColor={theme.colors.onSecondary}
+                    placeholderTextColor={theme.colors.customColors.semi}
                   />
                 )}
               </Pressable>

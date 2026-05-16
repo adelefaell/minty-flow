@@ -20,11 +20,10 @@ export async function createAccount(
   const now = new Date().toISOString()
 
   const result = await runInTransaction("account.create", async (db) => {
-    // New accounts go to the top — get lowest sort_order and subtract 1
-    const first = await db.getFirstAsync<{ sort_order: number | null }>(
-      `SELECT sort_order FROM accounts ORDER BY sort_order ASC LIMIT 1`,
+    const last = await db.getFirstAsync<{ max_order: number | null }>(
+      `SELECT MAX(sort_order) AS max_order FROM accounts`,
     )
-    const sortOrder = first?.sort_order != null ? first.sort_order - 1 : 0
+    const sortOrder = last?.max_order != null ? last.max_order + 1 : 0
 
     await db.runAsync(
       `INSERT INTO accounts (

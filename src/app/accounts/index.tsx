@@ -64,15 +64,15 @@ function AccountsScreen() {
       if (t.type === TransactionTypeEnum.INCOME) {
         cur.in += t.amount
       } else if (t.type === TransactionTypeEnum.EXPENSE) {
-        cur.out += t.amount
+        cur.out -= t.amount
       } else if (
         !excludeFromTotals &&
         (t.type === TransactionTypeEnum.TRANSFER || t.isTransfer)
       ) {
         if (t.amount > 0) cur.in += t.amount
-        else cur.out += Math.abs(t.amount)
+        else cur.out -= Math.abs(t.amount)
       }
-      cur.net = cur.in - cur.out
+      cur.net = cur.in + cur.out
       totalsByAccount.set(t.accountId, cur)
     }
     return accounts.map((account) => {

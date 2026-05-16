@@ -19,6 +19,7 @@ const ICON_MAP = {
   "arrow-up": OutlineIcons.ArrowUp,
   "arrow-up-circle": FilledIcons.ArrowUpCircle,
   "arrow-down-circle": FilledIcons.ArrowDownCircle,
+  "arrows-transfer-up-down": OutlineIcons.ArrowsTransferUpDown,
   "chevron-down": FilledIcons.ChevronDown,
   "chevron-up": OutlineIcons.ChevronUp,
   "chevron-left": OutlineIcons.ChevronLeft,
@@ -333,6 +334,7 @@ const ICON_MAP = {
   "file-invoice": FilledIcons.FileInvoice,
   "file-dollar": FilledIcons.FileDollar,
   exchange: FilledIcons.Exchange,
+  "math-symbols": OutlineIcons.MathSymbols,
 
   // Communication
   phone: FilledIcons.Phone,
