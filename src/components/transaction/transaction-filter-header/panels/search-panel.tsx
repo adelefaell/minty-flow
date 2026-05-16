@@ -60,7 +60,7 @@ export function SearchPanel({
           value={value}
           onChangeText={onChange}
           placeholder={t("components.filters.searchPlaceholder")}
-          placeholderTextColor={`${theme.colors.onSurface}50`}
+          placeholderTextColor={theme.colors.customColors.semi}
           style={[
             filterHeaderStyles.searchInput,
             { color: theme.colors.onSurface },

@@ -1,6 +1,6 @@
 # Project Structure
 
-Generated on: 2026-05-14T23:18:55.067Z
+Generated on: 2026-05-16T23:01:26.047Z
 
 ```
 ./
@@ -281,9 +281,6 @@ Generated on: 2026-05-14T23:18:55.067Z
 │   │   └── plan-overview.md
 │   ├── STRUCTURE.md
 │   └── typography-migration.md
-├── plugins/
-│   ├── index.js
-│   └── README.md
 ├── scripts/
 │   ├── add-icons.py
 │   ├── check-missing-i18n-keys.mts
@@ -739,6 +736,7 @@ Generated on: 2026-05-14T23:18:55.067Z
 │   │   │       ├── ArrowsDiff.tsx
 │   │   │       ├── ArrowsLeftRight.tsx
 │   │   │       ├── ArrowsMoveVertical.tsx
+│   │   │       ├── ArrowsTransferUpDown.tsx
 │   │   │       ├── ArrowsUpDown.tsx
 │   │   │       ├── ArrowUp.tsx
 │   │   │       ├── ArrowUpRight.tsx
@@ -790,6 +788,7 @@ Generated on: 2026-05-14T23:18:55.067Z
 │   │   │       ├── LibraryPhoto.tsx
 │   │   │       ├── LockOpen.tsx
 │   │   │       ├── Map.tsx
+│   │   │       ├── MathSymbols.tsx
 │   │   │       ├── Minus.tsx
 │   │   │       ├── PageBreak.tsx
 │   │   │       ├── Paperclip.tsx
@@ -2230,7 +2229,6 @@ Generated on: 2026-05-14T23:18:55.067Z
 │       ├── ArrowsSplit2.tsx
 │       ├── ArrowsTransferDown.tsx
 │       ├── ArrowsTransferUp.tsx
-│       ├── ArrowsTransferUpDown.tsx
 │       ├── ArrowsUp.tsx
 │       ├── ArrowsUpLeft.tsx
 │       ├── ArrowsUpRight.tsx
@@ -5072,7 +5070,6 @@ Generated on: 2026-05-14T23:18:55.067Z
 │       ├── MathPiDivide2.tsx
 │       ├── MathSec.tsx
 │       ├── MathSin.tsx
-│       ├── MathSymbols.tsx
 │       ├── MathTg.tsx
 │       ├── MathXDivide2.tsx
 │       ├── MathXDivideY.tsx

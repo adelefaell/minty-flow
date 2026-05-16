@@ -89,13 +89,13 @@ export default function AccountDetailsScreen() {
       if (t.type === TransactionTypeEnum.INCOME) {
         in_ += t.amount
       } else if (t.type === TransactionTypeEnum.EXPENSE) {
-        out += t.amount
+        out -= t.amount
       } else if (!excludeFromTotals && t.isTransfer) {
         if (t.amount > 0) in_ += t.amount
-        else out += Math.abs(t.amount)
+        else out -= Math.abs(t.amount)
       }
     }
-    return { monthIn: in_, monthOut: out, monthNet: in_ - out }
+    return { monthIn: in_, monthOut: out, monthNet: in_ + out }
   }, [transactionsFull, excludeFromTotals])
 
   const categoriesByType = useMemo(

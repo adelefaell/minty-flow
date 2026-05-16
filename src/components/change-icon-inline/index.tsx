@@ -203,7 +203,7 @@ export function ChangeIconInline({
                 onCancel={handleEmojiCancel}
                 isValid={emojiValid}
                 inputRef={emojiInputRef}
-                placeholderTextColor={theme.colors.onSecondary}
+                placeholderTextColor={theme.colors.customColors.semi}
               />
             )}
 

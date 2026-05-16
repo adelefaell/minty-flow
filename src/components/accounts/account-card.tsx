@@ -144,14 +144,12 @@ export const AccountCard = ({
               variant="default"
               style={styles.summaryAmount}
               currency={account.currencyCode}
-              // tone={TransactionTypeEnum.EXPENSE}
-              showSign
             />
           </View>
           <View variant="muted" style={styles.summaryItem}>
             <View variant="muted" style={styles.summaryItemHeader}>
               <IconSvg
-                name="chart-dots"
+                name="arrows-transfer-up-down"
                 size={12}
                 color={styles.semiColor.color}
               />
@@ -254,25 +252,24 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.onSecondary,
   },
   monthlySummary: {
-    gap: 8,
-    paddingTop: 8,
+    gap: 6,
+    paddingTop: 6,
     borderTopWidth: 1,
     borderTopColor: theme.colors.customColors.semi,
   },
   summaryLabel: {
-    fontSize: theme.typography.labelSmall.fontSize,
+    ...theme.typography.labelSmall,
     fontWeight: "600",
     color: theme.colors.customColors.semi,
-
     letterSpacing: 0.8,
   },
   summaryRow: {
     flexDirection: "row",
-    gap: 16,
+    gap: 12,
   },
   summaryItem: {
     flex: 1,
-    gap: 4,
+    gap: 2,
   },
   summaryItemHeader: {
     flexDirection: "row",
@@ -281,14 +278,11 @@ const styles = StyleSheet.create((theme) => ({
   },
   summaryItemLabel: {
     ...theme.typography.labelXSmall,
-    fontWeight: "500",
     color: theme.colors.customColors.semi,
-
     letterSpacing: 0.5,
   },
   summaryAmount: {
-    ...theme.typography.titleSmall,
-    fontWeight: "600",
+    ...theme.typography.labelLarge,
     color: theme.colors.onSecondary,
   },
   semiColor: {
